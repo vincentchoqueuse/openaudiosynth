@@ -1,6 +1,7 @@
-/* knobs.c — the board's knobs on the macros (knobs.h). A default target moves its parameter over the parameter's
- * whole range (from 0 to 1, normalized), and the macro starts at the preset's own value: the preset sounds as
- * written until a knob is turned, then the knob sets the parameter. Targets use the modulation layer's macro
+/* knobs.c — the board's knobs on the macros (knobs.h). A default target moves its parameter around the preset's own
+ * value (KNOB_SPAN either way, normalized, within 0..1; less towards a closed filter or a long attack), so that no
+ * knob can silence the sound; the effect sends cover their whole range. The macro starts where the preset's value is: the preset
+ * sounds as written until a knob is turned, then the knob sets the parameter. Targets use the modulation layer's macro
  * targets (dsp/mod/partmod.h, maps 1..8) and must be realtime parameters (others are skipped). */
 #include "knobs.h"
 
@@ -23,6 +24,12 @@ static float knob_shown[SHARED_KNOBS]; /* value of knob_text, -1 to format it ag
 static int knobs_owned;                /* 1: the board reads the knob CCs itself (BOARD_MACRO_CC) */
 static float knob_last[SHARED_KNOBS];  /* the knob's position at its previous CC, -1 none since the preset */
 #define KNOB_CATCH (1.5f / 127.0f)     /* a knob this close to the value catches it */
+#ifndef KNOB_SPAN
+#define KNOB_SPAN 0.35f /* a default target's reach either side of the preset's value (normalized) */
+#endif
+#ifndef KNOB_EDGE
+#define KNOB_EDGE 0.12f /* the short reach: a cutoff's downwards, an attack's upwards */
+#endif
 
 /* The six main parameters of each engine, by name, for macros 1..6 ("" = none). */
 static const struct {
@@ -80,16 +87,31 @@ static void mod_set(synth_t *s, int index, float physical)
     synth_set_param(s, SYNTH_MOD_PARAM + index, param_to_norm(&partmod_params[index], physical));
 }
 
-/* macro k (0..7) moves parameter id (engine index, or global id) over its whole range, starting at value */
-static void knob_target(synth_t *s, int k, int id, float value, const param_desc_t *d)
+/* macro k (0..7) moves parameter id (engine index, or global id) from `from` to `to` (normalized), starting at
+ * value */
+static void knob_target(synth_t *s, int k, int id, float value, const param_desc_t *d, float from, float to)
 {
-    knob[k] = (knob_t){d, 0.0f, 1.0f};
-    SHARED->knob_value[k] = value;
+    const float pos = to > from ? (value - from) / (to - from) : 0.0f;
+    knob[k] = (knob_t){d, from, to};
+    SHARED->knob_value[k] = pos;
     mod_set(s, PM_MAP(k, PM_M_MACRO), (float)(k + 1));
     mod_set(s, PM_MAP(k, PM_M_DST), (float)(id + 1));
-    mod_set(s, PM_MAP(k, PM_M_FROM), 0.0f);
-    mod_set(s, PM_MAP(k, PM_M_TO), 1.0f);
-    mod_set(s, PM_MACRO(k), value);
+    mod_set(s, PM_MAP(k, PM_M_FROM), from);
+    mod_set(s, PM_MAP(k, PM_M_TO), to);
+    mod_set(s, PM_MACRO(k), pos);
+}
+
+/* around the preset's value, within 0..1: KNOB_SPAN either way, but a frequency (a cutoff) goes down only by
+ * KNOB_EDGE and up by the rest (lower, the filter closes on the sound), and an attack goes up only by KNOB_EDGE
+ * (longer, short notes end before they are heard) */
+static void around(const param_desc_t *d, float v, float *from, float *to)
+{
+    const int freq = strstr(d->name, "cutoff") || (d->unit && !strcmp(d->unit, "Hz"));
+    const int attack = strstr(d->name, "attack") != NULL;
+    const float down = freq ? KNOB_EDGE : attack ? 2.0f * KNOB_SPAN - KNOB_EDGE : KNOB_SPAN;
+    const float up = 2.0f * KNOB_SPAN - down;
+    *from = v - down < 0.0f ? 0.0f : v - down;
+    *to = v + up > 1.0f ? 1.0f : v + up;
 }
 
 static void default_targets(synth_t *s, int engine, const preset_param_t *params, int count)
@@ -102,15 +124,19 @@ static void default_targets(synth_t *s, int engine, const preset_param_t *params
             continue;
         for (int k = 0; k < 6; k++) {
             const int i = param_find(ops->params, ops->param_count, knob_targets[t].param[k]);
-            if (i >= 0 && ops->params[i].realtime)
-                knob_target(s, k, i, preset_value(params, count, i, &ops->params[i]), &ops->params[i]);
+            if (i >= 0 && ops->params[i].realtime) {
+                const float v = preset_value(params, count, i, &ops->params[i]);
+                float from, to;
+                around(&ops->params[i], v, &from, &to);
+                knob_target(s, k, i, v, &ops->params[i], from, to);
+            }
         }
     }
     for (int k = 0; k < 2; k++) {
         const int id = knob_globals[k];
         const param_desc_t *d = synth_global_param(id - SYNTH_PARAM_GLOBAL);
         if (d)
-            knob_target(s, 6 + k, id, preset_value(params, count, id, d), d);
+            knob_target(s, 6 + k, id, preset_value(params, count, id, d), d, 0.0f, 1.0f);
     }
 }
 

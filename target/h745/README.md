@@ -52,7 +52,9 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   that turn macros 1..8 on every preset, in place of the presets' own CCs (102..109). A preset whose macros do
   nothing gets default targets (`app/knobs.c`, `BOARD_KNOB_TARGETS`): six main parameters of its engine
   (cutoff, resonance, envelope, wavetable position, FM modulator levels...) on macros 1..6, the delay and
-  reverb sends on 7 and 8, each over its whole range, starting at the preset's value.
+  reverb sends on 7 and 8, starting at the preset's value. The sends cover their whole range; the engine
+  parameters move around the preset's value (0.35 either way, normalized), and only 0.12 towards a closed
+  filter or a long attack, so that no knob can silence the sound.
   The board reads the knob CCs itself (the synth's macro CCs are switched off) with **soft takeover**: after a
   preset change, a knob drives its macro only once it reaches or crosses the macro's value, so turning a knob never
   makes the sound jump (an FM preset's operator levels dropping to 0, a cutoff closing); until then the controls

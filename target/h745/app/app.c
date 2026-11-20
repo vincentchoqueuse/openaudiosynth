@@ -154,6 +154,7 @@ static void net_events(int apply)
             if ((e.midi[0] & 0xF0u) == 0x90u && seq_on) /* someone plays: the demo stops */
                 seq_stop();
             synth_midi(synth_default(), e.midi, e.len, 0);
+            knobs_midi(e.midi, e.len);
         } else if (e.kind == LINKQ_PARAM) {
             synth_set_param(synth_default(), e.id, e.value);
         }
@@ -638,6 +639,7 @@ void app_loop(void)
     kit_take();
     net_watch();
     usb_watch();
+    knobs_poll();
     const int req = shared_request();
     if (req >= 0) {
         app_pending = req;

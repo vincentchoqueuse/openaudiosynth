@@ -22,6 +22,8 @@
 #define BENCH_REVERB_OFF 8u
 #define BENCH_PROFILE 16u /* sample the PC during the benchmark (profile.h) */
 
+#define SHARED_KNOBS 8
+
 typedef struct {
     /* ---- written by the M4 ---- */
     volatile uint32_t m4_magic;
@@ -68,6 +70,14 @@ typedef struct {
      * memory at UID_BASE is not on its bus); the network derives the board's MAC address and id from it ---- */
     volatile uint32_t uid[3];
     volatile uint32_t uid_ok; /* SHARED_UID_OK(uid[0]) once uid is written */
+
+    /* ---- written by the M7: the eight knobs on the macros (knobs.h), for the M4's controls view ---- */
+    volatile uint32_t knob_seq;                    /* incremented once the names are written (each preset) */
+    volatile uint8_t knob_cc[SHARED_KNOBS];        /* the CC that turns each knob, 0 none */
+    volatile float knob_value[SHARED_KNOBS];       /* macro value 0..1 (audio interrupt) */
+    volatile uint32_t knob_moves[SHARED_KNOBS];    /* incremented each time the knob turns */
+    volatile char knob_name[SHARED_KNOBS][16];     /* the parameter it moves, "" if none */
+    volatile char knob_text[SHARED_KNOBS][12];     /* its value in its unit ("1.20 kHz"), main loop */
 } shared_t;
 
 #define SHARED_UID_OK(w0) (0x55494400u ^ (w0))

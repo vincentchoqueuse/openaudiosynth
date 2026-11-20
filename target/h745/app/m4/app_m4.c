@@ -3,7 +3,10 @@
  * color, with its number of presets), then the presets of the chosen instrument, with their descriptions, in
  * a list that scrolls with the finger; the "<" of the top bar goes back. A tap on a preset asks the M7 for it
  * through the mailbox (shared.h). The top bar always shows the preset playing, the M7's DSP load as a meter,
- * its overruns and its liveness; a tap on the meter opens the audio view (scope_view.h: oscilloscope and spectrum).
+ * its overruns and its liveness. Two views of the preset playing, as tabs in the top bar: a tap on its name (or
+ * on the preset playing in the list) opens its controls (the eight knobs on the macros: the parameter each one
+ * moves, its value, lit as it turns; the M7 fills them, knobs.h), a tap on the meter its signal (scope_view.h:
+ * oscilloscope and spectrum); "<" goes back to the list.
  * The touch panel shares I2C4 with the audio codec: it is started only once the M7 has set the codec up and
  * released the bus (shared.h, i2c4_free). A frame is drawn only when something on it changed, to keep the
  * memory buses quiet for the audio.
@@ -37,6 +40,7 @@
 #define STATUS_MS 250              /* top bar refresh */
 #define SCOPE_MS 33                /* oscilloscope and spectrum: 30 frames per second */
 #define METER_X 340                /* the DSP meter, also the button of the audio view */
+#define KNOB_LIT_MS 600            /* a knob just turned stays lit that long */
 #define M7_TIMEOUT_MS 1000         /* no heartbeat for that long: the M7 is shown as not responding */
 #define TS_FAIL_RESET 1            /* failed touch reads before the panel is started again (each costs the BSP's 1 s timeout) */
 
@@ -53,7 +57,7 @@
 #define C_WARN 0xE5A33Du
 #define C_ERR 0xE5534Bu
 
-typedef enum { SCREEN_INSTRUMENTS, SCREEN_PRESETS, SCREEN_SCOPE } screen_t;
+typedef enum { SCREEN_INSTRUMENTS, SCREEN_PRESETS, SCREEN_SCOPE, SCREEN_KNOBS } screen_t;
 
 /* an instrument = an engine with its presets, in the order of presets[] (alphabetical) */
 typedef struct {
@@ -64,7 +68,7 @@ typedef struct {
 typedef struct {
     int lcd_ok, ts_ok;
     screen_t screen;
-    screen_t back_to;        /* where the audio view returns */
+    screen_t back_to;        /* where the audio and controls views return */
     int inst;                /* instrument shown on SCREEN_PRESETS */
     int scroll;              /* list scroll, pixels */
     int back_scroll;         /* scroll of the screen the audio view returns to */
@@ -77,9 +81,10 @@ typedef struct {
     int order[MAX_PRESETS];  /* preset indices grouped by instrument */
     /* what the last frame showed, to draw a new one only on change */
     int dirty;
-    char shown[200];
+    char shown[400];
     uint32_t last_status, last_heartbeat, heartbeat_tick;
     uint32_t demo_shown;     /* demo state on the last frame */
+    uint32_t knob_moves[SHARED_KNOBS], knob_tick[SHARED_KNOBS]; /* last turn of each knob seen, and when */
     /* touch panel health (read with the debugger): failed reads, re-initializations, slowest read in ms */
     uint32_t ts_reads, ts_errors, ts_resets, ts_max_ms, ts_fail_streak;
 } ui_t;
@@ -213,9 +218,11 @@ static void draw_bar(const status_t *st)
 {
     gfx_fill(0, 0, GFX_W, BAR_H, C_BAR);
     gfx_fill(0, BAR_H, GFX_W, 1, C_LINE);
-    if (ui.screen == SCREEN_PRESETS || ui.screen == SCREEN_SCOPE) {
-        const char *title = ui.screen == SCREEN_SCOPE ? "audio" : ui.insts[ui.inst].name;
-        const uint32_t c = ui.screen == SCREEN_SCOPE ? C_TEXT : engine_color(ui.insts[ui.inst].name);
+    if (ui.screen != SCREEN_INSTRUMENTS) {
+        const char *title = ui.screen == SCREEN_SCOPE   ? "signal"
+                            : ui.screen == SCREEN_KNOBS ? "controls"
+                                                        : ui.insts[ui.inst].name;
+        const uint32_t c = ui.screen == SCREEN_PRESETS ? engine_color(ui.insts[ui.inst].name) : C_TEXT;
         int x = gfx_text(&font_big, 12, 12, "<", c, 0);
         gfx_text(&font_title, x + 8, 14, title, C_TEXT, BACK_W - x - 16);
     } else {
@@ -267,6 +274,16 @@ static void draw_bar(const status_t *st)
         gfx_text(&font_body, px + 12, 24, NET_PRESET->name, C_TEXT, 330 - px);
     } else {
         gfx_text(&font_body, px, 24, "-", C_DIM, 0);
+    }
+
+    /* the two views of the preset playing, as tabs: its name opens the controls, the meter the signal */
+    if (ui.screen == SCREEN_KNOBS || ui.screen == SCREEN_SCOPE) {
+        const uint32_t tc = st->playing >= 0 && st->playing < preset_count ? engine_color(presets[st->playing].engine)
+                                                                             : C_TEXT;
+        if (ui.screen == SCREEN_KNOBS)
+            gfx_fill(BACK_W, BAR_H - 3, METER_X - BACK_W, 3, tc);
+        else
+            gfx_fill(METER_X, BAR_H - 3, GFX_W - METER_X, 3, tc);
     }
 
     /* DSP load meter, or what is wrong */
@@ -345,6 +362,59 @@ static void draw_list(const status_t *st)
     }
 }
 
+static uint32_t playing_color(const status_t *st)
+{
+    return st->playing >= 0 && st->playing < preset_count ? engine_color(presets[st->playing].engine) : C_DIM;
+}
+
+/* a knob is lit for a moment after it turned */
+static int knob_lit(int k, uint32_t now)
+{
+    const uint32_t m = SHARED->knob_moves[k];
+    if (m != ui.knob_moves[k]) {
+        ui.knob_moves[k] = m;
+        if (m)
+            ui.knob_tick[k] = now;
+        else
+            ui.knob_tick[k] = now - KNOB_LIT_MS; /* a new preset */
+    }
+    return m && now - ui.knob_tick[k] < KNOB_LIT_MS;
+}
+
+/* the eight knobs: 4 x 2 tiles, each with its number and CC, the parameter it moves, its value and a bar */
+static void draw_knobs(const status_t *st)
+{
+    const uint32_t c = playing_color(st), now = HAL_GetTick();
+    const int cols = 4, tw = (GFX_W - GAP * (cols + 1)) / cols, th = (GFX_H - BAR_H - GAP * 3) / 2;
+    for (int k = 0; k < SHARED_KNOBS; k++) {
+        const int x = GAP + (k % cols) * (tw + GAP), y = BAR_H + GAP + (k / cols) * (th + GAP);
+        const int lit = knob_lit(k, now), named = SHARED->knob_name[k][0] != 0;
+        gfx_round_rect(x, y, tw, th, 10, lit ? gfx_mix(C_TILE, c, 70) : C_TILE);
+        char line[24];
+        if (SHARED->knob_cc[k])
+            snprintf(line, sizeof(line), "%d   CC %u", k + 1, SHARED->knob_cc[k]);
+        else
+            snprintf(line, sizeof(line), "%d", k + 1);
+        gfx_text(&font_small, x + 10, y + 7, line, C_FAINT, tw - 20);
+        char name[sizeof SHARED->knob_name[k]], text[sizeof SHARED->knob_text[k]];
+        for (size_t i = 0; i < sizeof name; i++)
+            name[i] = SHARED->knob_name[k][i];
+        for (size_t i = 0; i < sizeof text; i++)
+            text[i] = SHARED->knob_text[k][i];
+        name[sizeof name - 1] = text[sizeof text - 1] = 0;
+        gfx_text(&font_body, x + 10, y + 25, named ? name : "-", named ? C_TEXT : C_FAINT, tw - 20);
+        if (!named)
+            continue;
+        gfx_text(&font_title, x + 10, y + 49, text, lit ? C_TEXT : c, tw - 20);
+        float v = SHARED->knob_value[k];
+        v = v < 0.0f ? 0.0f : v > 1.0f ? 1.0f : v;
+        const int bw = tw - 20, fill = (int)((float)bw * v + 0.5f);
+        gfx_round_rect(x + 10, y + th - 16, bw, 6, 3, C_LINE);
+        if (fill >= 6)
+            gfx_round_rect(x + 10, y + th - 16, fill, 6, 3, c);
+    }
+}
+
 static void draw_frame(const status_t *st)
 {
     gfx_fill(0, 0, GFX_W, GFX_H, C_BG);
@@ -353,10 +423,10 @@ static void draw_frame(const status_t *st)
         draw_grid(st);
     else if (ui.screen == SCREEN_PRESETS)
         draw_list(st);
+    else if (ui.screen == SCREEN_KNOBS)
+        draw_knobs(st);
     else
-        scope_view_draw(8, BAR_H + 8, GFX_W - 16, GFX_H - BAR_H - 12,
-                        st->playing >= 0 && st->playing < preset_count ? engine_color(presets[st->playing].engine)
-                                                                         : C_DIM);
+        scope_view_draw(8, BAR_H + 8, GFX_W - 16, GFX_H - BAR_H - 12, playing_color(st));
     gfx_present();
 }
 
@@ -373,10 +443,10 @@ static void refresh(void)
         draw_frame(&st);
         return;
     }
-    if (!ui.dirty && now - ui.last_status < STATUS_MS)
+    if (!ui.dirty && now - ui.last_status < (ui.screen == SCREEN_KNOBS ? SCOPE_MS : STATUS_MS))
         return;
     ui.last_status = now;
-    char key[200];
+    char key[400];
     const net_status_t ns = net_status();
     const usbh_midi_status_t us = usbh_midi_status();
     snprintf(key, sizeof(key), "%d|%d|%d|%d|%d|%d|%d|%d|%lu|%ld|%d|%d|%lu|%lu|%d|%s", ui.screen, ui.inst, ui.scroll,
@@ -386,6 +456,13 @@ static void refresh(void)
     if (us.last[0]) { /* the last message: redrawn as a knob turns */
         const size_t l = strlen(key);
         snprintf(key + l, sizeof(key) - l, "|%u.%u.%u", us.last[0], us.last[1], us.last[2]);
+    }
+    if (ui.screen == SCREEN_KNOBS) { /* the knobs: redrawn as they turn, and as a lit one goes out */
+        size_t l = strlen(key);
+        l += (size_t)snprintf(key + l, sizeof(key) - l, "|k%lu", (unsigned long)SHARED->knob_seq);
+        for (int k = 0; k < SHARED_KNOBS && l < sizeof(key); k++)
+            l += (size_t)snprintf(key + l, sizeof(key) - l, "|%d.%d.%.11s", (int)(SHARED->knob_value[k] * 1000.0f),
+                                  knob_lit(k, now), (const char *)SHARED->knob_text[k]);
     }
     if (SHARED->demo_playing != ui.demo_shown) {
         ui.demo_shown = SHARED->demo_playing;
@@ -416,16 +493,28 @@ static void show(screen_t screen, int inst)
 
 /* ---------------- touch ---------------- */
 
+/* the controls or the signal of the preset playing; "<" goes back to the screen they were opened from */
+static void open_view(screen_t view)
+{
+    if (ui.screen != SCREEN_SCOPE && ui.screen != SCREEN_KNOBS) {
+        ui.back_to = ui.screen;
+        ui.back_scroll = ui.scroll;
+    }
+    show(view, ui.inst);
+}
+
 static void on_tap(int x, int y)
 {
     if (y < BAR_H) {
-        if (ui.screen == SCREEN_SCOPE && (x < BACK_W || x >= METER_X)) {
+        const int view = ui.screen == SCREEN_SCOPE || ui.screen == SCREEN_KNOBS;
+        if (view && x < BACK_W) { /* "<": back to the list or the grid */
             show(ui.back_to, ui.inst);
             ui.scroll = ui.back_scroll;
-        } else if (x >= METER_X) { /* the meter opens the audio view */
-            ui.back_to = ui.screen;
-            ui.back_scroll = ui.scroll;
-            show(SCREEN_SCOPE, ui.inst);
+        } else if (x >= METER_X) { /* the meter opens the signal (oscilloscope and spectrum) */
+            open_view(SCREEN_SCOPE);
+        } else if (x >= BACK_W) { /* the preset playing opens its controls */
+            if (SHARED->preset != -1)
+                open_view(SCREEN_KNOBS);
         } else if (ui.screen == SCREEN_PRESETS && x < BACK_W) {
             show(SCREEN_INSTRUMENTS, 0);
         } else if (ui.screen == SCREEN_INSTRUMENTS && x < 110) { /* the title: demo arpeggio on / off */
@@ -442,7 +531,11 @@ static void on_tap(int x, int y)
         if (row >= 0 && row < rows && j < ui.n_inst)
             show(SCREEN_PRESETS, j);
     } else if (ui.screen == SCREEN_PRESETS && y >= LIST_Y) {
-        request_preset(preset_at((y - LIST_Y + ui.scroll) / ROW_H));
+        const int index = preset_at((y - LIST_Y + ui.scroll) / ROW_H);
+        if (index >= 0 && index == SHARED->preset) /* the preset playing, tapped again: its controls */
+            open_view(SCREEN_KNOBS);
+        else
+            request_preset(index);
     }
 }
 

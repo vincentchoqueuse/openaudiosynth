@@ -51,6 +51,10 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   nothing gets default targets (`app/knobs.c`, `BOARD_KNOB_TARGETS`): six main parameters of its engine
   (cutoff, resonance, envelope, wavetable position, FM modulator levels...) on macros 1..6, the delay and
   reverb sends on 7 and 8, each over its whole range, starting at the preset's value.
+- Screen views of the preset playing, as tabs in the top bar: a tap on its name (or on the preset playing in
+  the list) opens its **controls**, a tap on the DSP meter its **signal** (oscilloscope and spectrum); "<"
+  goes back. The controls are the eight knobs: the parameter each one moves, its value in its unit, a bar,
+  lit while it turns. The M7 writes them in the mailbox (`knob_*` in `app/shared.h`, filled by `app/knobs.c`).
 - The MCU's unique id (MAC address, board id) is read by the M7 and handed to the M4 in the mailbox: the M4
   takes a bus fault reading `UID_BASE`.
 - Keep the board's supply configuration (direct SMPS): a wrong setting makes the board unreachable by the

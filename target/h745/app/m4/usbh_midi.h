@@ -23,7 +23,11 @@ typedef struct {
     char name[24];      /* the product name the device gives, "" if none */
     uint32_t messages;  /* MIDI messages received */
     uint32_t lost;      /* dropped because the M7's queue was full */
+    uint8_t last[3];    /* the last message (status 0: none yet), to see what a controller sends */
 } usbh_midi_status_t;
+
+/* The last USBH_MIDI_LOG messages received, oldest first (a debugger reads them as usbh_midi_log too). */
+#define USBH_MIDI_LOG 16
 
 /* PLL3 for both the display (R: 9.6 MHz pixel clock) and USB (Q: 48 MHz). Called by the display's set-up (it
  * replaces the board support package's MX_LTDC_ClockConfig), or by usbh_midi_init if the display is off. */

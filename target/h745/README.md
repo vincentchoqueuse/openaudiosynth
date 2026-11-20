@@ -43,7 +43,11 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   (`app/m4/usbh_midi.c`, on the HAL's HCD only; descriptors read by `midi/usbdesc.c`): it powers the
   connector, sets the device up, then polls its MIDI IN endpoints every frame in the USB interrupt and pushes
   each message to the M7's event queue, like the network. The screen shows the device's name; unplugging it
-  stops the notes it held. No hub. PLL3 now serves both the display (9.6 MHz) and USB (48 MHz).
+  stops the notes it held. No hub. PLL3 now serves both the display (9.6 MHz) and USB (48 MHz). Tested with a
+  Novation Launch Control. The screen's second line shows the last CC or note received. A debugger reads
+  `usbh_midi_cc_seen` on the M4 (each CC as `(channel << 8) | cc`, in the order the knobs first moved) to
+  find what a controller sends. `BOARD_MACRO_CC` (CCs 13..20, the Launch Control's top knobs) sets the CCs
+  that turn macros 1..8 on every preset, in place of the presets' own CCs (102..109).
 - The MCU's unique id (MAC address, board id) is read by the M7 and handed to the M4 in the mailbox: the M4
   takes a bus fault reading `UID_BASE`.
 - Keep the board's supply configuration (direct SMPS): a wrong setting makes the board unreachable by the

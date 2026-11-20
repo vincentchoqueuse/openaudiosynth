@@ -18,7 +18,9 @@
 #include "core/kit.h"
 #include "link.h"
 #include "engines/engine.h"
+#include "board_config.h"
 #include "main.h"
+#include "mod/partmod.h"
 #include "presets.h"
 #include "profile.h"
 #include "shared.h"
@@ -212,6 +214,20 @@ static void app_render_synth(float *L, float *R, int n)
 
 /* ---------------- presets (main loop, while the interrupt outputs silence) ---------------- */
 
+/* The board's controller knobs on the macros (board_config.h), after the preset's own parameters. */
+static void macro_cc_apply(synth_t *s)
+{
+#ifdef BOARD_MACRO_CC
+    static const uint8_t cc[] = BOARD_MACRO_CC;
+    for (int k = 0; k < PM_MACROS && k < (int)sizeof cc; k++)
+        if (cc[k])
+            synth_set_param(s, SYNTH_MOD_PARAM + PM_MACRO_CC(k),
+                            param_to_norm(&partmod_params[PM_MACRO_CC(k)], (float)cc[k]));
+#else
+    (void)s;
+#endif
+}
+
 static void preset_apply(int index)
 {
     synth_t *s = synth_default();
@@ -222,6 +238,7 @@ static void preset_apply(int index)
         for (int k = 0; k < p->count; k++)
             synth_set_param(s, preset_params[p->first + k].id, preset_params[p->first + k].value);
     }
+    macro_cc_apply(s);
     synth_part_kit(s, 0, app_kit, app_kit_bytes); /* synth_init removed it */
     seq_index = -1; /* synth_init silenced every note */
     app_health.preset = index;
@@ -248,6 +265,7 @@ static void preset_apply_net(void)
         for (uint32_t k = 0; k < count; k++)
             synth_set_param(s, p->params[k].id, p->params[k].value);
     }
+    macro_cc_apply(s);
     synth_part_kit(s, 0, app_kit, app_kit_bytes);
     seq_index = -1;
     app_health.preset = SHARED_PLAYING_NET;

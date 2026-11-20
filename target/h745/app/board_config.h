@@ -16,4 +16,12 @@
 #define BOARD_MIDI_NET 1
 #endif
 
+/* The MIDI CCs that turn macros 1..8 (the knobs of a controller), on every preset the board plays: they replace
+ * the presets' own (macro<k>_cc, CCs 102..109 by default). 0 keeps a macro's own CC; any channel is heard (part 0
+ * is omni). Here the top row of knobs of a Launch Control in its default layout, which sends CCs 13..20 on
+ * channel 1. Remove the line to keep the presets' CCs. */
+#ifndef BOARD_MACRO_CC
+#define BOARD_MACRO_CC {13, 14, 15, 16, 17, 18, 19, 20}
+#endif
+
 #endif /* BOARD_CONFIG_H */

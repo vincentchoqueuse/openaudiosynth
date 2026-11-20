@@ -56,6 +56,25 @@ static struct {
     char name[24];
 } u;
 
+/* the last messages received, for the screen and the debugger: log[(log_pos - 1) % USBH_MIDI_LOG] is the newest */
+volatile uint8_t usbh_midi_log[USBH_MIDI_LOG][3];
+static volatile uint32_t log_pos;
+/* every controller seen, in the order it first moved: (channel << 8) | CC number, for the debugger (which knob
+ * sends what) */
+#define CC_SEEN_MAX 64
+volatile uint16_t usbh_midi_cc_seen[CC_SEEN_MAX];
+volatile uint32_t usbh_midi_cc_count;
+
+static void cc_note(uint8_t status, uint8_t cc)
+{
+    const uint16_t v = (uint16_t)(((status & 15u) << 8) | cc);
+    for (uint32_t i = 0; i < usbh_midi_cc_count; i++)
+        if (usbh_midi_cc_seen[i] == v)
+            return;
+    if (usbh_midi_cc_count < CC_SEEN_MAX)
+        usbh_midi_cc_seen[usbh_midi_cc_count++] = v;
+}
+
 static uint8_t ctl_buf[CFG_MAX + 64u] __attribute__((aligned(4)));
 static uint8_t in_buf[USBDESC_MAX_IN][IN_MAX] __attribute__((aligned(4)));
 
@@ -347,6 +366,13 @@ static void midi_frame(void)
                     e.kind = LINKQ_MIDI;
                     e.len = m.len;
                     memcpy(e.midi, m.data, m.len);
+                    if (m.data[0] < 0xF8) { /* not clock or active sensing */
+                        for (int b = 0; b < 3; b++)
+                            usbh_midi_log[log_pos % USBH_MIDI_LOG][b] = b < m.len ? m.data[b] : 0;
+                        log_pos++;
+                        if ((m.data[0] & 0xF0u) == 0xB0u)
+                            cc_note(m.data[0], m.data[1]);
+                    }
                     if (linkq_push(LINKQ, &e)) {
                         u.messages++;
                         SHARED->usb_midi++;
@@ -471,5 +497,8 @@ usbh_midi_status_t usbh_midi_status(void)
     st.name[sizeof st.name - 1] = 0;
     st.messages = u.messages;
     st.lost = u.lost;
+    const uint32_t n = log_pos;
+    for (int b = 0; b < 3; b++)
+        st.last[b] = n ? usbh_midi_log[(n - 1u) % USBH_MIDI_LOG][b] : 0;
     return st;
 }

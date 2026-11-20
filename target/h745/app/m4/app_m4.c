@@ -242,8 +242,16 @@ static void draw_bar(const status_t *st)
                                : us.state == USBH_MIDI_ERROR    ? "USB: error"
                                : us.name[0]                     ? us.name
                                                                 : "USB MIDI";
+            char msg[48];
+            const uint8_t st0 = us.last[0], kind = st0 & 0xF0u;
+            if (on && kind == 0xB0u)
+                snprintf(msg, sizeof(msg), "%s  CC%u=%u ch%u", what, us.last[1], us.last[2], (st0 & 15u) + 1u);
+            else if (on && (kind == 0x90u || kind == 0x80u))
+                snprintf(msg, sizeof(msg), "%s  note %u ch%u", what, us.last[1], (st0 & 15u) + 1u);
+            else
+                snprintf(msg, sizeof(msg), "%s", what);
             gfx_round_rect(nx, 29, 6, 6, 3, on ? C_OK : us.state == USBH_MIDI_ERROR ? C_ERR : C_FAINT);
-            gfx_text(&font_small, nx + 10, 26, what, on ? C_DIM : C_FAINT, BACK_W - nx - 14);
+            gfx_text(&font_small, nx + 10, 26, msg, on ? C_DIM : C_FAINT, BACK_W - nx - 14);
         }
     }
 
@@ -375,6 +383,10 @@ static void refresh(void)
              st.alive, st.playing, st.overload, ui.requested, (int)(st.load + 0.5f), (unsigned long)st.overruns,
              (long)st.audio_status, ui.ts_ok, ns.up, (unsigned long)ns.kit_count, (unsigned long)SHARED->kit_seq,
              (int)us.state, us.name);
+    if (us.last[0]) { /* the last message: redrawn as a knob turns */
+        const size_t l = strlen(key);
+        snprintf(key + l, sizeof(key) - l, "|%u.%u.%u", us.last[0], us.last[1], us.last[2]);
+    }
     if (SHARED->demo_playing != ui.demo_shown) {
         ui.demo_shown = SHARED->demo_playing;
         ui.dirty = 1;

@@ -128,14 +128,16 @@ static void icmp_input(udpip_t *u, const uint8_t *src_mac, uint32_t src, const u
     transmit(u, ETH_HDR + IP_HDR + n);
 }
 
-static int ip_for_us(const udpip_t *u, uint32_t dst)
+/* l2_bcast: the frame went to every station (Ethernet broadcast): then any IPv4 broadcast is ours, whatever the
+ * sender's subnet (a host with a fixed address, 192.168.100.255, reaches a link-local board) */
+static int ip_for_us(const udpip_t *u, uint32_t dst, int l2_bcast)
 {
-    if (dst == UDPIP_BROADCAST || (u->group && dst == u->group))
+    if (dst == UDPIP_BROADCAST || (u->group && dst == u->group) || l2_bcast)
         return 1;
     return u->ip && (dst == u->ip || dst == (u->ip | ~u->mask));
 }
 
-static void ipv4_input(udpip_t *u, const uint8_t *src_mac, const uint8_t *ip, int len)
+static void ipv4_input(udpip_t *u, const uint8_t *src_mac, const uint8_t *ip, int len, int l2_bcast)
 {
     if (len < IP_HDR || (ip[0] >> 4) != 4) {
         u->rx_bad++;
@@ -147,7 +149,7 @@ static void ipv4_input(udpip_t *u, const uint8_t *src_mac, const uint8_t *ip, in
         return;
     }
     const uint32_t src = rd32(ip + 12), dst = rd32(ip + 16);
-    if ((rd16(ip + 6) & 0x3FFFu) != 0 || !ip_for_us(u, dst)) { /* a fragment, or not for us */
+    if ((rd16(ip + 6) & 0x3FFFu) != 0 || !ip_for_us(u, dst, l2_bcast)) { /* a fragment, or not for us */
         u->rx_dropped++;
         return;
     }
@@ -201,7 +203,7 @@ void udpip_input(udpip_t *u, const uint8_t *f, int len)
     if (type == ETH_ARP)
         arp_input(u, f + ETH_HDR, len - ETH_HDR);
     else if (type == ETH_IPV4)
-        ipv4_input(u, f + 6, f + ETH_HDR, len - ETH_HDR);
+        ipv4_input(u, f + 6, f + ETH_HDR, len - ETH_HDR, bcast);
     else
         u->rx_dropped++;
 }

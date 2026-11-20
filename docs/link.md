@@ -178,9 +178,25 @@ just build
 `--iface` matters on a Mac with Wi-Fi: broadcasts otherwise leave by the default route. `--board ID`
 addresses a single board.
 
+**Python client** (`tools/board.py`, also importable: `from board import Link`): discover, select, notes,
+phrases in the patches' audition notation, knob sweeps, and a test of every preset over the cable. The host is
+the sequencer: notes are sent when they are due, with the heartbeat while they are held.
+
+```sh
+tools/board.py --iface en0 discover
+tools/board.py --iface en0 audition gull_laugh
+tools/board.py --iface en0 play "A2 A2 C3 A2 - A2 G2 A2" --bpm 130 --loop 4 --sweep 13:10:120
+tools/board.py --iface en0 test --seconds 2      # every preset: select, play its phrase, read the load
+```
+
+With `--iface`, it sends to that interface's subnet broadcast. A board accepts any IPv4 broadcast that came as
+an Ethernet broadcast, so a host with a fixed address (192.168.100.1 on a direct cable) reaches a board on its
+link-local address without configuring anything; the board answers the sender's MAC and IP directly.
+
 ## Not done yet
 
-- Not tested on the board: the PHY, the link, and the timings are still to measure with the board plugged in.
+- Tried on the board (2026-11-20, direct cable to a Mac): discovery, select, MIDI, heartbeat, all 81 presets played
+  over the network without an overrun. Kits over the network and the timings are still to measure.
 - Numbered MIDI datagrams, so a board can tell a lost one (protocol v2, with the timestamps).
 - Timestamps: a note is played at the start of the next buffer. Sample-accurate timing will need a
   synchronized clock between the hub and the boards.

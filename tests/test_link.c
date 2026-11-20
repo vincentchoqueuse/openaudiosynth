@@ -268,17 +268,20 @@ static void suite_udpip(void)
     udpip_input(&host, wb.frame, wb.len);
     CHECK(wh.received == 1 && wh.data_len == 3 && wh.from.port == LINK_PORT && wh.from.ip == bip, "reply received");
 
-    /* broadcast (limited and directed) and the multicast group */
+    /* broadcast (limited, directed, another subnet's) and the multicast group */
     udpip_peer_t bc = {{0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}, UDPIP_BROADCAST, LINK_PORT};
     udpip_send(&host, &bc, msg, 4);
     udpip_input(&board, wh.frame, wh.len);
     bc.ip = 0xA9FEFFFFu;
     udpip_send(&host, &bc, msg, 4);
     udpip_input(&board, wh.frame, wh.len);
+    bc.ip = 0xC0A864FFu; /* 192.168.100.255: the directed broadcast of a host with a fixed address */
+    udpip_send(&host, &bc, msg, 4);
+    udpip_input(&board, wh.frame, wh.len);
     udpip_peer_t mc = {{0x01, 0x00, 0x5E, 0x7F, 0x47, 0x01}, LINK_GROUP, LINK_PORT};
     udpip_send(&host, &mc, msg, 4);
     udpip_input(&board, wh.frame, wh.len);
-    CHECK(wb.received == 4, "broadcast or multicast not received (%d)", wb.received);
+    CHECK(wb.received == 5, "broadcast or multicast not received (%d)", wb.received);
 
     /* dropped: another port, another unicast IP, another MAC, a fragment, a bad UDP checksum */
     const int before = wb.received;

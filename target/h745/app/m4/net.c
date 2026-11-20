@@ -461,6 +461,10 @@ static void link_check(void)
 void net_init(int sdram_ok)
 {
     uint8_t uid[12], mac[6];
+    /* no kit after a start (both cores start again): SRAM4 holds whatever it held, which HELLO would report as a
+     * kit size. The sequence number stays, so the M7 never takes a stale kit for a new one. */
+    SHARED->kit_size = 0;
+    SHARED->kit_count = 0;
     uid_fetch();
     st.id = uid_bytes(uid);
     st.ip = udpip_link_local(st.id);

@@ -1,0 +1,66 @@
+{
+  "version": 1,
+  "name": "jardin_de_verre",
+  "description": "Original piece for the modal engine: a bowed singing-bowl drone, a kalimba pattern thrown into a ping-pong tape echo, church bells every 8 bars, a soft detuned saw pad with ensemble chorus, sub swells from the second cycle, and a long plate reverb.",
+  "bpm": 70,
+  "length_beats": 96,
+  "tail_s": 14,
+  "tracks": [
+    {
+      "patch": "patches/modal_bowl_bowed.json",
+      "step": 4,
+      "notes": "D3+A3 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -9,
+      "reverb_send": 0.5
+    },
+    {
+      "patch": "patches/modal_kalimba.json",
+      "step": 0.5,
+      "notes": "D5 - - - - - - - D5 - - - - - - - B4 - - - - - - - D5 - - - - - - - G5 - - - - - - - D5 - - - B4 - - - A4 - - - - - - - F#5 - - - D5 - - - D5 A4 E5 F#5 - A5 F#5 E5 D5 - A4 B4 - E5 - - B4 F#5 D5 E5 - A5 - F#5 D5 E5 - B4 - - A4 - G5 D5 F#5 C#6 - B5 - F#5 D5 - C#5 - B4 - - - A4 E5 F#5 B5 - A5 E5 - F#5 - E5 - D5 - - - D5 A4 E5 F#5 - A5 F#5 E5 D5 - A4 B4 - E5 - - B4 F#5 D5 E5 - A5 - F#5 D5 E5 - B4 - - A4 - G5 D5 F#5 C#6 - B5 - F#5 D5 - C#5 - B4 - - - A4 E5 F#5 B5 - A5 E5 - F#5 - E5 - D5 - - -",
+      "gate": 0.9,
+      "gain_db": 4,
+      "reverb_send": 0.45,
+      "velocity": 95
+    },
+    {
+      "patch": "patches/modal_church_bell.json",
+      "step": 0.5,
+      "notes": "D4 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - A3 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - D4 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - A3 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - D4 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - A3 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -",
+      "gain_db": -2,
+      "reverb_send": 0.7,
+      "velocity": 80
+    },
+    {
+      "patch": "patches/ambient_saw_pad.json",
+      "step": 0.5,
+      "notes": "D3+F#3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ B2+D3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G2+B3+D4+F#4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ A2+D3+E3+B3 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D3+F#3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ B2+D3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G2+B3+D4+F#4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ A2+D3+E3+B3 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D3+F#3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ B2+D3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G2+B3+D4+F#4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ A2+D3+E3+B3 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -11,
+      "reverb_send": 0.6,
+      "params": {
+        "amp_attack": 2.0,
+        "amp_release": 3.0,
+        "cutoff": 800,
+        "chorus_mode": "ensemble",
+        "chorus_mix": 0.4
+      }
+    },
+    {
+      "patch": "patches/ambient_sub.json",
+      "step": 0.5,
+      "notes": "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - D1 _ _ _ _ _ _ _ _ _ _ _ - - - - B0 _ _ _ _ _ _ _ _ _ _ _ - - - - G1 _ _ _ _ _ _ _ _ _ _ _ - - - - A1 _ _ _ _ _ _ _ _ _ _ _ - - - - D1 _ _ _ _ _ _ _ _ _ _ _ - - - - B0 _ _ _ _ _ _ _ _ _ _ _ - - - - G1 _ _ _ _ _ _ _ _ _ _ _ - - - - A1 _ _ _ _ _ _ _ _ _ _ _ - - - -",
+      "gain_db": -2,
+      "reverb_send": 0.05
+    }
+  ],
+  "reverb": {
+    "decay": 0.9,
+    "damping_hz": 4000,
+    "predelay_s": 0.05,
+    "size": 1.8,
+    "return_db": -1
+  },
+  "master": {
+    "fade_in_s": 2,
+    "fade_out_s": 12
+  }
+}

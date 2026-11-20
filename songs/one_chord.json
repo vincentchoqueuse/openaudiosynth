@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "name": "one_chord",
+  "description": "A single held chord for 60 s: everything you hear moving is the per-voice detune LFO and its LFO-of-LFO modulation, plus filter breathing and reverb.",
+  "bpm": 60,
+  "length_beats": 56,
+  "tail_s": 10,
+  "tracks": [
+    { "patch": "patches/ambient_saw_pad.json", "step": 4,
+      "notes": "F2+C3+G3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": 0, "reverb_send": 0.6 }
+  ],
+  "reverb": { "decay": 0.9, "damping_hz": 4000, "predelay_s": 0.04, "size": 2.0, "return_db": -1 },
+  "master": { "fade_in_s": 3, "fade_out_s": 8 }
+}

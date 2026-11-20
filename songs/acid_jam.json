@@ -1,0 +1,147 @@
+{
+  "version": 1,
+  "name": "acid_jam",
+  "description": "Acid jam: the acid engine (accents, slides, resonant ladder) over the hybrid kit; the cutoff and resonance are ridden section by section, dub stabs in the second half.",
+  "bpm": 126,
+  "length_beats": 128,
+  "tail_s": 5,
+  "tracks": [
+    {
+      "patch": "patches/kit_hybrid.json",
+      "pattern": [
+        {
+          "kick": "X...x...X...x...",
+          "chat": "..x...x...x...x.",
+          "ohat": "..x...x...x...x.",
+          "repeat": 4
+        },
+        {
+          "kick": "X...x...X...x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "clap": "....x.......x...",
+          "repeat": 12
+        },
+        {
+          "chat": "xo.oxo.oxo.oxo.o",
+          "clap": "............x...",
+          "repeat": 4
+        },
+        {
+          "kick": "X...x...X...x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "clap": "....x.......x...",
+          "cymbal": "x.x.x.x.x.x.x.x.",
+          "repeat": 12
+        }
+      ],
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "gain_db": 0,
+      "reverb_send": 0.05,
+      "params": {
+        "stereo": 0.4,
+        "drive": 0.2,
+        "chat_level": -4,
+        "cymbal_level": -9,
+        "kick_level": -7
+      }
+    },
+    {
+      "patch": "patches/acid_classic.json",
+      "step": 0.25,
+      "start_step": 0,
+      "notes": "C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2",
+      "gate": 0.6,
+      "gain_db": 2,
+      "reverb_send": 0.08,
+      "params": {
+        "cutoff": 300,
+        "resonance": 0.75,
+        "env_mod": 2.5,
+        "delay_mix": 0.15,
+        "delay_time": 0.357,
+        "delay_pingpong": "on"
+      }
+    },
+    {
+      "patch": "patches/acid_classic.json",
+      "step": 0.25,
+      "start_step": 128,
+      "notes": "C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2 C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2",
+      "gate": 0.6,
+      "gain_db": 1,
+      "reverb_send": 0.08,
+      "params": {
+        "cutoff": 650,
+        "resonance": 0.85,
+        "env_mod": 3.0,
+        "delay_mix": 0.15,
+        "delay_time": 0.357,
+        "delay_pingpong": "on"
+      }
+    },
+    {
+      "patch": "patches/acid_classic.json",
+      "step": 0.25,
+      "start_step": 256,
+      "notes": "C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 -",
+      "gate": 0.6,
+      "gain_db": 0,
+      "reverb_send": 0.08,
+      "params": {
+        "cutoff": 1400,
+        "resonance": 0.9,
+        "env_mod": 3.5,
+        "delay_mix": 0.15,
+        "delay_time": 0.357,
+        "delay_pingpong": "on"
+      }
+    },
+    {
+      "patch": "patches/acid_classic.json",
+      "step": 0.25,
+      "start_step": 320,
+      "notes": "C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 - C2! - C2 C2 D#2! - C2 C3~ A#2 G2 - C2! F2~ D#2 C2 -",
+      "gate": 0.6,
+      "gain_db": 1,
+      "reverb_send": 0.08,
+      "params": {
+        "cutoff": 800,
+        "resonance": 0.88,
+        "env_mod": 3.2,
+        "delay_mix": 0.15,
+        "delay_time": 0.357,
+        "delay_pingpong": "on"
+      }
+    },
+    {
+      "patch": "patches/dub_chords.json",
+      "step": 0.25,
+      "start_step": 320,
+      "gain_db": -8,
+      "reverb_send": 0.3,
+      "notes": "- - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - -",
+      "params": {
+        "delay_time": 0.357,
+        "delay_feedback": 0.5
+      },
+      "pump": {
+        "depth_db": 6,
+        "release_s": 0.2
+      }
+    }
+  ],
+  "reverb": {
+    "decay": 0.75,
+    "damping_hz": 6000,
+    "predelay_s": 0.015,
+    "size": 1.2,
+    "return_db": -6
+  },
+  "master": {
+    "fade_in_s": 0,
+    "fade_out_s": 5
+  }
+}

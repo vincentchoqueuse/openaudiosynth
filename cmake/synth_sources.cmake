@@ -1,0 +1,57 @@
+# synth_sources.cmake — the sources of the DSP engine and the MIDI parser, relative to the repository root.
+# Shared by the host build (CMakeLists.txt) and the board projects (target/*/app), so every build compiles
+# the same files.
+set(SYNTH_DSP_SOURCES
+  dsp/core/sin_table.c
+  dsp/core/kit.c
+  dsp/osc/polyblep.c
+  dsp/osc/supersaw.c
+  dsp/filter/svf_tpt.c
+  dsp/filter/ladder.c
+  dsp/filter/comb.c
+  dsp/filter/formant.c
+  dsp/filter/scream.c
+  dsp/filter/vfilter.c
+  dsp/filter/dcblock.c
+  dsp/env/adsr.c
+  dsp/env/env_rl.c
+  dsp/mod/lfo.c
+  dsp/mod/tempo.c
+  dsp/mod/partmod.c
+  dsp/env/mseg.c
+  dsp/voice/voicemod.c
+  dsp/mod/params.c
+  dsp/voice/voice_alloc.c
+  dsp/voice/vpoly.c
+  dsp/engines/sine.c
+  dsp/engines/va.c
+  dsp/engines/modal.c
+  dsp/engines/drums.c
+  dsp/engines/acid.c
+  dsp/engines/mono.c
+  dsp/engines/poly.c
+  dsp/engines/fm6.c
+  dsp/engines/wt.c
+  dsp/engines/coupled.c
+  dsp/engines/selfosc.c
+  dsp/engines/sampler.c
+  dsp/osc/splay.c
+  dsp/osc/splay_table.c
+  dsp/osc/selfosc.c
+  dsp/osc/wavetable.c
+  dsp/osc/wt_factory.c
+  dsp/core/fft.c
+  dsp/engines/registry.c
+  dsp/fx/reverb.c
+  dsp/fx/delay.c
+  dsp/fx/chorus.c
+  dsp/fx/fxbus.c
+  dsp/synth.c
+)
+set(SYNTH_MIDI_SOURCES
+  midi/midi.c
+  midi/link.c
+  midi/udpip.c
+)
+# strict flags of dsp/ and midi/ (CLAUDE.md: float only, no fused multiply-add for bit-exact results)
+set(SYNTH_DSP_FLAGS -Wdouble-promotion -Wpedantic -Wshadow -ffp-contract=off)

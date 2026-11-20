@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oid/patch.schema.json",
+  "title": "OID patch",
+  "type": "object",
+  "required": [
+    "version",
+    "engine",
+    "params"
+  ],
+  "properties": {
+    "version": {
+      "const": 1
+    },
+    "engine": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "kit": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "sample kit played by the sampler engine: a directory of NN_name.wav files (kits/NAME, or the demo kits built in build-host/kits)"
+    },
+    "params": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)*$"
+      },
+      "additionalProperties": {
+        "type": [
+          "number",
+          "string"
+        ]
+      },
+      "description": "parameter names, or roles (filter.cutoff) for portable patches"
+    },
+    "macros": {
+      "type": "array",
+      "maxItems": 8,
+      "description": "live controls: macro k is the part's macro k (macro1..macro8, 0..1); each moves its targets from a value to another, in the target's units, along its curve; 32 targets in all",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "value": { "type": "number", "minimum": 0, "maximum": 1 },
+          "targets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["param", "from", "to"],
+              "properties": {
+                "param": { "type": "string", "description": "an engine parameter that moves live (name or role)" },
+                "from": { "type": ["number", "string"], "description": "its value with the macro at 0" },
+                "to": { "type": ["number", "string"], "description": "its value with the macro at 1" }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "audition": {
+      "type": "object",
+      "properties": {
+        "notes": {
+          "type": "string"
+        },
+        "bpm": {
+          "type": "number",
+          "exclusiveMinimum": 10,
+          "exclusiveMaximum": 400
+        },
+        "step": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "gate": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "velocity": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 127
+        },
+        "humanize_velocity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "humanize_ms": {
+          "type": "number",
+          "minimum": 0
+        },
+        "swing": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 0.5
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

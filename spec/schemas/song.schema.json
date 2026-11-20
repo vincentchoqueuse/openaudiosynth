@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oid/song.schema.json",
+  "title": "OID song",
+  "type": "object",
+  "required": ["version", "bpm", "length_beats", "tracks"],
+  "properties": {
+    "version": {"const": 1},
+    "name": {"type": "string"},
+    "description": {"type": "string"},
+    "bpm": {"type": "number", "exclusiveMinimum": 10, "exclusiveMaximum": 400},
+    "length_beats": {"type": "number", "exclusiveMinimum": 0},
+    "tail_s": {"type": "number", "minimum": 0},
+    "tracks": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/track"}},
+    "reverb": {
+      "type": "object",
+      "properties": {
+        "decay": {"type": "number", "minimum": 0, "maximum": 0.99},
+        "damping_hz": {"type": "number", "exclusiveMinimum": 0},
+        "predelay_s": {"type": "number", "minimum": 0, "maximum": 0.25},
+        "size": {"type": "number", "minimum": 0.5, "maximum": 2},
+        "return_db": {"type": "number"}
+      },
+      "additionalProperties": false
+    },
+    "master": {
+      "type": "object",
+      "properties": {"fade_in_s": {"type": "number", "minimum": 0}, "fade_out_s": {"type": "number", "minimum": 0}},
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {"^x-": {}},
+  "additionalProperties": false,
+  "$defs": {
+    "pattern_section": {
+      "type": "object",
+      "properties": {"repeat": {"type": "integer", "minimum": 1}},
+      "additionalProperties": {"type": "string", "pattern": "^[xXo.\\- |]*$"}
+    },
+    "track": {
+      "type": "object",
+      "required": ["patch"],
+      "oneOf": [{"required": ["notes"]}, {"required": ["pattern"]}],
+      "properties": {
+        "patch": {"oneOf": [{"type": "string", "description": "a patch file, relative to the repository root"}, {"type": "object", "required": ["version", "engine"], "description": "an inline patch (same format as a patch file)"}]},
+        "notes": {"type": "string"},
+        "pattern": {"oneOf": [
+          {"$ref": "#/$defs/pattern_section"},
+          {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/pattern_section"}}]},
+        "step": {"type": "number", "exclusiveMinimum": 0},
+        "start_step": {"type": "integer", "minimum": 0},
+        "repeat": {"type": "integer", "minimum": 1},
+        "gate": {"type": "number", "exclusiveMinimum": 0, "maximum": 1},
+        "velocity": {"type": "integer", "minimum": 1, "maximum": 127},
+        "humanize_velocity": {"type": "number", "minimum": 0},
+        "humanize_ms": {"type": "number", "minimum": 0},
+        "swing": {"type": "number", "minimum": 0, "maximum": 0.5},
+        "gain_db": {"type": "number"},
+        "pan": {"type": "number", "minimum": -1, "maximum": 1},
+        "reverb_send": {"type": "number", "minimum": 0},
+        "pump": {
+          "type": "object",
+          "properties": {
+            "depth_db": {"type": "number", "minimum": 0},
+            "release_s": {"type": "number", "exclusiveMinimum": 0},
+            "every_beats": {"type": "number", "exclusiveMinimum": 0}
+          },
+          "additionalProperties": false
+        },
+        "params": {"type": "object", "additionalProperties": {"type": ["number", "string"]}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

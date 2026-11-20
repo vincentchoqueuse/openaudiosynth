@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "engine": "coupled",
+  "name": "glass_points",
+  "description": "Rare cold glass points: a 4-partial network with diffusive freezing (detuned partials extinguish each other) and competition (winners flicker), bright tilt, short life; sparse crystalline dots above the duel.",
+  "params": {
+    "partials": 4,
+    "stretch": 0.0012,
+    "spread": 25,
+    "drift": 6,
+    "drift_time": 3,
+    "tilt": 0.4,
+    "amp_coupling": -0.9,
+    "phase_coupling": 1.2,
+    "pitch_by_level": 0.02,
+    "reach": 1,
+    "freeze": "on",
+    "amp_attack": 0.004,
+    "amp_decay": 2.5,
+    "amp_sustain": 0,
+    "amp_release": 2.5,
+    "volume": -4,
+    "pan_spread": 0.8,
+    "reverb_mix": 0.4,
+    "reverb_decay": 0.92,
+    "reverb_damping": 10000,
+    "reverb_predelay": 0.03
+  },
+  "audition": {
+    "notes": "B5 _ _ _ - - - - E6 _ _ _ - - - -",
+    "bpm": 50,
+    "step": 1,
+    "velocity": 70
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "engine": "coupled",
+  "name": "coupled_breathing",
+  "description": "Breathing network: partials feed their in-step neighbours and pull each other toward the harmonic series while a slow random walk pushes them apart; louder partials go flat. The chord breathes on its own, no LFO anywhere.",
+  "params": {
+    "amp_coupling": 0.6,
+    "phase_coupling": 0.6,
+    "pitch_by_level": 0.05,
+    "spread": 20,
+    "drift": 15,
+    "drift_time": 5,
+    "tilt": 0.8,
+    "amp_attack": 2.0,
+    "amp_release": 6.0,
+    "pan_spread": 0.7,
+    "reverb_mix": 0.45,
+    "reverb_decay": 0.93,
+    "reverb_damping": 8000,
+    "reverb_predelay": 0.05
+  },
+  "audition": {
+    "notes": "D3+A3+E4 _ _ _ _ _ _ _ A#2+F3+C4 _ _ _ _ _ _ _",
+    "bpm": 50,
+    "step": 1,
+    "velocity": 95
+  }
+}

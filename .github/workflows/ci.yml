@@ -1,0 +1,25 @@
+# ci.yml — on every push and pull request (Apple Silicon runner): host build, then the unit tests, code rules,
+# audio fingerprints and plugin test (ctest); and every unit suite under Address/UndefinedBehavior sanitizers.
+name: ci
+on: [push, pull_request]
+jobs:
+  host:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python tools
+        run: python3 -m venv .venv && .venv/bin/pip install -q -r tools/requirements.txt
+      - name: Build
+        run: cmake --preset host && cmake --build --preset host -j
+      - name: Test
+        run: ctest --preset host
+  sanitizers:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Python tools
+        run: python3 -m venv .venv && .venv/bin/pip install -q -r tools/requirements.txt
+      - name: Build
+        run: cmake --preset asan && cmake --build --preset asan -j
+      - name: Unit tests
+        run: ./build-asan/tests/synth_tests

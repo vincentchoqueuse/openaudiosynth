@@ -1,0 +1,6 @@
+# tools/requirements.txt — Python dependencies of tools/ and of the ctest checks (spec_validate, golden, plots).
+# Setup: python3 -m venv .venv && .venv/bin/pip install -r tools/requirements.txt (CMake then uses .venv).
+numpy
+scipy
+matplotlib
+jsonschema

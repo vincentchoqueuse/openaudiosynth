@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "ambient_air",
+  "description": "Breathing tape-hiss texture: band-passed noise whose centre wanders slowly.",
+  "params": {
+    "osc1_level": 0, "osc2_level": 0, "noise_level": 1.0,
+    "filter_mode": "bp", "cutoff": 1400, "resonance": 1.4, "keytrack": 0, "fenv_amount": 0,
+    "lfo_wave": "sine", "lfo_rate": 0.06, "lfo_cutoff": 1.5,
+    "amp_attack": 6.0, "amp_sustain": 1.0, "amp_release": 6.0, "amp_velocity": 0, "pan_spread": 0
+  },
+  "audition": { "notes": "C4 _ _ _ _ _ _ _", "bpm": 60, "step": 2 }
+}

@@ -1,0 +1,74 @@
+{
+  "oid": "0.3",
+  "controller": "Novation Launch Control XL, factory template 1",
+  "note": "CC numbers of the factory template as commonly documented: check yours with `synth_play --verbose` and edit. Each CC maps to roles or parameter names tried in order: the first one the current engine has wins, so one layout drives every engine.",
+  "map": {
+    "13": [
+      "filter.cutoff",
+      "resonator.brightness",
+      "drum.kick.decay"
+    ],
+    "14": [
+      "filter.resonance",
+      "exciter.hardness",
+      "drum.kick.tune"
+    ],
+    "15": [
+      "filter.envelope_amount",
+      "resonator.decay",
+      "drum.snare.tone"
+    ],
+    "16": [
+      "motion.detune1.depth",
+      "resonator.inharmonicity",
+      "drum.snare.decay"
+    ],
+    "17": [
+      "motion.meta_rate",
+      "resonator.unison",
+      "drum.chat.decay"
+    ],
+    "18": [
+      "osc2.detune",
+      "exciter.position",
+      "drum.ohat.decay"
+    ],
+    "19": [
+      "voice.glide",
+      "exciter.bow",
+      "drum.clap.decay"
+    ],
+    "20": [
+      "lfo.rate",
+      "resonator.release",
+      "drum.accent"
+    ],
+    "29": "fx.chorus.mix",
+    "30": "fx.delay.time",
+    "31": "fx.delay.feedback",
+    "32": "fx.delay.tone",
+    "33": "fx.delay.wow",
+    "34": "fx.reverb.decay",
+    "35": "fx.reverb.damping",
+    "36": "fx.reverb.predelay",
+    "77": "fx.delay.mix",
+    "78": "fx.reverb.mix",
+    "79": [
+      "amp.attack",
+      "drum.drive"
+    ],
+    "80": [
+      "amp.release",
+      "resonator.release"
+    ],
+    "81": [
+      "amp.sustain",
+      "resonator.damping"
+    ],
+    "82": [
+      "output.volume"
+    ],
+    "83": "fx.chorus.mix",
+    "84": "master.level"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "engine": "selfosc",
+  "name": "selfosc_bass",
+  "description": "Growling bass: a hard relaxation wave (drive 4) with a stiff Duffing spring that sharpens loud notes, through the screaming 2-pole low-pass.",
+  "params": {
+    "drive": 4.0,
+    "velocity_drive": 1.0,
+    "stiffness": 0.6,
+    "entrain": 1.0,
+    "filter_type": "scream",
+    "cutoff": 700,
+    "resonance": 0.6,
+    "filter_character": 0.5,
+    "keytrack": 0.4,
+    "amp_attack": 0.003,
+    "amp_decay": 0.3,
+    "amp_sustain": 0.7,
+    "amp_release": 0.12,
+    "pan_spread": 0,
+    "volume": 6,
+    "part_level": 12
+  },
+  "audition": {
+    "notes": "E1 - E1 E2 - E1 G1 - A1 - A1 A2 - G1 D2 -",
+    "bpm": 120,
+    "step": 0.25,
+    "humanize_velocity": 10
+  }
+}

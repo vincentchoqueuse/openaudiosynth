@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "name": "prog_pump",
+  "description": "Progressive-house style: short detuned dub chord stabs in a 3-3-3-3-2-2 rhythm, sidechain-style pumping on every beat, offbeat bass, hybrid kit four-on-the-floor; the chord filter opens section by section (500 Hz -> 3 kHz), a breakdown with a pad and a clap roll, then the drop.",
+  "bpm": 128,
+  "length_beats": 160,
+  "tail_s": 6,
+  "tracks": [
+    {
+      "patch": "patches/kit_hybrid.json",
+      "pattern": [
+        {
+          "kick": "X...x...X...x...",
+          "chat": "..o...o...o...o.",
+          "ohat": "..x...x...x...x.",
+          "repeat": 8
+        },
+        {
+          "kick": "X...x...X...x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "clap": "....x.......x...",
+          "repeat": 8,
+          "snare": "....x.......x..."
+        },
+        {
+          "chat": "..o...o...o...o.",
+          "repeat": 7
+        },
+        {
+          "clap": "x...x...x.x.xxxX",
+          "chat": "..o...o...o...o.",
+          "repeat": 1
+        },
+        {
+          "kick": "X...x...X...x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "clap": "....x.......x...",
+          "cymbal": "x.x.x.x.x.x.x.x.",
+          "repeat": 16,
+          "snare": "....x.......x..."
+        }
+      ],
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "humanize_ms": 1,
+      "gain_db": 0,
+      "reverb_send": 0.08,
+      "params": {
+        "stereo": 0.4,
+        "clap_decay": 1.6,
+        "kick_level": 0,
+        "chat_level": -6,
+        "cymbal_level": -8,
+        "ohat_level": -3,
+        "kick_tune": -3,
+        "kick_decay": 1.3,
+        "snare_level": -5,
+        "snare_tone": 0.6
+      }
+    },
+    {
+      "patch": "patches/dub_chords.json",
+      "step": 0.25,
+      "start_step": 0,
+      "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
+      "gain_db": -3,
+      "reverb_send": 0.3,
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "pump": {
+        "depth_db": 9,
+        "release_s": 0.22
+      },
+      "params": {
+        "cutoff": 500,
+        "fenv_amount": 1.5,
+        "amp_decay": 0.32,
+        "delay_time": 0.3515625,
+        "delay_mix": 0.32,
+        "delay_feedback": 0.5,
+        "pan_spread": 0.7,
+        "chorus_mode": "I+II",
+        "chorus_mix": 0.6,
+        "osc2_detune": 12
+      }
+    },
+    {
+      "patch": "patches/dub_chords.json",
+      "step": 0.25,
+      "start_step": 128,
+      "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
+      "gain_db": -3,
+      "reverb_send": 0.3,
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "pump": {
+        "depth_db": 9,
+        "release_s": 0.22
+      },
+      "params": {
+        "cutoff": 900,
+        "fenv_amount": 2.0,
+        "amp_decay": 0.32,
+        "delay_time": 0.3515625,
+        "delay_mix": 0.32,
+        "delay_feedback": 0.5,
+        "pan_spread": 0.7,
+        "chorus_mode": "I+II",
+        "chorus_mix": 0.6,
+        "osc2_detune": 12
+      }
+    },
+    {
+      "patch": "patches/dub_chords.json",
+      "step": 0.25,
+      "start_step": 256,
+      "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
+      "gain_db": -2,
+      "reverb_send": 0.3,
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "pump": {
+        "depth_db": 9,
+        "release_s": 0.22
+      },
+      "params": {
+        "cutoff": 1600,
+        "fenv_amount": 2.5,
+        "amp_decay": 0.32,
+        "delay_time": 0.3515625,
+        "delay_mix": 0.32,
+        "delay_feedback": 0.5,
+        "pan_spread": 0.7,
+        "chorus_mode": "I+II",
+        "chorus_mix": 0.6,
+        "osc2_detune": 12
+      }
+    },
+    {
+      "patch": "patches/dub_chords.json",
+      "step": 0.25,
+      "start_step": 384,
+      "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
+      "gain_db": 0,
+      "reverb_send": 0.3,
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "pump": {
+        "depth_db": 9,
+        "release_s": 0.22
+      },
+      "params": {
+        "cutoff": 3000,
+        "fenv_amount": 3.0,
+        "amp_decay": 0.32,
+        "delay_time": 0.3515625,
+        "delay_mix": 0.32,
+        "delay_feedback": 0.5,
+        "pan_spread": 0.7,
+        "chorus_mode": "I+II",
+        "chorus_mix": 0.6,
+        "osc2_detune": 12
+      }
+    },
+    {
+      "patch": "patches/sub_bass.json",
+      "step": 0.25,
+      "start_step": 128,
+      "gain_db": 0,
+      "reverb_send": 0,
+      "notes": "- - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 -",
+      "pump": {
+        "depth_db": 5,
+        "release_s": 0.15
+      }
+    },
+    {
+      "patch": "patches/ambient_supersaw_pad.json",
+      "step": 4,
+      "start_step": 64,
+      "gain_db": -12,
+      "reverb_send": 0.6,
+      "notes": "F3+G#3+C4 C#3+F3+G#3 C3+D#3+G#3 D#3+G3+A#3 F3+G#3+C4 C#3+F3+G#3 C3+D#3+G#3 D#3+G3+A#3",
+      "pump": {
+        "depth_db": 6,
+        "release_s": 0.3
+      },
+      "params": {
+        "amp_attack": 1.0,
+        "amp_release": 2.0
+      }
+    },
+    {
+      "patch": "patches/prog_bass.json",
+      "step": 0.25,
+      "start_step": 128,
+      "gain_db": -3,
+      "reverb_send": 0,
+      "notes": "- - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 - - - F1 - - - F1 - - - F1 - - - F1 - - - C#1 - - - C#1 - - - C#1 - - - C#1 - - - G#1 - - - G#1 - - - G#1 - - - G#1 - - - D#1 - - - D#1 - - - D#1 - - - D#1 -",
+      "pump": {
+        "depth_db": 6,
+        "release_s": 0.18
+      }
+    }
+  ],
+  "reverb": {
+    "decay": 0.82,
+    "damping_hz": 5500,
+    "predelay_s": 0.02,
+    "size": 1.5,
+    "return_db": -4
+  },
+  "master": {
+    "fade_in_s": 0,
+    "fade_out_s": 6
+  }
+}

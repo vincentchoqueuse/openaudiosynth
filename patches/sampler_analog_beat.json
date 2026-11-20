@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "engine": "sampler",
+  "name": "sampler_analog_beat",
+  "description": "Drum sampler on the analog demo kit (recorded from the drums engine): closed and open hats in one choke group, hats and toms spread in stereo, the kick a touch shorter. A base to load your own samples into.",
+  "kit": "synth_analog",
+  "params": {
+    "velocity": 0.6,
+    "pad1_decay": 1.2,
+    "pad6_choke": 1,
+    "pad8_choke": 1,
+    "pad6_pan": 0.25,
+    "pad8_pan": 0.3,
+    "pad5_pan": -0.4,
+    "pad7_pan": 0.0,
+    "pad9_pan": 0.4,
+    "pad6_level": -3,
+    "reverb_mix": 0.08
+  },
+  "audition": {
+    "notes": "C2!+F#2 F#2? F#2 C2+F#2? D2+F#2 F#2? C2+F#2 A#2 C2+F#2 F#2? C2!+F#2 F#2? D2+D#2+F#2 F#2? F#2 C3+C2",
+    "bpm": 118,
+    "step": 0.25
+  }
+}

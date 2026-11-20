@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "engine": "wt",
+  "name": "wt_fold_bass",
+  "description": "Punchy fold bass: sine-folding table whose fold amount follows a fast env2 (percussive brightness), sub and ladder.",
+  "params": {
+    "a_table": "fold",
+    "a_position": 0.1,
+    "a_level": 0.85,
+    "sub": 0.6,
+    "filter_type": "lp24",
+    "cutoff": 2500,
+    "resonance": 0.15,
+    "drive": 0.3,
+    "keytrack": 0.3,
+    "env2_attack": 0.001,
+    "env2_decay": 0.18,
+    "env2_sustain": 0.1,
+    "amp_attack": 0.002,
+    "amp_decay": 0.4,
+    "amp_sustain": 0.6,
+    "amp_release": 0.1,
+    "voice_mode": "mono",
+    "mod1_source": "env2",
+    "mod1_destination": "a_position",
+    "mod1_amount": 0.6,
+    "mod2_source": "velocity",
+    "mod2_destination": "a_position",
+    "mod2_amount": 0.2,
+    "volume": 6
+  },
+  "audition": {
+    "notes": "C2 - C2 C3 - C2 D#2 - F2 - F2 - G2 - A#1 -",
+    "bpm": 124,
+    "step": 0.25,
+    "humanize_velocity": 6,
+    "humanize_ms": 4
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "ambient_bell",
+  "description": "Soft glassy bell: sine plus a quiet triangle a twelfth above, slow free decay, slight detune shimmer.",
+  "params": {
+    "osc1_wave": "sine", "osc2_wave": "tri", "osc2_oct": 1, "osc2_semi": 7, "osc2_level": 0.25,
+    "lfo2_detune": 6, "lfo2_rate": 0.4, "lfo2_spread": 1.0,
+    "cutoff": 7000, "resonance": 0.7, "keytrack": 0, "fenv_amount": 0,
+    "amp_attack": 0.004, "amp_decay": 3.5, "amp_sustain": 0, "amp_release": 3.5, "amp_velocity": 0.5,
+    "drift": 5, "pan_spread": 0.7
+  },
+  "audition": { "notes": "A5 - - - F5 - E5 - D5 - - -", "bpm": 60 }
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "engine": "mono",
+  "name": "mono_d_overload",
+  "description": "The feedback trick: the output sent back into the mixer through the external input. Three sawtooths, the mixer already driven, feedback up: the bass thickens, compresses and growls, and the filter contour snarls on each note.",
+  "params": {
+    "osc1_range": "16",
+    "osc1_wave": "saw",
+    "osc1_level": 0.9,
+    "osc2_range": "16",
+    "osc2_wave": "saw",
+    "osc2_detune": 0.1,
+    "osc2_level": 0.9,
+    "osc3_range": "32",
+    "osc3_wave": "square",
+    "osc3_level": 0.8,
+    "osc3_detune": -0.06,
+    "mixer_drive": 0.6,
+    "feedback": 0.5,
+    "cutoff": 480,
+    "emphasis": 0.35,
+    "contour": 3.0,
+    "keytrack": 0.33,
+    "fenv_attack": 0.001,
+    "fenv_decay": 0.35,
+    "fenv_sustain": 0.3,
+    "amp_attack": 0.001,
+    "amp_decay": 0.4,
+    "amp_sustain": 0.85,
+    "release": "off",
+    "note_priority": "low",
+    "bend_range": 7,
+    "volume": 4,
+    "master": 4
+  },
+  "audition": {
+    "notes": "E1 _ _ E1 G1 _ A1 _ E1 _ _ D2 E2 _ B0 _",
+    "bpm": 100,
+    "step": 0.5,
+    "gate": 0.9
+  }
+}

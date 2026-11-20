@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "prog_bass",
+  "description": "Rolling progressive-house bass: saw + square one octave down, closed low-pass with a short filter blip, tight envelope; layer it with a sine sub.",
+  "params": {
+    "osc1_wave": "saw",
+    "osc2_wave": "pulse",
+    "osc2_oct": -1,
+    "osc2_level": 0.7,
+    "osc2_detune": 0,
+    "cutoff": 320,
+    "resonance": 1.6,
+    "keytrack": 0.3,
+    "fenv_amount": 1.8,
+    "fenv_decay": 0.12,
+    "fenv_sustain": 0.1,
+    "amp_attack": 0.002,
+    "amp_decay": 0.25,
+    "amp_sustain": 0.55,
+    "amp_release": 0.05,
+    "pan_spread": 0,
+    "drift": 2,
+    "volume": 2
+  },
+  "audition": {
+    "notes": "- - F1 - - - F1 - - - C#1 - - - C#1 -",
+    "bpm": 128,
+    "step": 0.25,
+    "gate": 0.9
+  }
+}

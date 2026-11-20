@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "engine": "mono",
+  "name": "mono_lead",
+  "description": "Singing lead: saw + square a fifth up, glide, emphasis just below self-oscillation, delayed vibrato on the mod wheel.",
+  "params": {
+    "osc1_wave": "saw",
+    "osc2_wave": "square",
+    "osc2_detune": 7.0,
+    "osc2_level": 0.5,
+    "osc3_level": 0,
+    "cutoff": 1400,
+    "emphasis": 0.6,
+    "contour": 1.5,
+    "fenv_attack": 0.03,
+    "fenv_decay": 0.6,
+    "fenv_sustain": 0.5,
+    "amp_attack": 0.01,
+    "amp_sustain": 1.0,
+    "glide": 0.08,
+    "mixer_drive": 0.4,
+    "release": "on",
+    "mod_pitch": 0.4,
+    "delay_mix": 0.25,
+    "delay_time": 0.375,
+    "delay_feedback": 0.35,
+    "reverb_mix": 0.2
+  },
+  "audition": {
+    "notes": "A3~ C4 D4~ E4 _ _ G4~ E4 D4 _ C4~ D4 A3 _ _ _",
+    "bpm": 100,
+    "step": 0.5,
+    "gate": 0.95
+  }
+}

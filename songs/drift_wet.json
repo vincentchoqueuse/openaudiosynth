@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "name": "drift_wet",
+  "description": "Same piece as drift with a much wetter, longer, darker reverb wash for a more hypnotic, blurred result. Sub and drone stay almost dry to keep the low end clear.",
+  "bpm": 60,
+  "length_beats": 96,
+  "tail_s": 18,
+  "tracks": [
+    {
+      "patch": "patches/ambient_saw_pad.json",
+      "step": 4,
+      "repeat": 2,
+      "notes": "D3+A3+E4+F4 _ _ _ _ _ Bb2+F3+A3+D4 _ _ _ _ _",
+      "gain_db": 0,
+      "reverb_send": 0.85
+    },
+    {
+      "patch": "patches/ambient_saw_low.json",
+      "step": 4,
+      "notes": "D2+A2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -3,
+      "reverb_send": 0.25
+    },
+    {
+      "patch": "patches/ambient_sub.json",
+      "step": 4,
+      "notes": "- - D1 _ _ - - - Bb1 _ _ - - - D1 _ _ _ - - Bb1 _ _ -",
+      "gain_db": 1,
+      "reverb_send": 0.05
+    },
+    {
+      "patch": "patches/ambient_bell.json",
+      "step": 1,
+      "start_step": 16,
+      "repeat": 2,
+      "notes": "A5 - - - F5 - E5 - - - - - D5 - - - - - - - C5 - D5 - - - - - - - - -",
+      "gain_db": -7,
+      "reverb_send": 1.0,
+      "pan": 0.2
+    },
+    {
+      "patch": "patches/ambient_air.json",
+      "step": 4,
+      "notes": "C4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -16,
+      "reverb_send": 0.7
+    }
+  ],
+  "reverb": {
+    "decay": 0.95,
+    "damping_hz": 3000,
+    "predelay_s": 0.09,
+    "size": 2.0,
+    "return_db": 1
+  },
+  "master": {
+    "fade_in_s": 6,
+    "fade_out_s": 16
+  }
+}

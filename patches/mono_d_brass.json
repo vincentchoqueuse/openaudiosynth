@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "engine": "mono",
+  "name": "mono_d_brass",
+  "description": "Synth brass: two sawtooths, a slow-opening contour on the ladder, multiple triggering. With the mod wheel up, the reissue's filter-contour modulation (source A = filter contour) makes each note scoop up into pitch as the filter opens.",
+  "params": {
+    "osc1_range": "8",
+    "osc1_wave": "saw",
+    "osc1_level": 0.8,
+    "osc2_range": "8",
+    "osc2_wave": "saw",
+    "osc2_detune": 0.06,
+    "osc2_level": 0.8,
+    "osc3_level": 0,
+    "mixer_drive": 0.3,
+    "cutoff": 500,
+    "emphasis": 0.15,
+    "contour": 2.8,
+    "keytrack": 0.66,
+    "fenv_attack": 0.06,
+    "fenv_decay": 0.5,
+    "fenv_sustain": 0.6,
+    "amp_attack": 0.03,
+    "amp_decay": 0.4,
+    "amp_sustain": 0.9,
+    "release": "on",
+    "voice_mode": "mono",
+    "note_priority": "last",
+    "bend_range": 7,
+    "reverb_mix": 0.15,
+    "volume": 4,
+    "mod_a": "filter_eg",
+    "mod_mix": 0.0,
+    "mod_pitch": 0.6
+  },
+  "audition": {
+    "notes": "C4 _ _ E4 G4 _ _ _ F4 _ _ A4 G4 _ _ -",
+    "bpm": 88,
+    "step": 0.5,
+    "gate": 0.9
+  }
+}

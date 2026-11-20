@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "name": "swarm",
+  "description": "Two chords on a supersaw swarm (14 detuned saws per note, each breathing on its own LFO), slow sub swells, glass bells and a very wet, dark plate reverb.",
+  "bpm": 60,
+  "length_beats": 80,
+  "tail_s": 16,
+  "tracks": [
+    {
+      "patch": "patches/ambient_supersaw_pad.json",
+      "step": 4,
+      "repeat": 2,
+      "notes": "D3+A3+E4+F4 _ _ _ _ Bb2+F3+A3+D4 _ _ _ _",
+      "gain_db": 0,
+      "reverb_send": 0.8
+    },
+    {
+      "patch": "patches/ambient_sub.json",
+      "step": 4,
+      "notes": "- D1 _ _ - - Bb1 _ _ - - D1 _ _ _ - Bb1 _ _ -",
+      "gain_db": 2,
+      "reverb_send": 0.05
+    },
+    {
+      "patch": "patches/ambient_bell.json",
+      "step": 1,
+      "start_step": 20,
+      "repeat": 1,
+      "notes": "A5 - - - F5 - E5 - - - - - D5 - - - - - - - C5 - D5 - - - - - - - - - A5 - - - E5 - - - - - - - - - - -",
+      "gain_db": -8,
+      "reverb_send": 1.0,
+      "pan": -0.2
+    },
+    {
+      "patch": "patches/ambient_air.json",
+      "step": 4,
+      "notes": "C4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -17,
+      "reverb_send": 0.7
+    }
+  ],
+  "reverb": {
+    "decay": 0.94,
+    "damping_hz": 3200,
+    "predelay_s": 0.08,
+    "size": 2.0,
+    "return_db": 0
+  },
+  "master": {
+    "fade_in_s": 5,
+    "fade_out_s": 14
+  }
+}

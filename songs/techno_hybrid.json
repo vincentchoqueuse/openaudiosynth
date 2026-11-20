@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "name": "techno_hybrid",
+  "description": "Techno on the hybrid kit: four-on-the-floor punchy kick, offbeat open hats choked by 16th closed hats, clap on 2 and 4, rim percussion, ride in the second half; squelchy acid bass line, dub chord stabs into a tape echo, a breakdown with a clap roll.",
+  "bpm": 128,
+  "length_beats": 128,
+  "tail_s": 5,
+  "tracks": [
+    {
+      "patch": "patches/kit_hybrid.json",
+      "pattern": [
+        {
+          "kick": "X...x...X...x...",
+          "clap": "....x.......x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "rim": "...x......x...x.",
+          "repeat": 8
+        },
+        {
+          "kick": "X...x...X...x...",
+          "clap": "....x.......x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "rim": "...x......x...x.",
+          "cymbal": "x.x.x.x.x.x.x.x.",
+          "repeat": 8
+        },
+        {
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "rim": "...x......x...x.",
+          "clap": "............x...",
+          "repeat": 3
+        },
+        {
+          "kick": "X...x...X...x...",
+          "clap": "....x...x.x.xxxX",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x.....",
+          "repeat": 1
+        },
+        {
+          "kick": "X...x...X...x...",
+          "clap": "....x.......x...",
+          "chat": "xo.oxo.oxo.oxo.o",
+          "ohat": "..x...x...x...x.",
+          "rim": "...x......x...x.",
+          "cymbal": "x.x.x.x.x.x.x.x.",
+          "repeat": 12
+        }
+      ],
+      "velocity": 100,
+      "humanize_velocity": 8,
+      "humanize_ms": 1.5,
+      "gain_db": 0,
+      "reverb_send": 0.06,
+      "params": {
+        "stereo": 0.4,
+        "drive": 0.25,
+        "cymbal_level": -6,
+        "chat_level": -2,
+        "kick_level": -3
+      }
+    },
+    {
+      "patch": "patches/acid_slide.json",
+      "step": 0.25,
+      "start_step": 32,
+      "gain_db": -3,
+      "reverb_send": 0.05,
+      "notes": "C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1 C2! - C2 C3~ D#2 C2 - D#2 C2! - A#1~ C2 C3? - G1~ A#1",
+      "gate": 0.6
+    },
+    {
+      "patch": "patches/dub_chords.json",
+      "step": 0.25,
+      "start_step": 128,
+      "gain_db": -5,
+      "reverb_send": 0.3,
+      "notes": "- - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - C3+D#3+A#3 - - - - - - - - - - - C3+D#3+G3 - - - C3+D#3+A#3 - - - - - - - - - - - C3+D#3+G3 - - - C3+D#3+A#3 - - - - - - - - - - - C3+D#3+G3 - - - C3+D#3+A#3 - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - -",
+      "params": {
+        "delay_time": 0.352,
+        "delay_feedback": 0.55
+      }
+    }
+  ],
+  "reverb": {
+    "decay": 0.75,
+    "damping_hz": 6000,
+    "predelay_s": 0.015,
+    "size": 1.2,
+    "return_db": -6
+  },
+  "master": {
+    "fade_in_s": 0,
+    "fade_out_s": 5
+  }
+}

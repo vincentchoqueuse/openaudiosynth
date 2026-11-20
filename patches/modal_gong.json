@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "engine": "modal",
+  "name": "modal_gong",
+  "description": "Gong-like: circular membrane modes slightly stretched, very long decay, soft heavy beater with a noisy attack.",
+  "params": {
+    "model": "membrane",
+    "modes": 16,
+    "stretch": 0.05,
+    "decay": 12,
+    "damping": 0.3,
+    "release": 6,
+    "brightness": 0.5,
+    "hardness": 0.2,
+    "noise": 0.3,
+    "variation": 8,
+    "pan_spread": 0.2
+  },
+  "audition": {
+    "notes": "A1 _ _ _ _ _ _ _",
+    "bpm": 70,
+    "step": 1
+  }
+}

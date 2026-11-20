@@ -1,0 +1,54 @@
+# pages.yml — publishes the web synth (web/ui: the engine compiled to WebAssembly, the patches, the demo sample
+# kits) on GitHub Pages at every push to main, after checking that every patch plays in wasm.
+# One-time setup on GitHub: Settings > Pages > Build and deployment > Source: "GitHub Actions".
+name: pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Demo sample kits (recorded from the drums engine by host/kit_demo)
+        run: cmake --preset host && cmake --build --preset host --target kits_demo -j
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: latest
+      - name: Engine in WebAssembly
+        run: |
+          export EMSCRIPTEN_ROOT="$EMSDK/upstream/emscripten"
+          cmake --preset wasm && cmake --build --preset wasm -j
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/ui/package-lock.json
+      - name: Every patch plays in wasm
+        run: node web/test_wasm.mjs build-wasm/web/wasm/synth.wasm
+      - name: Site
+        run: npm --prefix web/ui ci && npm --prefix web/ui run build
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/ui/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "engine": "poly",
+  "name": "poly_bell",
+  "description": "Metallic poly-mod bell: osc B modulates osc A frequency at audio rate (FM), fast decay, no sustain.",
+  "params": {
+    "oscb_semi": 19,
+    "oscb_saw": "off",
+    "oscb_tri": "on",
+    "mix_b": 0,
+    "pm_oscb": 0.55,
+    "pm_freq_a": "on",
+    "osca_saw": "on",
+    "cutoff": 4000,
+    "fenv_amount": 1.5,
+    "fenv_decay": 0.4,
+    "fenv_sustain": 0,
+    "amp_attack": 0.002,
+    "amp_decay": 1.6,
+    "amp_sustain": 0,
+    "amp_release": 1.2,
+    "reverb_mix": 0.35,
+    "volume": 6
+  },
+  "audition": {
+    "notes": "C5 - E5 - G5 - B5 - C6 _ _ _ - - - -",
+    "bpm": 100,
+    "step": 0.5
+  }
+}

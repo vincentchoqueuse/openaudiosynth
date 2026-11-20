@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "engine": "sampler",
+  "name": "sampler_glitch_chop",
+  "description": "Glitch demo kit chopped: the cymbal reversed and looping on a sliver of its tail (a held stutter), the clap pitched up a fifth, the snare cut to its first third, the toms up an octave. IDM, breakcore fills.",
+  "kit": "synth_glitch",
+  "params": {
+    "velocity": 0.5,
+    "release": 0.08,
+    "pad10_reverse": "on",
+    "pad10_loop": "on",
+    "pad10_start": 0.30,
+    "pad10_end": 0.34,
+    "pad10_level": -6,
+    "pad10_cutoff": 7000,
+    "pad4_tune": 7,
+    "pad3_end": 0.33,
+    "pad5_tune": 12,
+    "pad7_tune": 12,
+    "pad9_tune": 12,
+    "pad6_choke": 1,
+    "pad8_choke": 1,
+    "delay_mix": 0.15,
+    "delay_sync": "1/16"
+  },
+  "audition": {
+    "notes": "C2! D2 F#2 C2 D#2? C2 D2+F#2 F2 C2! F2? A2 C3 C#3 - - D2 C2! D2 F#2 C2 D#2? C2 D2+F#2 F#2 C2 D2 D2 D2 D2+F#2 D2 D2 C3",
+    "bpm": 140,
+    "step": 0.25,
+    "gate": 0.9
+  }
+}

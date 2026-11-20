@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "engine": "modal",
+  "name": "modal_alien_bell",
+  "description": "Invented metal: bell partials bent upward (stretch 0.18), long shimmering decay. No physical object sounds like this.",
+  "params": {
+    "model": "bell",
+    "modes": 14,
+    "stretch": 0.18,
+    "decay": 7,
+    "damping": 0.5,
+    "release": 5,
+    "brightness": 0.65,
+    "hardness": 0.9,
+    "noise": 0.03,
+    "variation": 7,
+    "pan_spread": 0.6
+  },
+  "audition": {
+    "notes": "E4 _ _ _ B3 _ _ _ G4 _ _ _ _ _ _ _",
+    "bpm": 70,
+    "step": 1
+  }
+}

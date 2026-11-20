@@ -1,0 +1,67 @@
+{
+  "version": 1,
+  "name": "lumiere_froide",
+  "description": "Original slow 3/4 piece in E minor: Satie-like bass-then-chord sway (Em9 / Cmaj7, a darker middle with Fmaj7#11 and B7), a sparse falling melody, a cold piano far back in a long plate with tape-warbled pitch and echoes, a worn-tape saw pad and tape air: cold 90s ambient melancholy.",
+  "bpm": 66,
+  "length_beats": 120,
+  "tail_s": 14,
+  "tracks": [
+    {
+      "patch": "patches/piano_cold.json",
+      "step": 1,
+      "notes": "E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ A1 G3+B3+C4+E4 _ G2? E3+B3+D4 _ C2 E3+G3+B3 _ B1? A3+E4+F#4 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ A1 G3+B3+C4+E4 _ F2? A3+B3+C4+E4 _ B1 A3+E4+F#4 _ E2? G3+B3+D4+F#4 _ A1 G3+B3+C4+E4 _ E2? G3+B3+D4 _ F2 A3+B3+C4+E4 _ E2? G3+B3+D4+F#4 _ A1 G3+B3+C4+E4 _ G2? E3+B3+D4 _ F2 A3+B3+C4+E4 _ B1? A3+D#4+F#4 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ A1 G3+B3+C4+E4 _ G2? E3+B3+D4 _ C2 E3+G3+B3 _ E2? G3+B3+D4+F#4 _ E2+B2+G3+B3+F#4+B4 _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -9,
+      "pan": -0.05,
+      "reverb_send": 0.7,
+      "velocity": 58,
+      "gate": 1,
+      "humanize_velocity": 10,
+      "humanize_ms": 18
+    },
+    {
+      "patch": "patches/piano_cold.json",
+      "step": 1,
+      "notes": "- - - - - - - - - - - - - B4 D5 E5 _ _ - F#5 G5 B4 _ _ - C5 B4 A4 _ _ - G4 F#4 E4 _ D#4 - B4 D5 G5 _ _ - F#5 E5 B4 _ _ - E5 D5 C5 _ _ - B4 A4 B4 _ _ - - E5 D5 _ _ - C5 E5 B4 _ _ - A4 C5 B4 _ D5 E5 _ _ _ _ D#5 - B4 D5 E5 _ _ - F#5 G5 B4 _ _ - C5 B4 A4 _ _ - G4 F#4 E4 _ _ - - - - - - - - - - - -",
+      "gain_db": 9,
+      "pan": 0.08,
+      "reverb_send": 0.8,
+      "velocity": 76,
+      "gate": 1,
+      "humanize_velocity": 8,
+      "humanize_ms": 22,
+      "params": {
+        "brightness": 0.5,
+        "hardness": 0.35
+      }
+    },
+    {
+      "patch": "patches/pad_cold_tape.json",
+      "step": 1,
+      "notes": "G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+C4+E4 _ _ E3+B3+D4 _ _ E3+G3+B3 _ _ A3+E4+F#4 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+C4+E4 _ _ A3+B3+C4+E4 _ _ A3+E4+F#4 _ _ G3+B3+D4+F#4 _ _ G3+B3+C4+E4 _ _ G3+B3+D4 _ _ A3+B3+C4+E4 _ _ G3+B3+D4+F#4 _ _ G3+B3+C4+E4 _ _ E3+B3+D4 _ _ A3+B3+C4+E4 _ _ A3+D#4+F#4 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+C4+E4 _ _ E3+B3+D4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ G3+B3+F#4 _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -12,
+      "reverb_send": 0.6,
+      "velocity": 70,
+      "gate": 1
+    },
+    {
+      "patch": "patches/ambient_air.json",
+      "step": 1,
+      "notes": "E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -6,
+      "reverb_send": 0.2,
+      "velocity": 80,
+      "gate": 1
+    }
+  ],
+  "reverb": {
+    "decay": 0.94,
+    "damping_hz": 5000,
+    "predelay_s": 0.06,
+    "size": 2.0,
+    "return_db": 0
+  },
+  "master": {
+    "fade_in_s": 3,
+    "fade_out_s": 12
+  }
+}

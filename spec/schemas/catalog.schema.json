@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oid/catalog.schema.json",
+  "title": "OID 0.3 instrument description",
+  "type": "object",
+  "required": ["oid", "instrument", "patch_version", "global", "engines"],
+  "properties": {
+    "oid": {"const": "0.3"},
+    "instrument": {
+      "type": "object",
+      "required": ["name", "description"],
+      "properties": {"name": {"type": "string"}, "description": {"type": "string"}}
+    },
+    "patch_version": {"type": "integer", "minimum": 1},
+    "midi": {
+      "type": "object",
+      "properties": {
+        "pitch_bend": {"type": "string"},
+        "cc": {"type": "object", "propertyNames": {"pattern": "^([0-9]|[1-9][0-9]|1[01][0-9]|12[0-7])$"},
+               "additionalProperties": {"type": "string"}}
+      }
+    },
+    "global": {
+      "type": "object",
+      "required": ["params"],
+      "properties": {"description": {"type": "string"}, "params": {"$ref": "#/$defs/params"}}
+    },
+    "engines": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"$ref": "#/$defs/name"},
+      "additionalProperties": {
+        "type": "object",
+        "required": ["description", "params"],
+        "properties": {
+          "description": {"type": "string"},
+          "voices": {"type": "integer", "minimum": 1},
+          "notes": {"type": "object", "propertyNames": {"$ref": "#/$defs/name"},
+                    "additionalProperties": {"$ref": "#/$defs/midi7"}},
+          "params": {"$ref": "#/$defs/params"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "name": {"type": "string", "pattern": "^[a-z0-9_]+$"},
+    "midi7": {"type": "integer", "minimum": 0, "maximum": 127},
+    "params": {
+      "type": "object",
+      "propertyNames": {"$ref": "#/$defs/name"},
+      "additionalProperties": {"$ref": "#/$defs/param"}
+    },
+    "param": {
+      "type": "object",
+      "required": ["type", "default", "realtime", "help"],
+      "properties": {
+        "type": {"enum": ["float", "int", "enum"]},
+        "range": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
+        "choices": {"type": "array", "items": {"type": "string"}, "minItems": 2},
+        "default": {"type": ["number", "string"]},
+        "unit": {"type": "string"},
+        "scale": {"enum": ["linear", "log"]},
+        "realtime": {"type": "boolean"},
+        "cc": {"$ref": "#/$defs/midi7"},
+        "role": {"type": "string", "pattern": "^[a-z0-9_]+(\\.[a-z0-9_<>]+)+$"},
+        "help": {"type": "string"}
+      },
+      "if": {"properties": {"type": {"const": "enum"}}},
+      "then": {"required": ["choices"]},
+      "else": {"required": ["range"]},
+      "additionalProperties": false
+    }
+  }
+}

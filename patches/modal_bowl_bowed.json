@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "engine": "modal",
+  "name": "modal_bowl_bowed",
+  "description": "Bowed singing bowl / glass harmonica: continuous noise excitation, slow bow attack, endless drone that blooms; light ensemble chorus.",
+  "params": {
+    "model": "bowl",
+    "modes": 10,
+    "decay": 8,
+    "damping": 0.8,
+    "release": 3,
+    "brightness": 0.55,
+    "hardness": 0.2,
+    "noise": 0,
+    "bow": 0.9,
+    "bow_attack": 2.5,
+    "variation": 6,
+    "pan_spread": 0.6,
+    "chorus_mode": "ensemble",
+    "chorus_mix": 0.35
+  },
+  "audition": {
+    "notes": "D3+A3 _ _ _ _ _ _ _",
+    "bpm": 70,
+    "step": 1
+  }
+}

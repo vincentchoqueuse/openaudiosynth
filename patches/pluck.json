@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "pluck",
+  "description": "Short bright pluck: filter and amp decay together, no sustain, a touch of noise on the attack.",
+  "params": {
+    "osc1_wave": "saw", "osc2_wave": "tri", "osc2_oct": 1, "osc2_level": 0.4, "noise_level": 0.15,
+    "cutoff": 400, "resonance": 2, "keytrack": 0.8, "fenv_amount": 5, "fenv_attack": 0.0005, "fenv_decay": 0.22,
+    "fenv_sustain": 0, "amp_attack": 0.001, "amp_decay": 0.6, "amp_sustain": 0, "amp_release": 0.3,
+    "pan_spread": 0.5
+  },
+  "audition": { "notes": "E3 B3 E4 G4 B4 G4 E4 B3 D4 A3 F#3 A3 D4 F#4 A4 D5", "bpm": 110, "gate": 0.9 }
+}

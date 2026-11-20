@@ -1,0 +1,54 @@
+{
+  "oid": "0.3",
+  "controller": "Arturia MiniLab 3, factory layout",
+  "note": "Factory CC numbers as commonly documented: check with `synth_play --verbose`.",
+  "map": {
+    "74": [
+      "filter.cutoff",
+      "resonator.brightness",
+      "drum.kick.decay"
+    ],
+    "71": [
+      "filter.resonance",
+      "exciter.hardness",
+      "drum.snare.tone"
+    ],
+    "76": [
+      "filter.envelope_amount",
+      "resonator.decay"
+    ],
+    "77": [
+      "lfo.rate",
+      "resonator.inharmonicity"
+    ],
+    "93": "fx.chorus.mix",
+    "18": [
+      "osc2.detune",
+      "resonator.unison"
+    ],
+    "19": [
+      "voice.drift",
+      "resonator.variation"
+    ],
+    "16": [
+      "noise.level",
+      "exciter.noise"
+    ],
+    "82": [
+      "amp.attack",
+      "exciter.bow_attack"
+    ],
+    "83": [
+      "amp.decay",
+      "resonator.damping"
+    ],
+    "85": [
+      "amp.sustain",
+      "exciter.bow"
+    ],
+    "17": [
+      "amp.release",
+      "resonator.release"
+    ]
+  }
+}

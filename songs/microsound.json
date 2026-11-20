@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "name": "microsound",
+  "description": "Glitch / microsound study on the glitch kit: precise 16th grids of sub pulses, single-sample ticks, 12 kHz beeps, gated data tones, white and decimated noise bursts, modem chirps, an abrupt silence, over two slowly beating pure-sine drones.",
+  "bpm": 125,
+  "length_beats": 128,
+  "tail_s": 5,
+  "tracks": [
+    {
+      "patch": "patches/kit_glitch.json",
+      "pattern": [
+        {
+          "chat": "x.......x.......",
+          "ohat": "..............x.",
+          "repeat": 4
+        },
+        {
+          "kick": "x...x...x...x...",
+          "chat": "xxxxxxxxxxxxxxxx",
+          "ohat": "..x...x...x...x.",
+          "ltom": "x.......x..x....",
+          "mtom": "...x.......x....",
+          "htom": "......x.......x.",
+          "repeat": 7
+        },
+        {
+          "kick": "x...x...x...x...",
+          "chat": "xxxxxxxxxxxxxxxx",
+          "ohat": "..x...x...x...x.",
+          "ltom": "x.......x..x....",
+          "mtom": "...x.......x....",
+          "htom": "......x...x.x.x.",
+          "clap": "....x.......x...",
+          "repeat": 1
+        },
+        {
+          "kick": "................",
+          "repeat": 1
+        },
+        {
+          "snare": "x..x..x...x..x..",
+          "cymbal": "........x.......",
+          "chat": "x.x.x.x.x.x.x.x.",
+          "repeat": 3
+        },
+        {
+          "kick": "x...x...x...x...",
+          "chat": "xxxxxxxxxxxxxxxx",
+          "ohat": "..x...x...x...x.",
+          "ltom": "x.......x..x....",
+          "mtom": "...x.......x....",
+          "htom": "......x...x.x.x.",
+          "clap": "....x.......x...",
+          "cowbell": "...........x....",
+          "snare": "......x.......x.",
+          "cymbal": "x...............",
+          "clave": "..x.............",
+          "repeat": 7
+        },
+        {
+          "kick": "x...x...x...x...",
+          "chat": "xxxxxxxxxxxxxxxx",
+          "ohat": "..x...x...x...x.",
+          "ltom": "x.......x..x....",
+          "mtom": "...x.......x....",
+          "htom": "......x...x.x.x.",
+          "clap": "....x.......x...",
+          "cowbell": "...........x....",
+          "snare": "......x...x.xxxx",
+          "cymbal": "x...............",
+          "clave": "..x.............",
+          "repeat": 1
+        },
+        {
+          "kick": "x...............",
+          "chat": "x...............",
+          "ohat": "............x...",
+          "repeat": 4
+        },
+        {
+          "kick": "................",
+          "repeat": 4
+        }
+      ],
+      "velocity": 110,
+      "gain_db": 0,
+      "reverb_send": 0.05
+    },
+    {
+      "patch": "patches/sine_drone.json",
+      "step": 4,
+      "notes": "A1+A5 _ _ _ _ _ _ _ _ _ _ _ - - - - E2+E6 _ _ _ _ _ _ _ _ _ _ _ A1+A5 _ _ _",
+      "gain_db": -6,
+      "reverb_send": 0.3
+    }
+  ],
+  "reverb": {
+    "decay": 0.6,
+    "damping_hz": 12000,
+    "predelay_s": 0.0,
+    "size": 0.8,
+    "return_db": -12
+  },
+  "master": {
+    "fade_in_s": 0,
+    "fade_out_s": 3
+  }
+}

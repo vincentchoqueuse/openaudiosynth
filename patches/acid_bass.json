@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "acid_bass",
+  "description": "Squelchy resonant bass: saw + sub pulse, short filter envelope, accents open the filter.",
+  "params": {
+    "osc1_wave": "saw", "osc2_wave": "pulse", "osc2_oct": -1, "osc2_pw": 0.3, "osc2_detune": 0, "osc2_level": 0.5,
+    "cutoff": 220, "resonance": 8, "keytrack": 0.3,
+    "fenv_amount": 4.5, "fenv_attack": 0.001, "fenv_decay": 0.18, "fenv_sustain": 0, "vel_cutoff": 2,
+    "amp_attack": 0.002, "amp_decay": 0.25, "amp_sustain": 0.6, "amp_release": 0.04,
+    "pan_spread": 0, "drift": 2
+  },
+  "audition": { "notes": "C2! C2 C3 C2 Eb2! C2 Bb2 C2 C2! G2 C2 F2 C2 C3! Eb2 Bb1", "bpm": 124, "gate": 0.6 }
+}

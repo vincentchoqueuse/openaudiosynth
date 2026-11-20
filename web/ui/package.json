@@ -1,0 +1,31 @@
+{
+  "name": "oasynth-web",
+  "private": true,
+  "version": "0.1.0",
+  "license": "MIT",
+  "homepage": "https://github.com/vincentchoqueuse/openaudiosynth",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vincentchoqueuse/openaudiosynth.git",
+    "directory": "web/ui"
+  },
+  "author": "Vincent Choqueuse (https://vchoqueuse.fr)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "svelte": "^5.20.0",
+    "vite": "^6.2.0"
+  },
+  "dependencies": {
+    "@codemirror/lang-json": "6.0.2",
+    "@codemirror/language": "6.13.1",
+    "@codemirror/lint": "6.9.8",
+    "@lezer/highlight": "1.2.5",
+    "codemirror": "6.0.2"
+  }
+}

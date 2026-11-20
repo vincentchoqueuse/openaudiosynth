@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "engine": "mono",
+  "name": "mono_bass",
+  "description": "Fat classic monosynth bass: two saws at 16' slightly detuned + square at 32', mixer pushed into the ladder, plucky contour.",
+  "params": {
+    "osc1_range": "16",
+    "osc1_wave": "saw",
+    "osc2_range": "16",
+    "osc2_wave": "saw",
+    "osc2_detune": 0.08,
+    "osc3_range": "32",
+    "osc3_wave": "square",
+    "osc3_level": 0.5,
+    "mixer_drive": 0.6,
+    "cutoff": 260,
+    "emphasis": 0.3,
+    "contour": 3.0,
+    "fenv_decay": 0.25,
+    "fenv_sustain": 0.15,
+    "amp_decay": 0.6,
+    "amp_sustain": 0.8,
+    "keytrack": 0.33,
+    "volume": 6
+  },
+  "audition": {
+    "notes": "C2 - C2 C3 - C2 - D#2 F2 - F2 F3 - F2 G2 A#1",
+    "bpm": 120,
+    "step": 0.25
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {"major": 3, "minor": 25, "patch": 0},
+  "configurePresets": [
+    {
+      "name": "host",
+      "displayName": "macOS host (RelWithDebInfo): tools, tests, plugin",
+      "binaryDir": "${sourceDir}/build-host",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "RelWithDebInfo"}
+    },
+    {
+      "name": "debug",
+      "displayName": "Debug with the NaN guard",
+      "binaryDir": "${sourceDir}/build-debug",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Debug"}
+    },
+    {
+      "name": "asan",
+      "displayName": "Debug with AddressSanitizer and UndefinedBehaviorSanitizer",
+      "binaryDir": "${sourceDir}/build-asan",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer"
+      }
+    },
+    {
+      "name": "arm",
+      "displayName": "Cortex-M7 cross build (DSP and MIDI libraries)",
+      "binaryDir": "${sourceDir}/build-arm",
+      "toolchainFile": "${sourceDir}/cmake/arm-none-eabi.cmake",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}
+    },
+    {
+      "name": "wasm",
+      "displayName": "WebAssembly for the browser (needs EMSCRIPTEN_ROOT, set by just)",
+      "binaryDir": "${sourceDir}/build-wasm",
+      "toolchainFile": "$env{EMSCRIPTEN_ROOT}/cmake/Modules/Platform/Emscripten.cmake",
+      "cacheVariables": {"CMAKE_BUILD_TYPE": "Release"}
+    }
+  ],
+  "buildPresets": [
+    {"name": "host", "configurePreset": "host"},
+    {"name": "debug", "configurePreset": "debug"},
+    {"name": "asan", "configurePreset": "asan", "targets": ["synth_tests"]},
+    {"name": "arm", "configurePreset": "arm"},
+    {"name": "wasm", "configurePreset": "wasm"}
+  ],
+  "testPresets": [
+    {"name": "host", "configurePreset": "host", "output": {"outputOnFailure": true}},
+    {"name": "debug", "configurePreset": "debug", "output": {"outputOnFailure": true}}
+  ]
+}

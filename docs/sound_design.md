@@ -1,0 +1,232 @@
+# Sound design guide
+
+How the parameters translate into sound, and starting recipes. Ranges and units: `docs/catalog.md`.
+Measurements quoted here come from `tools/analyze.py` on a single held C3 (the "probe").
+
+## Signal flow
+
+```
+osc1 (sine/saw/pulse/tri) ─┐
+osc2 ─────────────────────┼─> SVF (lp/bp/hp/notch) ─> amp ADSR ─> pan ─> mix ─> [song reverb]
+noise ─────────────────────┘     ^ cutoff = base + fenv + keytrack + velocity + LFO 1 + drift
+per voice: LFO 2 -> osc 2 detune, LFO 3 -> osc 1 detune, LFO 4 -> whole-voice detune (desynchronized)
+LFO 1 (global, slow) ──> pitch, cutoff, pulse width, and rate/depth of LFOs 2-4 ("LFO of LFO")
+```
+
+## What each control does to the ear
+
+| Want | Turn |
+|---|---|
+| brighter / darker | `cutoff` (main control), `keytrack` (keeps high notes bright), `fenv_amount` |
+| "pew", pluck, acid squelch | `fenv_amount` 3–6 oct, `fenv_decay` 0.1–0.3 s, `fenv_sustain` 0, `resonance` 5–12 |
+| softer onset | `amp_attack` 20–80 ms; swell > 0.5 s |
+| percussive | `amp_sustain` 0, `amp_decay` 0.2–1 s |
+| fat / wide | two saws, `osc2_detune` 5–12 cents, `pan_spread` 0.5–1, `drift` 4–8 |
+| **moving, breathing detune (lush pads)** | `lfo2_detune` 8–20 cents, `lfo2_rate` 0.1–0.4 Hz, `lfo2_spread` 1 |
+| **supersaw swarm** | `osc1_wave` `supersaw` (and `osc2_wave` too, maybe `osc2_oct` -1): `supersaw_detune` 15–40, `supersaw_mix` 0.6–0.9, `supersaw_motion` 4–10 cents at 0.1–0.3 Hz |
+| denser, never-repeating detune | add `lfo3_detune` 5–12 (osc 1) and `lfo4_detune` 3–6 (whole voice); keep the default irrational rate ratios |
+| movement that itself evolves | LFO 1 slow (`lfo_rate` 0.02–0.08 Hz) + `lfo2_rate_mod` 1–2 oct + `lfo2_depth_mod` 0.5–0.8 (acts on LFOs 2–4, in opposite directions) |
+| slow filter breathing | `lfo_cutoff` 0.3–1 oct with slow `lfo_rate` |
+| vibrato | `lfo_pitch` 0.1–0.3 st at 5–6 Hz, or `wheel_vibrato` + mod wheel |
+| tape-like instability | `drift` 6–10 cents |
+| hollow / reedy | `pulse` waves; `osc*_pw` away from 0.5; `lfo_pwm` 0.2–0.4 for ensemble motion |
+| sub weight | `osc2_oct` -1 with `sine`/`pulse`, keep `cutoff` low |
+| living sub | two sines, `osc2_detune` 3–5 cents, `osc2_level` ~0.5 (not 1: equal levels cancel at each beat), small `lfo2_detune` |
+| breath, air, hiss | `noise_level` with `filter_mode` `bp` |
+
+Pitfalls: high `resonance` with high `fenv_amount` gets loud — check `peak_dbfs`. Very short
+`amp_release` (< 5 ms) on low notes can click. Voices sit at -18 dBFS each; chords of 8 notes still
+leave headroom.
+
+## Recipes (starting points, see `patches/`)
+
+- `acid_bass` — saw + sub pulse, `cutoff` ~200, `resonance` 8, `fenv_amount` 4.5, `fenv_decay` 0.18, accents.
+- `sub_bass` — tri + sine -1 oct, closed filter, no resonance.
+- `pluck` — saw + tri +1 oct + a bit of noise, `fenv_decay` 0.2, `amp_sustain` 0.
+- `brass` — two saws, `fenv_attack` 40–80 ms gives the "blat".
+- `pwm_strings` — two pulses + `lfo_pwm`, soft attack.
+- `warm_pad` — two detuned saws, slow attack, slowly opening filter.
+- `ambient_saw_pad` — two saws, **three desynchronized per-voice detune LFOs + LFO-of-LFO**, slow swell, big reverb
+  in a song. Few chords: the movement carries the music.
+- `ambient_supersaw_pad` — 2 x 7-saw supersaw (one octave apart), per-saw motion + LFOs 2–4.
+- `ambient_saw_low`, `ambient_bell`, `ambient_air` — drone, glass bells, breathing hiss.
+
+## Reading a patch (tools/patch_view.py)
+
+`python3 tools/patch_view.py patches/<name>.json --html [--render]`: every setting in its unit with its help,
+changed values highlighted, envelopes drawn, modulation matrix as arrows; `--render` adds the measured sound.
+
+## Judging a render (tools/analyze.py)
+
+| Metric | Reads as |
+|---|---|
+| `attack_ms`, `decay_to_-20dB_s`, `sustain_ratio` | envelope as heard (probe only) |
+| `centroid_hz` (start/mid/end) | brightness and how it evolves; < 500 dark, 1–3 k bright, > 4 k harsh |
+| `noisiness` | 0 tonal … 0.3+ noisy |
+| `band_energy_pct` | balance; `sub`+`low` > 80 % = bass-heavy |
+| `harmonicity`, `cents_off` | pitched? in tune? (drift adds a few cents on purpose) |
+| `am_rate_hz`, `am_depth_db` | movement: beating / LFO; 0.1–1 Hz slow, 4–7 Hz vibrato-like |
+| `lr_correlation`, `width` | 1/0 = mono; < 0.5 / > 0.5 = wide |
+| `peak_dbfs`, `clipped_samples` | headroom; must stay 0 clipped |
+| `--ref`: `logmel_distance_db` | timbre distance to a reference: < 3 close, > 8 different |
+
+## The `modal` engine (bells, bars, glass, membranes)
+
+Each note is a bank of resonators. Choose the **object** with `model`, then shape it:
+
+| Want | Turn |
+|---|---|
+| church bell | `model` bell, `decay` 8–12 s, `damping` 0.5, `hardness` 0.8+ |
+| marimba / wood | `model` marimba, `decay` 0.8–1.5 s, `damping` 2+, `hardness` 0.4 |
+| kalimba / music box | `model` bar, `position` 0.1–0.2, `decay` 2–3 s, `hardness` 0.7 |
+| singing bowl, glass | `model` bowl, `decay` 10+ s, `damping` 0.3–0.5, soft `hardness` |
+| bowed glass / endless drone | `bow` 0.6–1, `bow_attack` 1–3 s (+ chorus ensemble) |
+| gong / tam-tam | `model` membrane, `stretch` 0.03–0.08, `decay` 10+, `noise` 0.3, soft `hardness` |
+| invented materials | `stretch` ±0.1–0.3 bends all partial ratios |
+| dull ↔ glassy | `brightness`, `hardness`, `vel_brightness` |
+| alive, beating partials | `variation` 3–8 cents |
+| key-up damper | `release` shorter than `decay` |
+
+Struck notes decay by themselves even when the key is held; bowed notes sustain while held.
+
+## Effect bus (any engine, any patch)
+
+`chorus_*`, `delay_*`, `reverb_*` can be set in any patch (and per song track via `params`).
+
+| Want | Set |
+|---|---|
+| analog width on anything | `chorus_mode` I or I+II, `chorus_mix` 0.4–0.6 |
+| string-machine shimmer | `chorus_mode` ensemble |
+| ambient echoes | `delay_mix` 0.25–0.35, `delay_feedback` 0.4–0.6, `delay_tone` 2–4 kHz, `delay_wow` 0.2–0.4 |
+| dub | `delay_pingpong` on, `delay_feedback` 0.6–0.75, `delay_drive` 0.5, dark `delay_tone` |
+| tempo sync | `delay_time` = 60 / bpm × beats (0.75 = dotted eighth) |
+| space | `reverb_mix` 0.3–0.6, `reverb_decay` 0.85–0.95, `reverb_damping` 3–5 kHz |
+| infinite pad | play, then `reverb_freeze` on (CC 69): the tail holds, new notes play dry on top |
+
+Songs also have their own shared reverb (`"reverb"` block); the per-patch bus reverb is for the
+sound itself (and for live play).
+
+## Piano (`modal`, model `string`)
+
+Start from `piano_grand` (concert), `piano_felt` (soft felt, intimate) or `piano_ambient` (pedal,
+haze: the owner's favourite). Key controls: `inharmonicity` 3e-4..1e-3, `unison` 0.8-2 cents,
+`aftersound` (attack/aftersound contrast), `decay` + `decay_keytrack` ~0.85, `position` 0.12
+(hammer at 1/8), `hardness` + `vel_brightness`, `release` = damper (0.15-0.4 s) or pedal (2-3 s).
+Use `modes` 32 and `humanize_velocity` / `humanize_ms` in phrases.
+
+## String nonlinearity (`modal` `tension`)
+
+A loud note stretches the string: the tension rises with the energy (mostly the low partials), so every partial
+starts sharp and they all glide down together as the note decays. 0.3-0.6 for a piano (a few cents:
+`piano_tension` vs `piano_ambient`), 1 for gongs and tam-tams (`gong_tension`). Stable at any setting.
+
+## Drums and glitch (`va` + `pitch_env`)
+
+`drum_kick` (sine, +30 st in 35 ms, play G1), `drum_snare` (tri + noise, D3), `drum_hat` /
+`drum_ohat` (high-passed noise), `glitch_zap` (falling saw + ping-pong echo). Program beats at 1/16
+or 1/32 steps; ghost notes with `?`, accents with `!`; see `tools/compose_warp_piano.py`.
+
+## Drum machine (`drums`)
+
+`kit` analog = deep long kick (tune it to the key of the song), soft snare, silky hats, cowbell,
+toms: electro, hip-hop, ambient. `kit` hybrid = punchy clicky kick, bright snappy snare, gritty
+6-bit hats and ride: house, techno. Per instrument: `<name>_level`, `_tune`, `_decay`, `_tone`
+(kick: click; snare: snappy; hats/cymbal: brightness). `accent` makes velocity matter; `drive` glues
+the kit. Program with step grids (see `docs/patch_format.md`), add `swing` 0.12-0.2 for house,
+`pump` on chords and bass for sidechain feel. Examples: `songs/electro_analog.json`,
+`techno_hybrid.json`, `house_piano.json`, `prog_pump.json`.
+
+## Monophonic play, glide, slides (`va`)
+
+`voice_mode`: poly, mono (last note wins, retriggers), legato (overlapping notes slide without
+retriggering; releasing returns to the previous held key). `glide` 0.03-0.08 s = acid slide,
+0.2-0.5 s = lazy lead; `glide_mode` legato = only tied notes glide. In phrases, `~` after a note
+slides into the next one: `"C2! C2 C3~ D#2"`. See `acid_slide`.
+
+## Glitch kit (`drums`, `kit` glitch)
+
+Microsound palette on the GM drum notes: kick = gated sub sine pulse, snare = white burst (tone =
+sample-rate reduction), clap = single-sample click + 8 kHz blip, chat = micro tick, ohat = 12 kHz
+beep, toms = gated data tones 220/440/880 Hz (tone adds harmonics), cymbal = decimated 2-bit data
+noise, cowbell = ring-modulated modem chirp, clave = sub pop. Decay = gate length. Use precise
+grids, silences and pure sine drones (`sine_drone`); see `songs/microsound.json`.
+
+## Classic instruments
+
+- `acid` (transistor bass line spirit): ride `cutoff`, `resonance` 0.7-0.9, `env_mod` 2-3.5 oct,
+  `decay` short; accents (`!`, velocity >= 96) get louder, brighter and the cutoff climbs over
+  consecutive accents; `~` slides. Patches `acid_classic`, `acid_square`; song `acid_jam`.
+- `mono` (early-70s monosynth spirit): footage `16`/`32` for basses, push `mixer_drive` for the fat
+  overdriven ladder, `emphasis` ~0.95 self-oscillates, `release` on = notes ring with the decay time,
+  `osc3_keytrack` off + range `32` = osc 3 as LFO for the mod wheel. Patches `mono_bass`, `mono_lead`.
+- `poly` (late-70s polysynth spirit): `osca_sync` + `pm_fenv` + `pm_freq_a` = the sync lead;
+  `pm_oscb` + `pm_freq_a` = FM bells; pulses + `lfo_pwm` = strings; `unison` = giant mono sounds;
+  `drift` = analog slop. Patches `poly_brass`, `poly_strings`, `poly_sync_lead`, `poly_bell`,
+  `poly_unison_bass`; song `synthwave_drive`.
+- Drum machines: `drums` kits `analog` and `hybrid` (see above).
+
+## Wavetable (`wt`)
+
+- **Position is the main knob**: each table is a morph, so modulating `a_position` / `b_position` with an
+  envelope (plucks: `harmonics` falling), an LFO (growls, pads) or velocity is what makes the sound move.
+  Tables: `basic` (sine 0 -> triangle 0.33 -> saw 0.67 -> square 1), `pwm` (50 % -> 4 %), `sync` (ratio
+  1 -> 8), `harmonics` (1 -> 64 harmonics), `vowel` (a-e-i-o-u), `fold`, `growl` (phase-modulation index
+  0 -> 6), `resonant` (window x sine, 1 -> 16), `digital` (random spectra).
+- **Warps** reshape the phase: `sync` brightens and screams when swept (env2 or mod wheel -> `a_warp`),
+  `mirror` and `bend` add even/odd motion, `fm` lets osc B (or the sub, for osc B) phase-modulate, `ring`
+  multiplies by it. Osc B at level 0 still feeds osc A's `fm`/`ring`.
+- **Unison** 4-8 with 10-25 cents = width and density (supersaw-like with the saw frame); voices are mono,
+  so width comes from the effect bus (chorus `I+II` or `ensemble`), `pan_spread` and the reverb.
+- **Matrix**: 6 slots `modN_source -> modN_destination x modN_amount (x modN_via)`. Full scale: pitch
+  +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1. `via` = mod wheel turns a slot into a
+  performance control (vibrato depth, warp amount).
+- Recipes: `wt_hyper_lead`, `wt_growl_bass`, `wt_reese`, `wt_vowel_pad`, `wt_pluck`, `wt_sync_lead`,
+  `wt_digital_pad`, `wt_fold_bass`; demo song `songs/wavetable_drive.json`.
+
+## Per-voice movement, comb filters, tunings, MPE (every engine)
+
+- **Per-voice modulation** (`vmseg_*`, `vlfo_*`, `vroute1..4_*`): every note gets its own MSEG and LFO, so the
+  notes of a chord move independently. Destinations: `pitch` (+/-12 st), `level` (+/-24 dB), `pan`,
+  `brightness` (+/-4 oct of the engine's main brightness: filter cutoff, FM modulator index, modal brightness,
+  the comb's tuning in `wt`) and `timbre` (wavetable position in `wt`, strike/bow position in `modal`).
+  Small amounts go far: brightness 0.03-0.06 = a few semitones of wandering.
+- **Comb** (`wt` `filter_type` comb / comb_neg): cutoff = the comb's tuning (keytrack 1 = on the note; one or two
+  octaves above sounds colder), resonance = feedback (0.8-0.9 = singing), drive = damping (low = glassy). Noise
+  or digital tables through a wandering comb = metallic, frozen textures (`deep_comb_*`).
+- **Glide**: every parameter moved while notes sound glides in ~5 ms (knobs, CCs, macros, routes), in every engine.
+- **Tunings**: `tuning` (equal, just, pythagorean, meantone, werckmeister, custom) from `tuning_root`; pure
+  intervals make long ambient chords beat less or differently. Scala files: `tools/scala_to_patch.py`.
+- **MPE** (`part_mpe` on): per-note pitch bend, pressure and slide; pressure and slide are per-voice sources.
+
+## More filter characters (`va`, `wt`)
+
+- **formant**: three band-passes at the formants of a vowel; `filter_character` (va) or `drive` (wt) = vowel
+  (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u), cutoff = size of the "throat" (1 kHz = adult voice), resonance = sharpness.
+  Route an MSEG or an LFO onto the vowel and the sound speaks (`va_talking_pad`).
+- **scream**: 2-pole low-pass with a saturating feedback node (2x oversampled): rough, screaming resonance, self-
+  oscillates from ~0.9; character/drive = how hard the node is pushed.
+- **va second filter** (`filter2_*`, `filter_routing`): series (e.g. hp then lp = a band, lp then formant) or
+  parallel (two formants = two voices, lp + hp mixed = a notch-like hole). It follows filter 1's envelope,
+  keytracking and modulation.
+
+## Coupled-oscillator networks (`coupled`)
+
+Each note is a network of partials (Stuart-Landau oscillators) that act on each other; the movement comes from
+inside, no LFO needed. Prototypes and measurements: `tools/experiments/` (stuart_landau.py, topologies.py).
+
+- `phase_coupling` pulls detuned partials onto the harmonic series (measured: 22 -> 7 cents with 40 cents of
+  random detune); `spread` / `drift` add the disorder it fights with.
+- `amp_coupling` > 0: neighbours in step feed each other (breathing, `coupled_breathing`); < 0: they compete,
+  partials flicker (`coupled_mosaic`).
+- `pitch_by_level`: louder partials go flat; with strong couplings partials sweep and catch (`coupled_storm`).
+- `freeze`: diffusive coupling; with little phase pull, the partials that cannot lock sink and a few ring on:
+  sparse and glassy, different at every note (`coupled_frozen_glass`).
+
+## Self-oscillating oscillators (`selfosc`)
+
+A Van der Pol / Duffing oscillator forced by the note. `drive` morphs a sine (0) into a reedy relaxation wave
+(2-3) and a square-ish one (5), in tune at any drive; `velocity_drive` makes hard notes reedier; `stiffness`
+sharpens loud notes (Duffing); `entrain` locks the oscillator on the note; low entrain with some `detune` makes
+it slip against the note: an irregular, LFO-free shimmer (`selfosc_beating`). Recipes: `selfosc_reed`
+(formant filter on "o"), `selfosc_bass` (scream). Free (entrain 0) the pitch is within ~5 cents at full drive.
+

@@ -1,0 +1,16 @@
+# builds (recreate with: just setup, or cmake --preset <name>)
+build-*/
+web/ui/dist/
+web/ui/node_modules/
+# environments and caches
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
+# local Claude Code settings (launch.json is shared)
+.claude/settings.local.json
+# STM32 targets: ST drivers are copied from the local STM32Cube repository (tools/stm32_drivers.sh), not versioned
+target/*/Drivers/
+target/*/build/
+target/*/CM4/build/
+target/*/CM7/build/

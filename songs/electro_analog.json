@@ -1,0 +1,131 @@
+{
+  "version": 1,
+  "name": "electro_analog",
+  "description": "Electro groove on the analog kit: syncopated booming kick, snare + clap, 16th hats with ghosts, the cowbell motif, tom fills; acid-ish bass, zaps in a ping-pong echo, a pad breakdown.",
+  "bpm": 112,
+  "length_beats": 112,
+  "tail_s": 4,
+  "tracks": [
+    {
+      "patch": "patches/kit_analog.json",
+      "pattern": [
+        {
+          "kick": "X.....x...X...x.",
+          "chat": "x.xox.xox.xox.x.",
+          "repeat": 4
+        },
+        {
+          "kick": "X.....x...X...x.",
+          "snare": "....X.......X...",
+          "clap": "....x.......x...",
+          "chat": "x.xox.xox.xox.x.",
+          "ohat": "..............x.",
+          "cowbell": "..x.....x..x....",
+          "repeat": 7
+        },
+        {
+          "kick": "X.....x...X.....",
+          "snare": "....X.......X.oX",
+          "clap": "....x.......x...",
+          "chat": "x.xox.xox.xo....",
+          "ohat": "................",
+          "cowbell": "..x.....x.......",
+          "ltom": "............x...",
+          "mtom": "..........x.....",
+          "htom": "........x.......",
+          "repeat": 1
+        },
+        {
+          "cowbell": "..x.....x..x....",
+          "chat": "....x.......x...",
+          "clap": "............x...",
+          "repeat": 4
+        },
+        {
+          "kick": "X.....x...X...x.",
+          "snare": "....X.......X...",
+          "clap": "....x.......x...",
+          "chat": "x.xox.xox.xox.x.",
+          "ohat": "..............x.",
+          "cowbell": "..x.....x..x....",
+          "repeat": 7
+        },
+        {
+          "kick": "X.....x...X.....",
+          "snare": "....X.......X.oX",
+          "clap": "....x.......x...",
+          "chat": "x.xox.xox.xo....",
+          "ohat": "................",
+          "cowbell": "..x.....x.......",
+          "ltom": "............x...",
+          "mtom": "..........x.....",
+          "htom": "........x.......",
+          "repeat": 1
+        },
+        {
+          "kick": "X.....x...X...x.",
+          "snare": "....X.......X...",
+          "clap": "....x.......x...",
+          "chat": "x.xox.xox.xox.x.",
+          "ohat": "..............x.",
+          "cowbell": "..x.....x..x....",
+          "repeat": 4
+        }
+      ],
+      "velocity": 100,
+      "humanize_velocity": 6,
+      "humanize_ms": 2,
+      "gain_db": 0,
+      "reverb_send": 0.08,
+      "params": {
+        "stereo": 0.5,
+        "kick_level": -6,
+        "kick_decay": 0.7
+      }
+    },
+    {
+      "patch": "patches/acid_bass.json",
+      "step": 0.25,
+      "start_step": 64,
+      "gain_db": -5,
+      "reverb_send": 0.05,
+      "notes": "E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 -",
+      "params": {
+        "cutoff": 260,
+        "resonance": 5,
+        "fenv_amount": 3.5,
+        "osc2_level": 0.3
+      }
+    },
+    {
+      "patch": "patches/glitch_zap.json",
+      "step": 0.25,
+      "start_step": 128,
+      "gain_db": -8,
+      "reverb_send": 0.3,
+      "notes": "- - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - -",
+      "params": {
+        "delay_time": 0.402
+      }
+    },
+    {
+      "patch": "patches/warm_pad.json",
+      "step": 4,
+      "start_step": 12,
+      "gain_db": -6,
+      "reverb_send": 0.6,
+      "notes": "E3+G3+B3+D4 _ A2+C3+E3+G3 _"
+    }
+  ],
+  "reverb": {
+    "decay": 0.8,
+    "damping_hz": 5000,
+    "predelay_s": 0.02,
+    "size": 1.3,
+    "return_db": -4
+  },
+  "master": {
+    "fade_in_s": 0,
+    "fade_out_s": 4
+  }
+}

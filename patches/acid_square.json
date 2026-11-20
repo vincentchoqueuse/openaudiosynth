@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "engine": "acid",
+  "name": "acid_square",
+  "description": "Square-wave acid: hollower and woodier, lower cutoff, more drive.",
+  "params": {
+    "wave": "square",
+    "cutoff": 300,
+    "resonance": 0.7,
+    "env_mod": 3.2,
+    "decay": 0.35,
+    "accent": 0.8,
+    "drive": 0.6
+  },
+  "audition": {
+    "notes": "C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2",
+    "bpm": 126,
+    "step": 0.25,
+    "gate": 0.6
+  }
+}

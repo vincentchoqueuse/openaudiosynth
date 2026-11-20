@@ -20,6 +20,9 @@ typedef struct {
 } knob_t;
 static knob_t knob[SHARED_KNOBS];
 static float knob_shown[SHARED_KNOBS]; /* value of knob_text, -1 to format it again */
+static int knobs_owned;                /* 1: the board reads the knob CCs itself (BOARD_MACRO_CC) */
+static float knob_last[SHARED_KNOBS];  /* the knob's position at its previous CC, -1 none since the preset */
+#define KNOB_CATCH (1.5f / 127.0f)     /* a knob this close to the value catches it */
 
 /* The six main parameters of each engine, by name, for macros 1..6 ("" = none). */
 static const struct {
@@ -145,9 +148,9 @@ void knobs_apply(synth_t *s, int engine, const preset_param_t *params, int count
     memset(knob, 0, sizeof knob);
 #ifdef BOARD_MACRO_CC
     static const uint8_t cc[] = BOARD_MACRO_CC;
-    for (int k = 0; k < PM_MACROS && k < (int)sizeof cc; k++)
-        if (cc[k])
-            mod_set(s, PM_MACRO_CC(k), (float)cc[k]);
+    for (int k = 0; k < PM_MACROS; k++) /* the board reads the knobs (knobs_midi): no CC turns a macro in the synth */
+        mod_set(s, PM_MACRO_CC(k), 0.0f);
+    knobs_owned = 1;
 #else
     static const uint8_t cc[1] = {0};
 #endif
@@ -156,6 +159,9 @@ void knobs_apply(synth_t *s, int engine, const preset_param_t *params, int count
         SHARED->knob_cc[k] = (uint8_t)c;
         SHARED->knob_moves[k] = 0;
         SHARED->knob_value[k] = 0.0f;
+        SHARED->knob_phys[k] = -1.0f; /* every knob must catch the new preset's values */
+        SHARED->knob_caught[k] = 0;
+        knob_last[k] = -1.0f;
     }
     if (BOARD_KNOB_TARGETS && !preset_uses_macros(params, count))
         default_targets(s, engine, params, count);
@@ -174,15 +180,34 @@ void knobs_apply(synth_t *s, int engine, const preset_param_t *params, int count
     SHARED->knob_seq++;
 }
 
-void knobs_midi(const uint8_t *msg, int len)
+int knobs_midi(synth_t *s, const uint8_t *msg, int len)
 {
     if (len < 3 || (msg[0] & 0xF0u) != 0xB0u)
-        return;
-    for (int k = 0; k < SHARED_KNOBS; k++)
-        if (SHARED->knob_cc[k] && SHARED->knob_cc[k] == msg[1]) {
-            SHARED->knob_value[k] = (float)msg[2] * (1.0f / 127.0f);
-            SHARED->knob_moves[k]++;
+        return 0;
+    int used = 0;
+    for (int k = 0; k < SHARED_KNOBS; k++) {
+        if (!SHARED->knob_cc[k] || SHARED->knob_cc[k] != msg[1])
+            continue;
+        const float phys = (float)msg[2] * (1.0f / 127.0f);
+        SHARED->knob_moves[k]++;
+        if (!knobs_owned) { /* the synth maps the CC itself: only shown */
+            SHARED->knob_value[k] = phys;
+            continue;
         }
+        used = 1;
+        /* soft takeover: the knob drives the macro once it comes close to its value, or crosses it */
+        const float cur = SHARED->knob_value[k], last = knob_last[k];
+        if (!SHARED->knob_caught[k] &&
+            (dsp_absf(phys - cur) <= KNOB_CATCH || (last >= 0.0f && (last - cur) * (phys - cur) <= 0.0f)))
+            SHARED->knob_caught[k] = 1;
+        knob_last[k] = phys;
+        SHARED->knob_phys[k] = phys;
+        if (SHARED->knob_caught[k]) {
+            SHARED->knob_value[k] = phys;
+            synth_set_param(s, SYNTH_MOD_PARAM + PM_MACRO(k), phys); /* macro: 0..1, linear */
+        }
+    }
+    return used;
 }
 
 /* v with dec decimals, without the C library's float formatting */

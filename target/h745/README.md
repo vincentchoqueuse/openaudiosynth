@@ -37,6 +37,8 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   the M4 then starts it again (`ts_resets` in `ui`), at the cost of the BSP's 1 s read timeout.
 - Known workaround: CubeMX also initializes SAI2 (`MX_SAI2_Init`) and its `HAL_SAI_MspInit` would move the
   SAI clock off the audio PLL; `audio.c` marks the BSP's handle initialized and checks the clock source.
+- Output level: `BOARD_VOLUME` in `app/board_config.h` (0..100; 90, about 0 dB at the codec, by default; 70 was
+  -13 dB and sounded faint).
 - MIDI in (`app/board_config.h`: `BOARD_MIDI_USB`, `BOARD_MIDI_NET`, both on by default; edit, then
   `just flash`): over Ethernet (docs/link.md), and/or from a class-compliant USB MIDI controller plugged into
   the **USB OTG FS** micro-USB connector (not the ST-LINK one) through an OTG adapter. The M4 is the USB host
@@ -51,6 +53,10 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   nothing gets default targets (`app/knobs.c`, `BOARD_KNOB_TARGETS`): six main parameters of its engine
   (cutoff, resonance, envelope, wavetable position, FM modulator levels...) on macros 1..6, the delay and
   reverb sends on 7 and 8, each over its whole range, starting at the preset's value.
+  The board reads the knob CCs itself (the synth's macro CCs are switched off) with **soft takeover**: after a
+  preset change, a knob drives its macro only once it reaches or crosses the macro's value, so turning a knob never
+  makes the sound jump (an FM preset's operator levels dropping to 0, a cutoff closing); until then the controls
+  view shows where the knob is and "turn up" or "turn down".
 - Screen views of the preset playing, as tabs in the top bar: a tap on its name (or on the preset playing in
   the list) opens its **controls**, a tap on the DSP meter its **signal** (oscilloscope and spectrum); "<"
   goes back. The controls are the eight knobs: the parameter each one moves, its value in its unit, a bar,

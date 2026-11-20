@@ -18,6 +18,7 @@
 #include "core/kit.h"
 #include "link.h"
 #include "engines/engine.h"
+#include "board_config.h"
 #include "knobs.h"
 #include "main.h"
 #include "presets.h"
@@ -153,8 +154,8 @@ static void net_events(int apply)
         if (e.kind == LINKQ_MIDI && e.len >= 1 && e.len <= 3) {
             if ((e.midi[0] & 0xF0u) == 0x90u && seq_on) /* someone plays: the demo stops */
                 seq_stop();
-            synth_midi(synth_default(), e.midi, e.len, 0);
-            knobs_midi(e.midi, e.len);
+            if (!knobs_midi(synth_default(), e.midi, e.len)) /* a controller knob: the board's (knobs.h) */
+                synth_midi(synth_default(), e.midi, e.len, 0);
         } else if (e.kind == LINKQ_PARAM) {
             synth_set_param(synth_default(), e.id, e.value);
         }
@@ -620,7 +621,7 @@ void app_init(void)
     app_gain = 0.0f;
     app_target = 1.0f;
     app_state = APP_PLAYING;
-    app_health.audio_status = audio_start(app_render, 70);
+    app_health.audio_status = audio_start(app_render, BOARD_VOLUME); /* board_config.h */
     wdg_seen = audio_buffers();
     wdg_start();
     __DMB();

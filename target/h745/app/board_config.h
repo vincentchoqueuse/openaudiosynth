@@ -31,4 +31,10 @@
 #define BOARD_KNOB_TARGETS 1
 #endif
 
+/* Headphone / line output level of the codec (WM8994), 0..100: the board support package turns it into 63 steps of
+ * 1 dB, 90 ~ 0 dB (the codec's nominal level; the synth's master soft-clips at 0 dBFS), 70 = -13 dB, 100 = +6 dB. */
+#ifndef BOARD_VOLUME
+#define BOARD_VOLUME 90
+#endif
+
 #endif /* BOARD_CONFIG_H */

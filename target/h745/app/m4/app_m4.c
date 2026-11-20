@@ -412,6 +412,13 @@ static void draw_knobs(const status_t *st)
         gfx_round_rect(x + 10, y + th - 16, bw, 6, 3, C_LINE);
         if (fill >= 6)
             gfx_round_rect(x + 10, y + th - 16, fill, 6, 3, c);
+        /* soft takeover: until the knob reaches the value, where it is, and a hint */
+        const float phys = SHARED->knob_phys[k];
+        if (!SHARED->knob_caught[k] && phys >= 0.0f && phys <= 1.0f) {
+            gfx_fill(x + 10 + (int)((float)(bw - 3) * phys), y + th - 21, 3, 16, C_TEXT);
+            gfx_text(&font_small, x + tw - 10 - gfx_text_width(&font_small, phys < v ? "turn up" : "turn down"), y + 7,
+                     phys < v ? "turn up" : "turn down", C_WARN, 0);
+        }
     }
 }
 
@@ -461,8 +468,9 @@ static void refresh(void)
         size_t l = strlen(key);
         l += (size_t)snprintf(key + l, sizeof(key) - l, "|k%lu", (unsigned long)SHARED->knob_seq);
         for (int k = 0; k < SHARED_KNOBS && l < sizeof(key); k++)
-            l += (size_t)snprintf(key + l, sizeof(key) - l, "|%d.%d.%.11s", (int)(SHARED->knob_value[k] * 1000.0f),
-                                  knob_lit(k, now), (const char *)SHARED->knob_text[k]);
+            l += (size_t)snprintf(key + l, sizeof(key) - l, "|%d.%d.%.11s.%d.%d", (int)(SHARED->knob_value[k] * 1000.0f),
+                                  knob_lit(k, now), (const char *)SHARED->knob_text[k],
+                                  (int)(SHARED->knob_phys[k] * 127.0f), SHARED->knob_caught[k]);
     }
     if (SHARED->demo_playing != ui.demo_shown) {
         ui.demo_shown = SHARED->demo_playing;

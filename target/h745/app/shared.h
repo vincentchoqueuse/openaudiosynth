@@ -78,6 +78,8 @@ typedef struct {
     volatile uint32_t knob_moves[SHARED_KNOBS];    /* incremented each time the knob turns */
     volatile char knob_name[SHARED_KNOBS][16];     /* the parameter it moves, "" if none */
     volatile char knob_text[SHARED_KNOBS][12];     /* its value in its unit ("1.20 kHz"), main loop */
+    volatile float knob_phys[SHARED_KNOBS];        /* where the controller's knob is, 0..1, -1 not seen yet */
+    volatile uint8_t knob_caught[SHARED_KNOBS];    /* 1 once the knob has reached the value: it drives it */
 } shared_t;
 
 #define SHARED_UID_OK(w0) (0x55494400u ^ (w0))

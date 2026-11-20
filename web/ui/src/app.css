@@ -5,7 +5,7 @@
   --bg: #f7f7f5; --side: #efefec; --surface: #ffffff; --text: #18181b; --muted: #6b6b72; --faint: #e7e7e4;
   --track: #dededa; --line: #e4e4e0; --accent: #4f46e5; --hot: #e5484d; --ok: #30a46c; --warn: #d9822b;
   --key-w: #ebebe8; --key-b: #1c1c1f; --radius: 12px; --shadow: 0 1px 2px rgba(0, 0, 0, .05);
-  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; --sans: var(--mono); /* one face everywhere: the family's raw look */
   --code-string: #2f7d4f; --code-number: #b0621a; --code-keyword: #8a3fbf; /* JSON editor */
   color-scheme: light;
 }
@@ -24,7 +24,7 @@
 :root, .app { --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent); }
 * { box-sizing: border-box; }
 html, body, #app { margin: 0; height: 100%; }
-body { background: var(--bg); color: var(--text); font: 13px/1.45 var(--sans); -webkit-font-smoothing: antialiased; }
+body { background: var(--bg); color: var(--text); font: 12.5px/1.45 var(--sans); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
 button, select, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 button:disabled { opacity: .35; cursor: default; }

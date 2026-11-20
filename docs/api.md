@@ -46,6 +46,7 @@ fast math functions for the audio path, with no libm calls. Sine: 2048-point tab
 - data: `const float fm_sin_table[FM_SIN_SIZE + 1]`
 - `float fm_frac(float x)` — Fractional part in [0, 1). Assumes |x| < 2^31.
 - `float fm_sin(float phase)` — sin(2*pi*phase), phase expressed in cycles (any value).
+- `float fm_sin_pos(float phase)` — fm_sin for a phase known to be >= 0 (|phase| < 2^31): the same value, without fm_frac's negative branch.
 - `float fm_cos(float phase)`
 - `float fm_exp2(float x)` — 2^x, x clamped to [-126, 126].
 - `float fm_log2(float x)` — log2(x) for x > 0 (returns -126 otherwise).
@@ -439,6 +440,12 @@ the interface every synthesis engine implements, and the engine registry. synth.
 - types: `fm6_voice_t`, `fm6_t`, `fm6_algorithm_t`
 - constants: `FM6_VOICES` = 16, `FM6_OPS` = 6
 - data: `const param_desc_t fm6_params[FM6_P_COUNT]`, `const engine_ops_t fm6_engine`, `const fm6_algorithm_t fm6_algorithms[32]`
+
+## `dsp/engines/gull.h`
+seabird call engine (a joke engine that takes itself seriously): each note is a call, a series of syllables ("kee-ow, kyow kyow...") whose pitch jumps up then slides down, voiced by a narrow anti-aliased pulse (nasal) through a vowel formant filter that moves from "ee" to "ow" along each syllable, roughened by a subharmonic (period doubling, as in a breaking voice) and pitch jitter, with some breath noise. Every syllable is a little different (randomness); several notes make a colony. Calls of gulls: harmonic, harsh, arched pitch contours of 0.1 to 0.5 s (bioacoustics field guides), rebuilt here by ear, not from recordings.
+- types: `gull_voice_t`, `gull_engine_t`
+- constants: `GULL_VOICES` = 8
+- data: `const param_desc_t gull_params[GULL_P_COUNT]`, `const engine_ops_t gull_engine`
 
 ## `dsp/engines/modal.h`
 modal synthesis engine: each voice is a bank of up to 32 damped resonators (modes) excited by a mallet strike (raised-cosine pulse + noise burst) and/or a continuous "bow" (filtered noise). Mode frequency ratios come from physical models (ideal string, stiff string, free bar, tuned marimba bar, church bell, circular membrane, bowl, closed tube); decay, damping of high modes, brightness and strike position shape the timbre. References: J.-M. Adrien, "The missing link: modal synthesis" (1991); P. Cook, "Real Sound Synthesis for Interactive Applications" (2002); N. Fletcher & T. Rossing, "The Physics of Musical Instruments" (mode ratios, stiff-string inharmonicity f_k = k f0 sqrt(1 + B k^2)); G. Weinreich, "Coupled piano strings" (JASA 1977) for the unison beating and double decay.

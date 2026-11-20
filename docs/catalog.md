@@ -1095,3 +1095,31 @@ drum sampler: a kit of samples, 16 pads with speed, start/end, reverse, loop, fi
 | `pad16_pan` | -1 .. 1 | 0 | yes | `pad16.pan` | stereo position, -1 left .. 1 right |
 | `pad16_cutoff` | 20 .. 20000 Hz | 20000 | yes | `pad16.cutoff` | low-pass cutoff (20 kHz: open) |
 | `pad16_choke` | 0 .. 8 | 0 |  | `pad16.choke` | choke group 1..8: a pad stops the others of its group (closed hi-hat over open); 0 none |
+
+## Engine `gull` (8 voices)
+
+seabird calls: each note a series of syllables jumping up then sliding down, a nasal pulse through a moving vowel formant, hoarse subharmonic, jitter and breath; several notes make a colony (8 voices)
+
+| name | range / choices | default | live | role | what it does |
+|---|---|---|---|---|---|
+| `calls` | 1 .. 16 | 3 |  | `gull.calls` | syllables in one call (1 = a single 'kee-ow', 6 = a laugh); random varies it from call to call |
+| `loop` | off, on | off |  | `gull.loop` | on: the bird keeps calling while the key is held, with pauses between its calls |
+| `syllable` | 0.04 .. 1.5 s | 0.24 | yes | `gull.syllable` | length of the first syllable |
+| `gap` | 0 .. 1 s | 0.07 | yes | `gull.gap` | silence between syllables |
+| `accel` | -0.3 .. 0.3 | 0.08 | yes | `gull.accel` | each syllable shorter than the last by this fraction (> 0: the laugh speeds up) |
+| `rise` | 0 .. 12 st | 5 | yes | `gull.rise` | the jump up at the start of each syllable |
+| `fall` | 0 .. 24 st | 9 | yes | `gull.fall` | the slide down after the peak, below the note |
+| `peak` | 0.05 .. 0.8 | 0.25 | yes | `gull.peak` | where the pitch peaks in the syllable (0.25 = early: 'KEE-ow') |
+| `roughness` | 0 .. 1 | 0.35 | yes | `gull.roughness` | subharmonic (period doubling): a hoarse, breaking voice |
+| `jitter` | 0 .. 1 | 0.3 | yes | `gull.jitter` | unsteady pitch |
+| `noise` | 0 .. 1 | 0.15 | yes | `gull.noise` | breath noise |
+| `pulse_width` | 0.05 .. 0.5 | 0.18 | yes | `osc1.pulse_width` | narrow = nasal and thin, 0.5 = hollow |
+| `formant` | 300 .. 4000 Hz | 1500 | yes | `filter.cutoff` | size of the throat: the formants scale with it (1 kHz = a human voice, higher = a smaller bird) |
+| `resonance` | 0 .. 1 | 0.6 | yes | `filter.resonance` | formant sharpness |
+| `vowel` | 0 .. 1 | 0.5 | yes | `filter.character` | vowel at the start of a syllable (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u) |
+| `vowel_end` | 0 .. 1 | 0.1 | yes | `gull.vowel_end` | vowel at its end ('ee' -> 'ow') |
+| `random` | 0 .. 1 | 0.4 | yes | `gull.random` | how much the birds improvise: each syllable's length, gap, contour and pitch, the number of syllables of each call, short 'kek's among the long ones, the pauses between calls (loop) |
+| `amp_release` | 0.005 .. 5 s | 0.08 | yes | `amp.release` | fade after the key is released |
+| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `pan_spread` | 0 .. 1 | 0.6 |  | `voice.pan_spread` | random stereo position per bird |
+| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |

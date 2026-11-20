@@ -3,6 +3,7 @@
 #include "acid.h"
 #include "drums.h"
 #include "fm6.h"
+#include "gull.h"
 #include "wt.h"
 #include "coupled.h"
 #include "selfosc.h"
@@ -26,6 +27,7 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_COUPLED] = &coupled_engine,
     [SYNTH_ENGINE_SELFOSC] = &selfosc_engine,
     [SYNTH_ENGINE_SAMPLER] = &sampler_engine,
+    [SYNTH_ENGINE_GULL] = &gull_engine,
 };
 
 static int same(const char *a, const char *b)

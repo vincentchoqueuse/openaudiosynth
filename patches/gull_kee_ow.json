@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "engine": "gull",
+  "name": "gull_kee_ow",
+  "description": "A gull on a post: a two- or three-syllable 'KEE-ow, kyow', harsh and nasal, each call a little different.",
+  "params": {
+    "calls": 3,
+    "syllable": 0.3,
+    "gap": 0.08,
+    "accel": 0.15,
+    "rise": 5,
+    "fall": 10,
+    "peak": 0.22,
+    "roughness": 0.4,
+    "jitter": 0.3,
+    "noise": 0.15,
+    "pulse_width": 0.18,
+    "formant": 1600,
+    "resonance": 0.6,
+    "vowel": 0.5,
+    "vowel_end": 0.05,
+    "random": 0.5,
+    "amp_release": 0.6,
+    "pan_spread": 0.3,
+    "reverb_mix": 0.15
+  },
+  "audition": {
+    "notes": "A5 _ _ _ _ _ _ _ C6 _ _ _ _ _ _ _ G5 _ _ _ _ _ _ _",
+    "bpm": 100,
+    "step": 0.25
+  }
+}

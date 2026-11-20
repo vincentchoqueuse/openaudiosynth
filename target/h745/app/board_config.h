@@ -24,4 +24,11 @@
 #define BOARD_MACRO_CC {13, 14, 15, 16, 17, 18, 19, 20}
 #endif
 
+/* 1: a preset that gives its macros nothing to do gets eight targets (knobs.c): its engine's six main parameters
+ * (cutoff, resonance, envelope...) on macros 1..6, the delay and reverb sends on 7 and 8. A knob then sets its
+ * parameter over the whole range; the preset sounds as written until the knob is turned. 0: macros as written. */
+#ifndef BOARD_KNOB_TARGETS
+#define BOARD_KNOB_TARGETS 1
+#endif
+
 #endif /* BOARD_CONFIG_H */

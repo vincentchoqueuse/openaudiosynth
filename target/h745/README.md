@@ -47,7 +47,10 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   Novation Launch Control. The screen's second line shows the last CC or note received. A debugger reads
   `usbh_midi_cc_seen` on the M4 (each CC as `(channel << 8) | cc`, in the order the knobs first moved) to
   find what a controller sends. `BOARD_MACRO_CC` (CCs 13..20, the Launch Control's top knobs) sets the CCs
-  that turn macros 1..8 on every preset, in place of the presets' own CCs (102..109).
+  that turn macros 1..8 on every preset, in place of the presets' own CCs (102..109). A preset whose macros do
+  nothing gets default targets (`app/knobs.c`, `BOARD_KNOB_TARGETS`): six main parameters of its engine
+  (cutoff, resonance, envelope, wavetable position, FM modulator levels...) on macros 1..6, the delay and
+  reverb sends on 7 and 8, each over its whole range, starting at the preset's value.
 - The MCU's unique id (MAC address, board id) is read by the M7 and handed to the M4 in the mailbox: the M4
   takes a bus fault reading `UID_BASE`.
 - Keep the board's supply configuration (direct SMPS): a wrong setting makes the board unreachable by the

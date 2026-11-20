@@ -52,7 +52,7 @@ target_sources(h745_bsp PRIVATE ${H745_HAL}/stm32h7xx_hal_sai.c ${H745_HAL}/stm3
     ${H745_HAL}/stm32h7xx_hal_i2c.c ${H745_HAL}/stm32h7xx_hal_i2c_ex.c)
 
 target_sources(${CMAKE_PROJECT_NAME} PRIVATE ${H745_APP}/app.c ${H745_APP}/audio.c ${H745_APP}/presets_gen.c
-    ${H745_APP}/profile.c)
+    ${H745_APP}/profile.c ${H745_APP}/knobs.c)
 # the audio interrupt code is optimized in every build type, like the DSP
 set_source_files_properties(${H745_APP}/app.c ${H745_APP}/audio.c PROPERTIES COMPILE_OPTIONS "-O2;-Wextra;-Wdouble-promotion")
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${H745_APP} ${SYNTH_ROOT}/midi) # midi/: the network queue (linkq.h)

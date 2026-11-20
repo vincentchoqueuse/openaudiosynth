@@ -24,6 +24,13 @@ static inline float voice_glide_coef(float time_s, int n, float sample_rate)
     return 1.0f - fm_exp2(-FM_LOG2E * 3.0f * (float)n / (time_s * sample_rate));
 }
 
+/* One-pole glide that arrives: the time constant is time / 4.6, so the pitch is within 1 % of the interval after
+ * `time` (an RC lag set by its arrival, as a player hears it) instead of still trailing behind. */
+static inline float voice_glide_arrive_coef(float time_s, int n, float sample_rate)
+{
+    return 1.0f - fm_exp2(-FM_LOG2E * 4.6f * (float)n / (time_s * sample_rate));
+}
+
 /* x[i] *= env[i] * g, g ramping linearly from g0 (excluded) to g1 (reached on the last sample). */
 static inline void dsp_ramp_env_mul(float *restrict x, const float *restrict env, float g0, float g1, int n)
 {

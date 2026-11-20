@@ -1887,7 +1887,7 @@ const preset_param_t preset_params[] = {
     {22, 0.605871499f},
     {23, 0.899999976f},
     {24, 1.0f},
-    {25, 0.00700000022f},
+    {25, 0.461274505f},
     {26, 1.0f},
     {40, 0.0f},
     {36, 1.0f},
@@ -1975,7 +1975,7 @@ const preset_param_t preset_params[] = {
     {20, 0.5f},
     {21, 0.25f},
     {23, 1.0f},
-    {25, 0.00799999945f},
+    {25, 0.4757725f},
     {13, 0.400000006f},
     {24, 1.0f},
     {28, 0.0333333351f},
@@ -2805,4 +2805,4 @@ const preset_t presets[] = {
 };
 
 const int preset_count = 81;
-const uint32_t preset_catalog = 0x50FD5530u; /* catalog_hash() */
+const uint32_t preset_catalog = 0xFB1B4035u; /* catalog_hash() */

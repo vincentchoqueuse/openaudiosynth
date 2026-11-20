@@ -638,7 +638,7 @@
         "amp_decay": {"type": "float", "range": [0.005, 10], "default": 0.4, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "loudness contour decay"},
         "amp_sustain": {"type": "float", "range": [0, 1], "default": 0.85, "realtime": true, "role": "amp.sustain", "help": "loudness contour sustain"},
         "release": {"type": "enum", "choices": ["off", "on"], "default": "off", "realtime": true, "role": "env.release_switch", "help": "on = both contours release with their decay time after key-up; off = short release"},
-        "glide": {"type": "float", "range": [0, 10], "default": 0, "unit": "s", "realtime": true, "role": "voice.glide", "help": "portamento time (0 = off)"},
+        "glide": {"type": "float", "range": [0.001, 10], "default": 0.001, "unit": "s", "scale": "log", "realtime": true, "role": "voice.glide", "help": "portamento: the time to reach the new note (1 ms = off); exponential, as the original's RC lag"},
         "voice_mode": {"type": "enum", "choices": ["mono", "legato"], "default": "legato", "realtime": false, "role": "voice.mode", "help": "legato = contours retrigger only after all keys are released (the original behaviour); mono = every note"},
         "mod_mix": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "mod.mix", "help": "modulation mix: 0 = only source A (mod_a: osc 3 or the filter contour), 1 = only source B (mod_b: noise or the LFO), in between both; the mod wheel sets how much of it is applied"},
         "mod_pitch": {"type": "float", "range": [0, 12], "default": 0.3, "unit": "st", "realtime": true, "role": "mod.to_pitch", "help": "mod wheel -> oscillator pitch depth (semitones at full wheel)"},

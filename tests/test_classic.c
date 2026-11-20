@@ -1,4 +1,4 @@
-/* test_classic.c — acid, mono and poly engines through the public API: pitch, slide, accent, hard
+/* test_classic.c — acid, mono and poly engines through the public API: pitch, slide, accent, mono glide, hard
  * sync (pitch locks to osc B), unison, the mono's panel (emphasis thinning the bass, note priority, output fed
  * back, pink noise, LFO through the wheel, lo range), and bounded/deterministic output under random parameters. */
 #include <math.h>
@@ -104,6 +104,33 @@ void suite_classic(void)
     render(L, R, n);
     f = estimate_freq(L + 9600, n - 9600, SR);
     CHECK(fabsf(f - 220.0f) < 0.2f, "mono A3: %.2f Hz", (double)f);
+
+    /* mono glide: from A2 to A3 in 0.1 s, legato. Halfway it is between the two; once the time is over, it has
+     * arrived (within 1 % of the octave), not still trailing behind; the knob's bottom is no glide at all */
+    {
+        const int g = 48000 / 4;
+        setp(mono_params, MONO_P_GLIDE, 0.1f);
+        midi3(0x80, 57, 0);
+        midi3(0x90, 45, 100); /* A2 */
+        render(L, R, g);
+        midi3(0x90, 57, 100); /* A3, A2 still held: legato */
+        render(L, R, g);
+        const float mid = estimate_freq(L + 960, 1440, SR);  /* 20..50 ms */
+        const float end = estimate_freq(L + 5760, 4800, SR); /* 120..220 ms */
+        CHECK(mid > 120.0f && mid < 200.0f, "mono glide halfway: %.1f Hz (expected between A2 and A3)", (double)mid);
+        CHECK(fabsf(end - 220.0f) < 1.5f, "mono glide has not arrived after its time: %.2f Hz", (double)end);
+        setp(mono_params, MONO_P_GLIDE, 0.0f); /* clamped to the knob's bottom: off */
+        midi3(0x80, 57, 0);
+        midi3(0x80, 45, 0);
+        midi3(0x90, 45, 100);
+        render(L, R, g);
+        midi3(0x90, 57, 100);
+        render(L, R, g);
+        f = estimate_freq(L + 480, 2400, SR); /* 10..60 ms */
+        CHECK(fabsf(f - 220.0f) < 1.0f, "mono glide off still glides: %.2f Hz", (double)f);
+        midi3(0x80, 57, 0);
+        midi3(0x80, 45, 0);
+    }
 
     /* mono, the panel of the original instrument */
     #define MONO_ONE_OSC()                                                                                  \

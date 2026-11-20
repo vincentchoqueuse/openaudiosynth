@@ -33,6 +33,7 @@ enum {
     MONO_P_COUNT
 };
 extern const param_desc_t mono_params[MONO_P_COUNT];
+#define MONO_GLIDE_OFF 0.001f /* s: the glide knob's bottom, glide off */
 extern const engine_ops_t mono_engine;
 
 typedef struct {

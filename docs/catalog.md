@@ -568,7 +568,7 @@ classic monosynth (the early-70s portable one, panel by panel): 3 free-running o
 | `amp_decay` | 0.005 .. 10 s | 0.4 | yes | `amp.decay` | loudness contour decay |
 | `amp_sustain` | 0 .. 1 | 0.85 | yes | `amp.sustain` | loudness contour sustain |
 | `release` | off, on | off | yes | `env.release_switch` | on = both contours release with their decay time after key-up; off = short release |
-| `glide` | 0 .. 10 s | 0 | yes | `voice.glide` | portamento time (0 = off) |
+| `glide` | 0.001 .. 10 s | 0.001 | yes | `voice.glide` | portamento: the time to reach the new note (1 ms = off); exponential, as the original's RC lag |
 | `voice_mode` | mono, legato | legato |  | `voice.mode` | legato = contours retrigger only after all keys are released (the original behaviour); mono = every note |
 | `mod_mix` | 0 .. 1 | 0 | yes | `mod.mix` | modulation mix: 0 = only source A (mod_a: osc 3 or the filter contour), 1 = only source B (mod_b: noise or the LFO), in between both; the mod wheel sets how much of it is applied |
 | `mod_pitch` | 0 .. 12 st | 0.3 | yes | `mod.to_pitch` | mod wheel -> oscillator pitch depth (semitones at full wheel) |

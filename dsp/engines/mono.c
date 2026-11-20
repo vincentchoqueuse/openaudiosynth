@@ -64,7 +64,8 @@ const param_desc_t mono_params[MONO_P_COUNT] = {
     PARAM(MONO_P_AMP_S, "amp_sustain", "amp.sustain", 0.0f, 1.0f, 0.85f, PARAM_LIN, "", 1, NULL, "loudness contour sustain"),
     PARAM(MONO_P_RELEASE, "release", "env.release_switch", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 1, param_onoff_labels,
           "on = both contours release with their decay time after key-up; off = short release"),
-    PARAM(MONO_P_GLIDE, "glide", "voice.glide", 0.0f, 10.0f, 0.0f, PARAM_LIN, "s", 1, NULL, "portamento time (0 = off)"),
+    PARAM(MONO_P_GLIDE, "glide", "voice.glide", MONO_GLIDE_OFF, 10.0f, MONO_GLIDE_OFF, PARAM_EXP, "s", 1, NULL,
+          "portamento: the time to reach the new note (1 ms = off); exponential, as the original's RC lag"),
     PARAM(MONO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 1.0f, 1.0f, PARAM_INT, "", 0, mode_labels,
           "legato = contours retrigger only after all keys are released (the original behaviour); mono = every note"),
     PARAM(MONO_P_MOD_MIX, "mod_mix", "mod.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
@@ -109,6 +110,9 @@ static void set_wave(osc_t *o, osc_t *o2, int w)
     }
 }
 
+/* glide at or under this is off (the bottom of the glide knob) */
+static int glide_on(const float *p) { return p[MONO_P_GLIDE] > 1.5f * MONO_GLIDE_OFF; }
+
 static float wave_pw(int w) { return w == W_WIDE ? 0.3f : w == W_NARROW ? 0.12f : 0.5f; }
 
 /* ---------------- vpoly callbacks ---------------- */
@@ -117,7 +121,7 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
 {
     mono_t *e = eng;
     (void)vi;
-    if (e->p[MONO_P_GLIDE] <= 0.0f || !e->has_note)
+    if (!glide_on(e->p) || !e->has_note)
         e->pitch = (float)note;
     e->has_note = 1;
     e->vel = vel;
@@ -135,7 +139,7 @@ static void voice_legato(void *eng, int vi, int note, float vel)
 {
     mono_t *e = eng;
     (void)vi, (void)vel;
-    if (e->p[MONO_P_GLIDE] <= 0.0f)
+    if (!glide_on(e->p))
         e->pitch = (float)note;
 }
 
@@ -253,10 +257,10 @@ static DSP_FAST_CODE void mono_render(void *st, float *L, float *R)
 
     /* pitch: glide, bend, drift; osc 3 / noise as mod-wheel modulator (block rate) */
     const float target = (float)vpoly_note(&e->poly, 0);
-    if (p[MONO_P_GLIDE] > 0.0f)
-        e->pitch += (target - e->pitch) * voice_glide_coef(p[MONO_P_GLIDE], n, e->sr);
+    if (glide_on(p) && dsp_absf(target - e->pitch) > 0.002f)
+        e->pitch += (target - e->pitch) * voice_glide_arrive_coef(p[MONO_P_GLIDE], n, e->sr);
     else
-        e->pitch = target;
+        e->pitch = target; /* arrived (a tail under a fifth of a cent is not heard) */
     const float dr = 0.01f * p[MONO_P_DRIFT] * drift_next(&e->drift);
     const float *vm = vpoly_vmod(&e->poly, 0); /* per-voice modulation, microtuning, MPE */
     const float base = e->pitch + e->bend * p[MONO_P_BEND_RANGE] + dr + vm[VM_PITCH];

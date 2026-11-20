@@ -52,6 +52,7 @@ set(SYNTH_MIDI_SOURCES
   midi/midi.c
   midi/link.c
   midi/udpip.c
+  midi/usbdesc.c
 )
 # strict flags of dsp/ and midi/ (CLAUDE.md: float only, no fused multiply-add for bit-exact results)
 set(SYNTH_DSP_FLAGS -Wdouble-promotion -Wpedantic -Wshadow -ffp-contract=off)

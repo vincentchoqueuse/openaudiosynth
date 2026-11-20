@@ -7,6 +7,12 @@
 
 #include <stdint.h>
 
+/* The Ethernet interrupt's priority, above the touch panel and the timers: notes are not kept waiting. The USB
+ * MIDI interrupt (usbh_midi.c) has the same: the two producers of the event queue never preempt each other. */
+#define NET_IRQ_PRIO 1
+
+#include "board_config.h" /* BOARD_MIDI_USB, BOARD_MIDI_NET: where MIDI comes from */
+
 typedef struct {
     int up;               /* cable connected, link negotiated */
     int phy_ok;           /* the PHY answered at start-up */

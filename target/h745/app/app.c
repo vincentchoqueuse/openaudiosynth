@@ -473,8 +473,24 @@ static void net_watch(void)
     nw_lost = lost;
 }
 
+/* The same for a USB MIDI device: unplugged while it held notes, every note stops. */
+static uint32_t usb_midi_done;
+
+static void usb_watch(void)
+{
+    const uint32_t midi = SHARED->usb_midi;
+    if (midi != usb_midi_done && !SHARED->usb_up) {
+        usb_midi_done = midi;
+        if (app_state == APP_SILENT)
+            silence_all();
+        else
+            app_silence = 1;
+    }
+}
+
 static void net_watch_init(void)
 {
+    usb_midi_done = SHARED->usb_midi;
     nw_alive = SHARED->net_alive;
     nw_midi_done = SHARED->net_midi;
     nw_lost = LINKQ->lost;
@@ -562,6 +578,12 @@ void app_init(void)
     /* flush-to-zero in interrupts too: FPSCR is reloaded from FPDSCR on exception entry (dsp/core/denormal.h) */
     FPU->FPDSCR |= FPU_FPDSCR_FZ_Msk;
     DBGMCU->CR |= DBGMCU_CR_DBG_SLEEPD1; /* keep the debugger connected while the core sleeps in __WFI */
+    /* the unique id, for the M4's network (it cannot read it itself) */
+    SHARED->uid[0] = HAL_GetUIDw0();
+    SHARED->uid[1] = HAL_GetUIDw1();
+    SHARED->uid[2] = HAL_GetUIDw2();
+    __DMB();
+    SHARED->uid_ok = SHARED_UID_OK(SHARED->uid[0]);
     memset(_sram_d1, 0, (size_t)(_eram_d1 - _sram_d1));
 
     /* the M7's half of the mailbox (the M4 may already have written its own: its sequence is the baseline) */
@@ -608,6 +630,7 @@ void app_loop(void)
     wdg_poll();
     kit_take();
     net_watch();
+    usb_watch();
     const int req = shared_request();
     if (req >= 0) {
         app_pending = req;

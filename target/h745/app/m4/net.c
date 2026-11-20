@@ -22,7 +22,6 @@
 #define NET_LINK_MS 250u
 #define NET_KIT_BANK0 0xD0100000u  /* SDRAM after the display's frames (gfx.c): two banks of 7.5 MB */
 #define NET_KIT_BANK_SIZE 0x00780000u
-#define NET_IRQ_PRIO 1             /* above the touch panel and the timers: notes are not kept waiting */
 
 static ETH_HandleTypeDef heth;
 static ETH_TxPacketConfigTypeDef tx_config;
@@ -200,9 +199,25 @@ static int32_t phy_tick(void) { return (int32_t)HAL_GetTick(); }
 
 /* ---------------- the board link ---------------- */
 
+/* the MCU's unique id, given by the M7 (shared.h: the M4 faults reading it); 0 if the M7 never gives it */
+static uint32_t uid_w[3];
+
+static void uid_fetch(void)
+{
+    for (uint32_t t0 = HAL_GetTick(); HAL_GetTick() - t0 < 3000u;) {
+        if (SHARED->uid_ok == SHARED_UID_OK(SHARED->uid[0])) {
+            __DMB();
+            for (int i = 0; i < 3; i++)
+                uid_w[i] = SHARED->uid[i];
+            return;
+        }
+        HAL_Delay(1);
+    }
+}
+
 static uint32_t uid_bytes(uint8_t uid[12])
 {
-    const uint32_t w[3] = {HAL_GetUIDw0(), HAL_GetUIDw1(), HAL_GetUIDw2()};
+    const uint32_t *w = uid_w;
     for (int i = 0; i < 12; i++)
         uid[i] = (uint8_t)(w[i / 4] >> (8 * (i % 4)));
     return link_board_id(uid, 12);
@@ -241,7 +256,7 @@ static void hello(const udpip_peer_t *to, uint32_t seq)
 /* a request is in flight until the M7 has applied it (done_seq: it reads NET_PRESET until then) */
 static int busy(void) { return request >= 0 || SHARED->done_seq != SHARED->req_seq; }
 
-static void push_midi(const uint8_t *p, int len)
+__attribute__((unused)) static void push_midi(const uint8_t *p, int len)
 {
     int pos = 0, n, start = 0;
     while ((n = link_midi_next(p, len, &pos)) > 0) {
@@ -373,8 +388,10 @@ static void on_datagram(void *ctx, const udpip_peer_t *from, const uint8_t *d, i
         hello(from, h.seq);
         break;
     case LINK_MIDI:
+#if BOARD_MIDI_NET
         push_midi(p, n);
         SHARED->net_midi++;
+#endif /* otherwise MIDI is taken from USB only (net.h) */
         break;
     case LINK_HEARTBEAT:
         break; /* counted in net_alive */
@@ -444,6 +461,7 @@ static void link_check(void)
 void net_init(int sdram_ok)
 {
     uint8_t uid[12], mac[6];
+    uid_fetch();
     st.id = uid_bytes(uid);
     st.ip = udpip_link_local(st.id);
     udpip_mac_from_id(st.id, mac);

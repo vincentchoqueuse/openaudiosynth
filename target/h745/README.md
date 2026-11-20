@@ -1,7 +1,7 @@
 # target/h745 — STM32H745I-DISCO firmware
 
 CubeMX project (`h745.ioc`, CMake, GCC), dual core: the M7 runs the audio (SAI2 + DMA to the WM8994 codec),
-the M4 the touch screen (preset selector), later the network. The two cores talk through a mailbox in SRAM4
+the M4 the touch screen (preset selector), the network and USB MIDI. The two cores talk through a mailbox in SRAM4
 (`app/shared.h`).
 
 ```sh
@@ -37,6 +37,15 @@ just flash     # flashes both cores through the ST-LINK (STM32CubeCLT)
   the M4 then starts it again (`ts_resets` in `ui`), at the cost of the BSP's 1 s read timeout.
 - Known workaround: CubeMX also initializes SAI2 (`MX_SAI2_Init`) and its `HAL_SAI_MspInit` would move the
   SAI clock off the audio PLL; `audio.c` marks the BSP's handle initialized and checks the clock source.
+- MIDI in (`app/board_config.h`: `BOARD_MIDI_USB`, `BOARD_MIDI_NET`, both on by default; edit, then
+  `just flash`): over Ethernet (docs/link.md), and/or from a class-compliant USB MIDI controller plugged into
+  the **USB OTG FS** micro-USB connector (not the ST-LINK one) through an OTG adapter. The M4 is the USB host
+  (`app/m4/usbh_midi.c`, on the HAL's HCD only; descriptors read by `midi/usbdesc.c`): it powers the
+  connector, sets the device up, then polls its MIDI IN endpoints every frame in the USB interrupt and pushes
+  each message to the M7's event queue, like the network. The screen shows the device's name; unplugging it
+  stops the notes it held. No hub. PLL3 now serves both the display (9.6 MHz) and USB (48 MHz).
+- The MCU's unique id (MAC address, board id) is read by the M7 and handed to the M4 in the mailbox: the M4
+  takes a bus fault reading `UID_BASE`.
 - Keep the board's supply configuration (direct SMPS): a wrong setting makes the board unreachable by the
   debugger. With the SMPS, the M7 runs at 400 MHz at most.
 

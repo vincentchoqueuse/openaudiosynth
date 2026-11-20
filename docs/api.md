@@ -563,3 +563,11 @@ the smallest IPv4 stack a synth board needs: Ethernet II frames in and out, ARP 
 - `uint32_t udpip_link_local(uint32_t id)` — A link-local address 169.254.1.0 .. 169.254.254.255 (RFC 3927) and a locally administered unicast MAC (02:xx:...), both derived from a board id, so a board keeps them across resets.
 - `void udpip_mac_from_id(uint32_t id, uint8_t mac[6])`
 - `uint16_t udpip_checksum(uint32_t sum, const uint8_t *p, int n)` — The Internet checksum (RFC 1071) of n bytes, added to sum (pass 0).
+
+## `midi/usbdesc.h`
+what a USB host needs from a MIDI device's descriptors: the configuration to select and the IN endpoints of its MIDIStreaming interfaces (USB 2.0 spec. sec. 9.6; USB Device Class Definition for MIDI Devices 1.0, sec. 6: interface class 1 audio, subclass 3 MIDIStreaming, bulk endpoints of 4-byte packets). Platform independent: the board's USB host (target/h745/app/m4/usbh_midi.c) feeds it the bytes it read.
+- types: `usbdesc_midi_t`, `usbdesc_device_t`
+- `int usbdesc_device(const uint8_t *d, int len, usbdesc_device_t *out)`
+- `int usbdesc_config_total(const uint8_t *d, int len)` — wTotalLength of a configuration descriptor (its first 9 bytes at least), 0 if not one.
+- `int usbdesc_find_midi(const uint8_t *d, int len, usbdesc_midi_t *out)` — Walks a whole configuration descriptor (wTotalLength bytes; a shorter read is walked as far as it goes). Keeps the IN endpoints (bulk or interrupt) of the MIDIStreaming interfaces at alternate setting 0. Returns the n...
+- `int usbdesc_string(const uint8_t *d, int len, char *out, int out_size)` — A string descriptor (UTF-16LE) as printable ASCII in out (others become '?'), NUL-terminated. Returns its length, 0 if not a string descriptor.

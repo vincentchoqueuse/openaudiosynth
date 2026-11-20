@@ -59,7 +59,18 @@ typedef struct {
     /* ---- the demo arpeggio: off at power-up (a board that reboots on stage stays silent) ---- */
     volatile uint32_t demo_taps;    /* M4: incremented by each tap on the title; each change toggles the demo */
     volatile uint32_t demo_playing; /* M7: 1 while the demo plays */
+
+    /* ---- written by the M4: the USB MIDI device (m4/usbh_midi.c), for the M7's fail-safe ---- */
+    volatile uint32_t usb_up;   /* 1 while a MIDI device is plugged in and set up */
+    volatile uint32_t usb_midi; /* MIDI messages received from it */
+
+    /* ---- written by the M7 at start-up: the MCU's unique id, which the M4 cannot read (a bus fault: the system
+     * memory at UID_BASE is not on its bus); the network derives the board's MAC address and id from it ---- */
+    volatile uint32_t uid[3];
+    volatile uint32_t uid_ok; /* SHARED_UID_OK(uid[0]) once uid is written */
 } shared_t;
+
+#define SHARED_UID_OK(w0) (0x55494400u ^ (w0))
 
 /* req_preset value for the preset received over the network (NET_PRESET) instead of a built-in one; the M7
  * then reports SHARED_PLAYING_NET as the preset playing. */

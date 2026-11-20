@@ -17,6 +17,7 @@
 #include "gfx.h"
 #include "main.h"
 #include "net.h"
+#include "usbh_midi.h"
 #include "presets.h"
 #include "scope_view.h"
 #include "shared.h"
@@ -76,7 +77,7 @@ typedef struct {
     int order[MAX_PRESETS];  /* preset indices grouped by instrument */
     /* what the last frame showed, to draw a new one only on change */
     int dirty;
-    char shown[160];
+    char shown[200];
     uint32_t last_status, last_heartbeat, heartbeat_tick;
     uint32_t demo_shown;     /* demo state on the last frame */
     /* touch panel health (read with the debugger): failed reads, re-initializations, slowest read in ms */
@@ -224,12 +225,25 @@ static void draw_bar(const status_t *st)
         /* the network: cable state, then the sample kit received */
         const net_status_t ns = net_status();
         const int nx = tx + 10;
-        char kit[24];
+        char line[40];
+        if (ns.kit_count)
+            snprintf(line, sizeof(line), "%s  kit %lu", ns.up ? "LAN" : "no LAN", (unsigned long)ns.kit_count);
+        else
+            snprintf(line, sizeof(line), "%s", ns.up ? "LAN" : "no LAN");
         gfx_round_rect(nx, 10, 6, 6, 3, ns.up ? C_OK : C_FAINT);
-        gfx_text(&font_small, nx + 10, 7, ns.up ? "LAN" : "no LAN", ns.up ? C_DIM : C_FAINT, BACK_W - nx - 14);
-        if (ns.kit_count) {
-            snprintf(kit, sizeof(kit), "kit %lu", (unsigned long)ns.kit_count);
-            gfx_text(&font_small, nx, 26, kit, C_DIM, BACK_W - nx - 4);
+        gfx_text(&font_small, nx + 10, 7, line, ns.up ? C_DIM : C_FAINT, BACK_W - nx - 14);
+        /* the USB MIDI device: its name once it plays */
+        const usbh_midi_status_t us = usbh_midi_status();
+        if (us.state != USBH_MIDI_OFF) {
+            const int on = us.state == USBH_MIDI_RUNNING;
+            const char *what = us.state == USBH_MIDI_EMPTY      ? "no USB"
+                               : us.state == USBH_MIDI_ENUM     ? "USB..."
+                               : us.state == USBH_MIDI_NOT_MIDI ? "USB: not MIDI"
+                               : us.state == USBH_MIDI_ERROR    ? "USB: error"
+                               : us.name[0]                     ? us.name
+                                                                : "USB MIDI";
+            gfx_round_rect(nx, 29, 6, 6, 3, on ? C_OK : us.state == USBH_MIDI_ERROR ? C_ERR : C_FAINT);
+            gfx_text(&font_small, nx + 10, 26, what, on ? C_DIM : C_FAINT, BACK_W - nx - 14);
         }
     }
 
@@ -354,11 +368,13 @@ static void refresh(void)
     if (!ui.dirty && now - ui.last_status < STATUS_MS)
         return;
     ui.last_status = now;
-    char key[160];
+    char key[200];
     const net_status_t ns = net_status();
-    snprintf(key, sizeof(key), "%d|%d|%d|%d|%d|%d|%d|%d|%lu|%ld|%d|%d|%lu|%lu", ui.screen, ui.inst, ui.scroll, st.alive,
-             st.playing, st.overload, ui.requested, (int)(st.load + 0.5f), (unsigned long)st.overruns,
-             (long)st.audio_status, ui.ts_ok, ns.up, (unsigned long)ns.kit_count, (unsigned long)SHARED->kit_seq);
+    const usbh_midi_status_t us = usbh_midi_status();
+    snprintf(key, sizeof(key), "%d|%d|%d|%d|%d|%d|%d|%d|%lu|%ld|%d|%d|%lu|%lu|%d|%s", ui.screen, ui.inst, ui.scroll,
+             st.alive, st.playing, st.overload, ui.requested, (int)(st.load + 0.5f), (unsigned long)st.overruns,
+             (long)st.audio_status, ui.ts_ok, ns.up, (unsigned long)ns.kit_count, (unsigned long)SHARED->kit_seq,
+             (int)us.state, us.name);
     if (SHARED->demo_playing != ui.demo_shown) {
         ui.demo_shown = SHARED->demo_playing;
         ui.dirty = 1;
@@ -486,10 +502,12 @@ void app_m4_init(void)
     ui.lcd_ok = BSP_LCD_InitEx(0, LCD_ORIENTATION_LANDSCAPE, LCD_PIXEL_FORMAT_RGB565, GFX_W, GFX_H) == BSP_ERROR_NONE;
     if (!ui.lcd_ok) {
         net_init(0); /* no SDRAM: the network without sample kits */
+        usbh_midi_init();
         return;
     }
     gfx_init();
     net_init(1); /* the SDRAM is up (the display's frames live there): kits can be received */
+    usbh_midi_init();
     scope_view_init();
     show(SCREEN_INSTRUMENTS, 0);
     refresh();
@@ -499,6 +517,7 @@ void app_m4_loop(void)
 {
     touch_poll();
     net_poll();
+    usbh_midi_poll();
     const int req = net_request();
     if (req >= 0) {
         request_preset(req);

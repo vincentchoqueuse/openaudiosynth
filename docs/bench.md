@@ -107,3 +107,19 @@ Mean of the 75 presets: 25.7 % (first firmware) -> 24.2 % (-O3) -> **23.0 %**. P
 still exceed the budget at their worst buffer (`coupled_mosaic`, `piano_tension`): their cost is the algorithm
 itself (one sine per partial per sample; 32 coupled modes per sample), not the code around it.
 
+Then (2026-11-20), the default knob targets (`target/h745/app/knobs.c`) cost about half a point (mean 23.0 ->
+23.5 %), and two loops were rewritten to work on **two partials or modes per pass**: the Cortex-M7 waits on each
+floating-point result, and a single partial's (or mode's) chain of dependent operations left the FPU idle; two
+independent chains interleave. Same operations, sums in the same order: every golden hash unchanged.
+
+| Hot spot | Fix | Effect (average / worst buffer) |
+|---|---|---|
+| `coupled`: one sine per partial per sample (80 % of the preset) | two partials per pass, `fm_sin_pos` (no negative branch: the phase is never negative) | `coupled_mosaic` 72.3 / 103.8 -> 55.2 / 78.1 %, every `coupled` preset -17 points |
+| `modal` tension: the rotation of each mode per sample | two modes per pass | `piano_tension` 68.2 / 106.0 -> 53.1 / 83.1 %, `gong_tension` -7 points |
+| (tried) four partials per pass | 55.3 -> 54.0 %: not worth the code | not kept |
+
+Mean of the 78 presets: **22.3 %**; none above 90 % at its worst buffer. Above the 60 % target on average remain
+the three `sine_duel` presets (`selfosc`, 61 %, 87 % at worst): a 4x oversampled differential equation, one step
+after the other, and half-band filters that sum their taps in a chain; going faster there means reordering
+sums, so a (tiny) change of sound.
+

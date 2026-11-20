@@ -33,6 +33,16 @@ static inline float fm_sin(float phase)
     const float a = fm_sin_table[i];
     return a + (fm_sin_table[i + 1] - a) * fr;
 }
+/* fm_sin for a phase known to be >= 0 (|phase| < 2^31): the same value, without fm_frac's negative branch. */
+static inline float fm_sin_pos(float phase)
+{
+    const float pos = (phase - (float)(int32_t)phase) * (float)FM_SIN_SIZE;
+    int32_t i = (int32_t)pos;
+    const float fr = pos - (float)i;
+    i &= FM_SIN_SIZE - 1;
+    const float a = fm_sin_table[i];
+    return a + (fm_sin_table[i + 1] - a) * fr;
+}
 static inline float fm_cos(float phase) { return fm_sin(phase + 0.25f); }
 
 /* 2^x, x clamped to [-126, 126]. */

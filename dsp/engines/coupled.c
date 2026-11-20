@@ -170,7 +170,32 @@ static DSP_FAST_CODE void voice_render(coupled_t *e, int vi, float *L, float *R)
     float x[SYNTH_BLOCK], env[SYNTH_BLOCK];
     for (int i = 0; i < n; i++)
         x[i] = 0.0f;
-    for (int k = 0; k < np; k++) {
+    /* Two partials per pass: their two independent chains of operations overlap in the FPU's pipeline (the
+     * Cortex-M7 waits on each result otherwise). Same operations, same order of the sum: same output. th >= 0
+     * always (it starts in [0, 1), inc >= 0), hence fm_sin_pos. */
+    int k = 0;
+    for (; k + 1 < np; k += 2) {
+        const float h0 = (float)(k + 1), h1 = (float)(k + 2);
+        const float i00 = v->fresh ? inc1[k] : v->inc[k], a00 = v->fresh ? amp1[k] : v->amp[k];
+        const float i01 = v->fresh ? inc1[k + 1] : v->inc[k + 1], a01 = v->fresh ? amp1[k + 1] : v->amp[k + 1];
+        const float di0 = (inc1[k] - i00) * inv_n, da0 = (amp1[k] - a00) * inv_n;
+        const float di1 = (inc1[k + 1] - i01) * inv_n, da1 = (amp1[k + 1] - a01) * inv_n;
+        float th0 = v->theta[k], inc0 = i00, g0 = a00;
+        float th1 = v->theta[k + 1], incb = i01, g1 = a01;
+        for (int i = 0; i < n; i++) {
+            inc0 += di0, g0 += da0;
+            incb += di1, g1 += da1;
+            th0 += inc0;
+            th1 += incb;
+            th0 -= (float)(int)th0; /* wrap to [0, 1) */
+            th1 -= (float)(int)th1;
+            const float s0 = g0 * fm_sin_pos(h0 * th0), s1 = g1 * fm_sin_pos(h1 * th1);
+            x[i] = (x[i] + s0) + s1;
+        }
+        v->theta[k] = th0, v->inc[k] = inc1[k], v->amp[k] = amp1[k], v->r[k] = r_new[k];
+        v->theta[k + 1] = th1, v->inc[k + 1] = inc1[k + 1], v->amp[k + 1] = amp1[k + 1], v->r[k + 1] = r_new[k + 1];
+    }
+    for (; k < np; k++) {
         const float h = (float)(k + 1);
         const float i0 = v->fresh ? inc1[k] : v->inc[k], a0 = v->fresh ? amp1[k] : v->amp[k];
         const float di = (inc1[k] - i0) * inv_n, da = (amp1[k] - a0) * inv_n;
@@ -179,7 +204,7 @@ static DSP_FAST_CODE void voice_render(coupled_t *e, int vi, float *L, float *R)
             inc += di, a += da;
             th += inc;
             th -= (float)(int)th; /* wrap to [0, 1) */
-            x[i] += a * fm_sin(h * th);
+            x[i] += a * fm_sin_pos(h * th);
         }
         v->theta[k] = th, v->inc[k] = inc1[k], v->amp[k] = amp1[k], v->r[k] = r_new[k];
     }

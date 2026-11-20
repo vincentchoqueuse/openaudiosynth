@@ -330,7 +330,29 @@ static DSP_FAST_CODE void voice_tension(modal_t *e, modal_voice_t *v, const floa
         const float up = FM_TWO_PI * dsp_minf(g * T, TENSION_MAX_SPEEDUP);
         float out = 0.0f;
         T = 0.0f;
-        for (int m = 0; m < nm; m++) {
+        /* two modes per pass: their independent chains of operations overlap in the FPU's pipeline; the sums
+         * take the same terms in the same order, so the same result to the bit */
+        int m = 0;
+        for (; m + 1 < nm; m += 2) {
+            reso_t *ra = &v->mode[m], *rb = &v->mode[m + 1];
+            const float da = up * v->inc[m], db = up * v->inc[m + 1];
+            const float da2 = da * da, db2 = db * db;
+            const float cda = 1.0f - 0.5f * da2, sda = da * (1.0f - da2 * (1.0f / 6.0f));
+            const float cdb = 1.0f - 0.5f * db2, sdb = db * (1.0f - db2 * (1.0f / 6.0f));
+            const float ca = v->c0[m] * cda - v->s0[m] * sda, sa = v->s0[m] * cda + v->c0[m] * sda;
+            const float cb = v->c0[m + 1] * cdb - v->s0[m + 1] * sdb, sb = v->s0[m + 1] * cdb + v->c0[m + 1] * sdb;
+            const float ina = (es ? v->g_strike[m] * es[i] : 0.0f) + (eb ? v->g_bow[m] * eb[i] : 0.0f);
+            const float inb = (es ? v->g_strike[m + 1] * es[i] : 0.0f) + (eb ? v->g_bow[m + 1] * eb[i] : 0.0f);
+            const float nra = ca * ra->zr - sa * ra->zi + ina, nrb = cb * rb->zr - sb * rb->zi + inb;
+            const float zia = sa * ra->zr + ca * ra->zi, zib = sb * rb->zr + cb * rb->zi;
+            ra->zi = zia, ra->zr = nra;
+            rb->zi = zib, rb->zr = nrb;
+            out += zia;
+            out += zib;
+            T += v->w[m] * zia * zia;
+            T += v->w[m + 1] * zib * zib;
+        }
+        for (; m < nm; m++) {
             reso_t *r = &v->mode[m];
             const float d = up * v->inc[m], d2 = d * d;
             const float cd = 1.0f - 0.5f * d2, sd = d * (1.0f - d2 * (1.0f / 6.0f));

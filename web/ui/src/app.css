@@ -259,14 +259,14 @@ input[type=range].bipolar::-webkit-slider-runnable-track {
 .seq .cell.tie { background: var(--accent); opacity: .7; border-radius: 0 3px 3px 0; margin-left: -2px; }
 .seq .cell.now { filter: brightness(1.35); outline: 1px solid var(--text); }
 .seq .hint { font-size: 11.5px; margin-top: 10px; }
-@media (max-width: 760px) { 
 /* signal chain */
 .chain { margin: 4px 0 2px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
 .chain svg { display: block; overflow: visible; }
 .chain .wire { fill: none; stroke: var(--muted); stroke-width: 1.5; }
 .chain .wire.dim { stroke-dasharray: 3 4; opacity: .5; }
 .chain .modwire { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; opacity: .9; }
-.chain .modwire.chain .block rect { fill: var(--surface); stroke: var(--track); stroke-width: 1.2; }
+.chain .modwire.route { stroke: var(--accent2, #d9822b); }
+.chain .block rect { fill: var(--surface); stroke: var(--track); stroke-width: 1.2; }
 .chain .block.source rect { fill: var(--accent-soft); }
 .chain .block.fx rect { fill: var(--bg); }
 .chain .block text { fill: var(--text); font: 500 11.5px var(--sans); pointer-events: none; }
@@ -278,7 +278,8 @@ input[type=range].bipolar::-webkit-slider-runnable-track {
 .chain .led { fill: var(--track); }
 .chain .led.on { fill: #30a46c; }
 .chain .chip rect { fill: var(--bg); stroke: var(--accent); stroke-opacity: .5; }
-.chain .chip.chain .chip.voice rect { stroke: var(--muted); }
+.chain .chip.route rect { stroke: #d9822b; }
+.chain .chip.voice rect { stroke: var(--muted); }
 .chain .chip text { fill: var(--text); font: 11px var(--mono); pointer-events: none; }
 .chain-hint { font-size: 11.5px; margin: 0 0 14px; }
 

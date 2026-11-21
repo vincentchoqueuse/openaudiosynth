@@ -4,7 +4,8 @@ change without rereading the whole code base (run by ctest as `rules`):
   dsp/ and midi/: only <stdint.h> and <stddef.h> (math.h only in table generators), no `double`, no libm,
   allocation, I/O or locking calls, no mutable file-scope variable outside the allowed list;
   every source file starts with a header comment; source is ASCII (English); every engine source file is
-  registered, built, tested and has at least one patch.
+  registered, built, tested and has at least one patch; the web page's stylesheets have balanced braces (an
+  unclosed rule silently swallows every rule after it).
 """
 import os
 import re
@@ -114,6 +115,24 @@ for f in sorted(os.listdir(os.path.join(ROOT, "dsp/engines"))):
         err(src, 1, "no unit test uses this engine (tests/)")
     if f'"engine": "{name}"' not in patches and name not in NO_PATCH_OK:
         err(src, 1, "no patch uses this engine (patches/)")
+
+# web stylesheets: braces balance outside comments and strings
+web_src = os.path.join(ROOT, "web/ui/src")
+for dirpath, _, files in os.walk(web_src):
+    for f in files:
+        if not f.endswith(".css"):
+            continue
+        path = os.path.join(dirpath, f)
+        text = re.sub(r"/\*.*?\*/", "", open(path).read(), flags=re.S)
+        text = re.sub(r"'[^'\n]*'|\"[^\"\n]*\"", "", text)
+        depth, line = 0, 1
+        for c in text:
+            line += c == "\n"
+            depth += (c == "{") - (c == "}")
+            if depth < 0:
+                break
+        if depth:
+            err(os.path.relpath(path, ROOT), line, f"unbalanced braces ({depth:+d})")
 
 for e in errors:
     print(e)

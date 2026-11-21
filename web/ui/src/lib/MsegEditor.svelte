@@ -1,7 +1,7 @@
 <!-- MsegEditor.svelte — graphical editor of one multi-segment envelope (part MSEG 1/2 or the per-note MSEG):
      drag points (time and level), drag a segment's middle handle to bend its curve, double-click to add or
      remove a point, click a point then set it as sustain / loop start / loop end; loop mode, time unit,
-     starting shapes. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
+     starting shapes as small drawn buttons. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
 <script>
   import { shape, curveThroughMid, readShape, writeShape, times, insertPoint, deletePoint, clone, PRESETS,
            fromPreset, MIN_TIME, MAX_TIME, MAX_POINTS } from './mseg.js';
@@ -106,6 +106,10 @@
   }
   const fmtT = (t) => (t < 1 && !s.sync ? `${(t * 1000).toFixed(0)} ms` : `${+t.toFixed(2)} ${unit}`);
   const MODES = ['one shot', 'loop held', 'loop free'];
+  // the starting shapes (PRESETS), each a button with a small drawing of it
+  const ICONS = { 'Swell': 'M1.5 12.5C5 12 6 3.5 8 3.5l2 2h2.5l2 7', 'Pluck': 'M1.5 12.5v-9c2.5 5.5 5.5 8 13 9',
+    'Breath loop': 'M1.5 12.5C3 4 5 4 6 9s3-5 4-5 3 8 4.5 8.5', 'Ramp loop': 'M1.5 12.5 7 3.5v9l5.5-9v9',
+    'Random steps': 'M1.5 9h3V5h3v6h3V4h3.5' };
 </script>
 
 <div class="mseg">
@@ -113,13 +117,18 @@
     <div class="seg small">
       {#each MODES as m, i}<button class:on={s.mode === i} onclick={() => commit({ ...clone(s), mode: i })}>{m}</button>{/each}
     </div>
+    <span class="vsep" aria-hidden="true"></span>
+    <div class="shapes" role="group" aria-label="Start from a shape">
+      {#each Object.keys(PRESETS) as p}
+        <button title={p} aria-label={p} onclick={() => { commit(fromPreset(p, s)); sel = -1; }}>
+          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d={ICONS[p] ?? 'M1.5 12.5h13'} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+      {/each}
+    </div>
+    <span class="vsep" aria-hidden="true"></span>
     <div class="seg small">
       {#each ['seconds', 'beats'] as m, i}<button class:on={s.sync === i} onclick={() => commit({ ...clone(s), sync: i })}>{m}</button>{/each}
     </div>
-    <select class="preset" value="" onchange={(e) => { if (e.target.value) { commit(fromPreset(e.target.value, s)); sel = -1; } e.target.value = ''; }}>
-      <option value="">Shape…</option>
-      {#each Object.keys(PRESETS) as p}<option value={p}>{p}</option>{/each}
-    </select>
     <span class="muted info">{s.pts.length}/{MAX_POINTS} points · {fmtT(total)}</span>
   </div>
 

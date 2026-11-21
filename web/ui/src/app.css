@@ -268,6 +268,10 @@ h3 { font-size: 11px; font-weight: 600; color: var(--muted); margin: 14px 0 6px;
 
 /* envelope editor */
 .mseg-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 30px; }
+.mseg-bar .vsep { width: 1px; height: 20px; background: var(--line); }
+.mseg-bar .shapes { display: inline-flex; gap: 2px; }
+.mseg-bar .shapes button { display: grid; place-items: center; width: 28px; height: 24px; border-radius: 6px; background: var(--faint); color: var(--muted); }
+.mseg-bar .shapes button:hover { color: var(--accent); }
 .mseg-bar .info { font-size: 12px; }
 .mseg-bar .preset { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; font-size: 12px; }
 .mseg-canvas { position: relative; margin: 8px 0; border-radius: 8px; background: var(--side); outline: none; touch-action: none; }

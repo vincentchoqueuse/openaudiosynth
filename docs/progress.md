@@ -109,3 +109,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the top bar reads Menu, the views, then Preset and the name in a smaller font; the Synth pills with an icon; the modulation assignments of the part or of each note chosen with a selector.
 - Web: the cards on one row that scrolls sideways; the sampler's 16 pads and its kit chosen like the modulators (no kit heading); Report a bug opens a web-only issue form (`.github/ISSUE_TEMPLATE/web_bug.md`, title [web], labels bug and web); the other form is for the plugin, the board and the tools. Audio re-checked: every patch rendered through wasm (finite, not silent, within ±1), the clip player, and in the page a note and the sequencer reaching the meter.
 - Web: Info is the last of the Synth pills.
+- Web: an envelope's starting shapes are small drawn buttons on the line of its modes, between two rules, instead of a menu.

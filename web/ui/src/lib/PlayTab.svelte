@@ -1,6 +1,6 @@
-<!-- PlayTab.svelte — the Play tab: playing the sound. Live (its waveform and spectrum), Macros (the eight knobs, to
-     play; their targets are set in the Synth tab) and Sequencer (the clip: play / stop, tempo, loop, position on its
-     title line, then the clip and its piano roll). Kept mounted when hidden: the scope measures the level the top
+<!-- PlayTab.svelte — the Play tab: playing the sound. The transport first, at the top (play / stop the clip,
+     tempo, loop, position), then Live (wave or spectrum), Macros (the eight knobs, to play; their targets are set in
+     the Synth tab) and Sequencer (the clip and its piano roll). Kept mounted when hidden: the scope measures the level the top
      bar shows, and the clip keeps playing. -->
 <script>
   import Section from './Section.svelte';
@@ -13,6 +13,16 @@
   let live = $state(remembered('synth.live', 'wave')); // the Live view: wave or spectrum
   const pickLive = (v) => { live = v; remember('synth.live', v); };
 </script>
+
+<!-- the transport first: where the clip is played from -->
+<div class="transport toolbar" role="toolbar" aria-label="Transport">
+  <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Space">{q.playing ? '■' : '▶'}</button>
+  <label class="bpm"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
+  <button class="loopbtn" class:on={q.loop} onclick={() => (q.loop = !q.loop)} aria-pressed={q.loop}
+          title={q.loop ? `Loop on: the clip repeats every ${q.length} beats` : 'Loop off: the clip plays once'}>⟲ Loop</button>
+  <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
+  <span class="muted">{q.name || 'untitled'} · {q.notes.length} notes · {q.length} beats</span>
+</div>
 
 <Section id="live" title="Live">
   {#snippet tools()}
@@ -30,12 +40,5 @@
 </Section>
 
 <Section id="sequencer" title="Sequencer" summary="{q.name || 'untitled'} · {q.notes.length} notes · {q.length} beats">
-  {#snippet tools()}
-    <button class="play small" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Space">{q.playing ? '■' : '▶'}</button>
-    <label class="bpm"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
-    <button class="loopbtn" class:on={q.loop} onclick={() => (q.loop = !q.loop)} aria-pressed={q.loop}
-            title={q.loop ? `Loop on: the clip repeats every ${q.length} beats` : 'Loop off: the clip plays once'}>⟲ Loop</button>
-    <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
-  {/snippet}
   <SequenceTab />
 </Section>

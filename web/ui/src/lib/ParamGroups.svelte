@@ -1,7 +1,7 @@
 <!-- ParamGroups.svelte — the parameters of one editor as cards: the engine's (tab "engine"), the effect bus ("fx")
      or the part's settings ("settings": MIDI channel, keys, transposition, MPE, plus the global tempo and tuning no
      effect claims). One card per stage of the signal chain when the engine describes its stages, else by name
-     prefix; a stage that can be switched off has a switch, and folds to its title while off (switched off, it
+     prefix (the effects side by side, one per column, in the order of the bus); a stage that can be switched off has a switch, and folds to its title while off (switched off, it
      remembers its value to come back to). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
   import Param from './Param.svelte';
@@ -51,7 +51,7 @@
   });
 </script>
 
-<div class="groups" bind:this={host}>
+<div class="groups" class:row={tab === 'fx'} bind:this={host}>
   {#each groups as [g, ps, st] (g)}
     {@const on = stageOn(st)}
     <section class="card" class:off={!on} class:lit={st && lit === st.id} data-stage={st?.id}>

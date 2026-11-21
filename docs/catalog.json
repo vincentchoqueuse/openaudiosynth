@@ -1163,8 +1163,8 @@
       }
     },
     "drone": {
-      "description": "drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width; envelopes up to 3 minutes (6 voices)",
-      "voices": 6,
+      "description": "drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width; envelopes up to 3 minutes (8 voices)",
+      "voices": 8,
       "params": {
         "temperature": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drone.temperature", "help": "glacial (0: pure glassy partials, high whistling air, bright bells) .. warm (1: dark partials, a body of detuned saws, low breathy air)"},
         "density": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drone.density", "help": "how many partials sound (1 .. 12) and how much air: a lone sine .. a wall"},

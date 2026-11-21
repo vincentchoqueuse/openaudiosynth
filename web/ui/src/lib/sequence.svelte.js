@@ -5,7 +5,7 @@
 // player (w_notes), edits take over in place, and it keeps playing whatever the page shows.
 import { untrack } from 'svelte';
 import { session } from './session.svelte.js';
-import { scaleRows, buildSong, docText, fromDoc, fromCells } from './seqExport.js';
+import { scaleRows, buildSong, docText, fromDoc, fromCells, toDoc, phraseToNotes } from './seqExport.js';
 
 const KEY = 'synth.sequence.v2', OLD_KEY = 'synth.sequencer.v1';
 export const LOOPS = [1, 2, 4, 8, 16];
@@ -73,6 +73,7 @@ class Sequence {
       d = { current: old.current ? this.#fromGrid(old.current) : null, saved };
     }
     this.saved = d.saved && typeof d.saved === 'object' ? d.saved : {};
+    session.clipHook = { take: (p) => this.fromPatch(p), give: () => this.toPatch() };
     if (d.current) this.#load(d.current);
     this.#ready = true;
     $effect.root(() => {
@@ -93,6 +94,29 @@ class Sequence {
       }
       this.beat = ((p.frames / p.sampleRate) * this.tempo) / 60;
     });
+  }
+
+  // a preset's clip into the sequencer: its "clip" section, else its audition phrase as notes; a preset with
+  // neither leaves the clip as it is
+  fromPatch(p) {
+    let doc = null;
+    if (p?.clip && typeof p.clip === 'object') doc = { ...p.clip, name: p.name };
+    else if (p?.audition?.notes) {
+      const a = p.audition, step = a.step ?? 0.25, { notes, length } = phraseToNotes(a.notes, step, a.gate ?? 0.8, a.velocity ?? 100);
+      if (notes.length) doc = { name: p.name, bpm: a.bpm ?? 120, length, loop: true, grid: step >= 1 ? '1/4' : '1/16',
+        key: `${['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][this.root]} ${this.scale}`, notes };
+    }
+    if (doc && this.#load(doc)) {
+      this.message = '';
+      // the piano roll opens on the octave of the clip's lowest note
+      if (this.notes.length) this.octave = Math.min(5, Math.max(1, Math.floor(Math.min(...this.notes.map((n) => n.pitch)) / 12) - 1));
+    }
+  }
+  // the clip as a patch's "clip" section (null when empty)
+  toPatch() {
+    if (!this.notes.length) return null;
+    const { name, ...doc } = toDoc(this.snap());
+    return doc;
   }
 
   pick = (n) => { if (this.saved[n] && this.#load(this.saved[n])) { this.name = n; this.message = ''; } };
@@ -128,7 +152,7 @@ class Sequence {
     clearTimeout(this.#pending);
     this.#pending = setTimeout(() => this.send(), 25);
   }
-  play = () => { if (session.playing) session.stop(); session.seqPlaying = true; this.beat = 0; this.send(); };
+  play = () => { session.seqPlaying = true; this.beat = 0; this.send(); };
   stop = (toPlayer = true) => {
     clearTimeout(this.#pending);
     session.seqPlaying = false;

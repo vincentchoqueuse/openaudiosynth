@@ -60,7 +60,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),
   position (bar . beat . sixteenth), and the listening volume (after the synth and its meter, kept in the browser,
   untouched by sounds and patches; double-click: 0 dB).
-- **Sequence tab**: a MIDI clip played with the current sound, on a piano roll with a velocity lane below. Draw
+- **Sequence tab**: a MIDI clip played with the current sound (each preset brings its own: its `clip`, else its
+  audition phrase as notes; the audition bar is gone, the transport plays the clip), on a piano roll with a velocity lane below. Draw
   tool: click to draw a note and drag to stretch it; Select tool (or Cmd-drag): a rectangle selects. A click
   selects a note (Shift adds), dragging moves the selected notes (time and pitch), their right edge stretches
   them, Alt-drag or the velocity lane sets their velocity, double-click deletes. Once the roll has the focus:

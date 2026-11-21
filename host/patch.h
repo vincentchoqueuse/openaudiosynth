@@ -12,6 +12,7 @@
 #define PATCH_MAX_PARAMS 512
 #define PATCH_MACROS 8 /* the part's macros (dsp/mod/partmod.h) */
 #define PATCH_MACRO_NAME 32
+#define PATCH_MAX_CLIP 256 /* notes of a patch's clip */
 
 typedef struct {
     const engine_ops_t *engine;
@@ -28,6 +29,10 @@ typedef struct {
     int velocity;
     float humanize_vel, humanize_ms; /* random +/- velocity and 0..ms delay per note (deterministic) */
     float swing;                     /* 0..0.5: every odd step is delayed by swing x step (shuffle) */
+    /* the clip (optional "clip" section): MIDI notes in beats, played instead of the audition phrase */
+    int clip_n;                      /* 0: no clip */
+    float clip_beats;                /* its length (the loop of the web sequencer) */
+    float clip[PATCH_MAX_CLIP][4];   /* pitch, start (beats), length (beats), velocity */
 } patch_t;
 
 /* How the host finds the sample kit a patch names (host/kitfile.c's kitfile_find on the Mac): set by the tool
@@ -51,8 +56,9 @@ int patch_set_params(patch_t *p, const struct json *params, char *err, size_t er
 /* Adds engine selection + parameter events at t = 0. */
 void patch_apply(const patch_t *p, seq_t *s);
 
-/* Adds the audition phrase (notes override p->notes when not NULL). Returns its length in seconds,
- * or -1 with a message in err on a syntax error.
+/* Adds the audition: the patch's clip when it has one and notes is NULL (its notes at p->bpm, over its length),
+ * else the phrase (notes override p->notes when not NULL). Returns its length in seconds, or -1 with a message in
+ * err on a syntax error.
  * Syntax: space-separated steps; each step is a note (C2, Eb3, F#4), a chord (C3+E3+G3), '-' (rest)
  * or '_' (tie: extends the previous step). A note suffix '!' = accent (velocity 127), '?' = soft
  * (velocity 50), per note, also inside chords ("C2!+F#2?"); '~' = slide into the next note (the note

@@ -19,11 +19,104 @@
     "reverb_decay": 0.96,
     "reverb_damping": 9000,
     "reverb_predelay": 0.08,
-    "volume": -4
+    "volume": -5.0
   },
   "audition": {
     "notes": "E3+B3 _ _ _ _ _ _ _",
     "bpm": 60,
     "step": 4
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 128,
+    "loop": true,
+    "grid": "1/4",
+    "key": "E major",
+    "notes": [
+      {
+        "pitch": 52,
+        "start": 0,
+        "length": 128,
+        "velocity": 90
+      },
+      {
+        "pitch": 78,
+        "start": 2,
+        "length": 28,
+        "velocity": 79
+      },
+      {
+        "pitch": 76,
+        "start": 10,
+        "length": 16,
+        "velocity": 82
+      },
+      {
+        "pitch": 83,
+        "start": 22,
+        "length": 12,
+        "velocity": 63
+      },
+      {
+        "pitch": 80,
+        "start": 30,
+        "length": 12,
+        "velocity": 83
+      },
+      {
+        "pitch": 80,
+        "start": 34,
+        "length": 28,
+        "velocity": 77
+      },
+      {
+        "pitch": 88,
+        "start": 38,
+        "length": 16,
+        "velocity": 70
+      },
+      {
+        "pitch": 78,
+        "start": 44,
+        "length": 28,
+        "velocity": 63
+      },
+      {
+        "pitch": 85,
+        "start": 62,
+        "length": 24,
+        "velocity": 78
+      },
+      {
+        "pitch": 76,
+        "start": 64,
+        "length": 24,
+        "velocity": 70
+      },
+      {
+        "pitch": 73,
+        "start": 78,
+        "length": 20,
+        "velocity": 77
+      },
+      {
+        "pitch": 73,
+        "start": 92,
+        "length": 24,
+        "velocity": 79
+      },
+      {
+        "pitch": 88,
+        "start": 94,
+        "length": 20,
+        "velocity": 79
+      },
+      {
+        "pitch": 78,
+        "start": 106,
+        "length": 22,
+        "velocity": 74
+      }
+    ]
   }
 }

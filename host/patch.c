@@ -270,6 +270,52 @@ static int patch_from_json(json_t *root, patch_t *p, char *err, size_t errlen, c
     return rc;
 }
 
+/* The optional "clip" section: {bpm, length (beats), loop, notes: [{pitch, start, length, velocity}]}, the format
+ * of the web sequencer's clips. Its tempo replaces the audition's. */
+static int patch_read_clip(const json_t *c, patch_t *p, char *err, size_t errlen)
+{
+    p->clip_n = 0;
+    p->clip_beats = 0.0f;
+    if (!c)
+        return 0;
+    const json_t *len = json_get(c, "length"), *bpm = json_get(c, "bpm"), *notes = json_get(c, "notes");
+    if (c->type != JSON_OBJ || !len || len->type != JSON_NUM || !(len->num > 0.0 && len->num <= 1024.0) || !notes ||
+        notes->type != JSON_ARR) {
+        snprintf(err, errlen, "\"clip\": {length (beats, 0..1024), notes: [{pitch, start, length, velocity}]}");
+        return -1;
+    }
+    if (bpm) {
+        if (bpm->type != JSON_NUM || !(bpm->num > 10.0 && bpm->num < 400.0)) {
+            snprintf(err, errlen, "\"clip.bpm\": 10..400");
+            return -1;
+        }
+        p->bpm = (float)bpm->num;
+    }
+    p->clip_beats = (float)len->num;
+    int i = 0;
+    for (const json_t *n = notes->child; n; n = n->next, i++) {
+        if (i >= PATCH_MAX_CLIP) {
+            snprintf(err, errlen, "\"clip\": %d notes at most", PATCH_MAX_CLIP);
+            return -1;
+        }
+        const json_t *pi = json_get(n, "pitch"), *st = json_get(n, "start"), *ln = json_get(n, "length");
+        const json_t *ve = json_get(n, "velocity");
+        if (!pi || pi->type != JSON_NUM || pi->num < 0.0 || pi->num > 127.0 || pi->num != (double)(int)pi->num ||
+            !st || st->type != JSON_NUM || !(st->num >= 0.0 && st->num <= 1024.0) || !ln || ln->type != JSON_NUM ||
+            !(ln->num > 0.0 && ln->num <= 1024.0) ||
+            (ve && (ve->type != JSON_NUM || ve->num < 1.0 || ve->num > 127.0))) {
+            snprintf(err, errlen, "clip.notes[%d]: pitch 0..127, start >= 0 and length > 0 (beats), velocity 1..127", i);
+            return -1;
+        }
+        p->clip[i][0] = (float)pi->num;
+        p->clip[i][1] = (float)st->num;
+        p->clip[i][2] = (float)ln->num;
+        p->clip[i][3] = ve ? (float)ve->num : 100.0f;
+    }
+    p->clip_n = i;
+    return 0;
+}
+
 /* Validates a patch object into p (root stays owned by the caller). */
 static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, char *warn, size_t warnlen)
 {
@@ -346,6 +392,8 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
         if ((x = json_get(aud, "velocity")) && x->type == JSON_NUM && x->num >= 1.0 && x->num <= 127.0)
             p->velocity = (int)x->num;
     }
+    if (patch_read_clip(json_get(root, "clip"), p, err, errlen) != 0)
+        goto out;
     rc = 0;
 out:
     return rc;
@@ -395,6 +443,17 @@ int patch_parse_note(const char *t, int len)
 
 float patch_audition(const patch_t *p, const char *notes, seq_t *s, char *err, size_t errlen)
 {
+    if (!notes && p->clip_n > 0) { /* the clip: its notes, each ending 2 ms early (a repeated pitch is never cut) */
+        const float spb = 60.0f / p->bpm;
+        for (int i = 0; i < p->clip_n; i++) {
+            const float *n = p->clip[i];
+            if (n[1] >= p->clip_beats)
+                continue; /* past the end: not played */
+            const float dur = n[2] * spb - 0.002f;
+            seq_note(s, n[1] * spb, (int)n[0], (int)n[3], dur > 0.001f ? dur : 0.001f);
+        }
+        return p->clip_beats * spb;
+    }
     const char *src = notes ? notes : p->notes;
     const float step_s = 60.0f / p->bpm * p->step_beats;
     /* collect steps first so ties can extend the previous one */

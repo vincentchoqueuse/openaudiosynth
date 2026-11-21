@@ -114,3 +114,40 @@ export function buildSong(s, patch, loops = 4) {
     master: { fade_in_s: 0, fade_out_s: 4 },
   };
 }
+
+// "C3", "Eb2", "F#4" -> MIDI (C4 = 60), -1 if not a note
+function parseNote(t) {
+  const m = /^([A-Ga-g])([#b]?)(-?\d+)$/.exec(t);
+  if (!m) return -1;
+  const n = NAMES.indexOf(m[1].toUpperCase()) + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0) + 12 * (+m[3] + 1);
+  return n >= 0 && n <= 127 ? n : -1;
+}
+
+/* An audition phrase (the patch format's syntax: notes, chords "C3+E3", '!' accent, '?' soft, '~' slide, '_'
+ * holds the step before, '-' rests) as notes, at `step` beats per token with `gate`: {notes, length}. Unknown
+ * tokens are skipped. The same reading as host/patch.c's patch_audition, without its humanize. */
+export function phraseToNotes(text, step = 0.25, gate = 0.8, velocity = 100) {
+  const notes = [];
+  let k = 0, last = [];
+  for (const tok of String(text ?? '').split(/[\s|]+/).filter(Boolean)) {
+    if (tok === '_') { last.forEach((n) => (n.steps += 1)); k++; continue; }
+    last = [];
+    if (tok !== '-')
+      for (let member of tok.split('+')) {
+        let v = velocity, slide = false;
+        while (/[!?~]$/.test(member)) {
+          const c = member.slice(-1);
+          if (c === '!') v = 127; else if (c === '?') v = 50; else slide = true;
+          member = member.slice(0, -1);
+        }
+        const pitch = parseNote(member);
+        if (pitch >= 0) { const n = { pitch, start: k * step, steps: 1, velocity: v, slide }; notes.push(n); last.push(n); }
+      }
+    k++;
+  }
+  return {
+    length: Math.max(step, k * step),
+    notes: notes.map((n) => ({ pitch: n.pitch, start: +(n.start).toFixed(6),
+      length: +((n.steps - 1) * step + step * (n.slide ? 1.05 : gate)).toFixed(6), velocity: n.velocity })),
+  };
+}

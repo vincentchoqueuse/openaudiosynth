@@ -12,7 +12,7 @@
 
   // the documents: what each is, its file name, its text from what plays, and how it is applied
   const DOCS = [
-    { id: 'sound', group: 'Sound', file: () => `${s.title}.json`, text: () => JSON.stringify(s.patchWithAudition(), null, 2) + '\n',
+    { id: 'sound', group: 'Sound', file: () => `${s.title}.json`, text: () => JSON.stringify(s.currentPatch(), null, 2) + '\n',
       apply: async (t) => { const r = await s.applyFromEditor(t); return r.ok ? '' : r.text; },
       hint: 'The sound as its patch file (docs/patch_format.md): parameters in physical units or labels, macros with their targets, kit, audition. Apply reloads the sound from this text.' },
     { id: 'sequence', group: 'Sequence', file: () => `${q.name || 'untitled'}.json`, text: () => q.docText(), apply: async (t) => q.applyText(t),

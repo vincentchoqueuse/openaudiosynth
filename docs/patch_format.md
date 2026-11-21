@@ -52,6 +52,12 @@ values are clamped with a warning. Parameter names, ranges and units: `docs/cata
   - `cc` (optional): the MIDI CC that turns the macro, 2..119 except 64 (0: none). By default macros 1..8 listen
     to CC 102..109, a free range: set a controller (or the hub) to send them, or give the CCs your knobs send.
 - `audition` (optional): the phrase used by `synth_render --patch`.
+- `clip` (optional): the patch's sequence as MIDI notes, played instead of the audition phrase by
+  `synth_render --patch` and loaded into the web page's sequencer with the preset:
+  `{ "bpm": 60, "length": 128, "loop": true, "grid": "1/4", "key": "F lydian",
+     "notes": [ { "pitch": 41, "start": 0, "length": 128, "velocity": 90 }, … ] }` — pitch MIDI (60 = C4), start
+  and length in beats, velocity 1..127 (default 100), length the clip and its loop, at most 256 notes; grid and key
+  are the piano roll's. The boards still play the `audition` phrase.
   - `step`: beats per step (0.25 = sixteenth), `gate`: fraction of the step the note is held.
   - Notes: space-separated steps. `C3`, `Eb2`, `F#4` (C4 = MIDI 60); chord `C3+E3+G3`;
     `-` rest; `_` tie (extends the previous step); suffix `!` accent (vel 127), `?` soft (vel 50),

@@ -364,7 +364,7 @@ const engine_ops_t drone_engine = {
     .name = "drone",
     .description = "drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, "
                    "air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, "
-                   "brightness, sparkle, width; envelopes up to 3 minutes (6 voices)",
+                   "brightness, sparkle, width; envelopes up to 3 minutes (8 voices)",
     .params = drone_params,
     .param_count = DRN_P_COUNT,
     .voices = DRN_VOICES,

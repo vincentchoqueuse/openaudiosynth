@@ -425,7 +425,7 @@ coupled-oscillator engine: each note is a network of partials, each a Stuart-Lan
 ## `dsp/engines/drone.h`
 drone engine: each note is a whole drone that never repeats. Four layers: partials (harmonic sines, glassy and slightly stretched when cold, with two beating twins), a body (two detuned saws in a low-pass, faded in as it warms up), air (noise in two band-passes on the note's harmonics) and sparkles (rare pings of a high harmonic). Every partial's level, pitch and place wander on smoothed random walks (no cycle to hear), and the two slow LFOs of a note have periods in the golden ratio. Seven macros move it all: temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width. Envelopes up to 3 minutes. References: the Ornstein-Uhlenbeck process for the walks; additive synthesis of harmonic series (J.-C. Risset).
 - types: `drone_walk_t`, `drone_voice_t`, `drone_t`
-- constants: `DRN_VOICES` = 6, `DRN_PARTIALS` = 12
+- constants: `DRN_VOICES` = 8, `DRN_PARTIALS` = 12
 - data: `const param_desc_t drone_params[DRN_P_COUNT]`, `const engine_ops_t drone_engine`
 
 ## `dsp/engines/drums.h`

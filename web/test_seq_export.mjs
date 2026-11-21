@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildSong, toDoc, docText, fromDoc, fromCells } from './ui/src/lib/seqExport.js';
+import { buildSong, toDoc, docText, fromDoc, fromCells, phraseToNotes } from './ui/src/lib/seqExport.js';
 
 const render = process.argv[2] ?? 'build-host/host/synth_render';
 const catalog = process.argv[3] ?? 'build-host/host/synth_catalog';
@@ -39,6 +39,11 @@ if (fromDoc({ ...doc, length: 4 }).notes.length !== clip.notes.length) fail('fro
 const old = fromCells({ '52:0': 'on', '52:1': 'tie', '52:2': 'tie', '55:4': 'acc', '59:6': 'soft' }, 0.5, 16);
 if (norm(old) !== norm([{ pitch: 52, start: 0, length: 1.5, velocity: 100 }, { pitch: 55, start: 2, length: 0.5, velocity: 127 },
   { pitch: 59, start: 3, length: 0.5, velocity: 50 }])) fail('fromCells: ' + JSON.stringify(old));
+
+// a preset's audition phrase as notes: chords, holds, rests, accent and soft
+const ph = phraseToNotes('A2+E3 _ _ - C3! _ D3?', 4, 0.8);
+if (ph.length !== 28 || norm(ph.notes) !== norm([{ pitch: 45, start: 0, length: 11.2, velocity: 100 }, { pitch: 52, start: 0, length: 11.2, velocity: 100 },
+  { pitch: 48, start: 16, length: 7.2, velocity: 127 }, { pitch: 50, start: 24, length: 3.2, velocity: 50 }])) fail('phraseToNotes: ' + JSON.stringify(ph));
 
 // export: one track per pitch on the clip's grid, validated by tools/validate.py and rendered by synth_render
 const { audition, description, ...patch } = JSON.parse(readFileSync('patches/sine_duel_a.json', 'utf8'));

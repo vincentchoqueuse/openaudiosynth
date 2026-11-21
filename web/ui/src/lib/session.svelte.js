@@ -22,10 +22,11 @@ class Session {
   kit = $state.raw(null); // the sample kit the synth plays (parsed, for display), null none
   kitName = $state(''); // its name when it comes from kits/ (a patch can name it), '' for dropped files
   kitLabel = $state('');
-  notes = $state(''); // the audition phrase
-  loop = $state(false); // the audition loops
-  playing = $state(false); // the audition plays
-  seqPlaying = $state(false); // the sequence plays (the audition waits)
+  seqPlaying = $state(false); // the sequence plays
+  // the clip a preset carries goes to the sequencer, and comes back into the patch when it is saved: set by
+  // sequence.svelte.js (take(patch object), give() -> the patch's "clip" section or null)
+  clipHook = null;
+  #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
   picks = $state(0); // sounds picked in the library (the editors open on Sound)
   midiNames = $state([]);
@@ -57,7 +58,6 @@ class Session {
   title = $derived(this.current ? this.current.replace('.json', '') : 'init');
 
   #toastTimer = null;
-  #playTimer = null; // ends the "playing" state of a one-shot audition
   #loadSeq = 0; // the latest patch load wins
 
   // ---- parameters ----
@@ -124,8 +124,8 @@ class Session {
   };
 
   setEngine = (id) => {
-    this.stop();
     this.patchGen++;
+    this.#audition = null; // a new sound: no phrase of its own
     this.engineId = id;
     this.synth.setEngine(id);
     this.current = '';
@@ -152,13 +152,11 @@ class Session {
       this.say('Could not load the patch: ' + e.message);
       return false;
     }
-    if (this.playing) this.stop(); // the audition of the previous sound
     const r = await this.applyPatch(text, seq);
     if (!r?.ok) return false;
     this.current = p.file;
     this.info = p;
     this.baseline = { ...this.values };
-    this.notes = '';
     this.picks++;
     return true;
   };
@@ -170,10 +168,7 @@ class Session {
     try { r = await this.synth.loadPatch(text); } catch (e) { r = { ok: false, error: 'Could not load the patch: ' + e.message }; }
     if (seq !== this.#loadSeq) return null; // another patch was clicked meanwhile
     if (!r.ok) { this.say(r.error); return r; }
-    clearTimeout(this.#playTimer);
-    if (this.playing) this.synth.stop(); // an audition ends with the sound it was playing (the player outlives
-    this.playing = false;                // a patch load, for the sequence, which goes on)
-    this.patchGen++;
+    this.patchGen++; // a running sequence goes on with the new sound
     this.engineId = r.engine;
     this.resetValues(true); // a patch starts from a fresh synth_init, like synth_render
     for (const [id, v] of r.values) this.values[id] = v;
@@ -182,21 +177,20 @@ class Session {
       this.macroNames = Array.from({ length: 8 }, (_, k) => String(macros[k]?.name ?? ''));
     } catch { this.macroNames = Array(8).fill(''); }
     this.say(r.warning);
+    try {
+      const o = JSON.parse(text);
+      this.#audition = o.audition ?? null;
+      this.clipHook?.take(o);
+    } catch { /* the C reader has accepted it: it is JSON */ }
     if (r.kit && r.kit !== this.kitName) await this.loadNamedKit(r.kit); // the synth keeps the last kit across patches
     return r;
   };
 
   // ---- the JSON editor: the sound as its patch file, and a hand-edited file back into the synth ----
-  patchWithAudition = () => {
-    const p = this.currentPatch();
-    if (this.notes) p.audition = { notes: this.notes };
-    return p;
-  };
   applyFromEditor = async (text) => {
     const r = await this.applyPatch(text);
     if (!r) return { ok: false, text: 'Overtaken by another load' };
     if (!r.ok) return { ok: false, text: r.error };
-    try { const a = JSON.parse(text).audition; if (a?.notes) this.notes = a.notes; } catch {}
     return { ok: true, text: r.warning ? 'Applied, with warnings: ' + r.warning : 'Applied' };
   };
 
@@ -226,16 +220,6 @@ class Session {
       this.notify(failed.length ? `Kit loaded; not audio: ${failed.join(', ')}` : `Kit loaded: ${this.kit.entries.length} samples`);
     else if (!buffer) this.notify('No audio file could be read', 'error');
   };
-
-  // ---- the audition ----
-  play = async () => {
-    const r = await this.synth.audition(this.notes, this.loop);
-    if (r.length < 0) { this.say(r.error); return; }
-    this.playing = true;
-    clearTimeout(this.#playTimer);
-    if (!this.loop) this.#playTimer = setTimeout(() => (this.playing = false), r.length * 1000 + 300);
-  };
-  stop = () => { clearTimeout(this.#playTimer); if (this.playing) this.synth.stop(); this.playing = false; }; // a sequence goes on
 
   // the current sound as a patch object (docs/patch_format.md): only what differs from the defaults
   currentPatch = () => {
@@ -272,11 +256,14 @@ class Session {
     const p = { version: 1, engine: engine.name, name, description: this.info?.description ?? '', params };
     if (macros.length) p.macros = macros;
     if (this.kitName && engine.name === 'sampler') p.kit = this.kitName; // a dropped kit has no name to save
+    if (this.#audition) p.audition = this.#audition;
+    const clip = this.clipHook?.give();
+    if (clip) p.clip = clip;
     return p;
   };
 
   exportPatch = () => {
-    const p = this.patchWithAudition(), name = p.name;
+    const p = this.currentPatch(), name = p.name;
     const text = JSON.stringify(p, null, 2) + '\n';
     navigator.clipboard?.writeText(text).catch(() => {});
     const a = document.createElement('a');
@@ -292,7 +279,7 @@ class Session {
     this.saving = { name: p.name, description: p.description, exists: false, error: '' };
   };
   save = async (overwrite = false) => {
-    const p = this.patchWithAudition();
+    const p = this.currentPatch();
     p.description = this.saving.description.trim();
     const res = await fetch('/api/patches', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },

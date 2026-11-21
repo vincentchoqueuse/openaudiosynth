@@ -1097,9 +1097,9 @@ drum sampler: a kit of samples, 16 pads with speed, start/end, reverse, loop, fi
 | `pad16_cutoff` | 20 .. 20000 Hz | 20000 | yes | `pad16.cutoff` | low-pass cutoff (20 kHz: open) |
 | `pad16_choke` | 0 .. 8 | 0 |  | `pad16.choke` | choke group 1..8: a pad stops the others of its group (closed hi-hat over open); 0 none |
 
-## Engine `drone` (6 voices)
+## Engine `drone` (8 voices)
 
-drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width; envelopes up to 3 minutes (6 voices)
+drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width; envelopes up to 3 minutes (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|

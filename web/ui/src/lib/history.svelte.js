@@ -75,7 +75,6 @@ class History {
   #restore(p) {
     const engineChanged = p.e !== s.engineId;
     if (engineChanged) {
-      s.stop();
       s.engineId = p.e;
       s.synth.setEngine(p.e);
       s.patchGen++;

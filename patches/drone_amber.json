@@ -19,11 +19,129 @@
     "reverb_mix": 0.4,
     "reverb_decay": 0.93,
     "reverb_damping": 2500,
-    "reverb_predelay": 0.04
+    "reverb_predelay": 0.04,
+    "volume": -2.9
   },
   "audition": {
     "notes": "C3+G3 _ _ _ _ _ _ _",
     "bpm": 60,
     "step": 4
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 128,
+    "loop": true,
+    "grid": "1/4",
+    "key": "C major",
+    "notes": [
+      {
+        "pitch": 48,
+        "start": 0,
+        "length": 128,
+        "velocity": 90
+      },
+      {
+        "pitch": 71,
+        "start": 2,
+        "length": 12,
+        "velocity": 77
+      },
+      {
+        "pitch": 55,
+        "start": 8,
+        "length": 120,
+        "velocity": 70
+      },
+      {
+        "pitch": 71,
+        "start": 10,
+        "length": 12,
+        "velocity": 89
+      },
+      {
+        "pitch": 67,
+        "start": 20,
+        "length": 12,
+        "velocity": 66
+      },
+      {
+        "pitch": 60,
+        "start": 22,
+        "length": 28,
+        "velocity": 75
+      },
+      {
+        "pitch": 69,
+        "start": 30,
+        "length": 12,
+        "velocity": 73
+      },
+      {
+        "pitch": 72,
+        "start": 40,
+        "length": 20,
+        "velocity": 72
+      },
+      {
+        "pitch": 67,
+        "start": 50,
+        "length": 24,
+        "velocity": 84
+      },
+      {
+        "pitch": 59,
+        "start": 56,
+        "length": 28,
+        "velocity": 65
+      },
+      {
+        "pitch": 69,
+        "start": 62,
+        "length": 24,
+        "velocity": 87
+      },
+      {
+        "pitch": 64,
+        "start": 76,
+        "length": 20,
+        "velocity": 65
+      },
+      {
+        "pitch": 64,
+        "start": 86,
+        "length": 28,
+        "velocity": 68
+      },
+      {
+        "pitch": 71,
+        "start": 90,
+        "length": 28,
+        "velocity": 79
+      },
+      {
+        "pitch": 67,
+        "start": 98,
+        "length": 16,
+        "velocity": 88
+      },
+      {
+        "pitch": 67,
+        "start": 116,
+        "length": 12,
+        "velocity": 71
+      },
+      {
+        "pitch": 69,
+        "start": 120,
+        "length": 8,
+        "velocity": 78
+      },
+      {
+        "pitch": 67,
+        "start": 120,
+        "length": 8,
+        "velocity": 79
+      }
+    ]
   }
 }

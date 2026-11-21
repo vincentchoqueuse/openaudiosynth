@@ -47,17 +47,42 @@
       "items": {
         "type": "object",
         "properties": {
-          "name": { "type": "string" },
-          "value": { "type": "number", "minimum": 0, "maximum": 1 },
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
           "targets": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["param", "from", "to"],
+              "required": [
+                "param",
+                "from",
+                "to"
+              ],
               "properties": {
-                "param": { "type": "string", "description": "an engine parameter that moves live (name or role)" },
-                "from": { "type": ["number", "string"], "description": "its value with the macro at 0" },
-                "to": { "type": ["number", "string"], "description": "its value with the macro at 1" }
+                "param": {
+                  "type": "string",
+                  "description": "an engine parameter that moves live (name or role)"
+                },
+                "from": {
+                  "type": [
+                    "number",
+                    "string"
+                  ],
+                  "description": "its value with the macro at 0"
+                },
+                "to": {
+                  "type": [
+                    "number",
+                    "string"
+                  ],
+                  "description": "its value with the macro at 1"
+                }
               },
               "additionalProperties": false
             }
@@ -103,6 +128,72 @@
           "type": "number",
           "minimum": 0,
           "maximum": 0.5
+        }
+      },
+      "additionalProperties": false
+    },
+    "clip": {
+      "type": "object",
+      "description": "the patch's sequence, as MIDI notes (played instead of the audition phrase where clips are supported)",
+      "required": [
+        "length",
+        "notes"
+      ],
+      "properties": {
+        "bpm": {
+          "type": "number",
+          "exclusiveMinimum": 10,
+          "exclusiveMaximum": 400
+        },
+        "length": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1024,
+          "description": "beats; the loop"
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "grid": {
+          "type": "string",
+          "description": "the piano roll's snap (1/32 .. 1 bar)"
+        },
+        "key": {
+          "type": "string",
+          "description": "the scale the piano roll shows, e.g. \"E minor\""
+        },
+        "notes": {
+          "type": "array",
+          "maxItems": 256,
+          "items": {
+            "type": "object",
+            "required": [
+              "pitch",
+              "start",
+              "length"
+            ],
+            "properties": {
+              "pitch": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 127
+              },
+              "start": {
+                "type": "number",
+                "minimum": 0
+              },
+              "length": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "velocity": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 127
+              }
+            },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false

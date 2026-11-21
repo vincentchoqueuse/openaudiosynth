@@ -12,7 +12,7 @@
 #include "../osc/polyblep.h"
 #include "engine.h"
 
-#define DRN_VOICES 6
+#define DRN_VOICES 8
 #define DRN_PARTIALS 12
 #define DRN_SINES (DRN_PARTIALS + 2) /* the partials, then the beating twins of partials 1 and 2 */
 

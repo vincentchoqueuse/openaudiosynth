@@ -23,9 +23,11 @@ export function grouped(params) {
 // a parameter's label inside its stage's card: without the words the card's title already says ("reverb_mix" in
 // Reverb -> "Mix", "osc2_level" in Osc 2 -> "Level", "amp_attack" in Amp -> "Attack")
 export function inStage(name, st) {
-  const pre = st.params.split(' ').find((t) => t.endsWith('_') && name.startsWith(t));
-  let rest = pre ? name.slice(pre.length) : name;
   const title = st.label.toLowerCase().replace(/\s+/g, '');
+  // a prefix is dropped only when it is the card's own name ("osc1_" in Osc 1, "reverb_" in Reverb): a stage may hold
+  // another part's parameters ("supersaw_" in Osc 1), which keep their full name
+  const pre = st.params.split(' ').find((t) => t.endsWith('_') && name.startsWith(t) && ((p) => title.startsWith(p) || title.endsWith(p))(t.slice(0, -1).replace(/_/g, '')));
+  let rest = pre ? name.slice(pre.length) : name;
   const first = rest.split('_')[0];
   if (rest.includes('_') && (title.startsWith(first) || first.startsWith(title))) rest = rest.slice(first.length + 1);
   return human(rest || name);

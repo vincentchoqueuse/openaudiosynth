@@ -72,7 +72,33 @@ class Session {
   // ---- parameters ----
   getP = (n) => { const d = this.byName[n]; return d ? this.values[d.id] ?? d.def : 0; };
   setP = (n, v) => { const d = this.byName[n]; if (d) this.setValue(d, v); };
-  setValue = (d, v) => { this.values[d.id] = v; this.synth.setParam(d.id, toNorm(d, v)); };
+  setValue = (d, v) => {
+    this.values[d.id] = v;
+    this.synth.setParam(d.id, toNorm(d, v));
+    if (d.id < 1024) this.#followMacros(d, v);
+  };
+  // A parameter a macro moves is held by it: setting it directly would do nothing. Its range in each macro that
+  // targets it shifts instead, so the parameter lands on the value set and the macro keeps moving it from there.
+  #followMacros(d, v) {
+    const n = toNorm(d, v);
+    for (let k = 1; k <= 32; k++) {
+      const mac = this.byName[`map${k}_macro`], dst = this.byName[`map${k}_destination`];
+      if (!mac || !dst || Math.round(this.values[mac.id] ?? 0) < 1 || Math.round(this.values[dst.id] ?? 0) !== d.id + 1) continue;
+      const m = this.getP(`macro${Math.round(this.values[mac.id])}`), from = this.getP(`map${k}_from`), to = this.getP(`map${k}_to`);
+      const delta = n - (from + (to - from) * m);
+      if (Math.abs(delta) < 1e-6) continue;
+      // the range slides as a whole while it can stay within 0..1; what is left moves the end that weighs most where
+      // the macro stands (its start when the macro is low, its end when high)
+      const shift = Math.max(-Math.min(from, to), Math.min(1 - Math.max(from, to), delta));
+      let f = from + shift, t = to + shift;
+      if (Math.abs(delta - shift) > 1e-6) {
+        if (m < 0.5) f = Math.min(1, Math.max(0, (n - t * m) / (1 - m)));
+        else t = Math.min(1, Math.max(0, (n - f * (1 - m)) / m));
+      }
+      this.setP(`map${k}_from`, f);
+      this.setP(`map${k}_to`, t);
+    }
+  }
   // a synth parameter id: the engine's (0..255) or a shared one (master, effects...)
   paramById = (id) => (id >= 0 && id < 256 ? this.engine?.params[id] : this.shared.find((d) => d.id === id));
 

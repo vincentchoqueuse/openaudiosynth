@@ -9,6 +9,7 @@
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
   import TopBar from './lib/TopBar.svelte';
+  import PlayerBar from './lib/PlayerBar.svelte';
   import PlayTab from './lib/PlayTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
   import CodeView from './lib/CodeView.svelte';
@@ -70,6 +71,7 @@
 
     <main>
       <TopBar />
+      <PlayerBar />
       <nav class="maintabs" aria-label="Views">
         <div class="tabs big" role="tablist">
           <button role="tab" aria-selected={main === 'play'} class:on={main === 'play'} onclick={() => pickMain('play')}>Play</button>

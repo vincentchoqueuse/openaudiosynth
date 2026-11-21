@@ -45,6 +45,11 @@ code { font-family: var(--mono); font-size: 12px; }
 /* the top bar: the sound, undo, level and volume; always in view */
 .topbar { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: -24px -32px 0; padding: 10px 32px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.playerbar { position: sticky; top: 27px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: 0 -32px; padding: 8px 32px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+.playerbar .play { width: 30px; height: 30px; font-size: 11px; }
+.playerbar .pos { font-size: 14px; color: var(--text); min-width: 4.5em; }
+.playerbar .clipname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .engine { border: 0; background: var(--faint); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text); }
 .topbar .namebox { position: relative; min-width: 0; }
 .topbar .name .caret { font-size: 11px; color: var(--muted); }
@@ -153,6 +158,8 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs button:hover { color: var(--text); }
 .tabs button.on { color: var(--text); border-color: var(--accent); }
 .tabs .small { margin-left: auto; font-size: 12px; }
+.tabs.small { gap: 18px; margin-bottom: 12px; }
+.tabs.small button { font-size: 12px; padding: 4px 0 7px; }
 /* the main tabs (Play, Synth) and their Visual / Code switch */
 .maintabs { display: flex; align-items: flex-end; gap: 14px; margin: 18px 0 4px; border-bottom: 1px solid var(--line); }
 .maintabs .tabs.big { border-bottom: 0; margin: 0; gap: 26px; }
@@ -179,7 +186,11 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs-title { padding-bottom: 9px; margin-right: 6px; }
 .section-head .summary { font-size: 12px; }
 .section-head .live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: live 1s ease-in-out infinite alternate; }
-.section-head .fold { width: 28px; height: 24px; padding: 0; border-radius: 6px; color: var(--muted); font-size: 15px; }
+.section-head .stitle { all: unset; cursor: pointer; }
+.section-head .stitle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.section-head .fold { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 50%; color: var(--muted); }
+.section-head .fold svg { transition: transform .15s ease; }
+.section-head .fold.closed svg { transform: rotate(180deg); }
 .section-head .fold:hover { background: var(--faint); color: var(--text); }
 @keyframes live { to { opacity: .35; } }
 
@@ -194,9 +205,6 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .groups.row .param .val, .groups.row .param .switch-cell { grid-area: v; }
 .groups.row .param input[type=range], .groups.row .param select, .groups.row .param .seg { grid-area: c; grid-column: 1 / -1; }
 .groups.row .param:has(.switch-cell) { grid-template-areas: "l v"; }
-.transport { position: sticky; top: 27px; z-index: 2; margin: 0 0 4px; padding: 10px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
-.transport .play { width: 34px; height: 34px; }
-.transport .pos { font-size: 15px; color: var(--text); min-width: 4.5em; }
 section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
 section.card.off .stage-head { margin-bottom: 0; }
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }
@@ -250,7 +258,8 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 
 @media (max-width: 760px) {
   .app { grid-template: "side" auto "main" 1fr "foot" auto / 1fr; }
-  .topbar { margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
+  .topbar { margin: -16px -16px 0; padding: 8px 16px; top: -16px; }
+  .playerbar { margin: 0 -16px; padding: 6px 16px; top: 0; position: static; }
   aside { padding: 10px 16px 6px; border-right: 0; border-bottom: 1px solid var(--line); }
   aside:not(.open) .library, aside:not(.open) .side-foot { display: none; }
   aside.open { max-height: 60vh; }

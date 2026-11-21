@@ -1,13 +1,14 @@
-<!-- MacroMatrix.svelte — the macros set up in the Synth tab, as tables like the modulation matrix: first the eight
-     macros (a name, the MIDI CC that turns them), then their targets, one row each: which macro, which parameter
-     (any that moves live: the engine's, the master or an effect), its value with the macro at 0 and at 1 (sliders
-     over the parameter's travel, read in its units). The knobs themselves are played in the Play tab. Targets are
+<!-- MacroMatrix.svelte — the macros set up in the Synth tab, as tables like the modulation matrix, in two views:
+     Names (the eight macros' names and the MIDI CC that turns them), then Assignments (their targets, one row
+     each: which macro, which parameter (any that moves live: the engine's, the master or an effect), its value with
+     the macro at 0 and at 1, sliders over the parameter's travel, read in its units). The knobs themselves are played in the Play tab. Targets are
      the part's map1..map32 slots (dsp/mod/partmod.h). -->
 <script>
   import { fromNorm, toNorm, format } from './synth.js';
   import { human } from './naming.js';
   let { engine, shared, byName, values, setValue, names = $bindable() } = $props();
   const MACROS = 8, MAPS = 32;
+  let view = $state('names'); // 'names' | 'assign'
 
   const get = (n) => { const d = byName[n]; return d ? values[d.id] ?? d.def : 0; };
   const set = (n, v) => { const d = byName[n]; if (d) setValue(d, v); };
@@ -48,6 +49,12 @@
   const shown = (d, n) => format(d, fromNorm(d, n));
 </script>
 
+<div class="tabs small" role="tablist" aria-label="Macros">
+  <button role="tab" aria-selected={view === 'names'} class:on={view === 'names'} onclick={() => (view = 'names')}>Names</button>
+  <button role="tab" aria-selected={view === 'assign'} class:on={view === 'assign'} onclick={() => (view = 'assign')}>Assignments</button>
+</div>
+
+{#if view === 'names'}
 <table class="matrix names">
   <thead><tr><th>#</th><th>Name</th><th>CC</th><th>Targets</th></tr></thead>
   <tbody>
@@ -63,8 +70,7 @@
     {/each}
   </tbody>
 </table>
-
-<h3>Targets</h3>
+{:else}
 <table class="matrix">
   <thead><tr><th>Macro</th><th>Parameter</th><th>At 0</th><th></th><th>At 1</th><th></th><th></th></tr></thead>
   <tbody>
@@ -89,6 +95,7 @@
   </tbody>
 </table>
 {#if freeSlot}<button class="ghost add" onclick={add}>+ Target</button>{/if}
+{/if}
 <p class="hint">Each macro moves its targets together, each from its value at 0 to its value at 1. The knobs are in Play.</p>
 
 <style>

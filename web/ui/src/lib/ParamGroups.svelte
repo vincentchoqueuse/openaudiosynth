@@ -2,9 +2,11 @@
      or the part's settings ("settings": MIDI channel, keys, transposition, MPE, plus the global tempo and tuning no
      effect claims). One card per stage of the signal chain when the engine describes its stages, else by name
      prefix (the effects side by side, one per column, in the order of the bus); a stage that can be switched off has a switch, and folds to its title while off (switched off, it
-     remembers its value to come back to). The card the Structure diagram asks for is scrolled to and lit. -->
+     remembers its value to come back to). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
+     drawing of its settings (StageViz). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
   import Param from './Param.svelte';
+  import StageViz from './StageViz.svelte';
   import { session as s } from './session.svelte.js';
   import { MOD_PARAM, PART_PARAM } from './synth.js';
   import { grouped, byStage, unclaimed, human } from './naming.js';
@@ -62,6 +64,7 @@
         {/if}
       </div>
       {#if on}
+        {#if st}<StageViz {st} params={ps.map((p) => p.d)} get={s.getP} />{/if}
         {#each ps as { d, label } (d.id)}
           <Param {d} {label} value={s.values[d.id] ?? d.def} base={s.baseline[d.id] ?? d.def} onchange={(v) => s.setValue(d, v)} />
         {/each}

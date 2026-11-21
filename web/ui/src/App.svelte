@@ -1,6 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the top
      bar (File menu, the sound's name, play / stop, the views, undo, level and volume); three main views in the top bar: Clip (Live,
-     then Sequencer and Macros), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the keyboard along the bottom. State and actions live in lib/session.svelte.js and
+     then Sequencer), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the macros to play and the keyboard along the bottom. State and actions live in lib/session.svelte.js and
      lib/sequence.svelte.js; the interface takes the color of the instrument playing. Space plays / stops the clip. -->
 <script>
   import { session as s } from './lib/session.svelte.js';
@@ -15,6 +15,7 @@
   import { sequence } from './lib/sequence.svelte.js';
   import { history } from './lib/history.svelte.js';
   import Keyboard from './lib/Keyboard.svelte';
+  import MacroStrip from './lib/MacroStrip.svelte';
   import SaveDialog from './lib/SaveDialog.svelte';
   import SettingsDialog from './lib/SettingsDialog.svelte';
   import ShortcutsDialog from './lib/ShortcutsDialog.svelte';
@@ -75,12 +76,16 @@
     <main>
       <TopBar bind:view={main} views={VIEWS} />
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'clip'}><ClipTab /></div>
-      {#if main === 'synth'}<SynthTab />{/if}
-      {#if main === 'code'}<CodeView doc="sound" />{/if}
+      <div hidden={main !== 'clip'}><h1 class="viewtitle">Clip</h1><ClipTab /></div>
+      {#if main === 'synth'}<h1 class="viewtitle">Synth</h1><SynthTab />{/if}
+      {#if main === 'code'}<h1 class="viewtitle">Code</h1><CodeView doc="sound" />{/if}
     </main>
 
-    <footer><Keyboard synth={s.synth} held={s.held} /></footer>
+    <footer>
+      <MacroStrip engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
+                  bind:names={s.macroNames} baseline={s.baseline} />
+      <Keyboard synth={s.synth} held={s.held} />
+    </footer>
 
     {#if s.toast}<div class="toast {s.toast.kind}" role="status">{s.toast.text}</div>{/if}
     {#if s.saving}<SaveDialog />{/if}

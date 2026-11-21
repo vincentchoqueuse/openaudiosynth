@@ -1,6 +1,6 @@
-<!-- TopBar.svelte — the one bar above everything: the File menu (Save to the library in development, Export,
-     Revert when parameters moved), the sound's name and how many parameters moved, play / stop the clip (Space),
-     the three views (Clip, Synth, Code), shortcuts, undo / redo, the output level and the listening volume. -->
+<!-- TopBar.svelte — the one bar above everything: the File menu (Save to the library in development, Export sound,
+     Export song, Revert, Undo / Redo, Shortcuts), the sound's name, the three views (Clip, Synth, Code) as pills with an
+     icon, play / stop the clip (Space), the output level and the listening volume. -->
 <script>
   import { session as s } from './session.svelte.js';
   import { history as h } from './history.svelte.js';
@@ -21,16 +21,18 @@
         {#if s.canSave}<button role="menuitem" onclick={() => act(s.openSave)}>Save to library…</button>{/if}
         <button role="menuitem" onclick={() => act(s.exportPatch)}>Export sound (JSON)</button>
         <button role="menuitem" onclick={() => act(q.exportSong)}>Export song</button>
-        <hr />
         <button role="menuitem" disabled={!s.changedCount} onclick={() => act(s.revert)}>{s.info ? 'Revert to saved' : 'Back to defaults'}</button>
+        <hr />
+        <button role="menuitem" disabled={!h.canUndo} onclick={() => act(h.undo)}>Undo <kbd>⌘Z</kbd></button>
+        <button role="menuitem" disabled={!h.canRedo} onclick={() => act(h.redo)}>Redo <kbd>⇧⌘Z</kbd></button>
+        <hr />
+        <button role="menuitem" onclick={() => act(() => (s.shortcutsOpen = true))}>Shortcuts <kbd>?</kbd></button>
       </div>
     {/if}
   </div>
   <div class="namebox">
     {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
-    {#if s.changedCount}<span class="badge" title="parameters moved since the sound was loaded">{s.changedCount} edited</span>{/if}
   </div>
-  <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   <nav class="viewtabs" role="tablist" aria-label="Views">
     {#each views as [id, name, d]}
       <button role="tab" aria-selected={view === id} class:on={view === id} onclick={() => (view = id)}>
@@ -39,11 +41,8 @@
     {/each}
   </nav>
   <span class="spacer"></span>
-  <button class="ghost help" onclick={() => (s.shortcutsOpen = true)} title="Shortcuts (?)" aria-label="Shortcuts">?</button>
-  <span class="hist">
-    <button class="ghost" onclick={h.undo} disabled={!h.canUndo} title="Undo (⌘Z)" aria-label="Undo">↶</button>
-    <button class="ghost" onclick={h.redo} disabled={!h.canRedo} title="Redo (⇧⌘Z)" aria-label="Redo">↷</button>
-  </span>
+  <span class="seqlabel">Sequencer</span>
+  <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   <div class="vu" class:hot={s.meter.hold > -1} title="Output peak (dBFS), before the volume">
     <div class="track"><div class="fill" style="width:{s.meter.level * 100}%"></div></div>
     <span class="mono">{isFinite(s.meter.hold) && s.meter.hold > -90 ? s.meter.hold.toFixed(0) : '−∞'}</span>

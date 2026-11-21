@@ -56,17 +56,18 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
 - **Layout**: the sound library on the left (it also picks the instrument); one top bar: the File menu (Save,
-  Export sound, Export song, Revert), the sound's name, play / stop the clip, the three views as nav tabs with an
-  icon, undo / redo, level and volume. **Clip**: Live (wave or spectrum) always on top, then tabs: Sequencer (tempo,
-  loop, position, the piano roll) and Macros (sliders to play, with their CC). **Synth**: Structure always on top,
-  its blocks open their settings, then tabs: Info, Macros, the engine (its cards all one width, in the order the
-  signal flows), Effects, Modulation. **Code**: the sound's JSON, clip included. The keyboard along the bottom; Share
-  (sidebar) shows a QR code of the page.
+  Export sound, Export song, Revert, Undo / Redo, Shortcuts), the sound's name, the three views as pills with an
+  icon, then on the right Sequencer ▶ (play / stop the clip), level and volume. Each view starts with its title.
+  **Clip**: Live (wave or spectrum), then the Sequencer (tempo, loop, position, the piano roll). **Synth**: Structure
+  always on top, its blocks open their settings, then tabs: Info, Macros (Names; Assignments, 16 fixed rows),
+  the engine (its cards all one width, in the order the signal flows), Effects, Modulation. **Code**: the sound's
+  JSON, clip included. Along the bottom, the 8 macros to play (2 rows of 4) above the keyboard; Share (sidebar)
+  shows a QR code of the page.
 - **Interface rules** (every part of the page follows them):
   - tabs move between views or editors; pills choose a value or a mode (Wave / Spectrum, Draw / Select, an LFO's
     shape, an envelope's seconds / beats); never the other way round;
-  - three levels, each its own look: the main views as nav tabs with an icon in the top bar (Clip, Synth, Code); then underlined tabs
-    (Sequencer, Macros; Info, Macros, the engine, Effects, Modulation); then smaller underlined tabs for an editor's
+  - three levels, each its own look: the main views as pills with an icon in the top bar (Clip, Synth, Code); then underlined tabs
+    (Info, Macros, the engine, Effects, Modulation); then smaller underlined tabs for an editor's
     own views (macro Names / Assignments, Modulators / Assignments, one tab per sampler pad then Kit); no folds;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;

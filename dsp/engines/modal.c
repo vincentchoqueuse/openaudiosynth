@@ -81,7 +81,7 @@ const param_desc_t modal_params[MODAL_P_COUNT] = {
           "time for the bow to reach full level"),
     PARAM(MODAL_P_VARIATION, "variation", "resonator.variation", 0.0f, 30.0f, 4.0f, PARAM_LIN, "cent", 0, NULL,
           "random per-note detune of each mode: every strike is slightly different, beating partials"),
-    PARAM(MODAL_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB"),
+    PARAM(MODAL_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB"),
     PARAM(MODAL_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 0, NULL,
           "random stereo position per note (0 = centre)"),
     PARAM(MODAL_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range in semitones"),

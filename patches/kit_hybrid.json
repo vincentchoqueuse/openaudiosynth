@@ -4,6 +4,7 @@
   "name": "kit_hybrid",
   "description": "Hybrid drum machine kit (mid-80s spirit): punchy clicky kick with a deep pitch sweep, bright snappy snare, gritty 6-bit hats and ride. House and techno.",
   "params": {
+    "volume": -0.4,
     "kit": "hybrid"
   },
   "audition": {

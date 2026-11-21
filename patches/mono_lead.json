@@ -4,6 +4,7 @@
   "name": "mono_lead",
   "description": "Singing lead: saw + square a fifth up, glide, emphasis just below self-oscillation, delayed vibrato on the mod wheel.",
   "params": {
+    "volume": 11.5,
     "osc1_wave": "saw",
     "osc2_wave": "square",
     "osc2_detune": 7.0,

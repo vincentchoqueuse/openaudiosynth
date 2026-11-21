@@ -4,6 +4,7 @@
   "name": "piano_tension",
   "description": "piano_ambient with the string nonlinearity: loud notes start a few cents sharp and every partial settles together as the note decays (the fundamental's envelope drives the pitch of the others), as on a real grand. Compare with piano_ambient, otherwise identical.",
   "params": {
+    "volume": 3,
     "model": "string",
     "modes": 32,
     "inharmonicity": 0.0006,

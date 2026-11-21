@@ -19,7 +19,7 @@
     "reverb_decay": 0.92,
     "reverb_damping": 1800,
     "reverb_predelay": 0.03,
-    "volume": 1.5
+    "volume": -0.2
   },
   "audition": {
     "notes": "A1+E2 _ _ _ _ _ _ _",

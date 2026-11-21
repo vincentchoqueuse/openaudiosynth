@@ -4,6 +4,7 @@
   "name": "modal_marimba",
   "description": "Marimba: tuned bar (overtones at 4x and 10x), soft rubber mallet, short woody decay.",
   "params": {
+    "volume": 12,
     "model": "marimba",
     "modes": 6,
     "decay": 1.2,

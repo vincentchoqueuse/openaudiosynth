@@ -39,7 +39,7 @@
     "amp_velocity": 0.2,
     "drift": 6,
     "pan_spread": 1.0,
-    "volume": -2,
+    "volume": 2.8,
     "chorus_mode": "I",
     "chorus_mix": 0.3
   },

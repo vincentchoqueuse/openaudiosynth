@@ -93,7 +93,7 @@ const param_desc_t wt_params[WT_P_COUNT] = {
           "poly; mono = last note, retriggers; legato = overlapping notes slide without retriggering"),
     PARAM(WT_P_GLIDE, "glide", "voice.glide", 0.0f, 2.0f, 0.0f, PARAM_LIN, "s", 1, NULL, "portamento time"),
     PARAM(WT_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL, "velocity -> loudness"),
-    PARAM(WT_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(WT_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(WT_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.4f, PARAM_LIN, "", 0, NULL, "random stereo position per note"),
     PARAM(WT_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),
     PARAM_OVERSAMPLE(WT_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filters (lp24 ladder, scream): 1x lightest, "

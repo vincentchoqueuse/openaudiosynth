@@ -109,7 +109,7 @@ const param_desc_t fm6_params[FM6_P_COUNT] = {
     PARAM(FM6_P_LFO_WAVE, "lfo_wave", "lfo.waveform", 0.0f, 5.0f, 0.0f, PARAM_INT, "", 0, lfo_labels, "LFO shape"),
     PARAM(FM6_P_PMS, "pitch_mod_sens", "lfo.pitch_sensitivity", 0.0f, 7.0f, 3.0f, PARAM_INT, "", 1, NULL,
           "pitch modulation sensitivity (scales LFO pitch depth: 3 = vibrato, 7 = +/- an octave)"),
-    PARAM(FM6_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(FM6_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(FM6_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 12.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),
     PARAM(FM6_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 0, NULL,
           "random stereo position per note (the original was mono)"),

@@ -4,6 +4,7 @@
   "name": "modal_bowl_bowed",
   "description": "Bowed singing bowl / glass harmonica: continuous noise excitation, slow bow attack, endless drone that blooms; light ensemble chorus.",
   "params": {
+    "volume": 3.7,
     "model": "bowl",
     "modes": 10,
     "decay": 8,

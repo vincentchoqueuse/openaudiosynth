@@ -4,6 +4,7 @@
   "name": "poly_brass",
   "description": "Classic poly brass: two saws detuned, filter envelope with a soft attack, a touch of slop; big chords.",
   "params": {
+    "volume": 5.8,
     "oscb_fine": 8,
     "mix_b": 0.8,
     "cutoff": 500,

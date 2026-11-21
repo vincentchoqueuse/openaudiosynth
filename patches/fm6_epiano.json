@@ -4,6 +4,7 @@
   "name": "fm6_epiano",
   "description": "Original FM electric piano: three operator pairs (algorithm 5). A 1:1 pair for the body, a 1:14 pair for the bright tine attack that dies fast, a slightly detuned third pair for chorus; harder playing brightens.",
   "params": {
+    "volume": 9.3,
     "algorithm": 5,
     "feedback": 0,
     "pan_spread": 0.3,

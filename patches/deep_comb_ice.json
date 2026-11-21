@@ -30,7 +30,7 @@
     "vlfo_wave": "sine",
     "mlfo1_sync": "8",
     "mlfo1_wave": "tri",
-    "volume": 4,
+    "volume": 14.9,
     "reverb_mix": 0.55,
     "reverb_decay": 0.95,
     "reverb_damping": 7000,

@@ -41,7 +41,7 @@ const param_desc_t drums_params[DRUMS_P_COUNT] = {
           "saturation of the whole kit: glue and grit, louder transients become rounder"),
     PARAM(DRUMS_P_STEREO, "stereo", "drum.stereo", 0.0f, 1.0f, 0.4f, PARAM_LIN, "", 0, NULL,
           "spread of the instruments in the stereo field (0 = mono like the original machines)"),
-    PARAM(DRUMS_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "kit volume (applies to new hits)"),
+    PARAM(DRUMS_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "kit volume (applies to new hits)"),
     INST(DR_KICK, "kick", "kick pitch (default ~49 Hz analog, ~52 Hz hybrid)",
          "kick length: 0.3 = tight, 1 = default, 3+ = long sub boom",
          "click / attack amount (hybrid: beater click and noise)"),

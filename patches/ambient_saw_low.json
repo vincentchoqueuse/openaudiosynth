@@ -4,6 +4,7 @@
   "name": "ambient_saw_low",
   "description": "Dark detuned saw drone for the low register: same LFO-of-LFO detune movement, filter almost closed.",
   "params": {
+    "volume": 3.8,
     "osc1_wave": "saw",
     "osc2_wave": "saw",
     "osc2_oct": -1,

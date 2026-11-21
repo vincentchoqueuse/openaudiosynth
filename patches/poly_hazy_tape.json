@@ -26,7 +26,7 @@
     "drift_time": 7,
     "jitter": 0.5,
     "pan_spread": 0.7,
-    "volume": 2,
+    "volume": 3.3,
     "vlfo_wave": "wiener",
     "vlfo_rate": 0.3,
     "vroute1_source": "vlfo",

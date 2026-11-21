@@ -480,7 +480,7 @@
         "decay": {"type": "float", "range": [0.0005, 30], "default": 0.3, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "decay time to the sustain level"},
         "sustain": {"type": "float", "range": [0, 1], "default": 0.7, "realtime": true, "role": "amp.sustain", "help": "sustain level"},
         "release": {"type": "float", "range": [0.0005, 30], "default": 0.4, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "release time"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB"}
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB"}
       }
     },
     "va": {
@@ -521,7 +521,7 @@
         "lfo_pwm": {"type": "float", "range": [0, 0.45], "default": 0, "realtime": true, "role": "lfo.to_pulse_width", "help": "LFO -> pulse width (PWM: animated, string-ensemble-like pulse sound)"},
         "wheel_vibrato": {"type": "float", "range": [0, 1], "default": 0.3, "unit": "st", "realtime": true, "role": "lfo.wheel_vibrato", "help": "extra vibrato depth (semitones) added by the mod wheel (CC 1)"},
         "amp_velocity": {"type": "float", "range": [0, 1], "default": 0.7, "realtime": true, "role": "amp.velocity", "help": "velocity -> loudness sensitivity (0 = none, 1 = full)"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB (voices already sit at -18 dBFS each)"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB (voices already sit at -18 dBFS each)"},
         "drift": {"type": "float", "range": [0, 20], "default": 3, "unit": "cent", "realtime": false, "cc": 19, "role": "voice.drift", "help": "analog drift: slow random wander of each oscillator (standard deviation, cents; the filter follows a little)"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per voice (0 = mono center, 1 = wide)"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range in semitones"},
@@ -574,7 +574,7 @@
         "bow": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "exciter.bow", "help": "continuous noise excitation while the key is held: bowed glass, singing bowls, endless drones"},
         "bow_attack": {"type": "float", "range": [0.01, 10], "default": 1, "unit": "s", "scale": "log", "realtime": true, "role": "exciter.bow_attack", "help": "time for the bow to reach full level"},
         "variation": {"type": "float", "range": [0, 30], "default": 4, "unit": "cent", "realtime": false, "role": "resonator.variation", "help": "random per-note detune of each mode: every strike is slightly different, beating partials"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note (0 = centre)"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range in semitones"},
         "inharmonicity": {"type": "float", "range": [1e-05, 0.02], "default": 0.0004, "scale": "log", "realtime": true, "role": "resonator.inharmonicity", "help": "string stiffness B (model string): partials sharpen as k*sqrt(1+B k^2); 1e-4 bass strings, 3e-4..1e-3 piano middle, 5e-3+ bright treble / bell-like"},
@@ -593,7 +593,7 @@
         "accent": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": false, "role": "drum.accent", "help": "how much velocity changes level, decay and brightness (0 = every hit equal)"},
         "drive": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "drum.drive", "help": "saturation of the whole kit: glue and grit, louder transients become rounder"},
         "stereo": {"type": "float", "range": [0, 1], "default": 0.4, "realtime": false, "role": "drum.stereo", "help": "spread of the instruments in the stereo field (0 = mono like the original machines)"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "kit volume (applies to new hits)"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "kit volume (applies to new hits)"},
         "kick_level": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "drum.kick.level", "help": "kick level"},
         "kick_tune": {"type": "float", "range": [-12, 12], "default": 0, "unit": "st", "realtime": true, "role": "drum.kick.tune", "help": "kick pitch (default ~49 Hz analog, ~52 Hz hybrid)"},
         "kick_decay": {"type": "float", "range": [0.2, 5], "default": 1, "unit": "x", "scale": "log", "realtime": true, "role": "drum.kick.decay", "help": "kick length: 0.3 = tight, 1 = default, 3+ = long sub boom"},
@@ -657,7 +657,7 @@
         "accent": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": true, "role": "accent.amount", "help": "strength of accented notes (velocity >= 96, '!' in phrases): louder, brighter, shorter, and the cutoff climbs over consecutive accents"},
         "slide": {"type": "float", "range": [0.01, 0.3], "default": 0.06, "unit": "s", "scale": "log", "realtime": true, "role": "voice.glide", "help": "slide time between overlapping notes ('~' in phrases); 60 ms is the classic"},
         "drive": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": true, "role": "filter.drive", "help": "saturation inside the filter: rounder, then grittier, louder resonance"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"}
       }
     },
@@ -697,7 +697,7 @@
         "mod_cutoff": {"type": "float", "range": [0, 4], "default": 0, "unit": "oct", "realtime": true, "role": "mod.to_cutoff", "help": "mod wheel -> filter cutoff depth (octaves at full wheel)"},
         "drift": {"type": "float", "range": [0, 15], "default": 3, "unit": "cent", "realtime": false, "role": "voice.drift", "help": "analog drift: slow random wander of each oscillator (standard deviation, cents)"},
         "velocity": {"type": "float", "range": [0, 1], "default": 0, "realtime": false, "role": "amp.velocity", "help": "velocity -> loudness and brightness (the original had none)"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range (the original wheel: 7, a fifth)"},
         "noise_color": {"type": "enum", "choices": ["white", "pink"], "default": "white", "realtime": false, "role": "noise.color", "help": "white = equal energy per frequency (hiss), pink = equal energy per octave (waterfall); as a modulation source the noise is one step darker (pink, or red)"},
         "mod_a": {"type": "enum", "choices": ["osc3", "filter_eg"], "default": "osc3", "realtime": false, "role": "mod.source_a", "help": "modulation source A: osc 3 (vibrato, trills, FM) or the filter contour (brass and percussion sweeps)"},
@@ -760,7 +760,7 @@
         "unison_detune": {"type": "float", "range": [0, 50], "default": 12, "unit": "cent", "realtime": true, "role": "voice.unison_detune", "help": "detune spread of the unison voices"},
         "drift": {"type": "float", "range": [0, 15], "default": 4, "unit": "cent", "realtime": false, "role": "voice.drift", "help": "analog drift: slow random wander of each oscillator (standard deviation, cents): voices never quite agree"},
         "velocity": {"type": "float", "range": [0, 1], "default": 0, "realtime": false, "role": "amp.velocity", "help": "velocity -> loudness and filter (the original had none)"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.4, "realtime": false, "role": "voice.pan_spread", "help": "stereo spread of the voices"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"},
         "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "1x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the filters: 1x (default, lightest for 8 voices), 2x (clean drive and resonance, ~2.5x the filter cost), 4x (cleanest, ~5x)"},
@@ -918,7 +918,7 @@
         "lfo_sync": {"type": "enum", "choices": ["off", "on"], "default": "on", "realtime": false, "role": "lfo.sync", "help": "LFO restarts on each note"},
         "lfo_wave": {"type": "enum", "choices": ["triangle", "saw_down", "saw_up", "square", "sine", "sample_hold"], "default": "triangle", "realtime": false, "role": "lfo.waveform", "help": "LFO shape"},
         "pitch_mod_sens": {"type": "int", "range": [0, 7], "default": 3, "realtime": true, "role": "lfo.pitch_sensitivity", "help": "pitch modulation sensitivity (scales LFO pitch depth: 3 = vibrato, 7 = +/- an octave)"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "bend_range": {"type": "int", "range": [0, 12], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note (the original was mono)"}
       }
@@ -995,7 +995,7 @@
         "voice_mode": {"type": "enum", "choices": ["poly", "mono", "legato"], "default": "poly", "realtime": false, "role": "voice.mode", "help": "poly; mono = last note, retriggers; legato = overlapping notes slide without retriggering"},
         "glide": {"type": "float", "range": [0, 2], "default": 0, "unit": "s", "realtime": true, "role": "voice.glide", "help": "portamento time"},
         "velocity": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "amp.velocity", "help": "velocity -> loudness"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.4, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"},
         "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the nonlinear filters (lp24 ladder, scream): 1x lightest, 2x default, 4x cleanest (about twice the filter cost of 2x)"}
@@ -1020,7 +1020,7 @@
         "amp_decay": {"type": "float", "range": [0.005, 30], "default": 1, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "amp decay"},
         "amp_sustain": {"type": "float", "range": [0, 1], "default": 1, "realtime": true, "role": "amp.sustain", "help": "amp sustain"},
         "amp_release": {"type": "float", "range": [0.005, 30], "default": 3, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "amp release"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
       }
@@ -1043,7 +1043,7 @@
         "amp_decay": {"type": "float", "range": [0.005, 30], "default": 0.5, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "amp decay"},
         "amp_sustain": {"type": "float", "range": [0, 1], "default": 0.8, "realtime": true, "role": "amp.sustain", "help": "amp sustain"},
         "amp_release": {"type": "float", "range": [0.005, 30], "default": 0.4, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "amp release"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "pan_spread": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
       }
@@ -1052,7 +1052,7 @@
       "description": "drum sampler: a kit of samples, 16 pads with speed, start/end, reverse, loop, filter, choke (12 voices)",
       "voices": 12,
       "params": {
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume"},
         "tune": {"type": "float", "range": [-12, 12], "default": 0, "unit": "st", "realtime": true, "role": "voice.transpose", "help": "speed of every pad, in semitones"},
         "velocity": {"type": "float", "range": [0, 1], "default": 0.7, "realtime": true, "role": "amp.velocity", "help": "how much the velocity changes the level (0: every hit the same)"},
         "resonance": {"type": "float", "range": [0.5, 8], "default": 0.707, "scale": "log", "realtime": true, "role": "filter.resonance", "help": "resonance (Q) of the pads' low-pass filters"},
@@ -1236,7 +1236,7 @@
         "sparkle_level": {"type": "float", "range": [-60, 6], "default": -6, "unit": "dB", "realtime": true, "role": "drone.sparkle_level", "help": "level of the sparkles"},
         "amp_attack": {"type": "float", "range": [0.05, 180], "default": 6, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "fade in of a note (up to 3 minutes)"},
         "amp_release": {"type": "float", "range": [0.05, 180], "default": 10, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "fade out of a note (up to 3 minutes)"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
         "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
       }
     }

@@ -404,7 +404,7 @@ reference polyphonic sine with one ADSR (8 voices)
 | `decay` | 0.0005 .. 30 s | 0.3 | yes | `amp.decay` | decay time to the sustain level |
 | `sustain` | 0 .. 1 | 0.7 | yes | `amp.sustain` | sustain level |
 | `release` | 0.0005 .. 30 s | 0.4 | yes | `amp.release` | release time |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | engine volume in dB |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume in dB |
 
 ## Engine `va` (8 voices)
 
@@ -446,7 +446,7 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise 
 | `lfo_pwm` | 0 .. 0.45 | 0 | yes | `lfo.to_pulse_width` | LFO -> pulse width (PWM: animated, string-ensemble-like pulse sound) |
 | `wheel_vibrato` | 0 .. 1 st | 0.3 | yes | `lfo.wheel_vibrato` | extra vibrato depth (semitones) added by the mod wheel (CC 1) |
 | `amp_velocity` | 0 .. 1 | 0.7 | yes | `amp.velocity` | velocity -> loudness sensitivity (0 = none, 1 = full) |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | engine volume in dB (voices already sit at -18 dBFS each) |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume in dB (voices already sit at -18 dBFS each) |
 | `drift` | 0 .. 20 cent | 3 |  (CC 19) | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents; the filter follows a little) |
 | `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per voice (0 = mono center, 1 = wide) |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range in semitones |
@@ -500,7 +500,7 @@ modal synthesis: banks of up to 32 resonators per note, struck (hammer/mallet + 
 | `bow` | 0 .. 1 | 0 | yes | `exciter.bow` | continuous noise excitation while the key is held: bowed glass, singing bowls, endless drones |
 | `bow_attack` | 0.01 .. 10 s | 1 | yes | `exciter.bow_attack` | time for the bow to reach full level |
 | `variation` | 0 .. 30 cent | 4 |  | `resonator.variation` | random per-note detune of each mode: every strike is slightly different, beating partials |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | engine volume in dB |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume in dB |
 | `pan_spread` | 0 .. 1 | 0.5 |  | `voice.pan_spread` | random stereo position per note (0 = centre) |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range in semitones |
 | `inharmonicity` | 1e-05 .. 0.02 | 0.0004 | yes | `resonator.inharmonicity` | string stiffness B (model string): partials sharpen as k*sqrt(1+B k^2); 1e-4 bass strings, 3e-4..1e-3 piano middle, 5e-3+ bright treble / bell-like |
@@ -521,7 +521,7 @@ Notes: 36 `kick`, 38 `snare`, 39 `clap`, 37 `rim`, 42 `chat`, 46 `ohat`, 41 `lto
 | `accent` | 0 .. 1 | 0.6 |  | `drum.accent` | how much velocity changes level, decay and brightness (0 = every hit equal) |
 | `drive` | 0 .. 1 | 0 | yes | `drum.drive` | saturation of the whole kit: glue and grit, louder transients become rounder |
 | `stereo` | 0 .. 1 | 0.4 |  | `drum.stereo` | spread of the instruments in the stereo field (0 = mono like the original machines) |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | kit volume (applies to new hits) |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | kit volume (applies to new hits) |
 | `kick_level` | -60 .. 6 dB | 0 | yes | `drum.kick.level` | kick level |
 | `kick_tune` | -12 .. 12 st | 0 | yes | `drum.kick.tune` | kick pitch (default ~49 Hz analog, ~52 Hz hybrid) |
 | `kick_decay` | 0.2 .. 5 x | 1 | yes | `drum.kick.decay` | kick length: 0.3 = tight, 1 = default, 3+ = long sub boom |
@@ -586,7 +586,7 @@ monophonic acid bass (early-80s transistor bass line spirit): saw/square, resona
 | `accent` | 0 .. 1 | 0.6 | yes | `accent.amount` | strength of accented notes (velocity >= 96, '!' in phrases): louder, brighter, shorter, and the cutoff climbs over consecutive accents |
 | `slide` | 0.01 .. 0.3 s | 0.06 | yes | `voice.glide` | slide time between overlapping notes ('~' in phrases); 60 ms is the classic |
 | `drive` | 0 .. 1 | 0.3 | yes | `filter.drive` | saturation inside the filter: rounder, then grittier, louder resonance |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x) |
 
 ## Engine `mono` (1 voices)
@@ -627,7 +627,7 @@ classic monosynth (the early-70s portable one, panel by panel): 3 free-running o
 | `mod_cutoff` | 0 .. 4 oct | 0 | yes | `mod.to_cutoff` | mod wheel -> filter cutoff depth (octaves at full wheel) |
 | `drift` | 0 .. 15 cent | 3 |  | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents) |
 | `velocity` | 0 .. 1 | 0 |  | `amp.velocity` | velocity -> loudness and brightness (the original had none) |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range (the original wheel: 7, a fifth) |
 | `noise_color` | white, pink | white |  | `noise.color` | white = equal energy per frequency (hiss), pink = equal energy per octave (waterfall); as a modulation source the noise is one step darker (pink, or red) |
 | `mod_a` | osc3, filter_eg | osc3 |  | `mod.source_a` | modulation source A: osc 3 (vibrato, trills, FM) or the filter contour (brass and percussion sweeps) |
@@ -691,7 +691,7 @@ classic polysynth (late-70s 5-voice spirit): osc A saw/pulse with hard sync, osc
 | `unison_detune` | 0 .. 50 cent | 12 | yes | `voice.unison_detune` | detune spread of the unison voices |
 | `drift` | 0 .. 15 cent | 4 |  | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents): voices never quite agree |
 | `velocity` | 0 .. 1 | 0 |  | `amp.velocity` | velocity -> loudness and filter (the original had none) |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `pan_spread` | 0 .. 1 | 0.4 |  | `voice.pan_spread` | stereo spread of the voices |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 | `oversample` | 1x, 2x, 4x | 1x |  | `filter.oversample` | oversampling of the filters: 1x (default, lightest for 8 voices), 2x (clean drive and resonance, ~2.5x the filter cost), 4x (cleanest, ~5x) |
@@ -850,7 +850,7 @@ classic polysynth (late-70s 5-voice spirit): osc A saw/pulse with hard sync, osc
 | `lfo_sync` | off, on | on |  | `lfo.sync` | LFO restarts on each note |
 | `lfo_wave` | triangle, saw_down, saw_up, square, sine, sample_hold | triangle |  | `lfo.waveform` | LFO shape |
 | `pitch_mod_sens` | 0 .. 7 | 3 | yes | `lfo.pitch_sensitivity` | pitch modulation sensitivity (scales LFO pitch depth: 3 = vibrato, 7 = +/- an octave) |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `bend_range` | 0 .. 12 st | 2 |  | `voice.bend_range` | pitch-bend range |
 | `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per note (the original was mono) |
 
@@ -928,7 +928,7 @@ wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position
 | `voice_mode` | poly, mono, legato | poly |  | `voice.mode` | poly; mono = last note, retriggers; legato = overlapping notes slide without retriggering |
 | `glide` | 0 .. 2 s | 0 | yes | `voice.glide` | portamento time |
 | `velocity` | 0 .. 1 | 0.5 | yes | `amp.velocity` | velocity -> loudness |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `pan_spread` | 0 .. 1 | 0.4 |  | `voice.pan_spread` | random stereo position per note |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 | `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the nonlinear filters (lp24 ladder, scream): 1x lightest, 2x default, 4x cleanest (about twice the filter cost of 2x) |
@@ -954,7 +954,7 @@ coupled-oscillator networks: each note is a network of Stuart-Landau partials wh
 | `amp_decay` | 0.005 .. 30 s | 1 | yes | `amp.decay` | amp decay |
 | `amp_sustain` | 0 .. 1 | 1 | yes | `amp.sustain` | amp sustain |
 | `amp_release` | 0.005 .. 30 s | 3 | yes | `amp.release` | amp release |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `pan_spread` | 0 .. 1 | 0.5 |  | `voice.pan_spread` | random stereo position per note |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 
@@ -978,7 +978,7 @@ self-oscillating nonlinear oscillators (Van der Pol / Duffing) forced by the not
 | `amp_decay` | 0.005 .. 30 s | 0.5 | yes | `amp.decay` | amp decay |
 | `amp_sustain` | 0 .. 1 | 0.8 | yes | `amp.sustain` | amp sustain |
 | `amp_release` | 0.005 .. 30 s | 0.4 | yes | `amp.release` | amp release |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per note |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 
@@ -988,7 +988,7 @@ drum sampler: a kit of samples, 16 pads with speed, start/end, reverse, loop, fi
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | engine volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
 | `tune` | -12 .. 12 st | 0 | yes | `voice.transpose` | speed of every pad, in semitones |
 | `velocity` | 0 .. 1 | 0.7 | yes | `amp.velocity` | how much the velocity changes the level (0: every hit the same) |
 | `resonance` | 0.5 .. 8 | 0.707 | yes | `filter.resonance` | resonance (Q) of the pads' low-pass filters |
@@ -1173,5 +1173,5 @@ drone machine: each note an endless drone of wandering harmonic partials, a warm
 | `sparkle_level` | -60 .. 6 dB | -6 | yes | `drone.sparkle_level` | level of the sparkles |
 | `amp_attack` | 0.05 .. 180 s | 6 | yes | `amp.attack` | fade in of a note (up to 3 minutes) |
 | `amp_release` | 0.05 .. 180 s | 10 | yes | `amp.release` | fade out of a note (up to 3 minutes) |
-| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |

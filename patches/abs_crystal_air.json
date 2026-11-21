@@ -4,6 +4,7 @@
   "name": "abs_crystal_air",
   "description": "Crystal air pad: a bright additive table an octave up with a gentle hard-sync shimmer pulsing from a looping MSEG, sample-and-hold steps of the table position on each bar, a sine two octaves up, breathy noise swelling on a second MSEG; high-passed, thin and wide like frost.",
   "params": {
+    "volume": 5.5,
     "a_table": "harmonics",
     "a_position": 0.75,
     "a_warp_mode": "sync",

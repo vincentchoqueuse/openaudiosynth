@@ -4,6 +4,7 @@
   "name": "wt_pluck",
   "description": "Glassy pluck: harmonics table whose position (number of harmonics) falls with a short env2, plus a quick filter decay; velocity adds brightness.",
   "params": {
+    "volume": 14.6,
     "a_table": "harmonics",
     "a_position": 0.15,
     "a_level": 0.9,

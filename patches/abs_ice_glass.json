@@ -74,7 +74,7 @@
     "route4_source": "mod_wheel",
     "route4_destination": "a_warp",
     "route4_amount": 0.4,
-    "volume": 6,
+    "volume": 17.5,
     "part_level": 3
   },
   "audition": {

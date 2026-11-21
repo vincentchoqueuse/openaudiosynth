@@ -4,6 +4,7 @@
   "name": "coupled_breathing",
   "description": "Breathing network: partials feed their in-step neighbours and pull each other toward the harmonic series while a slow random walk pushes them apart; louder partials go flat. The chord breathes on its own, no LFO anywhere.",
   "params": {
+    "volume": 0.4,
     "amp_coupling": 0.6,
     "phase_coupling": 0.6,
     "pitch_by_level": 0.05,

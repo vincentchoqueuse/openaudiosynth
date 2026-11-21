@@ -4,6 +4,7 @@
   "name": "modal_glass_bowl",
   "description": "Struck singing bowl: widely spaced partials, very long ring, soft felt mallet, slow beating between partials.",
   "params": {
+    "volume": 17.1,
     "model": "bowl",
     "modes": 10,
     "decay": 14,

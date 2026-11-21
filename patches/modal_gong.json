@@ -4,6 +4,7 @@
   "name": "modal_gong",
   "description": "Gong-like: circular membrane modes slightly stretched, very long decay, soft heavy beater with a noisy attack.",
   "params": {
+    "volume": 11,
     "model": "membrane",
     "modes": 16,
     "stretch": 0.05,

@@ -4,6 +4,7 @@
   "name": "fm6_organ",
   "description": "Original FM organ: algorithm 32, six sine carriers at drawbar-like ratios (0.5, 1, 2, 3, 4, 8), instant attack, slight LFO vibrato.",
   "params": {
+    "volume": 5.1,
     "algorithm": 32,
     "feedback": 0,
     "lfo_speed": 38,

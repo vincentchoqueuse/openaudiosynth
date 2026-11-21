@@ -4,6 +4,7 @@
   "name": "wt_vowel_pad",
   "description": "Choir-like pad: vowel table morphing a-e-i-o-u with slow desynchronized LFOs on both oscillators, soft attack, long reverb.",
   "params": {
+    "volume": 6.5,
     "a_table": "vowel",
     "a_position": 0.2,
     "a_unison": 3,

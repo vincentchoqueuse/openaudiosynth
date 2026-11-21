@@ -4,6 +4,7 @@
   "name": "poly_strings",
   "description": "Lush string-machine-like pad: pulse waves with slow LFO PWM, slow attack and release, chorus ensemble.",
   "params": {
+    "volume": 3.1,
     "osca_saw": "off",
     "osca_pulse": "on",
     "oscb_saw": "off",

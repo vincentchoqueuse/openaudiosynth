@@ -4,6 +4,7 @@
   "name": "acid_slide",
   "description": "Acid bass line with slides: single saw, very resonant low-pass with a short filter envelope, legato voice with a 60 ms glide on tied notes ('~' in phrases), accents open the filter. 303-style behaviour on the SVF until the 4-pole ladder arrives.",
   "params": {
+    "volume": 7.6,
     "osc1_wave": "saw",
     "osc2_level": 0,
     "cutoff": 280,

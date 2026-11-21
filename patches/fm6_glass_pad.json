@@ -4,6 +4,7 @@
   "name": "fm6_glass_pad",
   "description": "Original FM glass pad: slow-attack detuned pairs with a high-ratio shimmer modulator, slow vibrato, long release; dreamy 80s pad.",
   "params": {
+    "volume": 10,
     "algorithm": 5,
     "feedback": 2,
     "lfo_speed": 25,

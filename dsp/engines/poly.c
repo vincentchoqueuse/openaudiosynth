@@ -70,7 +70,7 @@ const param_desc_t poly_params[POLY_P_COUNT] = {
           "analog drift: slow random wander of each oscillator (standard deviation, cents): voices never quite agree"),
     PARAM(POLY_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 0, NULL,
           "velocity -> loudness and filter (the original had none)"),
-    PARAM(POLY_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(POLY_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(POLY_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.4f, PARAM_LIN, "", 0, NULL, "stereo spread of the voices"),
     PARAM(POLY_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),
     PARAM_OVERSAMPLE(POLY_P_OVERSAMPLE, 0.0f, "oversampling of the filters: 1x (default, lightest for 8 voices), 2x "

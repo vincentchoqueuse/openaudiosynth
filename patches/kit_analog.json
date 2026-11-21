@@ -4,6 +4,7 @@
   "name": "kit_analog",
   "description": "Analog drum machine kit (early-80s spirit): booming sine kick, soft round snare, multi-burst clap, silky 6-square metallic hats, the classic cowbell and toms. Electro, hip-hop, ambient beats.",
   "params": {
+    "volume": -1.8,
     "kit": "analog"
   },
   "audition": {

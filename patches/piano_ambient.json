@@ -4,6 +4,7 @@
   "name": "piano_ambient",
   "description": "The owner's favourite: grand piano with the sustain pedal half down (2.5 s release), wide unison beating with even double decay (aftersound 0), long plate reverb: notes bloom and overlap, a hazy IDM/ambient piano.",
   "params": {
+    "volume": 3,
     "model": "string",
     "modes": 32,
     "inharmonicity": 0.0006,

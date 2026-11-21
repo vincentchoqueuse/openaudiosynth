@@ -34,7 +34,7 @@ const param_desc_t selfosc_params[SO_P_COUNT] = {
     PARAM(SO_P_DECAY, "amp_decay", "amp.decay", 0.005f, 30.0f, 0.5f, PARAM_EXP, "s", 1, NULL, "amp decay"),
     PARAM(SO_P_SUSTAIN, "amp_sustain", "amp.sustain", 0.0f, 1.0f, 0.8f, PARAM_LIN, "", 1, NULL, "amp sustain"),
     PARAM(SO_P_RELEASE, "amp_release", "amp.release", 0.005f, 30.0f, 0.4f, PARAM_EXP, "s", 1, NULL, "amp release"),
-    PARAM(SO_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(SO_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(SO_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 0, NULL,
           "random stereo position per note"),
     PARAM(SO_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),

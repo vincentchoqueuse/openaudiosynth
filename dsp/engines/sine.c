@@ -10,7 +10,7 @@ const param_desc_t sine_params[SINE_P_COUNT] = {
     PARAM(SINE_P_DECAY, "decay", "amp.decay", 0.0005f, 30.0f, 0.3f, PARAM_EXP, "s", 1, NULL, "decay time to the sustain level"),
     PARAM(SINE_P_SUSTAIN, "sustain", "amp.sustain", 0.0f, 1.0f, 0.7f, PARAM_LIN, "", 1, NULL, "sustain level"),
     PARAM(SINE_P_RELEASE, "release", "amp.release", 0.0005f, 30.0f, 0.4f, PARAM_EXP, "s", 1, NULL, "release time"),
-    PARAM(SINE_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB"),
+    PARAM(SINE_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB"),
 };
 
 /* ---------------- vpoly callbacks ---------------- */

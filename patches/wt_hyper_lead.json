@@ -4,6 +4,7 @@
   "name": "wt_hyper_lead",
   "description": "Wide trance-style lead: 8-voice unison saw frames on both oscillators (B an octave up), lp12 opened by env2, slow LFO drifting the position for shimmer, glide in legato.",
   "params": {
+    "volume": 12,
     "a_table": "basic",
     "a_position": 0.667,
     "a_unison": 8,

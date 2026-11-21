@@ -4,6 +4,7 @@
   "name": "wt_sync_lead",
   "description": "Screaming sync lead: hard-sync warp swept by env2 and the mod wheel, pulse-width table, a touch of unison.",
   "params": {
+    "volume": 11.4,
     "a_table": "basic",
     "a_position": 0.8,
     "a_warp_mode": "sync",

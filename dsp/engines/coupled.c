@@ -37,7 +37,7 @@ const param_desc_t coupled_params[CPL_P_COUNT] = {
     PARAM(CPL_P_DECAY, "amp_decay", "amp.decay", 0.005f, 30.0f, 1.0f, PARAM_EXP, "s", 1, NULL, "amp decay"),
     PARAM(CPL_P_SUSTAIN, "amp_sustain", "amp.sustain", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL, "amp sustain"),
     PARAM(CPL_P_RELEASE, "amp_release", "amp.release", 0.005f, 30.0f, 3.0f, PARAM_EXP, "s", 1, NULL, "amp release"),
-    PARAM(CPL_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(CPL_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(CPL_P_SPREAD_PAN, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 0, NULL,
           "random stereo position per note"),
     PARAM(CPL_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),

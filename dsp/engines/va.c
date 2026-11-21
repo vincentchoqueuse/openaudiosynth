@@ -51,7 +51,7 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_LFO_PWM, "lfo_pwm", "lfo.to_pulse_width", 0.0f, 0.45f, 0.0f, PARAM_LIN, "", 1, NULL, "LFO -> pulse width (PWM: animated, string-ensemble-like pulse sound)"),
     PARAM(VA_P_WHEEL_VIB, "wheel_vibrato", "lfo.wheel_vibrato", 0.0f, 1.0f, 0.3f, PARAM_LIN, "st", 1, NULL, "extra vibrato depth (semitones) added by the mod wheel (CC 1)"),
     PARAM(VA_P_AMP_VEL, "amp_velocity", "amp.velocity", 0.0f, 1.0f, 0.7f, PARAM_LIN, "", 1, NULL, "velocity -> loudness sensitivity (0 = none, 1 = full)"),
-    PARAM(VA_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB (voices already sit at -18 dBFS each)"),
+    PARAM(VA_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB (voices already sit at -18 dBFS each)"),
     PARAM(VA_P_DRIFT, "drift", "voice.drift", 0.0f, 20.0f, 3.0f, PARAM_LIN, "cent", 0, NULL, "analog drift: slow random wander of each oscillator (standard deviation, cents; the filter follows a little)"),
     PARAM(VA_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 0, NULL, "random stereo position per voice (0 = mono center, 1 = wide)"),
     PARAM(VA_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range in semitones"),

@@ -4,6 +4,7 @@
   "name": "modal_kalimba",
   "description": "Kalimba / music-box tine: free bar struck near the end (position), bright metal attack, medium ring; with a ping-pong tape echo.",
   "params": {
+    "volume": 12.2,
     "model": "bar",
     "modes": 8,
     "decay": 2.5,

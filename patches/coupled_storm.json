@@ -4,6 +4,7 @@
   "name": "coupled_storm",
   "description": "Storm: strong cooperation and pull with a wide pitch-by-level dependence and a fast random walk: partials sweep, catch each other, hold, and break away again.",
   "params": {
+    "volume": 3.5,
     "amp_coupling": 1.5,
     "phase_coupling": 1.0,
     "pitch_by_level": 0.1,

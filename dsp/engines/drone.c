@@ -39,7 +39,7 @@ const param_desc_t drone_params[DRN_P_COUNT] = {
           "fade in of a note (up to 3 minutes)"),
     PARAM(DRN_P_RELEASE, "amp_release", "amp.release", 0.05f, 180.0f, 10.0f, PARAM_EXP, "s", 1, NULL,
           "fade out of a note (up to 3 minutes)"),
-    PARAM(DRN_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(DRN_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(DRN_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL,
           "pitch-bend range"),
 };

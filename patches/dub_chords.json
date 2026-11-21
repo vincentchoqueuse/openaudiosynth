@@ -4,6 +4,7 @@
   "name": "dub_chords",
   "description": "Dub-style offbeat chords: short filtered saws thrown into a dark ping-pong tape echo with high feedback and a plate reverb.",
   "params": {
+    "volume": 9.3,
     "osc2_detune": 9,
     "osc2_level": 0.8,
     "cutoff": 900,

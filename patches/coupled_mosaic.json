@@ -4,6 +4,7 @@
   "name": "coupled_mosaic",
   "description": "Mosaic: neighbours compete (negative amplitude coupling): partials flicker in and out in blocks while a random walk keeps reshuffling who wins; a cold, ever-changing additive texture.",
   "params": {
+    "volume": 1,
     "amp_coupling": -1.2,
     "phase_coupling": 0.3,
     "pitch_by_level": 0.03,

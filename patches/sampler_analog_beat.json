@@ -5,6 +5,7 @@
   "description": "Drum sampler on the analog demo kit (recorded from the drums engine): closed and open hats in one choke group, hats and toms spread in stereo, the kick a touch shorter. A base to load your own samples into.",
   "kit": "synth_analog",
   "params": {
+    "volume": 0.5,
     "velocity": 0.6,
     "pad1_decay": 1.2,
     "pad6_choke": 1,

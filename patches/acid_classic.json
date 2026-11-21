@@ -4,6 +4,7 @@
   "name": "acid_classic",
   "description": "The classic acid line: saw, high resonance, medium envelope, accents and slides; ride the cutoff.",
   "params": {
+    "volume": 4,
     "wave": "saw",
     "cutoff": 420,
     "resonance": 0.82,

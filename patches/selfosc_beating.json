@@ -4,6 +4,7 @@
   "name": "selfosc_beating",
   "description": "Beating drone: the oscillator's natural pitch is 25 cents above the note and the note only pulls it gently: it slips against the note in irregular cycles, a slow quasi-periodic shimmer with no LFO.",
   "params": {
+    "volume": 0.6,
     "drive": 1.2,
     "entrain": 0.15,
     "detune": 25,

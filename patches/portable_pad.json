@@ -4,6 +4,7 @@
   "name": "portable_pad",
   "description": "Example of a portable patch written only with roles (no engine-specific names): any OID instrument exposing these roles can load it.",
   "params": {
+    "volume": 1.7,
     "osc1.waveform": "saw",
     "osc2.waveform": "saw",
     "osc2.detune": 9,

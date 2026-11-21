@@ -5,6 +5,7 @@
   "description": "Glitch demo kit chopped: the cymbal reversed and looping on a sliver of its tail (a held stutter), the clap pitched up a fifth, the snare cut to its first third, the toms up an octave. IDM, breakcore fills.",
   "kit": "synth_glitch",
   "params": {
+    "volume": 0.6,
     "velocity": 0.5,
     "release": 0.08,
     "pad10_reverse": "on",

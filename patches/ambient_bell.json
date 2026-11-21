@@ -4,6 +4,7 @@
   "name": "ambient_bell",
   "description": "Soft glassy bell: sine plus a quiet triangle a twelfth above, slow free decay, slight detune shimmer.",
   "params": {
+    "volume": 12.8,
     "osc1_wave": "sine", "osc2_wave": "tri", "osc2_oct": 1, "osc2_semi": 7, "osc2_level": 0.25,
     "lfo2_detune": 6, "lfo2_rate": 0.4, "lfo2_spread": 1.0,
     "cutoff": 7000, "resonance": 0.7, "keytrack": 0, "fenv_amount": 0,

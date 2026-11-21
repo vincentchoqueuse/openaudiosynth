@@ -4,6 +4,7 @@
   "name": "wt_digital_pad",
   "description": "Evolving digital pad: random-spectrum table scanned by two slow LFOs, mirror warp breathing, wide unison, long tails.",
   "params": {
+    "volume": 5.5,
     "a_table": "digital",
     "a_position": 0.3,
     "a_warp_mode": "mirror",

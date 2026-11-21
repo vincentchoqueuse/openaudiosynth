@@ -4,6 +4,7 @@
   "name": "ambient_air",
   "description": "Breathing tape-hiss texture: band-passed noise whose centre wanders slowly.",
   "params": {
+    "volume": 19.6,
     "osc1_level": 0, "osc2_level": 0, "noise_level": 1.0,
     "filter_mode": "bp", "cutoff": 1400, "resonance": 1.4, "keytrack": 0, "fenv_amount": 0,
     "lfo_wave": "sine", "lfo_rate": 0.06, "lfo_cutoff": 1.5,

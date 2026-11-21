@@ -20,7 +20,7 @@
     "noise": 0.03,
     "aftersound": 0.3,
     "pan_spread": 0.4,
-    "volume": 2,
+    "volume": 4.7,
     "vlfo_rate": 0.33,
     "vlfo_wave": "sine",
     "vroute1_source": "vlfo",

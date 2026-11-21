@@ -5,6 +5,7 @@
   "description": "Hybrid demo kit played slower (three semitones down) through dark low-passes: dusty kick cut short by its end point, snare played backwards into the beat, closed hat chokes the open one. Lo-fi hip-hop.",
   "kit": "synth_hybrid",
   "params": {
+    "volume": 0.8,
     "tune": -3,
     "velocity": 0.8,
     "resonance": 0.9,

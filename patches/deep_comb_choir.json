@@ -29,7 +29,7 @@
     "vlfo_rate": 0.11,
     "vlfo_wave": "sh",
     "mlfo1_rate": 0.03,
-    "volume": 3,
+    "volume": 9.9,
     "reverb_mix": 0.55,
     "reverb_decay": 0.95,
     "reverb_damping": 7000,

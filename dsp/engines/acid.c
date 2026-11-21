@@ -31,7 +31,7 @@ const param_desc_t acid_params[ACID_P_COUNT] = {
           "slide time between overlapping notes ('~' in phrases); 60 ms is the classic"),
     PARAM(ACID_P_DRIVE, "drive", "filter.drive", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 1, NULL,
           "saturation inside the filter: rounder, then grittier, louder resonance"),
-    PARAM(ACID_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(ACID_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM_OVERSAMPLE(ACID_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"),
 };
 

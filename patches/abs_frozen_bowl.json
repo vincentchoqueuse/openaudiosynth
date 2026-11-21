@@ -4,6 +4,7 @@
   "name": "abs_frozen_bowl",
   "description": "Frozen singing bowl: an inharmonic (stretched) bowl, struck then bowed with a slow attack; a slow looping MSEG walks the bow position across the modes (partials rise and fall in turn), an LFO breathes the inharmonicity, another the brightness. Huge cold plate.",
   "params": {
+    "volume": 5.1,
     "model": "bowl",
     "modes": 24,
     "stretch": 0.25,

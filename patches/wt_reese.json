@@ -32,7 +32,7 @@
     "mod2_source": "lfo1",
     "mod2_destination": "b_position",
     "mod2_amount": 0.1,
-    "volume": 6
+    "volume": 15.3
   },
   "audition": {
     "notes": "E1 _ _ _ _ _ _ _ G1 _ _ _ D1 _ _ _",

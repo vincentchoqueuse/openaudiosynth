@@ -4,6 +4,7 @@
   "name": "ambient_supersaw_pad",
   "description": "Swarm pad: osc 1 = 7-saw supersaw, osc 2 = 7-saw supersaw one octave down (14 saws per note). Each saw has its own desynchronized motion LFO, and the per-voice detune LFOs 2-4 plus the LFO-of-LFO move the whole swarm. Slow swell, soft low-pass, meant for a big reverb.",
   "params": {
+    "volume": 1.1,
     "osc1_wave": "supersaw", "osc2_wave": "supersaw", "osc2_oct": -1, "osc2_detune": 0, "osc2_level": 0.55,
     "supersaw_voices": 7, "supersaw_detune": 22, "supersaw_mix": 0.75,
     "supersaw_motion": 6, "supersaw_motion_rate": 0.15,

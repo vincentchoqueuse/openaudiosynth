@@ -4,6 +4,7 @@
   "name": "ambient_saw_pad",
   "description": "Two saws with three desynchronized per-voice detune LFOs (osc 2, osc 1, whole voice) in irrational rate ratios; a very slow LFO 1 speeds some up while slowing others and swells their depth (LFO of LFO). Slow swell, soft low-pass.",
   "params": {
+    "volume": -1,
     "osc1_wave": "saw",
     "osc2_wave": "saw",
     "osc2_detune": 0,

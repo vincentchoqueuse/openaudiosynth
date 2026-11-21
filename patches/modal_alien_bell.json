@@ -4,6 +4,7 @@
   "name": "modal_alien_bell",
   "description": "Invented metal: bell partials bent upward (stretch 0.18), long shimmering decay. No physical object sounds like this.",
   "params": {
+    "volume": 7.2,
     "model": "bell",
     "modes": 14,
     "stretch": 0.18,

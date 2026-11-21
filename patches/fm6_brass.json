@@ -4,6 +4,7 @@
   "name": "fm6_brass",
   "description": "Original FM brass: modulators open more slowly than carriers (algorithm 22), so each note brightens after the attack; slight pitch envelope rise.",
   "params": {
+    "volume": 2.8,
     "algorithm": 22,
     "feedback": 6,
     "pitch_r1": 80,

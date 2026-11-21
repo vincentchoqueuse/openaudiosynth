@@ -4,6 +4,7 @@
   "name": "gong_tension",
   "description": "Tam-tam: a membrane-like modal body struck hard, full string/plate nonlinearity: the pitch of the whole sound swoops down as the energy fades, the characteristic gong glide.",
   "params": {
+    "volume": 6.7,
     "model": "membrane",
     "modes": 32,
     "stretch": 0.1,

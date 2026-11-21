@@ -37,7 +37,7 @@
           NULL, "choke group 1..8: a pad stops the others of its group (closed hi-hat over open); 0 none")
 
 const param_desc_t sampler_params[SAMPLER_P_COUNT] = {
-    PARAM(SAMPLER_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume"),
+    PARAM(SAMPLER_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume"),
     PARAM(SAMPLER_P_TUNE, "tune", "voice.transpose", -12.0f, 12.0f, 0.0f, PARAM_LIN, "st", 1, NULL,
           "speed of every pad, in semitones"),
     PARAM(SAMPLER_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.7f, PARAM_LIN, "", 1, NULL,

@@ -4,6 +4,7 @@
   "name": "modal_church_bell",
   "description": "Church bell: hum an octave below, minor-third tierce, long ring with shimmering, slightly detuned partials; hard clapper.",
   "params": {
+    "volume": 9.7,
     "model": "bell",
     "modes": 16,
     "decay": 9,

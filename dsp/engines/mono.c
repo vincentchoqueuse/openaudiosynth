@@ -78,7 +78,7 @@ const param_desc_t mono_params[MONO_P_COUNT] = {
     PARAM(MONO_P_DRIFT, "drift", "voice.drift", 0.0f, 15.0f, 3.0f, PARAM_LIN, "cent", 0, NULL, "analog drift: slow random wander of each oscillator (standard deviation, cents)"),
     PARAM(MONO_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 0, NULL,
           "velocity -> loudness and brightness (the original had none)"),
-    PARAM(MONO_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
+    PARAM(MONO_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(MONO_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL,
           "pitch-bend range (the original wheel: 7, a fifth)"),
     PARAM(MONO_P_NOISE_COLOR, "noise_color", "noise.color", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, color_labels,

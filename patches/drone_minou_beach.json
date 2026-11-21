@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "engine": "drone",
+  "name": "drone_minou_beach",
+  "description": "Plage du Minou at sunset: sand, the long swell rolling in, the light turning gold. A Lydian, the warmest of the three: the surf (the air layer) swells and draws back every fourteen seconds, a slower tide rocks the drone between warm and cool, a few sparkles on the water.",
+  "params": {
+    "volume": -6.5,
+    "temperature": 0.72,
+    "density": 0.5,
+    "motion": 0.4,
+    "depth": 0.5,
+    "brightness": 0.45,
+    "sparkle": 0.15,
+    "width": 0.9,
+    "air_level": -3,
+    "amp_attack": 8,
+    "amp_release": 14,
+    "mlfo1_wave": "sine",
+    "mlfo1_rate": 0.07,
+    "route1_source": "mlfo1",
+    "route1_destination": "air_level",
+    "route1_amount": 0.3,
+    "mlfo2_wave": "sine",
+    "mlfo2_rate": 0.025,
+    "route2_source": "mlfo2",
+    "route2_destination": "temperature",
+    "route2_amount": 0.2,
+    "route3_source": "mlfo1",
+    "route3_destination": "brightness",
+    "route3_amount": 0.1,
+    "vlfo_wave": "wiener",
+    "vlfo_rate": 0.2,
+    "vroute1_source": "vlfo",
+    "vroute1_destination": "pitch",
+    "vroute1_amount": 0.004,
+    "chorus_mode": "I",
+    "chorus_mix": 0.2,
+    "reverb_mix": 0.45,
+    "reverb_decay": 0.93,
+    "reverb_damping": 3500,
+    "reverb_predelay": 0.04
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 128,
+    "loop": true,
+    "grid": "1/4",
+    "key": "A lydian",
+    "notes": [
+      {
+        "pitch": 33,
+        "start": 0,
+        "length": 128,
+        "velocity": 92
+      },
+      {
+        "pitch": 40,
+        "start": 2,
+        "length": 124,
+        "velocity": 72
+      },
+      {
+        "pitch": 61,
+        "start": 6,
+        "length": 30,
+        "velocity": 80
+      },
+      {
+        "pitch": 68,
+        "start": 20,
+        "length": 26,
+        "velocity": 76
+      },
+      {
+        "pitch": 75,
+        "start": 40,
+        "length": 20,
+        "velocity": 70
+      },
+      {
+        "pitch": 71,
+        "start": 52,
+        "length": 30,
+        "velocity": 78
+      },
+      {
+        "pitch": 64,
+        "start": 70,
+        "length": 30,
+        "velocity": 80
+      },
+      {
+        "pitch": 66,
+        "start": 90,
+        "length": 30,
+        "velocity": 74
+      },
+      {
+        "pitch": 73,
+        "start": 100,
+        "length": 24,
+        "velocity": 72
+      }
+    ]
+  }
+}

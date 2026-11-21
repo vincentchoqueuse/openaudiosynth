@@ -4,6 +4,7 @@
   "name": "piano_grand",
   "description": "Physically modelled grand piano: stiff strings (inharmonic, stretched partials), two detuned strings per note with a fast prompt decay and a long aftersound, hammer at 1/8 of the string (comb on partials 8, 16...), velocity-sensitive hammer hardness, pitch-dependent ring time, damper on key-up, light hall reverb.",
   "params": {
+    "volume": 5.5,
     "model": "string",
     "modes": 32,
     "inharmonicity": 0.0006,

@@ -50,6 +50,10 @@ code { font-family: var(--mono); font-size: 12px; }
 .transport .pos { font-size: 15px; color: var(--text); min-width: 3.5em; }
 .transport .seqname { color: var(--text); }
 .transport .spacer { flex: 1; }
+.transport .hist { display: inline-flex; gap: 2px; }
+.transport .hist button { width: 30px; padding: 3px 0; font-size: 16px; }
+.transport .hist button:not(:disabled) { color: var(--text); }
+.transport .hist button:disabled { opacity: .35; }
 .transport .volume { display: inline-flex; align-items: center; gap: 8px; }
 .transport .volume input { width: 120px; }
 .transport .volume .db { min-width: 4.6em; text-align: right; color: var(--text); }

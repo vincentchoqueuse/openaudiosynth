@@ -39,6 +39,8 @@
   </div>
   {#if q.message}<p class="message">{q.message}</p>{/if}
   <PianoRoll />
-  <p class="muted hint">Click to draw (drag to stretch) · drag a note to move it, its right edge to stretch it · Alt-drag:
-    velocity · double-click or right-click: delete · Shift: finer than the grid · drag the end of the loop on the ruler</p>
+  <p class="muted hint">Draw: click, drag to stretch · Select: drag a rectangle (or Cmd-drag) · Shift-click: add to the
+    selection · drag notes to move them, their right edge to stretch them, Alt-drag or the lane below for velocity ·
+    click in the roll, then: Delete, Cmd+A, Cmd+C / X / V, Cmd+D duplicate, arrows move (Shift: octave), Cmd+U
+    quantize · Cmd+Z undo</p>
 </div>

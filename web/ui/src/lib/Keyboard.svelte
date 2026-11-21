@@ -23,6 +23,7 @@
   }
   function kd(e) {
     if (keyIsForControl(e) || e.repeat || e.metaKey || e.ctrlKey) return;
+    if (e.code.startsWith('Arrow') && e.target?.closest?.('.roll')) return; // the piano roll moves its notes
     if (e.code === 'ArrowLeft') { setOctave(octave - 1); e.preventDefault(); return; }
     if (e.code === 'ArrowRight') { setOctave(octave + 1); e.preventDefault(); return; }
     const n = keyNote(e.code);

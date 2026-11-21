@@ -38,6 +38,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   rename, set the MIDI CC that turns it, add or remove targets (engine parameters, the master or an effect), set
   each target's value at 0 and at 1 in its own units. A knob follows its CC from a MIDI controller. *Save to
   library* and *Export* write them back as the readable `macros` section.
+- **Undo / redo** (Cmd+Z, Shift+Cmd+Z, the arrows in the transport): every edit of the sound (parameters, engine,
+  preset loaded) and of the clip; a knob turned or a note dragged is one step, a key or a button one step
+  (`lib/history.svelte.js`). Text fields and the code editor keep their own undo.
 - **JSON tab**: the current sound as its patch file, to read or edit by hand in a code editor (CodeMirror 6:
   line numbers, the cursor's line highlighted, JSON colors, matching brackets, folding, search, syntax errors
   underlined where they are; loaded with the tab, outside the main bundle). The text is checked as JSON while typing; *Apply* (Cmd/Ctrl+Enter) loads it through the engine's own
@@ -57,9 +60,13 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),
   position (bar . beat . sixteenth), and the listening volume (after the synth and its meter, kept in the browser,
   untouched by sounds and patches; double-click: 0 dB).
-- **Sequence tab**: a MIDI clip played with the current sound, on a piano roll: click to draw a note and drag to
-  stretch it, drag a note to move it (time and pitch), its right edge to change its length, Alt-drag for its
-  velocity, double-click or right-click to delete; everything snaps to the grid (Shift: finer). The clip's length
+- **Sequence tab**: a MIDI clip played with the current sound, on a piano roll with a velocity lane below. Draw
+  tool: click to draw a note and drag to stretch it; Select tool (or Cmd-drag): a rectangle selects. A click
+  selects a note (Shift adds), dragging moves the selected notes (time and pitch), their right edge stretches
+  them, Alt-drag or the velocity lane sets their velocity, double-click deletes. Once the roll has the focus:
+  Delete, Cmd+A, Cmd+C / X / V, Cmd+D (duplicate after the selection), arrows (a grid step, a semitone, Shift an
+  octave), Cmd+U (quantize); the computer keyboard keeps its letters for playing. Everything snaps to the grid
+  (Shift: finer). The clip's length
   is its loop (the brace on the ruler, drag its end, or the Length menu); the key colors the rows. It plays through
   the worklet's sample-accurate player (`w_notes`), edits take over in place, and it keeps playing while the sound
   is edited and through patch loads. Clips are kept in this browser (New, Save, the saved list; the step grids of

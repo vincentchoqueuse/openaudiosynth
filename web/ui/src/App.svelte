@@ -17,15 +17,25 @@
   import EditorTabs from './lib/EditorTabs.svelte';
   import Transport from './lib/Transport.svelte';
   import { sequence } from './lib/sequence.svelte.js';
+  import { history } from './lib/history.svelte.js';
   import Keyboard from './lib/Keyboard.svelte';
   import SaveDialog from './lib/SaveDialog.svelte';
 
   let peak = $state(-Infinity);
   let attached = false; // the sequence comes back from this browser's storage once audio runs
-  $effect(() => { if (s.started && !attached) { attached = true; sequence.attach(); } });
+  $effect(() => { if (s.started && !attached) { attached = true; sequence.attach(); history.attach(); } });
 
   function onKey(e) {
     if (s.saving && e.key === 'Escape') { s.saving = null; return; }
+    // undo / redo: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z or Ctrl+Y; text fields and the code editor keep their own
+    const mod = e.metaKey || e.ctrlKey;
+    if (s.started && !s.saving && mod && (e.code === 'KeyZ' || e.code === 'KeyY')) {
+      const t = e.target, typing = t?.closest?.('.cm-editor') || t?.tagName === 'TEXTAREA' || (t?.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button'].includes(t.type));
+      if (typing) return;
+      e.preventDefault();
+      if (e.code === 'KeyY' || e.shiftKey) history.redo(); else history.undo();
+      return;
+    }
     // in the library, Space auditions the sound just picked instead of clicking its button again
     if (!s.started || s.saving || e.code !== 'Space') return;
     if (e.target?.closest?.('.library nav')) { // in the library, Space auditions the sound just picked

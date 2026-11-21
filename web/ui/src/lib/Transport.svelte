@@ -1,9 +1,10 @@
 <!-- Transport.svelte — the bar at the top, as in a DAW: play / stop the clip (Space), its tempo, loop on / off
-     (off: it plays once), where it is (bar . beat . sixteenth), which clip, and the listening volume. Always in
+     (off: it plays once), where it is (bar . beat . sixteenth), which clip, undo / redo, and the listening volume. Always in
      view, whatever tab is open. -->
 <script>
   import { sequence as q } from './sequence.svelte.js';
   import { session as s } from './session.svelte.js';
+  import { history as h } from './history.svelte.js';
 </script>
 
 <div class="transport" role="toolbar" aria-label="Transport">
@@ -15,6 +16,10 @@
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <span class="seqname">{q.name || 'untitled'}</span>
   <span class="spacer"></span>
+  <span class="hist">
+    <button class="ghost" onclick={h.undo} disabled={!h.canUndo} title="Undo (⌘Z)" aria-label="Undo">↶</button>
+    <button class="ghost" onclick={h.redo} disabled={!h.canRedo} title="Redo (⇧⌘Z)" aria-label="Redo">↷</button>
+  </span>
   <label class="volume" title="Listening volume (double-click: 0 dB)">
     <span aria-hidden="true">Vol</span>
     <input type="range" min="-60" max="0" step="0.5" value={s.volume} oninput={(e) => s.setVolume(+e.target.value)}

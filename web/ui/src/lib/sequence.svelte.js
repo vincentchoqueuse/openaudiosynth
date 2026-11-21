@@ -145,6 +145,12 @@ class Sequence {
   };
   update = (id, patch) => { this.notes = this.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)); };
   delete = (id) => { this.notes = this.notes.filter((n) => n.id !== id); };
+  // several notes at once (one change for the history and the player): fn(note) -> its fields to change, or null
+  edit = (ids, fn) => {
+    this.notes = this.notes.map((n) => { if (!ids.has(n.id)) return n; const c = fn(n); return c ? { ...n, ...c } : n; });
+  };
+  addMany = (list) => { const added = withIds(list); this.notes = [...this.notes, ...added]; return added.map((n) => n.id); };
+  deleteMany = (ids) => { this.notes = this.notes.filter((n) => !ids.has(n.id)); };
   clear = () => { this.notes = []; };
   random = () => {
     const pool = scaleRows(this.root, this.scale, this.octave, 2), out = [];

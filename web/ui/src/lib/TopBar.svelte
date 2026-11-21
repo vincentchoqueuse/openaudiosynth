@@ -1,6 +1,6 @@
 <!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
      pills of one width, then the preset's name; the Menu holds (Save to the library in development, Export sound,
-     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/bug_report.md), the sound's name; on the right the output level, the listening volume and
+     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right the output level, the listening volume and
      play / stop the sequence (Space). -->
 <script>
   import { session as s } from './session.svelte.js';
@@ -32,7 +32,7 @@
         <button role="menuitem" disabled={!h.canRedo} onclick={() => act(h.redo)}>Redo <kbd>⇧⌘Z</kbd></button>
         <hr />
         <button role="menuitem" onclick={() => act(() => (s.shortcutsOpen = true))}>Shortcuts <kbd>?</kbd></button>
-        <a role="menuitem" href="{REPO_URL}/issues/new?template=bug_report.md" target="_blank" rel="noopener noreferrer" onclick={() => (menu = false)}>Report a bug <kbd>↗</kbd></a>
+        <a role="menuitem" href="{REPO_URL}/issues/new?template=web_bug.md&title=%5Bweb%5D%20&labels=bug,web" target="_blank" rel="noopener noreferrer" onclick={() => (menu = false)}>Report a bug <kbd>↗</kbd></a>
       </div>
     {/if}
   </div>

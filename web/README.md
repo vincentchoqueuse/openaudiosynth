@@ -61,7 +61,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   level, the volume, a rule and Sequencer ▶ (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
   (tempo, loop, position, piano roll). **Synth**: Structure always on top, its blocks open their settings, then
   smaller pills of one width with an icon, each with its own tabs under it, even a single one: Info (Description), Macros (Names;
-  Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows; Effects), Modulation
+  Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows, the sampler's pads chosen like the modulators; Effects), Modulation
   (Modulators; Assignments, of the part or of each note). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
   the page. Each view starts with its title and its icon. Along the bottom, the 8 macros to play (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
@@ -73,7 +73,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
     own views (macro Names / Assignments, Modulators / Assignments, one tab per sampler pad then Kit); no folds;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;
-  - every card has the same width (one grid, `.groups`);
+  - every card has the same width, all on one row that scrolls sideways (`.groups`);
   - parameters are cards of rows (label without the card's own words, control, value in its unit), one card per
     stage of the engine (every engine with stages gives each parameter to one, tested); a dot after a label: moved
     since the sound was loaded, double-click puts it back; on / off is always a switch; a stage switched off folds;

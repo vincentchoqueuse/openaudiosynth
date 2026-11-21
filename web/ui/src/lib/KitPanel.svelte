@@ -1,5 +1,5 @@
-<!-- KitPanel.svelte — the sampler's kit: its 16 pads (the first 16 samples of the kit, by note) in a row of small
-     tabs, one per pad (a click plays it and opens it), then Kit (the kit's own settings); a pad's tab shows its
+<!-- KitPanel.svelte — the sampler's kit: its 16 pads (the first 16 samples of the kit, by note) chosen like the modulators,
+     one per pad (a click plays it and opens it), then Kit (the kit's own settings); a pad's tab shows its
      waveform with its start and end points, dragged with the pointer (the region played is lit, an arrow tells the
      direction), and its settings.
      Audio files dropped anywhere on the panel (or picked with the button) become a new kit. -->
@@ -90,25 +90,23 @@
   const secs = (e) => (e.frames / 48000).toFixed(2) + ' s';
 </script>
 
-<section class="kitpanel" class:drag role="region" aria-label="Kit"
+<section class="card kitpanel" class:drag role="region" aria-label="Kit"
          ondragover={(e) => { e.preventDefault(); drag = true; }} ondragleave={() => (drag = false)} ondrop={dropped}>
-  <div class="kit-head">
-    <h2>Kit <span class="muted">{kitName || 'none'}{entries.length ? ` · ${entries.length} samples` : ''}</span></h2>
-    <button class="btn ghost" onclick={() => input.click()}>Load samples…</button>
+  <div class="card-head">
+    <div class="seg small pads" role="group" aria-label="Pads">
+      {#each pads as e, k}
+        <button class:on={sel === k} class:empty={!e} onclick={() => hit(k)}
+                title={e ? `${e.name}, ${noteName(e.note)}, ${secs(e)}` : 'no sample'}>{k + 1}{e ? ` ${e.name}` : ''}</button>
+      {/each}
+      <button class:on={sel === 'kit'} onclick={() => (sel = 'kit')}>Kit</button>
+    </div>
+    <button class="btn ghost load" onclick={() => input.click()}>Load samples…</button>
     <input bind:this={input} type="file" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" multiple hidden
            onchange={(e) => { if (e.target.files.length) onfiles(e.target.files); e.target.value = ''; }} />
   </div>
   {#if !entries.length}
     <p class="hint">Drop audio files here (WAV, AIFF, FLAC, MP3). A name starting with a MIDI note, like <code>36_kick.wav</code>, sets the pad's note; the others follow from C2.</p>
   {/if}
-
-  <div class="tabs small pads" role="tablist" aria-label="Pads">
-    {#each pads as e, k}
-      <button role="tab" aria-selected={sel === k} class:on={sel === k} class:empty={!e} onclick={() => hit(k)}
-              title={e ? `${e.name}, ${noteName(e.note)}, ${secs(e)}` : 'no sample'}>{k + 1}{e ? ` ${e.name}` : ''}</button>
-    {/each}
-    <button role="tab" aria-selected={sel === 'kit'} class:on={sel === 'kit'} class="kittab" onclick={() => (sel = 'kit')}>Kit</button>
-  </div>
     {#if sel === 'kit'}
       <div class="settings">
         {#each KIT as s}
@@ -133,15 +131,13 @@
 </section>
 
 <style>
-  .kitpanel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 12px; }
+  .kitpanel { display: grid; gap: 12px; }
   .kitpanel.drag { outline: 2px dashed var(--accent); outline-offset: -6px; }
-  .kit-head { display: flex; align-items: center; gap: 10px; }
-  .kit-head h2 { flex: 1; margin: 0; font-size: 14px; }
-  .hint { margin: 0; color: var(--muted); font-size: 12.5px; }
-  .pads { overflow-x: auto; flex-wrap: nowrap; margin-bottom: 4px; }
-  .pads button { white-space: nowrap; }
+  .card-head { display: flex; align-items: flex-start; gap: 10px; }
+  .pads { flex-wrap: wrap; }
   .pads button.empty { opacity: .45; }
-  .pads .kittab { margin-left: auto; padding-left: 12px; }
+  .load { margin-left: auto; flex: none; }
+  .hint { margin: 0; color: var(--muted); font-size: 12.5px; }
   .padinfo { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
   .wave { display: block; width: 100%; height: 110px; margin-bottom: 12px; border-radius: 8px; background: var(--faint); cursor: ew-resize; touch-action: none; }
   .settings.two { columns: 2; column-gap: 28px; }

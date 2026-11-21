@@ -59,6 +59,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   double-click to add or remove a point, click a point to make it the sustain point or a loop boundary, loop mode
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
+- **Theme**: the sun / moon icon at the bottom of the sidebar cycles auto (as the system), light and dark; kept
+  in the browser.
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),
   position (bar . beat . sixteenth), and the listening volume (after the synth and its meter, kept in the browser,
   untouched by sounds and patches; double-click: 0 dB).

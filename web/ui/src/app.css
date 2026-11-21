@@ -72,8 +72,8 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .side-foot { padding: 10px 8px 2px; border-top: 1px solid var(--line); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
 .side-foot .midi { flex: 1; min-width: 0; }
 .links { display: flex; gap: 4px; }
-.links a { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); }
-.links a:hover { color: var(--text); background: var(--faint); }
+.links a, .links .theme { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); padding: 0; }
+.links a:hover, .links .theme:hover { color: var(--text); background: var(--faint); }
 .links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .midi { font-size: 11.5px; color: var(--muted); display: flex; align-items: center; gap: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .midi::before { content: ''; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--track); }
@@ -187,7 +187,7 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .oct button { width: 22px; height: 18px; border-radius: 4px; color: var(--muted); }
 .oct button:hover { background: var(--faint); color: var(--text); }
 .keys { position: relative; display: flex; flex: 1; height: 64px; gap: 2px; user-select: none; touch-action: none; }
-.keys .w { flex: 1; background: var(--key-w); border-radius: 0 0 5px 5px; }
+.keys .w { flex: 1; background: var(--key-w); border-radius: 0 0 5px 5px; box-shadow: inset 0 0 0 1px var(--line); }
 .keys .b { position: absolute; top: 0; width: 2.6%; height: 58%; background: var(--key-b); border-radius: 0 0 4px 4px; z-index: 1; }
 .keys .w:hover { background: var(--track); }
 .keys .lit { background: var(--accent) !important; }

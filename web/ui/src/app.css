@@ -41,7 +41,16 @@ code { font-family: var(--mono); font-size: 12px; }
 .warn { color: var(--warn); }
 
 /* layout: sidebar | main, keyboard along the bottom */
-.app { height: 100%; display: grid; grid-template: "side main" 1fr "side foot" auto / 232px 1fr; }
+.app { height: 100%; display: grid; grid-template: "side main seq" 1fr "side foot seq" auto / 232px 1fr 400px; }
+.app.seq-closed { grid-template-columns: 232px 1fr 36px; }
+/* the Sequence panel, on the right */
+.seqpanel { grid-area: seq; background: var(--side); border-left: 1px solid var(--line); min-height: 0; overflow-y: auto; position: relative; }
+.seqbody { padding: 18px 16px 16px; }
+.seqpanel .fold { position: absolute; top: 10px; right: 10px; z-index: 2; color: var(--text); font-size: 18px; line-height: 1; padding: 4px 8px; border-radius: 6px; background: var(--faint); }
+.seqpanel.closed .fold { position: static; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding-top: 14px; }
+.seqpanel.closed .fold span:not(.live) { writing-mode: vertical-rl; font-size: 12px; letter-spacing: .04em; }
+.seqpanel .fold:hover { color: var(--text); }
+.seqpanel .live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: live 1s ease-in-out infinite alternate; }
 aside { grid-area: side; background: var(--side); display: flex; flex-direction: column; min-height: 0; padding: 18px 12px 10px; border-right: 1px solid var(--line); }
 .brand { font-size: 17px; padding: 0 8px 14px; display: flex; align-items: center; gap: 9px; }
 .logo { width: 10px; height: 22px; border-radius: 3px; background: var(--accent); transition: background .3s; }
@@ -118,7 +127,6 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs button:hover { color: var(--text); }
 .tabs button.on { color: var(--text); border-color: var(--accent); }
 .tabs .small { margin-left: auto; font-size: 12px; }
-.tabs .live { display: inline-block; width: 7px; height: 7px; margin-left: 7px; border-radius: 50%; background: var(--accent); vertical-align: 1px; animation: live 1s ease-in-out infinite alternate; }
 @keyframes live { to { opacity: .35; } }
 
 /* parameter sections: cards in a grid */
@@ -175,7 +183,10 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .keys .lit { background: var(--accent) !important; }
 
 @media (max-width: 760px) {
-  .app { grid-template: "side" auto "main" 1fr "foot" auto / 1fr; }
+  .app, .app.seq-closed { grid-template: "side" auto "main" 1fr "seq" auto "foot" auto / 1fr; }
+  .seqpanel { border-left: 0; border-top: 1px solid var(--line); max-height: 60vh; }
+  .seqpanel.closed .fold { flex-direction: row; justify-content: center; padding: 8px; }
+  .seqpanel.closed .fold span:not(.live) { writing-mode: horizontal-tb; }
   aside { max-height: 34vh; padding: 12px 16px 6px; border-right: 0; border-bottom: 1px solid var(--line); }
   .monitor { grid-template-columns: 1fr 1fr; height: 96px; }
   .monitor .meter { display: none; }

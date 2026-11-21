@@ -25,7 +25,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - Every engine parameter, grouped by name prefix (`osc1_` → *Osc 1*); tabs for effects, part and modulation.
   Double-click a label or slider to reset it; changed parameters are highlighted; the help text is the tooltip.
 - **Layout**, from top to bottom: the sound's header and player, the macros, the output (wave, spectrum, level),
-  the signal chain, then the editors in tabs (Sound, Effects, Part, Modulation, Sequencer, JSON).
+  the signal chain, then the editors in tabs (Sound, Effects, Part, Modulation, JSON); the Sequence panel on the right.
 - **Signal chain** (always in view, above the editors): a display-only view of the engine's stages and the effect bus along the signal,
   modulators below with dashed links to what they act on (the active part routes too); a stage that is off is
   drawn dashed. Below it, the parameters are grouped by stage, and a stage that can be switched off has an on/off
@@ -54,13 +54,22 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   double-click to add or remove a point, click a point to make it the sustain point or a loop boundary, loop mode
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
-- **Sequencer tab**: a step grid of scale notes (root, scale, octave, range), cells on / accent / soft / held,
-  tempo, step length, gate, swing, random fill, copy as phrases. Each row is played as its own phrase by the
-  worklet's sample-accurate player (`w_sequence`); edits while playing take over in place, without restarting.
-  The loop keeps playing on every tab and through patch loads (a dot on the tab while it plays), so the sound
-  can be shaped under it; Space stops it from anywhere, the audition waits until it is stopped.
-  The sequence is kept in this browser (autosave, named patterns) and **Export song** writes a self-contained
-  song (`songs/` format, the sound as an inline patch, one track per row) for `synth_render --song`.
+- **Sequence panel** (on the right, folds away): a step sequence played with the current sound, the same content
+  in two views. **Grid**: scale notes (key, octave, range) x steps, cells note / accent / soft / held, tempo, step
+  length, gate, swing, random fill. **JSON**: the sequence as a readable document, edited in place and applied
+  (`toDoc` / `fromDoc` in `lib/seqExport.js`; a wrong document says what is wrong and where):
+
+  ```json
+  { "name": "riff", "bpm": 96, "step": "1/8", "steps": 16, "gate": 0.85, "swing": 0,
+    "key": "E minor", "octave": 3, "range": 2,
+    "rows": { "E4": "x_.. x... X... o...", "B3": "..x. ..x. ..x. ..x." } }
+  ```
+
+  One line per note, high to low: `x` note, `X` accent, `o` soft, `_` held, `.` rest, in groups of four steps.
+  Each row is played as its own phrase by the worklet's sample-accurate player (`w_sequence`); edits while playing
+  take over in place. The loop keeps playing while the sound is edited and through patch loads; Space stops it
+  from anywhere. Sequences are kept in this browser (New, Save, the list of saved ones) and **Export song** writes
+  a self-contained song (`songs/` format, the sound as an inline patch, one track per row) for `synth_render --song`.
 - **Export** downloads (and copies) the current sound as a patch file in the format of
   `docs/patch_format.md`, ready for `patches/` and `synth_render`.
 - Web MIDI input (MiniLab 3 included), on-screen keyboard, computer keyboard (physical key positions, so

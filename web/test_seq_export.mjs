@@ -6,7 +6,7 @@ import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildSong, phrases, scaleRows } from './ui/src/lib/seqExport.js';
+import { buildSong, phrases, scaleRows, toDoc, fromDoc } from './ui/src/lib/seqExport.js';
 
 const render = process.argv[2] ?? 'build-host/host/synth_render';
 const catalog = process.argv[3] ?? 'build-host/host/synth_catalog';
@@ -18,6 +18,18 @@ const cells = { '52:0': 'on', '52:1': 'tie', '52:2': 'tie', '55:4': 'acc', '59:6
 const ph = phrases(cells, rows, 16);
 if (ph.length !== 5 || !ph[0].startsWith('E3 _ _ -') || !ph.some((p) => p.includes('G3!')) || !ph.some((p) => p.includes('B3?')))
   fail('phrases: ' + JSON.stringify(ph));
+
+// the panel's JSON view: the grid as a document and back, exactly; a wrong document says what is wrong
+const seq = { name: 'riff', bpm: 90, stepLen: 0.5, steps: 16, gate: 0.8, swing: 0.1, root: 4, scale: 'minor', octave: 3, span: 2, cells };
+const doc = toDoc(seq);
+if (doc.rows.E3 !== 'x__. .... .... ....' || doc.key !== 'E minor' || doc.step !== '1/8') fail('toDoc: ' + JSON.stringify(doc));
+const back = fromDoc(JSON.parse(JSON.stringify(doc)));
+const sorted = (o) => JSON.stringify(Object.entries(o).sort());
+if (sorted(back.cells) !== sorted(cells) || back.bpm !== 90 || back.stepLen !== 0.5 || back.root !== 4) fail('fromDoc round trip');
+for (const [bad, why] of [[{ ...doc, rows: { F4: 'x... .... .... ....' } }, 'not in E minor'], [{ ...doc, rows: { E3: '_... .... .... ....' } }, 'must follow'],
+  [{ ...doc, rows: { E3: 'x...' } }, 'has 4 steps'], [{ ...doc, step: '1/5' }, '"step"'], [{ ...doc, key: 'H minor' }, '"key"']]) {
+  try { fromDoc(bad); fail('fromDoc accepted ' + JSON.stringify(bad.rows ?? bad)); } catch (e) { if (!e.message.includes(why)) fail(`fromDoc: "${e.message}", expected "${why}"`); }
+}
 
 const { audition, description, ...patch } = JSON.parse(readFileSync('patches/sine_duel_a.json', 'utf8'));
 const song = buildSong({ name: 'seq_export_test', bpm: 90, steps: 16, stepLen: 0.5, gate: 0.8, swing: 0.1, cells, notes: rows, loops: 2 }, patch);

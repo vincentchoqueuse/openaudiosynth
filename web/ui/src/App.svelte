@@ -43,8 +43,13 @@
   let held = $state(new Set());
   let notes = $state(''), loop = $state(false), playing = $state(false);
   let tab = $state('sound');
-  // the sequencer stays mounted on every tab: its loop keeps playing while the sound is edited
+  // the Sequence panel on the right: its loop keeps playing while the sound is edited; it can fold away
   let seqPlaying = $state(false), patchGen = $state(0);
+  let seqOpen = $state((() => { try { return localStorage.getItem('synth.seqpanel') !== 'closed'; } catch { return true; } })());
+  function toggleSeq() {
+    seqOpen = !seqOpen;
+    try { localStorage.setItem('synth.seqpanel', seqOpen ? 'open' : 'closed'); } catch { /* storage unavailable */ }
+  }
   let peak = $state(-Infinity);
   let lastOn = {}; // value of a stage's switch parameter before it was turned off (this sound only)
   let playTimer = null; // ends the "playing" state of a one-shot audition
@@ -76,7 +81,7 @@
     }
     return [...out].sort((a, b) => (a[0] === 'Main' ? -1 : b[0] === 'Main' ? 1 : 0));
   }
-  const TABS = [['sound', 'Sound'], ['fx', 'Effects'], ['part', 'Part'], ['mod', 'Modulation'], ['seq', 'Sequencer'], ['json', 'JSON']];
+  const TABS = [['sound', 'Sound'], ['fx', 'Effects'], ['part', 'Part'], ['mod', 'Modulation'], ['json', 'JSON']];
   const tabParams = $derived(
     !engine ? [] :
     tab === 'sound' ? engine.params :
@@ -375,7 +380,7 @@
     if (saving && e.key === 'Escape') { saving = null; return; }
     // in the library, Space auditions the sound just picked instead of clicking its button again
     const inLibrary = e.code === 'Space' && e.target?.closest?.('.library nav');
-    if (!started || saving || tab === 'seq' || seqPlaying || (!inLibrary && keyIsForControl(e))) return; // Space: the sequencer's
+    if (!started || saving || seqPlaying || e.target?.closest?.('.seqpanel') || (!inLibrary && keyIsForControl(e))) return; // Space: the sequencer's
     if (e.code === 'Space') { e.preventDefault(); playing ? stop() : current && play(); }
   }
 </script>
@@ -399,7 +404,7 @@
     </nav>
   </main>
 {:else}
-  <div class="app" style="--accent:{color}">
+  <div class="app" class:seq-closed={!seqOpen} style="--accent:{color}">
     <aside>
       <div class="brand"><span class="logo"></span>OASynth <span class="by">by Choc</span></div>
       <Library {patches} {current} onpick={loadPatch} />
@@ -454,7 +459,7 @@
 
       <div class="tabs" role="tablist">
         {#each TABS as [id, name]}
-          <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id)}>{name}{#if id === 'seq' && seqPlaying}<span class="live" title="The sequence is playing"></span>{/if}</button>
+          <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id)}>{name}</button>
         {/each}
         {#if tab === 'sound'}<button class="link small" onclick={resetEngine}>Defaults</button>{/if}
       </div>
@@ -463,8 +468,6 @@
         <JsonPanel getPatch={patchWithAudition} apply={applyFromEditor} />
       {:else if tab === 'mod'}
         <ModPanel {engine} {shared} get={getP} set={setP} {byName} {human} {values} {setValue} />
-      {:else if tab === 'seq'}
-        <!-- the sequencer itself is below, mounted on every tab -->
       {:else}
         {#if tab === 'sound' && engine?.name === 'sampler'}
           <KitPanel {kit} kitName={kitLabel} {byName} {values} {setValue} {synth} onfiles={dropFiles} />
@@ -487,11 +490,16 @@
         </div>
         {/if}
       {/if}
-      <div class="seq-host" hidden={tab !== 'seq'}>
-        <Sequencer {synth} active={tab === 'seq'} bind:playing={seqPlaying} {patchGen}
-                   setTempo={(b) => setP('tempo', b)} getPatch={currentPatch} />
-      </div>
     </main>
+
+    <section class="seqpanel" class:closed={!seqOpen} aria-label="Sequence">
+      <button class="fold" onclick={toggleSeq} aria-expanded={seqOpen} title={seqOpen ? 'Fold the sequence away' : 'Sequence'}>
+        {#if seqOpen}›{:else}‹ <span>Sequence</span>{#if seqPlaying}<span class="live" title="Playing"></span>{/if}{/if}
+      </button>
+      <div class="seqbody" hidden={!seqOpen}>
+        <Sequencer {synth} bind:playing={seqPlaying} {patchGen} setTempo={(b) => setP('tempo', b)} getPatch={currentPatch} />
+      </div>
+    </section>
 
     <footer><Keyboard {synth} {held} /></footer>
 

@@ -1,52 +1,67 @@
-<!-- ModPanel.svelte — the Modulation tab: a graphical editor for each multi-segment envelope (part MSEG 1 and 2,
-     per-note MSEG) with the routes it drives, the full route list, then LFOs and macros as plain parameters. -->
+<!-- ModPanel.svelte — the Modulation tab: every modulator of the part in one card, chosen in one row (the two
+     envelopes and the per-note one, the two LFOs and the per-note one; a dot on those that drive something), each
+     shown the same way: its editor (MsegEditor or LfoView: a bar of choices, its drawing, a bar of settings), then
+     what it drives (its routes, and a button to add one). Below, every route of the part and of the notes. -->
 <script>
   import MsegEditor from './MsegEditor.svelte';
+  import LfoView from './LfoView.svelte';
   import Routes from './Routes.svelte';
   import Param from './Param.svelte';
   let { engine, shared, get, set, byName, human, values, setValue } = $props();
-  const ENVS = [['mseg1_', 'MSEG 1', 'mseg1', 'part'], ['mseg2_', 'MSEG 2', 'mseg2', 'part'], ['vmseg_', 'Per-note MSEG', 'vmseg', 'voice']];
-  let env = $state(0);
-  const rest = $derived(shared.filter((d) => d.id >= 1024 && !/^(mseg\d|vmseg|route\d|vroute\d|map\d|macro\d)/.test(d.name)));
-  const restGroups = $derived.by(() => {
-    const out = new Map();
-    for (const d of rest) {
-      const g = d.name.startsWith('macro') ? 'Macros' : d.name.startsWith('mlfo1') ? 'LFO 1' : d.name.startsWith('mlfo2') ? 'LFO 2' : d.name.startsWith('vlfo') ? 'Per-note LFO' : 'Other';
-      if (!out.has(g)) out.set(g, []);
-      out.get(g).push({ d, label: human(d.name.replace(/^(mlfo\d|vlfo)_/, '')) });
-    }
-    return [...out];
-  });
+  // [label, prefix, route source name, kind, editor]
+  const MODS = [
+    ['Env 1', 'mseg1_', 'mseg1', 'part', 'env'], ['Env 2', 'mseg2_', 'mseg2', 'part', 'env'], ['Note env', 'vmseg_', 'vmseg', 'voice', 'env'],
+    ['LFO 1', 'mlfo1_', 'mlfo1', 'part', 'lfo'], ['LFO 2', 'mlfo2_', 'mlfo2', 'part', 'lfo'], ['Note LFO', 'vlfo_', 'vlfo', 'voice', 'lfo'],
+  ];
+  let sel = $state(0);
+  const m = $derived(MODS[sel]);
+  // does a modulator drive anything? (a route from it)
+  function drives(src, kind) {
+    const pre = kind === 'part' ? 'route' : 'vroute', n = kind === 'part' ? 8 : 4;
+    const labels = byName[pre + '1_source']?.labels ?? [];
+    for (let r = 1; r <= n; r++) if (labels[Math.round(get(`${pre}${r}_source`))] === src && get(`${pre}${r}_amount`) !== 0) return true;
+    return false;
+  }
+  // part modulation parameters no editor shows (none today; kept so a new one is never hidden)
+  const rest = $derived(shared.filter((d) => d.id >= 1024 && !/^(mseg\d|vmseg|route\d|vroute\d|map\d|macro\d|mlfo\d|vlfo)/.test(d.name)));
 </script>
 
 <section class="card">
   <div class="card-head">
-    <h2>Envelopes</h2>
+    <h2>Modulators</h2>
     <div class="seg small">
-      {#each ENVS as [, name], i}<button class:on={env === i} onclick={() => (env = i)}>{name}</button>{/each}
+      {#each MODS as [label, , src, kind], i}
+        <button class:on={sel === i} onclick={() => (sel = i)}>{label}{#if drives(src, kind)}<span class="dot" title="drives something"></span>{/if}</button>
+      {/each}
     </div>
   </div>
-  {#key env}
-    <MsegEditor prefix={ENVS[env][0]} {get} {set} />
-    <h3>{ENVS[env][3] === 'part' ? 'Drives' : 'Drives (per note)'}</h3>
-    <Routes {engine} {get} {set} {byName} {human} kind={ENVS[env][3]} only={ENVS[env][2]} />
+  {#key sel}
+    {#if m[4] === 'env'}
+      <MsegEditor prefix={m[1]} {get} {set} />
+    {:else}
+      <LfoView prefix={m[1]} {get} {set} {byName} />
+    {/if}
+    <h3>{m[3] === 'part' ? 'Drives' : 'Drives (each note)'}</h3>
+    <Routes {engine} {get} {set} {byName} {human} kind={m[3]} only={m[2]} />
   {/key}
 </section>
 
 <section class="card">
   <h2>All routes</h2>
   <Routes {engine} {get} {set} {byName} {human} kind="part" />
-  <h3>Per note</h3>
+  <h3>Each note</h3>
   <Routes {engine} {get} {set} {byName} {human} kind="voice" />
 </section>
 
-<div class="groups">
-  {#each restGroups as [g, ps] (g)}
-    <section>
-      <h2>{g}</h2>
-      {#each ps as { d, label } (d.id)}
-        <Param {d} {label} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />
-      {/each}
-    </section>
-  {/each}
-</div>
+{#if rest.length}
+  <section class="card">
+    <h2>Other</h2>
+    {#each rest as d (d.id)}
+      <Param {d} label={human(d.name)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />
+    {/each}
+  </section>
+{/if}
+
+<style>
+  .dot { display: inline-block; width: 5px; height: 5px; margin-left: 6px; border-radius: 50%; background: var(--accent); vertical-align: 2px; }
+</style>

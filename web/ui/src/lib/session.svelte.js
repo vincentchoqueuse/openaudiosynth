@@ -35,6 +35,7 @@ class Session {
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)
   saving = $state(null); // the save dialog: {name, description, exists, error}
   toast = $state(null); // {text, kind}: a short notice at the bottom
+  meter = $state({ level: 0, hold: -Infinity }); // the output level (0..1 of -90..0 dBFS) and its held peak (dBFS)
   canSave = import.meta.env.DEV; // writing into patches/ goes through the dev server
   // the listening volume (dB, -60 = silent), kept in this browser; applied after the synth, whatever the sound
   volume = $state((() => { try { const v = +localStorage.getItem('synth.volume'); return Number.isFinite(v) && v <= 0 && v >= -60 && localStorage.getItem('synth.volume') !== null ? v : -6; } catch { return -6; } })());

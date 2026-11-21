@@ -1,5 +1,5 @@
 <!-- Transport.svelte — the bar at the top, as in a DAW: play / stop the clip (Space), its tempo, loop on / off
-     (off: it plays once), where it is (bar . beat . sixteenth), which clip, undo / redo, and the listening volume. Always in
+     (off: it plays once), where it is (bar . beat . sixteenth), which clip, undo / redo, the output level and the listening volume. Always in
      view, whatever tab is open. -->
 <script>
   import { sequence as q } from './sequence.svelte.js';
@@ -20,6 +20,10 @@
     <button class="ghost" onclick={h.undo} disabled={!h.canUndo} title="Undo (⌘Z)" aria-label="Undo">↶</button>
     <button class="ghost" onclick={h.redo} disabled={!h.canRedo} title="Redo (⇧⌘Z)" aria-label="Redo">↷</button>
   </span>
+  <div class="vu" class:hot={s.meter.hold > -1} title="Output peak (dBFS), before the volume">
+    <div class="track"><div class="fill" style="width:{s.meter.level * 100}%"></div></div>
+    <span class="mono">{isFinite(s.meter.hold) && s.meter.hold > -90 ? s.meter.hold.toFixed(0) : '−∞'}</span>
+  </div>
   <label class="volume" title="Listening volume (double-click: 0 dB)">
     <span aria-hidden="true">Vol</span>
     <input type="range" min="-60" max="0" step="0.5" value={s.volume} oninput={(e) => s.setVolume(+e.target.value)}

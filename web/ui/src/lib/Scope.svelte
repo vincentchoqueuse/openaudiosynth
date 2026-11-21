@@ -1,11 +1,11 @@
 <!-- Scope.svelte — the output, from a Web Audio AnalyserNode, like the board's audio view: waveform triggered
      on a rising zero crossing with an automatic gain (a quiet sound still fills the panel), log-frequency
-     spectrum 30 Hz .. 20 kHz with falling peaks and a grid, and a level meter (peak with hold). Reports the
-     peak level in dBFS. -->
+     spectrum 30 Hz .. 20 kHz with falling peaks and a grid. It also measures the level (peak with hold) for the
+     meter in the transport (session.meter). -->
 <script>
-  let { analyser, peak = $bindable(-Infinity) } = $props();
+  import { session } from './session.svelte.js';
+  let { analyser } = $props();
   let wave, spec;
-  let level = $state(0), hold = $state(-Infinity);
   const DB_FLOOR = -90;
 
   $effect(() => {
@@ -54,9 +54,7 @@
         for (const v of time) pk = Math.max(pk, Math.abs(v));
         const db = 20 * Math.log10(pk + 1e-9);
         held = Math.max(db, held - 0.5);
-        level = Math.max(0, Math.min(1, (db - DB_FLOOR) / -DB_FLOOR));
-        hold = held;
-        peak = held;
+        session.meter = { level: Math.max(0, Math.min(1, (db - DB_FLOOR) / -DB_FLOOR)), hold: held };
       }
 
       // spectrum on a log axis, peaks falling 1.2 dB per frame
@@ -106,8 +104,4 @@
 <div class="monitor">
   <div class="panel"><span class="tag">wave</span><canvas bind:this={wave}></canvas></div>
   <div class="panel"><span class="tag">spectrum</span><canvas bind:this={spec}></canvas></div>
-  <div class="meter" title="peak level (dBFS)" class:hot={hold > -1}>
-    <div class="track"><div class="fill" style="height:{level * 100}%"></div></div>
-    <span>{isFinite(hold) && hold > DB_FLOOR ? hold.toFixed(0) : '−∞'}</span>
-  </div>
 </div>

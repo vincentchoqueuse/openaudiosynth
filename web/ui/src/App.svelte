@@ -18,7 +18,6 @@
   import Keyboard from './lib/Keyboard.svelte';
   import SaveDialog from './lib/SaveDialog.svelte';
 
-  let peak = $state(-Infinity);
   let attached = false; // the sequence comes back from this browser's storage once audio runs
   $effect(() => { if (s.started && !attached) { attached = true; sequence.attach(); history.attach(); } });
 
@@ -57,7 +56,7 @@
     <main>
       <Transport />
       <SoundHeader />
-      <Scope analyser={s.synth.analyser} bind:peak />
+      <Scope analyser={s.synth.analyser} />
       <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} />
       <EditorTabs />
     </main>

@@ -29,7 +29,7 @@
 </div>
 
 <style>
-  .macrogrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 26px; margin-bottom: 8px; }
+  .macrogrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 26px; }
   .macrogrid .param { grid-template-columns: 7.5em 1fr 3.2em; min-height: 26px; gap: 8px; }
   .mrow { min-width: 0; }
   .mrow.empty { opacity: .5; }

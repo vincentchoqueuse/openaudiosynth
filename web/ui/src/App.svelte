@@ -83,8 +83,7 @@
     </main>
 
     <footer>
-      <ViewTitle icon="live" label="Live control" />
-      <MacroStrip />
+      <section class="card macrocard"><h2>Macro control</h2><MacroStrip /></section>
       <Keyboard synth={s.synth} held={lit} />
     </footer>
 

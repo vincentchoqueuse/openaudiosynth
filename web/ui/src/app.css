@@ -248,7 +248,8 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
 
 /* footer: the macros to play, the keyboard */
-footer { grid-area: foot; border-top: 1px solid var(--line); padding: 17px 32px 12px; background: var(--side); } /* its title 18 px under its border, as a view's under the top bar */
+footer .macrocard { margin-bottom: 10px; padding-bottom: 4px; }
+footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 12px; background: var(--side); }
 .keys-wrap { display: flex; gap: 14px; align-items: stretch; }
 .oct { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }
 .oct button { width: 22px; height: 18px; border-radius: 4px; color: var(--muted); }

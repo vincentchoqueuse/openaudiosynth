@@ -12,7 +12,7 @@
 #include "../filter/ladder.h"
 #include "../mod/lfo.h"
 #include "../osc/noise.h"
-#include "../voice/drift.h"
+#include "../voice/analog.h"
 #include "engine.h"
 
 #define POLY_VOICES 8
@@ -29,6 +29,8 @@ enum {
     POLY_P_LFO_RATE, POLY_P_LFO_WAVE, POLY_P_LFO_AMOUNT, POLY_P_LFO_PITCH, POLY_P_LFO_PWM, POLY_P_LFO_FILTER,
     POLY_P_GLIDE, POLY_P_UNISON, POLY_P_UNISON_DETUNE, POLY_P_DRIFT, POLY_P_VELOCITY,
     POLY_P_VOLUME, POLY_P_SPREAD, POLY_P_BEND_RANGE, POLY_P_OVERSAMPLE,
+    /* analog imperfections of each oscillator (dsp/voice/analog.h); drift above is its walk's deviation */
+    POLY_P_TOLERANCE, POLY_P_DRIFT_TIME, POLY_P_JITTER,
     POLY_P_COUNT
 };
 extern const param_desc_t poly_params[POLY_P_COUNT];
@@ -41,7 +43,7 @@ typedef struct {
     float b_last;        /* last osc B sample (block-rate poly-mod of the filter) */
     ladder_t filter;
     adsr_t fenv, amp;
-    drift_t drift;
+    analog_t analog[2]; /* the imperfections of osc A and osc B */
     noise_t noise;
 } poly_voice_t;
 

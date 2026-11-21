@@ -52,7 +52,7 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_WHEEL_VIB, "wheel_vibrato", "lfo.wheel_vibrato", 0.0f, 1.0f, 0.3f, PARAM_LIN, "st", 1, NULL, "extra vibrato depth (semitones) added by the mod wheel (CC 1)"),
     PARAM(VA_P_AMP_VEL, "amp_velocity", "amp.velocity", 0.0f, 1.0f, 0.7f, PARAM_LIN, "", 1, NULL, "velocity -> loudness sensitivity (0 = none, 1 = full)"),
     PARAM(VA_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume in dB (voices already sit at -18 dBFS each)"),
-    PARAM(VA_P_DRIFT, "drift", "voice.drift", 0.0f, 20.0f, 3.0f, PARAM_LIN, "cent", 0, NULL, "analog drift: slow random pitch/cutoff wander + per-voice detune (cents)"),
+    PARAM(VA_P_DRIFT, "drift", "voice.drift", 0.0f, 20.0f, 3.0f, PARAM_LIN, "cent", 0, NULL, "analog drift: slow random wander of each oscillator (standard deviation, cents; the filter follows a little)"),
     PARAM(VA_P_SPREAD, "pan_spread", "voice.pan_spread", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 0, NULL, "random stereo position per voice (0 = mono center, 1 = wide)"),
     PARAM(VA_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range in semitones"),
     PARAM(VA_P_LFO2_RATE, "lfo2_rate", "motion.detune1.rate", 0.02f, 10.0f, 0.3f, PARAM_EXP, "Hz", 1, NULL, "per-voice detune LFO rate (0.05-0.5 Hz = slow shimmering beating)"),
@@ -97,6 +97,7 @@ const param_desc_t va_params[VA_P_COUNT] = {
           "(e.g. two formants = a vowel pair, lp + hp = notch-like)"),
     PARAM_OVERSAMPLE(VA_P_OVERSAMPLE, 1.0f, "oversampling of the scream filter character (the others are linear): "
                      "1x lightest, 2x default, 4x cleanest screaming resonance"),
+    ANALOG_PARAMS(VA_P_TOLERANCE, VA_P_DRIFT_TIME, VA_P_JITTER),
 };
 
 static const vpoly_ops_t va_poly_ops;
@@ -143,7 +144,8 @@ static void va_init(void *st, float sample_rate)
         vfilter_init(&v->f2, sample_rate);
         adsr_init(&v->amp, sample_rate);
         adsr_init(&v->fenv, sample_rate);
-        drift_init(&v->drift, ctrl_rate, 0x2000u + (uint32_t)i);
+        analog_init(&v->analog[0], 0x2000u + 2u * (uint32_t)i);
+        analog_init(&v->analog[1], 0x2001u + 2u * (uint32_t)i);
         for (int k = 0; k < 3; k++) {
             lfo_init(&v->dlfo[k], sample_rate, 0x3000u + 16u * (uint32_t)i + (uint32_t)k);
             v->dlfo_factor[k] = 1.0f;
@@ -281,6 +283,7 @@ typedef struct {
     float lfo1;                       /* LFO 1 value, modulates LFO 2 */
     float lvl0[3], lvl1[3];
     float pw[2];
+    analog_cfg_t analog;
 } va_block_t;
 
 static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, float *L, float *R)
@@ -313,19 +316,19 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
         det[k] = lfo_advance(&v->dlfo[k], SYNTH_BLOCK) * p[depth_id[k]] * depth_scale;
     }
 
-    /* pitch (semitones): note + bend + LFO 1 + analog drift + whole-voice detune (LFO 4) */
-    const float dr = drift_next(&v->drift) * p[VA_P_DRIFT];
+    /* pitch (semitones): note + bend + LFO 1 + whole-voice detune (LFO 4); each oscillator its own imperfections */
+    const float an[2] = {analog_next(&v->analog[0], &b->analog), analog_next(&v->analog[1], &b->analog)};
     float penv_st = 0.0f;
     if (p[VA_P_PENV_AMT] != 0.0f && v->penv > 1e-4f) {
         v->penv *= fm_exp2(-FM_LOG2E * (float)n / (p[VA_P_PENV_DECAY] * e->sr)); /* value at block end */
         penv_st = p[VA_P_PENV_AMT] * v->penv;
     }
     const float *vm = vpoly_vmod(&e->poly, vi); /* per-voice modulation, microtuning, MPE */
-    const float base = v->pitch + b->pitch + 0.01f * (dr + det[2]) + penv_st + vm[VM_PITCH];
+    const float base = v->pitch + b->pitch + 0.01f * det[2] + penv_st + vm[VM_PITCH];
     const int wave[2] = {(int)p[VA_P_OSC1_WAVE], (int)p[VA_P_OSC2_WAVE]};
     const float freq[2] = {
-        fm_mtof(base + 12.0f * p[VA_P_OSC1_OCT] + p[VA_P_OSC1_SEMI] + 0.01f * (p[VA_P_OSC1_DETUNE] + det[1])),
-        fm_mtof(base + 12.0f * p[VA_P_OSC2_OCT] + p[VA_P_OSC2_SEMI] + 0.01f * (p[VA_P_OSC2_DETUNE] + det[0])),
+        fm_mtof(base + 12.0f * p[VA_P_OSC1_OCT] + p[VA_P_OSC1_SEMI] + 0.01f * (p[VA_P_OSC1_DETUNE] + det[1] + an[0])),
+        fm_mtof(base + 12.0f * p[VA_P_OSC2_OCT] + p[VA_P_OSC2_SEMI] + 0.01f * (p[VA_P_OSC2_DETUNE] + det[0] + an[1])),
     };
     for (int k = 0; k < 2; k++) {
         if (wave[k] == VA_WAVE_SUPERSAW) {
@@ -341,7 +344,7 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
     adsr_process(&v->fenv, env, n);
     const float cut = b->cut_oct + env[n - 1] * p[VA_P_FENV_AMT] +
                       p[VA_P_KEYTRACK] * (v->pitch - 60.0f) * (1.0f / 12.0f) + v->vel_cut + b->lfo_cut +
-                      dr * 0.005f + vm[VM_BRIGHT];
+                      an[0] * 0.005f + vm[VM_BRIGHT];
     const float reso01 = param_to_norm(&va_params[VA_P_RESO], b->res); /* formant and scream take 0..1 */
     vfilter_set(&v->f1, (int)p[VA_P_FILTER_MODE], fm_exp2(cut), b->res, reso01, p[VA_P_F1_CHAR]);
     const int mode2 = (int)p[VA_P_F2_MODE];
@@ -415,6 +418,7 @@ static DSP_FAST_CODE void va_render(void *st, float *L, float *R)
     b.pitch = e->bend * p[VA_P_BEND_RANGE] + lfo * (p[VA_P_LFO_PITCH] + e->modwheel * p[VA_P_WHEEL_VIB]);
     b.lfo_cut = lfo * p[VA_P_LFO_CUTOFF];
     b.lfo1 = lfo;
+    analog_cfg(&b.analog, p[VA_P_TOLERANCE], p[VA_P_DRIFT], p[VA_P_DRIFT_TIME], p[VA_P_JITTER], (float)SYNTH_BLOCK / e->sr);
     b.pw[0] = dsp_clampf(smooth_next(&e->sm_pw[0], p[VA_P_OSC1_PW]) + lfo * p[VA_P_LFO_PWM], 0.05f, 0.95f);
     b.pw[1] = dsp_clampf(smooth_next(&e->sm_pw[1], p[VA_P_OSC2_PW]) + lfo * p[VA_P_LFO_PWM], 0.05f, 0.95f);
 
@@ -440,7 +444,7 @@ static const engine_stage_t va_stages[] = {
     {"pitchenv", "Pitch env", "mod", "pitch_env pitch_env_decay", "", "osc1 osc2", "pitch_env", 0.0f, 12.0f},
     {"lfo", "LFO", "mod", "lfo_rate lfo_wave lfo_pitch lfo_cutoff lfo_pwm wheel_vibrato", "", "osc1 osc2 filter1", NULL,
      0.0f, 0.0f},
-    {"motion", "Motion", "mod", "lfo2_ lfo3_ lfo4_ drift", "", "osc1 osc2", NULL, 0.0f, 0.0f},
+    {"motion", "Motion", "mod", "lfo2_ lfo3_ lfo4_ drift drift_time tolerance jitter", "", "osc1 osc2", NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "voice_mode glide glide_mode bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
 

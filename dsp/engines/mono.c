@@ -75,7 +75,7 @@ const param_desc_t mono_params[MONO_P_COUNT] = {
           "mod wheel -> oscillator pitch depth (semitones at full wheel)"),
     PARAM(MONO_P_MOD_CUTOFF, "mod_cutoff", "mod.to_cutoff", 0.0f, 4.0f, 0.0f, PARAM_LIN, "oct", 1, NULL,
           "mod wheel -> filter cutoff depth (octaves at full wheel)"),
-    PARAM(MONO_P_DRIFT, "drift", "voice.drift", 0.0f, 15.0f, 3.0f, PARAM_LIN, "cent", 0, NULL, "analog oscillator drift"),
+    PARAM(MONO_P_DRIFT, "drift", "voice.drift", 0.0f, 15.0f, 3.0f, PARAM_LIN, "cent", 0, NULL, "analog drift: slow random wander of each oscillator (standard deviation, cents)"),
     PARAM(MONO_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 0, NULL,
           "velocity -> loudness and brightness (the original had none)"),
     PARAM(MONO_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
@@ -98,6 +98,7 @@ const param_desc_t mono_params[MONO_P_COUNT] = {
     PARAM(MONO_P_PRIORITY, "note_priority", "voice.priority", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, prio_labels,
           "which held key sounds: last played, lowest (the original) or highest"),
     PARAM_OVERSAMPLE(MONO_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"),
+    ANALOG_PARAMS(MONO_P_TOLERANCE, MONO_P_DRIFT_TIME, MONO_P_JITTER),
 };
 
 static void set_wave(osc_t *o, osc_t *o2, int w)
@@ -199,7 +200,8 @@ static void mono_init(void *st, float sr)
     ladder_set_oversampling(&e->filter, 2);
     adsr_init(&e->fenv, sr);
     adsr_init(&e->amp, sr);
-    drift_init(&e->drift, ctrl, 0x3A3Au);
+    for (int k = 0; k < 3; k++)
+        analog_init(&e->analog[k], 0x3A3Au + (uint32_t)k);
     e->pitch = 48.0f;
     e->vel = 1.0f;
     e->gain_prev = 0.0f;
@@ -255,15 +257,16 @@ static DSP_FAST_CODE void mono_render(void *st, float *L, float *R)
         e->env_dirty = 0;
     }
 
-    /* pitch: glide, bend, drift; osc 3 / noise as mod-wheel modulator (block rate) */
+    /* pitch: glide, bend; osc 3 / noise as mod-wheel modulator (block rate) */
     const float target = (float)vpoly_note(&e->poly, 0);
     if (glide_on(p) && dsp_absf(target - e->pitch) > 0.002f)
         e->pitch += (target - e->pitch) * voice_glide_arrive_coef(p[MONO_P_GLIDE], n, e->sr);
     else
         e->pitch = target; /* arrived (a tail under a fifth of a cent is not heard) */
-    const float dr = 0.01f * p[MONO_P_DRIFT] * drift_next(&e->drift);
+    analog_cfg_t acfg;
+    analog_cfg(&acfg, p[MONO_P_TOLERANCE], p[MONO_P_DRIFT], p[MONO_P_DRIFT_TIME], p[MONO_P_JITTER], (float)n / e->sr);
     const float *vm = vpoly_vmod(&e->poly, 0); /* per-voice modulation, microtuning, MPE */
-    const float base = e->pitch + e->bend * p[MONO_P_BEND_RANGE] + dr + vm[VM_PITCH];
+    const float base = e->pitch + e->bend * p[MONO_P_BEND_RANGE] + vm[VM_PITCH];
     /* modulation (block rate): source A and source B, balanced by the modulation mix, sent by the wheel */
     float mod_a, mod_b;
     if ((int)p[MONO_P_MOD_A] == 0) {
@@ -296,12 +299,16 @@ static DSP_FAST_CODE void mono_render(void *st, float *L, float *R)
     static const int rng[3] = {MONO_P_OSC1_RANGE, MONO_P_OSC2_RANGE, MONO_P_OSC3_RANGE};
     static const int wav[3] = {MONO_P_OSC1_WAVE, MONO_P_OSC2_WAVE, MONO_P_OSC3_WAVE};
     const float detune[3] = {0.0f, p[MONO_P_OSC2_DETUNE], p[MONO_P_OSC3_DETUNE]};
+    float drift1 = 0.0f; /* osc 1's wander (semitones): the filter follows half of it, as before */
     for (int k = 0; k < 3; k++) {
+        const float imperfect = 0.01f * analog_next(&e->analog[k], &acfg); /* each oscillator drifts on its own */
+        if (k == 0)
+            drift1 = imperfect;
         /* 32' .. 2' = -2 .. +2 octaves; lo = five octaves under 32' */
         const float oct = (int)p[rng[k]] == 5 ? -84.0f : 12.0f * (p[rng[k]] - 2.0f);
         const int keyed = k < 2 || (int)p[MONO_P_OSC3_KEYTRACK];
         /* osc 3 without keytrack: fixed pitch around C1 shifted by its range (32' -> LFO-like ~8 Hz) */
-        const float semis = keyed ? base + oct + detune[k] + (k < 2 ? pitch_mod : 0.0f) : 24.0f + oct + detune[k];
+        const float semis = (keyed ? base + oct + detune[k] + (k < 2 ? pitch_mod : 0.0f) : 24.0f + oct + detune[k]) + imperfect;
         float f = fm_mtof(semis);
         if (!keyed && (int)p[rng[k]] == 0)
             f *= 0.25f; /* 32' with keytrack off: sub-audio modulator */
@@ -350,7 +357,7 @@ static DSP_FAST_CODE void mono_render(void *st, float *L, float *R)
     adsr_process(&e->fenv, env, n);
     const float vel_term = p[MONO_P_VELOCITY] * (e->vel - 1.0f);
     const float cut = smooth_next(&e->sm_cut, fm_log2(p[MONO_P_CUTOFF])) + p[MONO_P_CONTOUR] * env[n - 1] +
-                      p[MONO_P_KEYTRACK] * (e->pitch - 60.0f) / 12.0f + mod * p[MONO_P_MOD_CUTOFF] + 1.5f * vel_term + dr * 0.5f +
+                      p[MONO_P_KEYTRACK] * (e->pitch - 60.0f) / 12.0f + mod * p[MONO_P_MOD_CUTOFF] + 1.5f * vel_term + drift1 * 0.5f +
                       vm[VM_BRIGHT];
     ladder_set(&e->filter, fm_exp2(cut), smooth_next(&e->sm_emph, p[MONO_P_EMPHASIS]), p[MONO_P_MIX_DRIVE]);
 
@@ -389,7 +396,7 @@ static const engine_stage_t mono_stages[] = {
     {"amp", "Loudness", "amp", "amp_ volume velocity", "filter", NULL, NULL, 0.0f, 0.0f},
     {"fenv", "Filter contour", "mod", "fenv_ release", "", "filter", NULL, 0.0f, 0.0f},
     {"mod", "Modulation", "mod", "mod_ lfo_", "", "osc1 osc2 filter", NULL, 0.0f, 0.0f},
-    {"voice", "Keyboard", "voice", "glide voice_mode note_priority bend_range drift", "", NULL, NULL, 0.0f, 0.0f},
+    {"voice", "Keyboard", "voice", "glide voice_mode note_priority bend_range drift drift_time tolerance jitter", "", NULL, NULL, 0.0f, 0.0f},
 };
 
 const engine_ops_t mono_engine = {

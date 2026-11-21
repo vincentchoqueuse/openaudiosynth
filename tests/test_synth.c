@@ -194,11 +194,13 @@ void suite_synth(void)
     CHECK(fabsf(f - 440.0f) < 0.05f, "sine A4: %.4f Hz", (double)f);
     CHECK(rms(L + 24000, 24000) > 0.03f, "sine A4: level too low (%.4f)", (double)rms(L + 24000, 24000));
 
-    /* Pitch, va engine (sine osc, no drift, osc2 off): C5 = 523.25 Hz, and pitch bend +2 st */
+    /* Pitch, va engine (sine osc, no analog imperfections, osc2 off): C5 = 523.25 Hz, and pitch bend +2 st */
     synth_init(synth_default(), SR);
     set_va(VA_P_OSC1_WAVE, (float)OSC_SINE);
     set_va(VA_P_OSC2_LEVEL, 0.0f);
     set_va(VA_P_DRIFT, 0.0f);
+    set_va(VA_P_TOLERANCE, 0.0f);
+    set_va(VA_P_JITTER, 0.0f);
     set_va(VA_P_CUTOFF, 20000.0f);
     midi3(0x90, 72, 127);
     render(L, R, n, 256);
@@ -287,6 +289,8 @@ void suite_synth(void)
         set_va(VA_P_OSC1_WAVE, (float)OSC_SINE);
         set_va(VA_P_OSC2_LEVEL, 0.0f);
         set_va(VA_P_DRIFT, 0.0f);
+        set_va(VA_P_TOLERANCE, 0.0f);
+        set_va(VA_P_JITTER, 0.0f);
         set_va(VA_P_CUTOFF, 20000.0f);
         set_va(VA_P_PENV_AMT, 12.0f);
         set_va(VA_P_PENV_DECAY, 0.1f); /* e^-10 left after 1 s */
@@ -305,6 +309,8 @@ void suite_synth(void)
         set_va(VA_P_OSC1_WAVE, (float)OSC_SINE);
         set_va(VA_P_OSC2_LEVEL, 0.0f);
         set_va(VA_P_DRIFT, 0.0f);
+        set_va(VA_P_TOLERANCE, 0.0f);
+        set_va(VA_P_JITTER, 0.0f);
         set_va(VA_P_CUTOFF, 20000.0f);
         set_va(VA_P_VOICE_MODE, 2.0f);
         midi3(0x90, 57, 100); /* A3 */
@@ -346,6 +352,8 @@ void suite_synth(void)
         set_va(VA_P_OSC1_WAVE, (float)OSC_SINE);
         set_va(VA_P_OSC2_LEVEL, 0.0f);
         set_va(VA_P_DRIFT, 0.0f);
+        set_va(VA_P_TOLERANCE, 0.0f);
+        set_va(VA_P_JITTER, 0.0f);
         set_va(VA_P_CUTOFF, 20000.0f);
         set_va(VA_P_VOICE_MODE, 2.0f);
         set_va(VA_P_GLIDE, 0.3f);

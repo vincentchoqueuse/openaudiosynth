@@ -67,7 +67,7 @@ const param_desc_t poly_params[POLY_P_COUNT] = {
     PARAM(POLY_P_UNISON_DETUNE, "unison_detune", "voice.unison_detune", 0.0f, 50.0f, 12.0f, PARAM_LIN, "cent", 1, NULL,
           "detune spread of the unison voices"),
     PARAM(POLY_P_DRIFT, "drift", "voice.drift", 0.0f, 15.0f, 4.0f, PARAM_LIN, "cent", 0, NULL,
-          "per-voice analog slop: voices are never perfectly in tune with each other"),
+          "analog drift: slow random wander of each oscillator (standard deviation, cents): voices never quite agree"),
     PARAM(POLY_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 0, NULL,
           "velocity -> loudness and filter (the original had none)"),
     PARAM(POLY_P_VOLUME, "volume", "output.volume", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
@@ -75,6 +75,7 @@ const param_desc_t poly_params[POLY_P_COUNT] = {
     PARAM(POLY_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),
     PARAM_OVERSAMPLE(POLY_P_OVERSAMPLE, 0.0f, "oversampling of the filters: 1x (default, lightest for 8 voices), 2x "
                      "(clean drive and resonance, ~2.5x the filter cost), 4x (cleanest, ~5x)"),
+    ANALOG_PARAMS(POLY_P_TOLERANCE, POLY_P_DRIFT_TIME, POLY_P_JITTER),
 };
 
 /* ---------------- voices ---------------- */
@@ -177,7 +178,8 @@ static void poly_init(void *st, float sr)
         ladder_init(&v->filter, sr);
         adsr_init(&v->fenv, sr);
         adsr_init(&v->amp, sr);
-        drift_init(&v->drift, ctrl, 0x7000u + (uint32_t)i);
+        analog_init(&v->analog[0], 0x7000u + 2u * (uint32_t)i);
+        analog_init(&v->analog[1], 0x7001u + 2u * (uint32_t)i);
         noise_init(&v->noise, 0x8000u + (uint32_t)i);
     }
     vpoly_init(&e->poly, POLY_VOICES, sr, &poly_poly_ops, e);
@@ -230,6 +232,7 @@ typedef struct {
     float cut;         /* smoothed base cutoff (log2 Hz), advanced once per block for every voice */
     const float *fade; /* steal fade of the controlling vpoly voice for this block, or NULL */
     int vi;            /* the controlling vpoly voice (0 for every unison copy) */
+    analog_cfg_t analog;
 } poly_block_t;
 
 static DSP_FAST_CODE void voice_render(poly_t *e, int vi, int note, const poly_block_t *b, float *L, float *R)
@@ -244,14 +247,15 @@ static DSP_FAST_CODE void voice_render(poly_t *e, int vi, int note, const poly_b
         v->pitch += ((float)note - v->pitch) * voice_glide_coef(p[POLY_P_GLIDE], n, e->sr);
     else
         v->pitch = (float)note;
-    const float slop = 0.01f * (p[POLY_P_DRIFT] * drift_next(&v->drift) + (e->unison ? v->unison_cents * p[POLY_P_UNISON_DETUNE] : 0.0f));
+    const float slop = e->unison ? 0.01f * v->unison_cents * p[POLY_P_UNISON_DETUNE] : 0.0f;
+    const float an_a = 0.01f * analog_next(&v->analog[0], &b->analog), an_b = analog_next(&v->analog[1], &b->analog); /* each oscillator its own */
     const float *vm = vpoly_vmod(&e->poly, b->vi); /* per-voice modulation, microtuning, MPE */
     const float common = v->pitch + e->bend * p[POLY_P_BEND_RANGE] + slop + b->lfo * b->depth * p[POLY_P_LFO_PITCH] + vm[VM_PITCH];
     adsr_process(&v->fenv, env, n);
     const float fe = env[n - 1];
     const float pm_f = p[POLY_P_PM_FENV] * fe, pm_b = p[POLY_P_PM_OSCB];
     const int to_freq = (int)p[POLY_P_PM_FREQ_A], to_pw = (int)p[POLY_P_PM_PW_A];
-    const float semi_a = common + p[POLY_P_OSCA_SEMI] + (to_freq ? 24.0f * pm_f : 0.0f);
+    const float semi_a = common + an_a + p[POLY_P_OSCA_SEMI] + (to_freq ? 24.0f * pm_f : 0.0f);
     float fb_hz;
     if ((int)p[POLY_P_OSCB_LOFREQ])
         fb_hz = 0.5f * fm_exp2((p[POLY_P_OSCB_SEMI] + 0.01f * p[POLY_P_OSCB_FINE] +
@@ -259,6 +263,7 @@ static DSP_FAST_CODE void voice_render(poly_t *e, int vi, int note, const poly_b
     else
         fb_hz = fm_mtof(((int)p[POLY_P_OSCB_KEYTRACK] ? common : 48.0f) + p[POLY_P_OSCB_SEMI] + 0.01f * p[POLY_P_OSCB_FINE]);
     const float inv_sr = 1.0f / e->sr;
+    fb_hz *= fm_exp2(an_b * (1.0f / 1200.0f));
     const float dta0 = dsp_minf(fm_mtof(semi_a) * inv_sr, 0.45f), dtb = dsp_minf(fb_hz * inv_sr, 0.45f);
     const float idtb = 1.0f / dsp_maxf(dtb, 1e-7f);
     const float pw_lfo = b->lfo * b->depth * p[POLY_P_LFO_PWM];
@@ -368,6 +373,7 @@ static DSP_FAST_CODE void poly_render(void *st, float *L, float *R)
     float fade[SYNTH_BLOCK];
     b.lfo = lfo_advance(&e->lfo, SYNTH_BLOCK);
     b.depth = dsp_minf(1.0f, p[POLY_P_LFO_AMOUNT] + e->modwheel);
+    analog_cfg(&b.analog, p[POLY_P_TOLERANCE], p[POLY_P_DRIFT], p[POLY_P_DRIFT_TIME], p[POLY_P_JITTER], (float)SYNTH_BLOCK / e->sr);
     if (e->unison) {
         if (!vpoly_active(&e->poly, 0))
             return;
@@ -402,7 +408,7 @@ static const engine_stage_t poly_stages[] = {
     {"fenv", "Filter env", "mod", "fenv_attack fenv_decay fenv_sustain fenv_release", "", "filter", NULL, 0.0f, 0.0f},
     {"polymod", "Poly-mod", "mod", "pm_", "", "osca filter", NULL, 0.0f, 0.0f},
     {"lfo", "LFO", "mod", "lfo_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
-    {"voice", "Voice", "voice", "glide unison unison_detune drift bend_range", "", NULL, NULL, 0.0f, 0.0f},
+    {"voice", "Voice", "voice", "glide unison unison_detune drift drift_time tolerance jitter bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
 
 const engine_ops_t poly_engine = {

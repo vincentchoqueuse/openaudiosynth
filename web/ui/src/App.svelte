@@ -87,6 +87,7 @@
     </main>
 
     <footer>
+      <h2 class="livehead"><Icon name="live" size={13} />Live control</h2>
       <MacroStrip />
       <Keyboard synth={s.synth} held={lit} />
     </footer>

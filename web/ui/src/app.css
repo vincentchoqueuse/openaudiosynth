@@ -208,7 +208,7 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar { position: sticky; top: -24px; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px;
   margin: -24px -32px 18px; padding: 10px 32px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 14px; }
+.topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 12px; }
 .topbar .tb-left { min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; }
 .topbar .btn { padding: 5px 12px; }
@@ -222,22 +222,22 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .menu button:disabled { color: var(--muted); opacity: .6; }
 .topbar .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
 .topbar .menu kbd { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
-.topbar .namebox { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.topbar .namebox { display: flex; align-items: baseline; gap: 8px; min-width: 9em; }
 .topbar .namebox .tag { font-size: 11px; }
 .topbar .name { font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .name.flash { animation: flash .9s ease-out; } /* a sound just loaded */
 .topbar .cpu { font-size: 11px; min-width: 4.6em; text-align: right; }
 .topbar .cpu.hot { color: var(--hot); }
 .topbar .vu { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
-.topbar .vu .track { width: 90px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
+.topbar .vu .track { width: 64px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
 .topbar .vu .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
 .topbar .vu span { min-width: 2.2em; text-align: right; }
 .topbar .vu.hot .fill { background: var(--hot); }
 .topbar .vu.hot span { color: var(--hot); }
 .topbar .volume { display: inline-flex; align-items: center; gap: 8px; }
-.topbar .volume input { width: 120px; }
+.topbar .volume input { width: 96px; }
 .topbar .volume .db { min-width: 4.6em; text-align: right; color: var(--text); }
-.topbar .seqlabel { margin-right: -6px; }
+.topbar .seqlabel { margin-right: -4px; }
 
 /* the views: a title with its icon; Live (wave or spectrum) */
 .viewtitle { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 20px; font-weight: 650; letter-spacing: -.02em; }
@@ -248,6 +248,8 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
 
 /* footer: the macros to play, the keyboard */
+footer .livehead { display: flex; align-items: center; gap: 7px; margin: 0 0 8px; }
+footer .livehead svg { color: var(--accent); }
 footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 12px; background: var(--side); }
 .keys-wrap { display: flex; gap: 14px; align-items: stretch; }
 .oct { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }

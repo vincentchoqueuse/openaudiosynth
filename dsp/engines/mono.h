@@ -15,7 +15,7 @@
 #include "../filter/ladder.h"
 #include "../osc/noise.h"
 #include "../osc/polyblep.h"
-#include "../voice/drift.h"
+#include "../voice/analog.h"
 #include "engine.h"
 
 enum {
@@ -30,6 +30,8 @@ enum {
     MONO_P_DRIFT, MONO_P_VELOCITY, MONO_P_VOLUME, MONO_P_BEND_RANGE,
     MONO_P_NOISE_COLOR, MONO_P_MOD_A, MONO_P_MOD_B, MONO_P_LFO_RATE, MONO_P_LFO_WAVE,
     MONO_P_FEEDBACK, MONO_P_PRIORITY, MONO_P_OVERSAMPLE,
+    /* analog imperfections of each oscillator (dsp/voice/analog.h); drift above is its walk's deviation */
+    MONO_P_TOLERANCE, MONO_P_DRIFT_TIME, MONO_P_JITTER,
     MONO_P_COUNT
 };
 extern const param_desc_t mono_params[MONO_P_COUNT];
@@ -49,7 +51,7 @@ typedef struct {
     float fb_state[2];    /* output fed back to the mixer: last sample, high-pass state */
     ladder_t filter;
     adsr_t fenv, amp;
-    drift_t drift;
+    analog_t analog[3]; /* the imperfections of each oscillator */
     float pitch, vel, gain_prev, bend, modwheel;
     int has_note, env_dirty;
     uint32_t nan_count;

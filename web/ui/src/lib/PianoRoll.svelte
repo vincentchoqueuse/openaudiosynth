@@ -21,6 +21,15 @@
   let scroller, gutter = $state(0); // width of the scroll area's scrollbar: the ruler leaves it out too
   $effect(() => { width; gutter = scroller ? scroller.offsetWidth - scroller.clientWidth : 0; });
   const ppb = $derived(width / q.length); // pixels per beat
+  // the vertical lines, one per grid step at a whole pixel, strongest kind wins: bar, beat, then step
+  const vlines = $derived.by(() => {
+    const out = [], steps = Math.round(q.length / q.grid);
+    for (let i = 1; i < steps; i++) {
+      const b = i * q.grid, kind = Math.abs(b / 4 - Math.round(b / 4)) < 1e-6 ? 'bar' : Math.abs(b - Math.round(b)) < 1e-6 ? 'beat' : 'step';
+      out.push({ x: Math.round(b * ppb), kind });
+    }
+    return out;
+  });
   // pitches shown: two octaves from the key's octave, widened to every note, high first
   const pitches = $derived.by(() => {
     const base = 12 * (q.octave + 1) + q.root;
@@ -235,7 +244,7 @@
   <button class="ghost" onclick={() => { history.step(); q.deleteMany(sel); sel = new Set(); }} disabled={!sel.size} title="Delete">Delete</button>
 </div>
 
-<div class="roll" style="--ppb:{ppb}px; --row:{ROW}px; --grid:{q.grid * ppb}px; --gutter:{gutter}px">
+<div class="roll" style="--row:{ROW}px; --gutter:{gutter}px">
   <div class="corner"></div>
   <div class="ruler" class:off={!q.loop}>
     {#each bars as b}
@@ -260,7 +269,7 @@
       {#each pitches as p, i (p)}
         <div class="lane" class:black={black(p)} class:out={!inScale(p, q.root, q.scale)} style="top:{i * ROW}px"></div>
       {/each}
-      <div class="lines"></div>
+      <div class="lines">{#each vlines as l}<span class="vl {l.kind}" style="left:{l.x}px"></span>{/each}</div>
       {#each q.notes as n (n.id)}
         {#if n.pitch <= top && n.pitch >= pitches[pitches.length - 1]}
           <div class="note" class:sel={sel.has(n.id)} data-id={n.id} title="{noteName(n.pitch)} · {n.length} beat(s) · velocity {n.velocity}"
@@ -302,10 +311,10 @@
   .lane { position: absolute; left: 0; right: 0; height: var(--row); border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); }
   .lane.black { background: color-mix(in srgb, var(--faint) 55%, transparent); }
   .lane.out { background: color-mix(in srgb, var(--faint) 90%, transparent); }
-  .lines { position: absolute; inset: 0; pointer-events: none;
-    background-image: linear-gradient(90deg, var(--line) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--line) 60%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--line) 30%, transparent) 1px, transparent 1px);
-    background-size: calc(var(--ppb) * 4) 100%, var(--ppb) 100%, var(--grid) 100%; }
+  .lines { position: absolute; inset: 0; pointer-events: none; }
+  .vl { position: absolute; top: 0; bottom: 0; width: 1px; background: color-mix(in srgb, var(--line) 30%, transparent); }
+  .vl.beat { background: color-mix(in srgb, var(--line) 60%, transparent); }
+  .vl.bar { background: var(--line); }
   .note { position: absolute; height: calc(var(--row) - 2px); margin-top: 1px; border-radius: 3px; cursor: grab;
     background: color-mix(in srgb, var(--accent) calc(var(--v) * 100%), var(--surface)); box-shadow: inset 0 0 0 1px var(--accent); }
   .note.sel { box-shadow: inset 0 0 0 1.5px var(--text); }

@@ -59,4 +59,14 @@ extern const char *const param_oversample_labels[];
 #define PARAM_OVERSAMPLE(ID, def, help) \
     PARAM(ID, "oversample", "filter.oversample", 0.0f, 2.0f, def, PARAM_INT, "", 0, param_oversample_labels, help)
 
+/* The analog imperfections shared by the analog oscillators (dsp/voice/analog.h), after an engine's "drift" (the
+ * walk's deviation): the parts' tolerance, the drift's time constant, the phase jitter. */
+#define ANALOG_PARAMS(TOL, TIME, JIT)                                                                              \
+    PARAM(TOL, "tolerance", "voice.tolerance", 0.0f, 10.0f, 2.0f, PARAM_LIN, "cent", 0, NULL,                    \
+          "static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents"),     \
+    PARAM(TIME, "drift_time", "voice.drift_time", 0.5f, 20.0f, 3.0f, PARAM_EXP, "s", 0, NULL,                    \
+          "time constant of the drift: how slowly each oscillator wanders"),                                      \
+    PARAM(JIT, "jitter", "voice.jitter", 0.0f, 3.0f, 0.2f, PARAM_LIN, "cent", 0, NULL,                          \
+          "phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light)")
+
 #endif /* PARAMS_H */

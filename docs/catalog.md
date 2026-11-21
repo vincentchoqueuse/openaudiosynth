@@ -447,7 +447,7 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise 
 | `wheel_vibrato` | 0 .. 1 st | 0.3 | yes | `lfo.wheel_vibrato` | extra vibrato depth (semitones) added by the mod wheel (CC 1) |
 | `amp_velocity` | 0 .. 1 | 0.7 | yes | `amp.velocity` | velocity -> loudness sensitivity (0 = none, 1 = full) |
 | `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | engine volume in dB (voices already sit at -18 dBFS each) |
-| `drift` | 0 .. 20 cent | 3 |  (CC 19) | `voice.drift` | analog drift: slow random pitch/cutoff wander + per-voice detune (cents) |
+| `drift` | 0 .. 20 cent | 3 |  (CC 19) | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents; the filter follows a little) |
 | `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per voice (0 = mono center, 1 = wide) |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range in semitones |
 | `lfo2_rate` | 0.02 .. 10 Hz | 0.3 | yes | `motion.detune1.rate` | per-voice detune LFO rate (0.05-0.5 Hz = slow shimmering beating) |
@@ -476,6 +476,9 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise 
 | `filter2_character` | 0 .. 1 | 0.5 | yes | `filter2.character` | second filter: vowel (formant) or drive (scream) |
 | `filter_routing` | series, parallel | series |  | `filter.routing` | series = filter 1 then filter 2 (e.g. hp then lp = band); parallel = both on the oscillators, mixed (e.g. two formants = a vowel pair, lp + hp = notch-like) |
 | `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the scream filter character (the others are linear): 1x lightest, 2x default, 4x cleanest screaming resonance |
+| `tolerance` | 0 .. 10 cent | 2 |  | `voice.tolerance` | static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents |
+| `drift_time` | 0.5 .. 20 s | 3 |  | `voice.drift_time` | time constant of the drift: how slowly each oscillator wanders |
+| `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
 
 ## Engine `modal` (12 voices)
 
@@ -622,7 +625,7 @@ classic monosynth (the early-70s portable one, panel by panel): 3 free-running o
 | `mod_mix` | 0 .. 1 | 0 | yes | `mod.mix` | modulation mix: 0 = only source A (mod_a: osc 3 or the filter contour), 1 = only source B (mod_b: noise or the LFO), in between both; the mod wheel sets how much of it is applied |
 | `mod_pitch` | 0 .. 12 st | 0.3 | yes | `mod.to_pitch` | mod wheel -> oscillator pitch depth (semitones at full wheel) |
 | `mod_cutoff` | 0 .. 4 oct | 0 | yes | `mod.to_cutoff` | mod wheel -> filter cutoff depth (octaves at full wheel) |
-| `drift` | 0 .. 15 cent | 3 |  | `voice.drift` | analog oscillator drift |
+| `drift` | 0 .. 15 cent | 3 |  | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents) |
 | `velocity` | 0 .. 1 | 0 |  | `amp.velocity` | velocity -> loudness and brightness (the original had none) |
 | `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range (the original wheel: 7, a fifth) |
@@ -634,6 +637,9 @@ classic monosynth (the early-70s portable one, panel by panel): 3 free-running o
 | `feedback` | 0 .. 1 | 0 | yes | `mixer.feedback` | the output fed back into the mixer (the external input left unplugged): fattens, then overloads; it follows the volume, like the original |
 | `note_priority` | last, low, high | last |  | `voice.priority` | which held key sounds: last played, lowest (the original) or highest |
 | `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x) |
+| `tolerance` | 0 .. 10 cent | 2 |  | `voice.tolerance` | static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents |
+| `drift_time` | 0.5 .. 20 s | 3 |  | `voice.drift_time` | time constant of the drift: how slowly each oscillator wanders |
+| `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
 
 ## Engine `poly` (8 voices)
 
@@ -683,12 +689,15 @@ classic polysynth (late-70s 5-voice spirit): osc A saw/pulse with hard sync, osc
 | `glide` | 0 .. 2 s | 0 | yes | `voice.glide` | portamento |
 | `unison` | off, on | off |  | `voice.unison` | all voices on one note: huge mono leads and basses |
 | `unison_detune` | 0 .. 50 cent | 12 | yes | `voice.unison_detune` | detune spread of the unison voices |
-| `drift` | 0 .. 15 cent | 4 |  | `voice.drift` | per-voice analog slop: voices are never perfectly in tune with each other |
+| `drift` | 0 .. 15 cent | 4 |  | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents): voices never quite agree |
 | `velocity` | 0 .. 1 | 0 |  | `amp.velocity` | velocity -> loudness and filter (the original had none) |
 | `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
 | `pan_spread` | 0 .. 1 | 0.4 |  | `voice.pan_spread` | stereo spread of the voices |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 | `oversample` | 1x, 2x, 4x | 1x |  | `filter.oversample` | oversampling of the filters: 1x (default, lightest for 8 voices), 2x (clean drive and resonance, ~2.5x the filter cost), 4x (cleanest, ~5x) |
+| `tolerance` | 0 .. 10 cent | 2 |  | `voice.tolerance` | static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents |
+| `drift_time` | 0.5 .. 20 s | 3 |  | `voice.drift_time` | time constant of the drift: how slowly each oscillator wanders |
+| `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
 
 ## Engine `fm6` (16 voices)
 

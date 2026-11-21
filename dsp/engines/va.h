@@ -1,6 +1,6 @@
 /* va.h — "va" subtractive engine (M1, inspired by a 2-oscillator virtual analog).
  * Per voice: 2 polyBLEP oscillators (or supersaws) + noise, two filter slots in series or parallel (state-variable,
- * formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog drift.
+ * formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator.
  * Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide. */
 #ifndef ENGINE_VA_H
 #define ENGINE_VA_H
@@ -13,7 +13,7 @@
 #include "../osc/noise.h"
 #include "../osc/polyblep.h"
 #include "../osc/supersaw.h"
-#include "../voice/drift.h"
+#include "../voice/analog.h"
 #include "engine.h"
 
 #define VA_VOICES 8
@@ -43,6 +43,8 @@ enum {
     /* filter characters and the second filter (series or parallel) */
     VA_P_F1_CHAR, VA_P_F2_MODE, VA_P_F2_CUTOFF, VA_P_F2_RESO, VA_P_F2_CHAR, VA_P_FILTER_ROUTING,
     VA_P_OVERSAMPLE,
+    /* analog imperfections of each oscillator (dsp/voice/analog.h); drift above is its walk's deviation */
+    VA_P_TOLERANCE, VA_P_DRIFT_TIME, VA_P_JITTER,
     VA_P_COUNT
 };
 extern const param_desc_t va_params[VA_P_COUNT];
@@ -62,7 +64,7 @@ typedef struct {
     noise_t noise;
     vfilter_t f1, f2; /* filter 1 (main) and filter 2 */
     adsr_t amp, fenv;
-    drift_t drift;
+    analog_t analog[2]; /* the imperfections of osc 1 and osc 2 */
     lfo_t dlfo[3];        /* per-voice detune LFOs: [0] osc 2 (LFO 2), [1] osc 1 (LFO 3), [2] voice (LFO 4) */
     float dlfo_factor[3]; /* per-voice rate multipliers (spread) */
 } va_voice_t;

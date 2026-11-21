@@ -1,8 +1,11 @@
-/* test_voice.c — voice allocation: retrigger, steal priorities, sustain pedal; bounded drift. */
+/* test_voice.c — voice allocation: retrigger, steal priorities, sustain pedal; the analog imperfections of an
+ * oscillator (static spread, drift deviation and time constant, determinism). */
+#include <math.h>
+
 #include "engines/engine.h"
 #include "global_params.h"
 #include "test.h"
-#include "voice/drift.h"
+#include "voice/analog.h"
 #include "voice/voice_alloc.h"
 
 /* Every descriptor table: entry i has id i, a unique name, a sane range, labels matching the range. */
@@ -90,21 +93,38 @@ void suite_voice(void)
     valloc_voice_done(&a, 0);
     CHECK(a.s[0].state == VSLOT_FREE, "voice not freed");
 
-    /* drift: bounded, slow (small per-block change), deterministic */
-    drift_t d1, d2;
-    drift_init(&d1, 1500.0f, 3);
-    drift_init(&d2, 1500.0f, 3);
-    int ok = 1, same = 1;
-    float prev = drift_next(&d1), maxstep = 0.0f;
-    drift_next(&d2);
-    for (int i = 0; i < 15000; i++) {
-        const float x = drift_next(&d1);
-        ok &= x >= -1.0f && x <= 1.0f;
-        same &= x == drift_next(&d2);
-        maxstep = x - prev > maxstep ? x - prev : (prev - x > maxstep ? prev - x : maxstep);
-        prev = x;
+    /* analog imperfections: the walk's deviation and time constant as set (3 cents, 2 s), deterministic; the
+     * static offsets of 64 oscillators spread over the tolerance */
+    const float dt = 32.0f / 48000.0f;
+    analog_cfg_t c;
+    analog_cfg(&c, 0.0f, 3.0f, 2.0f, 0.0f, dt);
+    analog_t a1, a2;
+    analog_init(&a1, 3u);
+    analog_init(&a2, 3u);
+    const int nb = 400000, lag = (int)(2.0f / dt); /* ~267 s; lag = one time constant */
+    static float xs[400000];
+    double sum = 0.0, sq = 0.0;
+    int same = 1;
+    for (int i = 0; i < nb; i++) {
+        xs[i] = analog_next(&a1, &c);
+        same &= xs[i] == analog_next(&a2, &c);
+        sum += (double)xs[i], sq += (double)xs[i] * (double)xs[i];
     }
-    CHECK(ok, "drift outside [-1, 1]");
-    CHECK(same, "drift not deterministic");
-    CHECK(maxstep < 0.01f, "drift too fast: step of %.4f per block", (double)maxstep);
+    const double mean = sum / nb, sd = sqrt(sq / nb - mean * mean);
+    double cov = 0.0;
+    for (int i = 0; i + lag < nb; i++)
+        cov += ((double)xs[i] - mean) * ((double)xs[i + lag] - mean);
+    const double rho = cov / (nb - lag) / (sd * sd);
+    CHECK(same, "analog drift not deterministic");
+    CHECK(fabs(sd - 3.0) < 0.6, "analog drift deviation %.2f cents, expected 3", sd);
+    CHECK(fabs(rho - 0.3679) < 0.12, "analog drift correlation after one time constant %.2f, expected 0.37", rho);
+    analog_cfg(&c, 4.0f, 0.0f, 2.0f, 0.0f, dt);
+    float lo = 1e9f, hi = -1e9f;
+    for (uint32_t k = 0; k < 64; k++) {
+        analog_t o;
+        analog_init(&o, 100u + k);
+        const float x = analog_next(&o, &c);
+        lo = fminf(lo, x), hi = fmaxf(hi, x);
+    }
+    CHECK(lo >= -4.0f && hi <= 4.0f && hi - lo > 6.0f, "analog tolerance 4 cents: offsets %.2f .. %.2f", (double)lo, (double)hi);
 }

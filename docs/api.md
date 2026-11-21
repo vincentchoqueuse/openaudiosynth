@@ -312,11 +312,12 @@ tempo and beat position, from an internal BPM or from MIDI clock (24 ticks per q
 - `void tempo_advance(tempo_t *t, int n)` — Advances by n samples (call once per block).
 - `float tempo_div_seconds(const tempo_t *t, int div)` — Seconds of division div (> 0) at the current tempo.
 
-## `dsp/voice/drift.h`
-"analog flavor": slow random per-voice drift, plus a small fixed detune. A random target is drawn every 0.2 to 0.8 s, then approached by a one-pole (tau 0.3 s). Called once per block; output in [-1, 1], to be multiplied by an amount (cents, octaves...).
-- types: `drift_t`
-- `void drift_init(drift_t *d, float ctrl_rate, uint32_t seed)`
-- `float drift_next(drift_t *d)`
+## `dsp/voice/analog.h`
+the imperfections of an analog oscillator, one state per oscillator: a static offset drawn once (the tolerance of its parts), a slow Ornstein-Uhlenbeck drift (standard deviation and time constant) and a light jitter (white frequency noise at block rate, so the phase wanders as a Wiener process: irregular beats). Output in cents, once per block. OU update: x += -a x + sqrt(2 a) w, w of unit variance, a = dt / tau.
+- types: `analog_cfg_t`, `analog_t`
+- `void analog_cfg(analog_cfg_t *c, float tolerance, float sd, float tau, float jitter, float dt)` — dt = block duration (s); tolerance and sd in cents, tau in seconds (> 0), jitter in cents
+- `void analog_init(analog_t *s, uint32_t seed)` — a new oscillator: its offset and a start already in the walk's spread (no settling from zero)
+- `float analog_next(analog_t *s, const analog_cfg_t *c)` — cents to add to the oscillator's pitch this block
 
 ## `dsp/voice/voice.h`
 the few steps every engine voice shares: constant-power pan, glide coefficient, envelope x gain ramp, and the voice output (steal fade, NaN guard, pan into the stereo bus). Engines get it through engine.h; keeping these in one place keeps every voice tail identical.
@@ -492,7 +493,7 @@ reference engine (M0): polyphonic sine with one ADSR. Used to validate the full 
 - data: `const param_desc_t sine_params[SINE_P_COUNT]`, `const engine_ops_t sine_engine`
 
 ## `dsp/engines/va.h`
-"va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators (or supersaws) + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog drift. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
+"va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators (or supersaws) + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
 - types: `va_voice_t`, `va_t`
 - constants: `VA_VOICES` = 8, `VA_WAVE_SUPERSAW` = 4
 - data: `const param_desc_t va_params[VA_P_COUNT]`, `const engine_ops_t va_engine`

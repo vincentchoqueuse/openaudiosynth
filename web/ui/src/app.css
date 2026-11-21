@@ -106,6 +106,7 @@ input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bord
 /* ---- cards: one width, on one row that scrolls sideways (.groups) ---- */
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }
 section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
+.picker { margin: 0 0 10px; } /* what a card shows (a modulator, a pad), chosen above it */
 .card-head { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
 .card-head h2 { margin: 0; }
 .stage-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; }
@@ -204,13 +205,13 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .links a, .links .theme { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); padding: 0; }
 .links a:hover, .links .theme:hover { color: var(--text); background: var(--faint); }
 
-/* top bar (TopBar.svelte): Menu, the views, the preset | level, volume, play; always in view */
-.topbar { position: sticky; top: -24px; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px;
+/* top bar (TopBar.svelte): Menu, the views, the preset | CPU, output, volume, play; always in view */
+.topbar { position: sticky; top: -24px; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
   margin: -24px -32px 18px; padding: 10px 32px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 12px; }
 .topbar .tb-left { min-width: 0; }
-.topbar .tb-right { justify-content: flex-end; }
+.topbar .tb-right { justify-content: flex-end; margin-left: auto; } /* wraps under the left part when the bar is short */
 .topbar .btn { padding: 5px 12px; }
 .topbar .filemenu { position: relative; }
 .topbar .filemenu > button { display: inline-flex; align-items: center; gap: 7px; }
@@ -226,14 +227,12 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .namebox .tag { font-size: 11px; }
 .topbar .name { font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .name.flash { animation: flash .9s ease-out; } /* a sound just loaded */
-.topbar .cpu { font-size: 11px; min-width: 4.6em; text-align: right; }
-.topbar .cpu.hot { color: var(--hot); }
-.topbar .vu { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
-.topbar .vu .track { width: 64px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
-.topbar .vu .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
-.topbar .vu span { min-width: 2.2em; text-align: right; }
-.topbar .vu.hot .fill { background: var(--hot); }
-.topbar .vu.hot span { color: var(--hot); }
+.topbar .meter { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
+.topbar .meter .track { width: 64px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
+.topbar .meter .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
+.topbar .meter .mval { min-width: 3.6em; text-align: right; }
+.topbar .meter.hot .fill { background: var(--hot); }
+.topbar .meter.hot .mval { color: var(--hot); }
 .topbar .volume { display: inline-flex; align-items: center; gap: 8px; }
 .topbar .volume input { width: 96px; }
 .topbar .volume .db { min-width: 4.6em; text-align: right; color: var(--text); }
@@ -248,8 +247,7 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
 
 /* footer: the macros to play, the keyboard */
-footer .livehead { display: flex; align-items: center; gap: 7px; margin: 0 0 8px; }
-footer .livehead svg { color: var(--accent); }
+footer .viewtitle { margin-bottom: 8px; }
 footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 12px; background: var(--side); }
 .keys-wrap { display: flex; gap: 14px; align-items: stretch; }
 .oct { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }
@@ -313,10 +311,10 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   aside:not(.open) .library, aside:not(.open) .side-foot { display: none; }
   aside.open .library { margin-top: 10px; }
   main { padding: 16px; }
-  .topbar { grid-template-columns: 1fr; row-gap: 6px; margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
+  .topbar { row-gap: 6px; margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
   .topbar .tb-left { flex-wrap: wrap; row-gap: 8px; }
   .topbar .tb-left > .vsep { display: none; }
-  .topbar .vu, .topbar .cpu { display: none; }
+  .topbar .meter, .topbar .tb-right > .vsep { display: none; }
   .topbar .volume input { width: 90px; }
   .pills.lg button { width: auto; padding: 5px 12px; }
   .groups > section.card { flex-basis: 84vw; }

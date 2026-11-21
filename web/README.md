@@ -58,8 +58,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Layout**: the sound library on the left (it also picks the instrument); one top bar, read from the left: the Menu (Save, Export sound, Export
   song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts, Report a bug), a rule, the three views, pills of one width (**Sequence**, **Synth**, **Code**), a rule
   and Preset with the sound's name; on the right the
-  CPU load (time spent rendering over the audio's time, measured in the worklet), the level, the volume, a rule
-  and Sequencer ▶ (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
+  CPU load (time spent rendering over the audio's time, measured in the worklet) and the output level as meters,
+  the volume and Sequencer ▶, each set apart by a rule (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
   (tempo, loop, position, piano roll). **Synth**: Structure always on top, its blocks open their settings, then
   smaller pills of one width with an icon, each with its own tabs under it, even a single one: Macros (Names;
   Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows, the sampler's pads chosen like the modulators; Effects), Modulation

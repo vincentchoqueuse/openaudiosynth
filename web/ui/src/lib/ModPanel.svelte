@@ -31,10 +31,8 @@
 </script>
 
 {#if view === 'mods'}
+  <div class="picker"><Seg items={MODS.map(([label, , src, kind], i) => ({ id: i, label, dot: drives(src, kind) }))} value={sel} onpick={(i) => (sel = i)} label="Modulator" /></div>
   <section class="card">
-    <div class="card-head">
-      <Seg items={MODS.map(([label, , src, kind], i) => ({ id: i, label, dot: drives(src, kind) }))} value={sel} onpick={(i) => (sel = i)} label="Modulator" />
-    </div>
     {#key sel}
       {#if m[4] === 'env'}
         <MsegEditor prefix={m[1]} />
@@ -44,10 +42,8 @@
     {/key}
   </section>
 {:else}
+  <div class="picker"><Seg items={[{ id: 'part', label: 'Part' }, { id: 'voice', label: 'Each note' }]} value={scope} onpick={(v) => (scope = v)} label="Routes of" /></div>
   <section class="card">
-    <div class="card-head">
-      <Seg items={[{ id: 'part', label: 'Part' }, { id: 'voice', label: 'Each note' }]} value={scope} onpick={(v) => (scope = v)} label="Routes of" />
-    </div>
     {#key scope}<ModMatrix kind={scope} />{/key}
   </section>
 {/if}

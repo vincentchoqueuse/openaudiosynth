@@ -1,4 +1,4 @@
-<!-- KitPanel.svelte — the sampler's kit: its 16 pads (the first 16 samples of the kit, by note) chosen like the modulators,
+<!-- KitPanel.svelte — the sampler's kit: its 16 pads (the first 16 samples of the kit, by note) chosen above the card like the modulators,
      one per pad (a click plays it and opens it), then Kit (the kit's own settings); a pad's tab shows its
      waveform with its start and end points, dragged with the pointer (the region played is lit, an arrow tells the
      direction), and its settings.
@@ -94,14 +94,14 @@
   const secs = (e) => (e.frames / 48000).toFixed(2) + ' s';
 </script>
 
+<div class="picker">
+  <div class="pads"><Seg items={padItems} value={sel} onpick={(k) => (k === 'kit' ? (sel = k) : hit(k))} label="Pads" /></div>
+  <button class="btn ghost load" onclick={() => input.click()}>Load samples…</button>
+  <input bind:this={input} type="file" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" multiple hidden
+         onchange={(e) => { if (e.target.files.length) s.dropFiles(e.target.files); e.target.value = ''; }} />
+</div>
 <section class="card kitpanel" class:drag aria-label="Kit"
          ondragover={(e) => { e.preventDefault(); drag = true; }} ondragleave={() => (drag = false)} ondrop={dropped}>
-  <div class="card-head">
-    <div class="pads"><Seg items={padItems} value={sel} onpick={(k) => (k === 'kit' ? (sel = k) : hit(k))} label="Pads" /></div>
-    <button class="btn ghost load" onclick={() => input.click()}>Load samples…</button>
-    <input bind:this={input} type="file" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" multiple hidden
-           onchange={(e) => { if (e.target.files.length) s.dropFiles(e.target.files); e.target.value = ''; }} />
-  </div>
   {#if !entries.length}
     <p class="hint">Drop audio files here (WAV, AIFF, FLAC, MP3). A name starting with a MIDI note, like <code>36_kick.wav</code>, sets the pad's note; the others follow from C2.</p>
   {/if}
@@ -131,7 +131,7 @@
 <style>
   .kitpanel { display: grid; gap: 12px; }
   .kitpanel.drag { outline: 2px dashed var(--accent); outline-offset: -6px; }
-  .card-head { display: flex; align-items: flex-start; gap: 10px; }
+  .picker { display: flex; align-items: flex-start; gap: 10px; }
   .pads :global(.seg) { flex-wrap: wrap; }
   .load { margin-left: auto; flex: none; }
   .hint { margin: 0; }

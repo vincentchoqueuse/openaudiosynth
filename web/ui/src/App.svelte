@@ -10,7 +10,7 @@
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
   import TopBar from './lib/TopBar.svelte';
-  import Icon from './lib/Icon.svelte';
+  import ViewTitle from './lib/ViewTitle.svelte';
   import ClipTab from './lib/ClipTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
   import CodeView from './lib/CodeView.svelte';
@@ -68,10 +68,6 @@
 
 <svelte:window onkeydown={onKey} />
 
-{#snippet title(i)}
-  <h1 class="viewtitle"><span class="vicon"><Icon name={ALL_VIEWS[i].icon} size={18} /></span>{ALL_VIEWS[i].label}</h1>
-{/snippet}
-
 {#if !s.started}
   <Splash />
 {:else}
@@ -81,13 +77,13 @@
     <main>
       <TopBar bind:view={main} views={VIEWS} />
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'clip'}>{@render title(0)}<ClipTab /></div>
-      {#if main === 'synth'}{@render title(1)}<SynthTab />{/if}
-      {#if main === 'code'}{@render title(2)}<CodeView />{/if}
+      <div hidden={main !== 'clip'}><ViewTitle {...ALL_VIEWS[0]} /><ClipTab /></div>
+      {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} /><SynthTab />{/if}
+      {#if main === 'code'}<ViewTitle {...ALL_VIEWS[2]} /><CodeView />{/if}
     </main>
 
     <footer>
-      <h2 class="livehead"><Icon name="live" size={13} />Live control</h2>
+      <ViewTitle icon="live" label="Live control" />
       <MacroStrip />
       <Keyboard synth={s.synth} held={lit} />
     </footer>

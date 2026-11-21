@@ -1,6 +1,7 @@
 <!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
      pills of one width, then the preset's name; the Menu holds (Save to the library in development, Export sound,
-     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right the CPU load, the output level, the listening volume and
+     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right, each set apart by a rule: the CPU load and the output level
+     (Meter), the listening volume, and
      play / stop the sequence (Space). -->
 <script>
   import { session as s } from './session.svelte.js';
@@ -9,6 +10,7 @@
   import { REPO_URL } from './links.js';
   import Pills from './Pills.svelte';
   import Icon from './Icon.svelte';
+  import Meter from './Meter.svelte';
   let { view = $bindable(), views } = $props();
   let menu = $state(false);
   const act = (f) => { menu = false; f(); };
@@ -46,11 +48,12 @@
   </div>
   </div>
   <div class="tb-right">
-  <span class="cpu" class:hot={s.cpu > 0.7} title="CPU: the share of the audio's time spent computing it (in this browser)">CPU {Math.round(s.cpu * 100)} %</span>
-  <div class="vu" class:hot={s.meter.hold > -1} title="Output peak (dBFS), before the volume">
-    <div class="track"><div class="fill" style="width:{s.meter.level * 100}%"></div></div>
-    <span class="mono">{isFinite(s.meter.hold) && s.meter.hold > -90 ? s.meter.hold.toFixed(0) : '−∞'}</span>
-  </div>
+  <Meter label="CPU" value={s.cpu} text="{Math.round(s.cpu * 100)} %" hot={s.cpu > 0.7}
+         title="CPU: the share of the audio's time spent computing it (in this browser)" />
+  <span class="vsep" aria-hidden="true"></span>
+  <Meter label="Out" value={s.meter.level} text={isFinite(s.meter.hold) && s.meter.hold > -90 ? `${s.meter.hold.toFixed(0)} dB` : '−∞'}
+         hot={s.meter.hold > -1} title="Output peak (dBFS), before the volume" />
+  <span class="vsep" aria-hidden="true"></span>
   <label class="volume" title="Listening volume (double-click: 0 dB)">
     <span aria-hidden="true">Vol</span>
     <input type="range" min="-60" max="0" step="0.5" value={s.volume} oninput={(e) => s.setVolume(+e.target.value)}

@@ -1,7 +1,7 @@
 <!-- SynthTab.svelte — the Synth view: shaping the sound. Its Structure always on top (the signal chain; a click on a
-     block opens the tab and the card that hold its settings), then pills, each with its own tabs under it: Info (its description, instrument, file), Macros (names, CC and targets), Engine (the instrument, named after it: its
-     parameters, or the sampler's kit; and Effects, the bus) and Modulation (modulators and their
-     assignments). The tab open lives in the session; a sound picked in the library opens on Macros. -->
+     block opens the tab and the card that hold its settings), then pills, each with its own tabs under it: Macros (names, CC and targets), Engine (the instrument, named after it: its
+     parameters, or the sampler's kit; and Effects, the bus) Modulation (modulators and their
+     assignments) and Info (its description, instrument, file). The tab open lives in the session; a sound picked in the library opens on Macros. -->
 <script>
   import ChainView from './ChainView.svelte';
   import ParamGroups from './ParamGroups.svelte';
@@ -15,10 +15,10 @@
   const cap = (w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : 'Engine');
   // the pills, each with the editors under it (its own tabs); Macros and Modulation draw theirs
   const GROUPS = $derived([
-    ['info', 'Info', [['info', 'Description']], 'M8 1.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 8 1.8zM8 7.2v4M8 4.8v.1'],
     ['macros', 'Macros', null, 'M3 2.5v11M8 2.5v11M13 2.5v11M1.5 10h3M6.5 5.5h3M11.5 8.5h3'],
     ['engine', 'Engine', [['engine', s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name)], ['fx', 'Effects']], 'M1.5 8c1.2 0 1.6-5 3.2-5s1.8 10 3.3 10 1.7-10 3.3-10 1.8 5 3.2 5'],
     ['mod', 'Modulation', null, 'M1.5 11.5 5 4.5l3 7 3-7 3.5 7'],
+    ['info', 'Info', [['info', 'Description']], 'M8 1.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 8 1.8zM8 7.2v4M8 4.8v.1'],
   ]);
   const group = $derived(GROUPS.find(([id, , sub]) => id === s.editorTab || sub?.some(([t]) => t === s.editorTab)) ?? GROUPS[0]);
   // a block of the diagram -> the tab and the card that hold its settings

@@ -4,6 +4,7 @@
      direction), and its settings.
      Audio files dropped anywhere on the panel (or picked with the button) become a new kit. -->
 <script>
+  import { cap } from './naming.js';
   import Card from './Card.svelte';
   import Seg from './Seg.svelte';
   import Param from './Param.svelte';
@@ -28,7 +29,6 @@
   // a new kit: back to its first pad if the selected one is now empty
   $effect(() => { if (kit && sel !== 'kit' && sel >= Math.min(PADS, kit.entries.length)) sel = 0; });
   const get = s.getP, set = s.setP;
-  const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
   const p = (k, s) => `pad${k + 1}_${s}`;
 
   function hit(k) {

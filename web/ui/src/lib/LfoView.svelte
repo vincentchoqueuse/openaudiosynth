@@ -172,5 +172,4 @@
   .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
   .rate { flex: 1; min-width: 260px; max-width: 520px; }
   .div { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-  .div select { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; color: var(--text); }
 </style>

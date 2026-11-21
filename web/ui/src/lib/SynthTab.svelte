@@ -3,6 +3,7 @@
      parameters, or the sampler's kit; and Effects, the bus) Modulation (modulators and their
      assignments) and Info (its description, instrument, file). The tab open lives in the session; a sound picked in the library opens on Macros. -->
 <script>
+  import { cap } from './naming.js';
   import ChainView from './ChainView.svelte';
   import ParamGroups from './ParamGroups.svelte';
   import ModPanel from './ModPanel.svelte';
@@ -13,13 +14,12 @@
   import Pills from './Pills.svelte';
   import Tabs from './Tabs.svelte';
 
-  const cap = (w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : 'Engine');
   // the pills, each with its editors under it as tabs (even a single one); the tab open is session.editorTab
   const GROUPS = $derived([
     { id: 'macros', label: 'Macros', icon: 'macros',
       tabs: [{ id: 'macros', label: 'Names' }, { id: 'macros-assign', label: 'Assignments' }] },
     { id: 'engine', label: 'Engine', icon: 'engine',
-      tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) }, { id: 'fx', label: 'Effects' }] },
+      tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) || 'Engine' }, { id: 'fx', label: 'Effects' }] },
     { id: 'mod', label: 'Modulation', icon: 'modulation',
       tabs: [{ id: 'mod', label: 'Modulators' }, { id: 'mod-assign', label: 'Assignments' }] },
     { id: 'info', label: 'Info', icon: 'info', tabs: [{ id: 'info', label: 'Description' }] },

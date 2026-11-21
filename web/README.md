@@ -55,14 +55,14 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   double-click to add or remove a point, click a point to make it the sustain point or a loop boundary, loop mode
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
-- **Layout**: the sound library on the left (it also picks the instrument); one top bar, read from the left: the
-  three views, pills of one width (**Sequence**, **Synth**, **Code**), a rule, the Menu (Save, Export sound, Export
-  song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts, Report a bug) and the sound's name; on the right the
+- **Layout**: the sound library on the left (it also picks the instrument); one top bar, read from the left: the Menu (Save, Export sound, Export
+  song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts, Report a bug), a rule, the three views, pills of one width (**Sequence**, **Synth**, **Code**), a rule
+  and Preset with the sound's name; on the right the
   level, the volume, a rule and Sequencer ▶ (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
   (tempo, loop, position, piano roll). **Synth**: Structure always on top, its blocks open their settings, then
-  smaller pills of one width, each with its own tabs under it, even a single one: Info (Description), Macros (Names;
+  smaller pills of one width with an icon, each with its own tabs under it, even a single one: Info (Description), Macros (Names;
   Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows; Effects), Modulation
-  (Modulators; Assignments). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
+  (Modulators; Assignments, of the part or of each note). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
   the page. Each view starts with its title and its icon. Along the bottom, the 8 macros to play (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
 - **Interface rules** (every part of the page follows them):

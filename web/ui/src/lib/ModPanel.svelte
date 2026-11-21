@@ -1,7 +1,7 @@
 <!-- ModPanel.svelte — the Modulation tab, in two tabs as the Macros: Modulators (the part's modulators chosen in
      one row: the two envelopes and the per-note one, the two LFOs and the per-note one, a dot on those assigned;
      each shown the same way, MsegEditor or LfoView: a bar of choices, its drawing, a bar of settings) and
-     Assignments (the matrix: every slot of the part and of the notes, filled or empty; ModMatrix). -->
+     Assignments (the matrix of the part or of each note, chosen the same way: every slot, filled or empty; ModMatrix). -->
 <script>
   import MsegEditor from './MsegEditor.svelte';
   import LfoView from './LfoView.svelte';
@@ -13,7 +13,7 @@
     ['Env 1', 'mseg1_', 'mseg1', 'part', 'env'], ['Env 2', 'mseg2_', 'mseg2', 'part', 'env'], ['Note env', 'vmseg_', 'vmseg', 'voice', 'env'],
     ['LFO 1', 'mlfo1_', 'mlfo1', 'part', 'lfo'], ['LFO 2', 'mlfo2_', 'mlfo2', 'part', 'lfo'], ['Note LFO', 'vlfo_', 'vlfo', 'voice', 'lfo'],
   ];
-  let sel = $state(0), view = $state('mods'); // which modulator; the tab: 'mods' | 'assign'
+  let sel = $state(0), view = $state('mods'), scope = $state('part'); // which modulator; the tab; part or each note
   const m = $derived(MODS[sel]);
   // does a modulator drive anything? (a route from it)
   function drives(src, kind) {
@@ -50,10 +50,13 @@
   </section>
 {:else}
   <section class="card">
-    <h3>Part</h3>
-    <ModMatrix {engine} {get} {set} {byName} {human} kind="part" />
-    <h3>Each note</h3>
-    <ModMatrix {engine} {get} {set} {byName} {human} kind="voice" />
+    <div class="card-head">
+      <div class="seg small" role="group" aria-label="Routes of">
+        <button class:on={scope === 'part'} onclick={() => (scope = 'part')}>Part</button>
+        <button class:on={scope === 'voice'} onclick={() => (scope = 'voice')}>Each note</button>
+      </div>
+    </div>
+    {#key scope}<ModMatrix {engine} {get} {set} {byName} {human} kind={scope} />{/key}
   </section>
 {/if}
 

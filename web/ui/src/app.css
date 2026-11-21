@@ -45,7 +45,8 @@ code { font-family: var(--mono); font-size: 12px; }
 /* the top bar: the sound, undo, level and volume; always in view */
 .topbar { position: sticky; top: -24px; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; margin: -24px -32px 18px; padding: 10px 32px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.topbar .namebox { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar .namebox { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.topbar .namebox .tag { font-size: 11px; color: var(--muted); }
 .topbar .play { width: 30px; height: 30px; font-size: 11px; }
 .topbar .seqlabel { font-size: 12px; color: var(--muted); margin-right: -6px; }
 .topbar .sep { width: 1px; height: 22px; background: var(--line); }
@@ -78,7 +79,7 @@ code { font-family: var(--mono); font-size: 12px; }
 .topbar .help { width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 .topbar .help:hover { color: var(--text); border-color: var(--accent); }
 .small { font-size: 11.5px; }
-.topbar .name { margin: 0; padding: 0; background: none; font-weight: 600; font-size: 17px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar .name { margin: 0; padding: 0; background: none; font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .btn { padding: 5px 12px; }
 .bpm { display: inline-flex; align-items: center; gap: 6px; }
 .bpm input { width: 4.2em; border: 0; background: var(--faint); border-radius: 6px; padding: 4px 6px; color: var(--text); font: 13px var(--mono); }
@@ -176,7 +177,7 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs .seg button { border-bottom: 0; margin: 0; padding: 3px 10px; }
 /* second level (the Synth view's tabs): pills, smaller than the views' */
 .tabs.pills { gap: 4px; border-bottom: 0; margin: 14px 0 14px; }
-.tabs.pills > button[role=tab] { min-width: 104px; text-align: center; padding: 4px 12px; border: 0; margin: 0; border-radius: 6px; background: var(--faint); font-size: 12.5px; }
+.tabs.pills > button[role=tab] { min-width: 116px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 4px 12px; border: 0; margin: 0; border-radius: 6px; background: var(--faint); font-size: 12.5px; }
 .tabs.pills > button[role=tab]:hover { color: var(--text); }
 .tabs.pills > button[role=tab].on { background: var(--accent); color: var(--on-accent); }
 /* third level (an editor's own tabs): small, underlined */

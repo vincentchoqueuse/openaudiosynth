@@ -1,5 +1,5 @@
-<!-- TopBar.svelte — the one bar above everything: first the three views (Sequence, Synth, Code), pills of one
-     width, then the Menu (Save to the library in development, Export sound,
+<!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
+     pills of one width, then the preset's name; the Menu holds (Save to the library in development, Export sound,
      Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/bug_report.md), the sound's name; on the right the output level, the listening volume and
      play / stop the sequence (Space). -->
 <script>
@@ -17,12 +17,6 @@
 
 <header class="topbar">
   <div class="tb-left">
-  <nav class="viewtabs" role="tablist" aria-label="Views">
-      {#each views as [id, name]}
-        <button role="tab" aria-selected={view === id} class:on={view === id} onclick={() => (view = id)}>{name}</button>
-      {/each}
-    </nav>
-  <span class="sep" aria-hidden="true"></span>
   <div class="filemenu">
     <button class="btn ghost" onclick={() => (menu = !menu)} aria-haspopup="menu" aria-expanded={menu}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>Menu</button>
     {#if menu}
@@ -42,8 +36,15 @@
       </div>
     {/if}
   </div>
+  <span class="sep" aria-hidden="true"></span>
+  <nav class="viewtabs" role="tablist" aria-label="Views">
+      {#each views as [id, name]}
+        <button role="tab" aria-selected={view === id} class:on={view === id} onclick={() => (view = id)}>{name}</button>
+      {/each}
+    </nav>
+  <span class="sep" aria-hidden="true"></span>
   <div class="namebox">
-    {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
+    <span class="tag">Preset</span>{#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
   </div>
   </div>
   <div class="tb-right">

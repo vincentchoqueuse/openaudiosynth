@@ -57,12 +57,13 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
 - **Layout**: the sound library on the left (it also picks the instrument); one top bar, read from the left: the
   three views, pills of one width (**Sequence**, **Synth**, **Code**), a rule, the Menu (Save, Export sound, Export
-  song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts) and the sound's name; on the right the
+  song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts, Report a bug) and the sound's name; on the right the
   level, the volume, a rule and Sequencer ▶ (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
   (tempo, loop, position, piano roll). **Synth**: Structure always on top, its blocks open their settings, then
-  smaller pills: Info, Macros (Names; Assignments, 16 fixed rows), the engine (in the order the signal flows),
-  Effects, Modulation. **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
-  the page. Each view starts with its title. Along the bottom, the 8 macros to play (2 rows of 4) above the
+  smaller pills of one width, each with its own tabs under it, even a single one: Info (Description), Macros (Names;
+  Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows; Effects), Modulation
+  (Modulators; Assignments). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
+  the page. Each view starts with its title and its icon. Along the bottom, the 8 macros to play (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
 - **Interface rules** (every part of the page follows them):
   - tabs move between views or editors; pills choose a value or a mode (Wave / Spectrum, Draw / Select, an LFO's

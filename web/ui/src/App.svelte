@@ -23,9 +23,10 @@
 
   // the three main views (kept in the browser)
   const VIEWS = [
-    ['clip', 'Sequence'],
-    ['synth', 'Synth'],
-    ['code', 'Code'],
+    // id, name, the icon of its title (16 x 16, stroked)
+    ['clip', 'Sequence', 'M2 2.5v11M2 13.5h12M4.5 4.5h3.5M7 7.5h4.5M9.5 10.5h3'],
+    ['synth', 'Synth', 'M1.5 8c1.2 0 1.6-5 3.2-5s1.8 10 3.3 10 1.7-10 3.3-10 1.8 5 3.2 5'],
+    ['code', 'Code', 'M5.5 3.5C4 3.5 4 4.5 4 6s-.8 2-1.8 2c1 0 1.8.5 1.8 2s0 2.5 1.5 2.5M10.5 3.5c1.5 0 1.5 1 1.5 2.5s.8 2 1.8 2c-1 0-1.8.5-1.8 2s0 2.5-1.5 2.5'],
   ];
   let main = $state(remembered('synth.main', 'clip'));
   if (!VIEWS.some(([id]) => id === main)) main = 'clip';
@@ -68,6 +69,10 @@
 
 <svelte:window onkeydown={onKey} />
 
+{#snippet title(i)}
+  <h1 class="viewtitle"><span class="vicon"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d={VIEWS[i][2]} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></span>{VIEWS[i][1]}</h1>
+{/snippet}
+
 {#if !s.started}
   <Splash />
 {:else}
@@ -77,9 +82,9 @@
     <main>
       <TopBar bind:view={main} views={VIEWS} />
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'clip'}><h1 class="viewtitle">Sequence</h1><ClipTab /></div>
-      {#if main === 'synth'}<h1 class="viewtitle">Synth</h1><SynthTab />{/if}
-      {#if main === 'code'}<h1 class="viewtitle">Code</h1><CodeView />{/if}
+      <div hidden={main !== 'clip'}>{@render title(0)}<ClipTab /></div>
+      {#if main === 'synth'}{@render title(1)}<SynthTab />{/if}
+      {#if main === 'code'}{@render title(2)}<CodeView />{/if}
     </main>
 
     <footer>

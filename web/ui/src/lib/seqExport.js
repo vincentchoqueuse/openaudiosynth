@@ -65,7 +65,8 @@ export function fromDoc(d) {
     const at = `notes[${i}]`;
     if (!n || typeof n !== 'object') throw new Error(`${at}: {pitch, start, length, velocity}`);
     if (!Number.isInteger(n.pitch) || n.pitch < 0 || n.pitch > 127) throw new Error(`${at}.pitch: a MIDI note 0..127 (60 = C4)`);
-    if (typeof n.start !== 'number' || !(n.start >= 0) || n.start >= s.length) throw new Error(`${at}.start: beats from 0 to below the length (${s.length})`);
+    // a note past the end does not play, but stays (the clip may be lengthened again)
+    if (typeof n.start !== 'number' || !(n.start >= 0) || n.start > 1024) throw new Error(`${at}.start: beats from 0`);
     if (typeof n.length !== 'number' || !(n.length > 0) || n.length > 256) throw new Error(`${at}.length: beats above 0`);
     const v = n.velocity ?? 100;
     if (!Number.isInteger(v) || v < 1 || v > 127) throw new Error(`${at}.velocity: 1..127`);

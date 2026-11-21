@@ -26,11 +26,14 @@ const back = fromDoc(JSON.parse(text));
 const norm = (ns) => JSON.stringify([...ns].sort((a, b) => a.start - b.start));
 if (norm(back.notes) !== norm(clip.notes) || back.bpm !== 90 || back.length !== 8 || back.grid !== 0.5 || back.root !== 4) fail('fromDoc round trip');
 const doc = JSON.parse(text);
-for (const [bad, why] of [[{ ...doc, notes: [{ pitch: 130, start: 0, length: 1 }] }, 'pitch'], [{ ...doc, notes: [{ pitch: 60, start: 9, length: 1 }] }, 'start'],
+for (const [bad, why] of [[{ ...doc, notes: [{ pitch: 130, start: 0, length: 1 }] }, 'pitch'], [{ ...doc, notes: [{ pitch: 60, start: -1, length: 1 }] }, 'start'],
   [{ ...doc, notes: [{ pitch: 60, start: 0, length: 0 }] }, 'length'], [{ ...doc, notes: [{ pitch: 60, start: 0, length: 1, velocity: 200 }] }, 'velocity'],
   [{ ...doc, grid: '1/5' }, '"grid"'], [{ ...doc, key: 'H minor' }, '"key"'], [{ ...doc, loop: 'yes' }, '"loop"']]) {
   try { fromDoc(bad); fail('fromDoc accepted ' + JSON.stringify(bad)); } catch (e) { if (!e.message.includes(why)) fail(`fromDoc: "${e.message}", expected "${why}"`); }
 }
+
+// a note past the clip's end (the clip was shortened) stays: it does not play, the clip still loads
+if (fromDoc({ ...doc, length: 4 }).notes.length !== clip.notes.length) fail('fromDoc dropped the notes past the end');
 
 // the earlier step grid becomes notes (held steps lengthen them; accent 127, soft 50)
 const old = fromCells({ '52:0': 'on', '52:1': 'tie', '52:2': 'tie', '55:4': 'acc', '59:6': 'soft' }, 0.5, 16);

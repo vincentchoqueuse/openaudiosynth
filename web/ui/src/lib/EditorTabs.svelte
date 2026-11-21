@@ -13,7 +13,7 @@
 
   const TABS = [['sound', 'Sound'], ['fx', 'Effects'], ['part', 'Part'], ['mod', 'Modulation'], ['seq', 'Sequence'], ['json', 'JSON']];
   let tab = $state('sound');
-  $effect(() => { s.current; tab = 'sound'; }); // a sound picked in the library opens on its parameters
+  $effect(() => { s.picks; tab = 'sound'; }); // a sound picked in the library opens on its parameters
 </script>
 
 <div class="tabs" role="tablist">

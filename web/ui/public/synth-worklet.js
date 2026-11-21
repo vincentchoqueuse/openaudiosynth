@@ -113,6 +113,7 @@ class SynthProcessor extends AudioWorkletProcessor {
       }
       case 'notes': { // a clip: Float32Array of [pitch, start, length, velocity] per note, in beats
         const data = new Float32Array(m.data), p = data.length ? w.w_alloc(data.byteLength) : 0;
+        if (data.length && !p) throw new Error('out of memory for the clip');
         if (p) new Float32Array(w.memory.buffer, p, data.length).set(data);
         let len;
         try { len = w.w_notes(p, data.length / 4, m.bpm, m.length, m.loop ? 1 : 0); } finally { if (p) w.w_free(p); }

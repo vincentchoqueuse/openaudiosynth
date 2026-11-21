@@ -27,6 +27,7 @@ class Session {
   playing = $state(false); // the audition plays
   seqPlaying = $state(false); // the sequence plays (the audition waits)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
+  picks = $state(0); // sounds picked in the library (the editors open on Sound)
   midiNames = $state([]);
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)
   saving = $state(null); // the save dialog: {name, description, exists, error}
@@ -150,6 +151,7 @@ class Session {
     this.info = p;
     this.baseline = { ...this.values };
     this.notes = '';
+    this.picks++;
     return true;
   };
 
@@ -161,7 +163,8 @@ class Session {
     if (seq !== this.#loadSeq) return null; // another patch was clicked meanwhile
     if (!r.ok) { this.say(r.error); return r; }
     clearTimeout(this.#playTimer);
-    this.playing = false; // an audition ends with the sound it was playing; a running sequence goes on
+    if (this.playing) this.synth.stop(); // an audition ends with the sound it was playing (the player outlives
+    this.playing = false;                // a patch load, for the sequence, which goes on)
     this.patchGen++;
     this.engineId = r.engine;
     this.resetValues(true); // a patch starts from a fresh synth_init, like synth_render

@@ -11,6 +11,8 @@
 
   const ROW = 15, EDGE = 7; // row height, grab width of a note's right edge (px)
   let width = $state(600); // of the time area
+  let scroller, gutter = $state(0); // width of the scroll area's scrollbar: the ruler leaves it out too
+  $effect(() => { width; gutter = scroller ? scroller.offsetWidth - scroller.clientWidth : 0; });
   const ppb = $derived(width / q.length); // pixels per beat
   // pitches shown: two octaves from the key's octave, widened to every note, high first
   const pitches = $derived.by(() => {
@@ -50,7 +52,7 @@
       return;
     }
     if (pitch < 0 || pitch > 127 || beat >= q.length) return;
-    const start = Math.min(Math.floor(beat / q.grid) * q.grid, q.length - q.grid);
+    const start = Math.max(0, Math.min(Math.floor(beat / q.grid) * q.grid, q.length - q.grid));
     const id = q.add(pitch, start, q.grid);
     sound(pitch);
     drag = { id, mode: 'size', beat0: start + q.grid, pitch0: pitch, note0: pitch, start0: start, length0: q.grid, vel0: 100, y0: e.clientY };
@@ -62,7 +64,7 @@
       const end = Math.max(drag.start0 + g, snapTo(drag.start0 + drag.length0 + beat - drag.beat0, fine));
       q.update(drag.id, { length: end - drag.start0 });
     } else if (drag.mode === 'move') {
-      const start = Math.min(Math.max(0, snapTo(drag.start0 + beat - drag.beat0, fine)), q.length - g);
+      const start = Math.max(0, Math.min(snapTo(drag.start0 + beat - drag.beat0, fine), q.length - g));
       const p = Math.min(127, Math.max(0, drag.note0 + pitch - drag.pitch0));
       const before = q.notes.find((x) => x.id === drag.id)?.pitch;
       q.update(drag.id, { start, pitch: p });
@@ -93,7 +95,7 @@
   }
 </script>
 
-<div class="roll" style="--ppb:{ppb}px; --row:{ROW}px; --grid:{q.grid * ppb}px">
+<div class="roll" style="--ppb:{ppb}px; --row:{ROW}px; --grid:{q.grid * ppb}px; --gutter:{gutter}px">
   <div class="corner"></div>
   <div class="ruler" class:off={!q.loop}>
     {#each bars as b}
@@ -106,7 +108,7 @@
             onkeydown={(e) => { if (e.key === 'ArrowRight') q.length = Math.min(64, q.length + 1); if (e.key === 'ArrowLeft') q.length = Math.max(1, q.length - 1); }}></span>
     </div>
   </div>
-  <div class="scroll">
+  <div class="scroll" bind:this={scroller}>
     <div class="pkeys">
       {#each pitches as p (p)}
         <button class="key" class:black={black(p)} class:c={p % 12 === 0} onpointerdown={() => sound(p)} tabindex="-1">
@@ -136,12 +138,12 @@
 <style>
   .roll { display: grid; grid-template-columns: 44px 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); user-select: none; }
   .corner { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
-  .ruler { position: relative; height: 24px; border-bottom: 1px solid var(--line); }
+  .ruler { position: relative; height: 24px; border-bottom: 1px solid var(--line); margin-right: var(--gutter, 0px); }
   .ruler .bar { position: absolute; top: 3px; font: 10.5px var(--mono); color: var(--muted); padding-left: 4px; border-left: 1px solid var(--line); height: 18px; }
   .brace { position: absolute; left: 0; bottom: 0; height: 6px; background: var(--accent); border-radius: 0 3px 3px 0; }
   .ruler.off .brace { background: var(--muted); opacity: .5; }
   .handle { position: absolute; right: -5px; bottom: -3px; width: 10px; height: 14px; border-radius: 3px; background: var(--text); cursor: ew-resize; touch-action: none; }
-  .scroll { grid-column: 1 / 3; display: grid; grid-template-columns: 44px 1fr; max-height: 420px; overflow-y: auto; }
+  .scroll { grid-column: 1 / 3; display: grid; grid-template-columns: 44px 1fr; max-height: 420px; overflow-y: auto; scrollbar-gutter: stable; }
   .pkeys { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
   .key { flex: none; box-sizing: border-box; height: var(--row); min-height: 0; line-height: var(--row); font: 9.5px/var(--row) var(--mono); color: var(--muted);
     text-align: right; padding: 0 5px; margin: 0; border: 0; border-radius: 0; background: transparent; }

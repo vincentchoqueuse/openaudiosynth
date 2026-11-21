@@ -33,7 +33,8 @@
       if (!s.seqPlaying) s.playing ? s.stop() : s.current && s.play();
       return;
     }
-    if (keyIsForControl(e) && !e.target?.closest?.('.grid')) return;
+    // Space is the transport's everywhere but where it types or ticks (text fields, menus, checkboxes, sliders)
+    if (keyIsForControl(e) && e.target?.tagName !== 'BUTTON') return;
     e.preventDefault();
     sequence.toggle();
   }

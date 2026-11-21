@@ -5,6 +5,7 @@
 
 #include "acid.h"
 #include "coupled.h"
+#include "drone.h"
 #include "drums.h"
 #include "fm6.h"
 #include "modal.h"
@@ -29,6 +30,7 @@ typedef union {
     coupled_t coupled;
     selfosc_engine_t selfosc;
     sampler_t sampler;
+    drone_t drone;
 } engine_state_t;
 
 #endif /* ENGINE_REGISTRY_H */

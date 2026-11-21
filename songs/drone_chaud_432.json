@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "name": "drone_chaud_432",
+  "description": "Ten minutes of warm drone at A4 = 432 Hz: a low A held throughout, three-note chords of A major moving one voice at a time every 32 s, dark saws breathing under the partials, a dark reverb.",
+  "bpm": 60,
+  "length_beats": 600,
+  "tail_s": 20,
+  "tracks": [
+    {
+      "patch": "patches/drone_warm.json",
+      "step": 8,
+      "notes": "A1 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
+      "gain_db": -2,
+      "reverb_send": 0.3,
+      "velocity": 90,
+      "gate": 1,
+      "params": {
+        "a4_hz": 432,
+        "density": 0.35,
+        "temperature": 0.85,
+        "sparkle": 0,
+        "amp_attack": 20,
+        "amp_release": 20
+      }
+    },
+    {
+      "patch": "patches/drone_warm.json",
+      "step": 8,
+      "start_step": 2,
+      "notes": "A3+C#4+E4 _ _ _ A3+C#4+G#4 _ _ _ A3+E4+G#4 _ _ _ C#4+E4+G#4 _ _ _ C#4+E4+A4 _ _ _ B3+E4+A4 _ _ _ B3+F#4+A4 _ _ _ A3+F#4+A4 _ _ _ A3+E4+A4 _ _ _ A3+E4+G#4 _ _ _ A3+E4+A4 _ _ _ A3+E4+G#4 _ _ _ G#3+E4+G#4 _ _ _ A3+E4+G#4 _ _ _ A3+E4+A4 _ _ _ A3+F#4+A4 _ _ _ A3+E4+A4 _ _ _ A3+E4+G#4 _ _ _",
+      "gain_db": -6,
+      "reverb_send": 0.7,
+      "velocity": 70,
+      "gate": 1,
+      "params": {
+        "a4_hz": 432,
+        "amp_attack": 14,
+        "amp_release": 18
+      }
+    },
+    {
+      "patch": "patches/drone_warm.json",
+      "step": 8,
+      "start_step": 6,
+      "notes": "- - - - B5 - - - - - A5 - - - - - - - - - - E5 - - - - - - - - - - - - - - - E6 - - - - - A5 - - - - - - A5 - - - - - - - E5 - - - - A5 - - B5 - - - - - - - -",
+      "gain_db": -16,
+      "reverb_send": 1.0,
+      "velocity": 60,
+      "gate": 0.5,
+      "params": {
+        "a4_hz": 432,
+        "density": 0.15,
+        "sparkle": 0.6,
+        "amp_attack": 6,
+        "amp_release": 16,
+        "width": 1.0
+      }
+    }
+  ],
+  "reverb": {
+    "decay": 0.95,
+    "damping_hz": 2600,
+    "predelay_s": 0.05,
+    "size": 2.0,
+    "return_db": 0
+  },
+  "master": {
+    "fade_in_s": 15,
+    "fade_out_s": 30
+  }
+}

@@ -5,6 +5,7 @@
 #include "fm6.h"
 #include "wt.h"
 #include "coupled.h"
+#include "drone.h"
 #include "selfosc.h"
 #include "modal.h"
 #include "mono.h"
@@ -26,6 +27,7 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_COUPLED] = &coupled_engine,
     [SYNTH_ENGINE_SELFOSC] = &selfosc_engine,
     [SYNTH_ENGINE_SAMPLER] = &sampler_engine,
+    [SYNTH_ENGINE_DRONE] = &drone_engine,
 };
 
 static int same(const char *a, const char *b)

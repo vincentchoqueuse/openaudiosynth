@@ -1096,3 +1096,25 @@ drum sampler: a kit of samples, 16 pads with speed, start/end, reverse, loop, fi
 | `pad16_pan` | -1 .. 1 | 0 | yes | `pad16.pan` | stereo position, -1 left .. 1 right |
 | `pad16_cutoff` | 20 .. 20000 Hz | 20000 | yes | `pad16.cutoff` | low-pass cutoff (20 kHz: open) |
 | `pad16_choke` | 0 .. 8 | 0 |  | `pad16.choke` | choke group 1..8: a pad stops the others of its group (closed hi-hat over open); 0 none |
+
+## Engine `drone` (6 voices)
+
+drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width; envelopes up to 3 minutes (6 voices)
+
+| name | range / choices | default | live | role | what it does |
+|---|---|---|---|---|---|
+| `temperature` | 0 .. 1 | 0.5 | yes | `drone.temperature` | glacial (0: pure glassy partials, high whistling air, bright bells) .. warm (1: dark partials, a body of detuned saws, low breathy air) |
+| `density` | 0 .. 1 | 0.5 | yes | `drone.density` | how many partials sound (1 .. 12) and how much air: a lone sine .. a wall |
+| `motion` | 0 .. 1 | 0.35 | yes | `drone.motion` | speed of every drift: 0 = almost still (walks over ~2 min), 1 = alive (~3 s) |
+| `depth` | 0 .. 1 | 0.4 | yes | `drone.depth` | size of the drifts: partial levels (up to +/-9 dB), pitches (up to +/-8 cents), body cut-off, air |
+| `brightness` | 0 .. 1 | 0.5 | yes | `drone.brightness` | spectral tilt of the partials and cut-off of the body |
+| `sparkle` | 0 .. 1 | 0.15 | yes | `drone.sparkle` | how often a high harmonic rings out of a note (0 = never, 1 = about 10 a minute) |
+| `width` | 0 .. 1 | 0.7 | yes | `drone.width` | stereo spread of the partials, each wandering in its own place |
+| `partials_level` | -60 .. 6 dB | 0 | yes | `drone.partials_level` | level of the partials layer |
+| `body_level` | -60 .. 6 dB | -4 | yes | `drone.body_level` | level of the body (detuned saws in a low-pass), faded in by temperature |
+| `air_level` | -60 .. 6 dB | -6 | yes | `drone.air_level` | level of the air (noise in band-passes on the note's harmonics) |
+| `sparkle_level` | -60 .. 6 dB | -6 | yes | `drone.sparkle_level` | level of the sparkles |
+| `amp_attack` | 0.05 .. 180 s | 6 | yes | `amp.attack` | fade in of a note (up to 3 minutes) |
+| `amp_release` | 0.05 .. 180 s | 10 | yes | `amp.release` | fade out of a note (up to 3 minutes) |
+| `volume` | -60 .. 6 dB | 0 | yes | `output.volume` | volume |
+| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |

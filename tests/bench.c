@@ -105,6 +105,7 @@ void run_bench(void)
     bench_engine("wt-u8", SYNTH_ENGINE_WT, 8, 1, 0);
     bench_engine("coupled", SYNTH_ENGINE_COUPLED, 8, 0, 0);
     bench_engine("selfosc", SYNTH_ENGINE_SELFOSC, 8, 0, 0);
+    bench_engine("drone", SYNTH_ENGINE_DRONE, 6, 0, 0);
     /* the oversample setting of the nonlinear filters */
     bench_engine_os("mono-1x", SYNTH_ENGINE_MONO, 1, 0, 0, 0);
     bench_engine_os("mono-4x", SYNTH_ENGINE_MONO, 1, 0, 0, 2);

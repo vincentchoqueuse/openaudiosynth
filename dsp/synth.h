@@ -24,6 +24,7 @@ typedef enum {
     SYNTH_ENGINE_COUPLED,  /* coupled-oscillator networks: Stuart-Landau partials, modulus <-> phase coupling */
     SYNTH_ENGINE_SELFOSC,  /* self-oscillating Van der Pol / Duffing oscillators forced by the note */
     SYNTH_ENGINE_SAMPLER,  /* drum sampler: a kit of samples (synth_part_kit), 16 pads with their own settings */
+    SYNTH_ENGINE_DRONE,    /* drone machine: wandering partials, warm body, air, sparkles; glacial .. warm */
     SYNTH_ENGINE_COUNT
 } synth_engine_t;
 

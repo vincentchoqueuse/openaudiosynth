@@ -1161,6 +1161,27 @@
         "pad16_cutoff": {"type": "float", "range": [20, 20000], "default": 20000, "unit": "Hz", "scale": "log", "realtime": true, "role": "pad16.cutoff", "help": "low-pass cutoff (20 kHz: open)"},
         "pad16_choke": {"type": "int", "range": [0, 8], "default": 0, "realtime": false, "role": "pad16.choke", "help": "choke group 1..8: a pad stops the others of its group (closed hi-hat over open); 0 none"}
       }
+    },
+    "drone": {
+      "description": "drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, air on the harmonics and rare sparkles; temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width; envelopes up to 3 minutes (6 voices)",
+      "voices": 6,
+      "params": {
+        "temperature": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drone.temperature", "help": "glacial (0: pure glassy partials, high whistling air, bright bells) .. warm (1: dark partials, a body of detuned saws, low breathy air)"},
+        "density": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drone.density", "help": "how many partials sound (1 .. 12) and how much air: a lone sine .. a wall"},
+        "motion": {"type": "float", "range": [0, 1], "default": 0.35, "realtime": true, "role": "drone.motion", "help": "speed of every drift: 0 = almost still (walks over ~2 min), 1 = alive (~3 s)"},
+        "depth": {"type": "float", "range": [0, 1], "default": 0.4, "realtime": true, "role": "drone.depth", "help": "size of the drifts: partial levels (up to +/-9 dB), pitches (up to +/-8 cents), body cut-off, air"},
+        "brightness": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drone.brightness", "help": "spectral tilt of the partials and cut-off of the body"},
+        "sparkle": {"type": "float", "range": [0, 1], "default": 0.15, "realtime": true, "role": "drone.sparkle", "help": "how often a high harmonic rings out of a note (0 = never, 1 = about 10 a minute)"},
+        "width": {"type": "float", "range": [0, 1], "default": 0.7, "realtime": true, "role": "drone.width", "help": "stereo spread of the partials, each wandering in its own place"},
+        "partials_level": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "drone.partials_level", "help": "level of the partials layer"},
+        "body_level": {"type": "float", "range": [-60, 6], "default": -4, "unit": "dB", "realtime": true, "role": "drone.body_level", "help": "level of the body (detuned saws in a low-pass), faded in by temperature"},
+        "air_level": {"type": "float", "range": [-60, 6], "default": -6, "unit": "dB", "realtime": true, "role": "drone.air_level", "help": "level of the air (noise in band-passes on the note's harmonics)"},
+        "sparkle_level": {"type": "float", "range": [-60, 6], "default": -6, "unit": "dB", "realtime": true, "role": "drone.sparkle_level", "help": "level of the sparkles"},
+        "amp_attack": {"type": "float", "range": [0.05, 180], "default": 6, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "fade in of a note (up to 3 minutes)"},
+        "amp_release": {"type": "float", "range": [0.05, 180], "default": 10, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "fade out of a note (up to 3 minutes)"},
+        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
+      }
     }
   }
 }

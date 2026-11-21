@@ -38,7 +38,7 @@ static const struct {
 } knob_targets[] = {
     {"sine", {"attack", "decay", "sustain", "release", "volume", ""}},
     {"va", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_attack", "amp_release"}},
-    {"acid", {"cutoff", "resonance", "env_mod", "decay", "accent", "drive"}},
+    {"acid", {"cutoff", "resonance", "env_mod", "decay", "accent", "distortion"}},
     {"mono", {"cutoff", "emphasis", "contour", "fenv_decay", "mixer_drive", "glide"}},
     {"poly", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_release", "lfo_filter"}},
     {"fm6", {"op2_level", "op4_level", "op6_level", "feedback", "lfo_speed", "lfo_pmd"}},

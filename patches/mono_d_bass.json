@@ -35,7 +35,7 @@
     "master": 3
   },
   "audition": {
-    "notes": "E1 _ E2 E1 - G1 A1 _ E1 _ E2 D2 - B0 D1 _",
+    "notes": "E3 _ E4 E3 - G3 A3 _ E3 _ E4 D4 - B2 D3 _",
     "bpm": 104,
     "step": 0.5,
     "gate": 0.85

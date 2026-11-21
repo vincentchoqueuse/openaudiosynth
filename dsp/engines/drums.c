@@ -11,17 +11,17 @@
 #define LOG2_1000 9.96578428f
 
 const char *const drums_instrument_names[DR_COUNT] = {"kick", "snare", "clap", "rim", "chat", "ohat",
-                                                      "ltom", "mtom", "htom", "cymbal", "cowbell", "clave"};
-const uint8_t drums_instrument_notes[DR_COUNT] = {36, 38, 39, 37, 42, 46, 41, 45, 48, 49, 56, 75};
+                                                      "ltom", "mtom", "htom", "cymbal", "cowbell", "clave", "bass"};
+const uint8_t drums_instrument_notes[DR_COUNT] = {36, 38, 39, 37, 42, 46, 41, 45, 48, 49, 56, 75, 29};
 
 /* Output gain per instrument (calibrated so the default kit sits around -12..-6 dBFS peak). */
 static const float inst_gain[DR_COUNT] = {0.55f, 0.42f, 1.6f, 0.4f, 0.32f, 0.3f,
-                                          0.5f, 0.5f, 0.5f, 0.28f, 0.17f, 0.4f};
+                                          0.5f, 0.5f, 0.5f, 0.28f, 0.17f, 0.4f, 0.5f};
 /* Stereo position at full stereo width (-1 left .. 1 right), a drummer's-view kit. */
 static const float inst_pan[DR_COUNT] = {0.0f, 0.0f, 0.1f, -0.2f, 0.35f, 0.4f,
-                                         -0.45f, -0.1f, 0.3f, -0.35f, 0.2f, 0.45f};
+                                         -0.45f, -0.1f, 0.3f, -0.35f, 0.2f, 0.45f, 0.0f};
 
-static const char *const kit_labels[] = {"analog", "hybrid", "glitch", NULL};
+static const char *const kit_labels[] = {"analog", "hybrid", "glitch", "trap", NULL};
 
 #define INST(I, n, tune_help, decay_help, tone_help)                                                     \
     PARAM(DRUMS_P(I, DRUMS_LEVEL), n "_level", "drum." n ".level", -60.0f, 6.0f, 0.0f, PARAM_DB, "dB", 1, NULL, n " level"), \
@@ -30,11 +30,12 @@ static const char *const kit_labels[] = {"analog", "hybrid", "glitch", NULL};
     PARAM(DRUMS_P(I, DRUMS_TONE), n "_tone", "drum." n ".tone", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL, tone_help)
 
 const param_desc_t drums_params[DRUMS_P_COUNT] = {
-    PARAM(DRUMS_P_KIT, "kit", "drum.kit", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, kit_labels,
+    PARAM(DRUMS_P_KIT, "kit", "drum.kit", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, kit_labels,
           "analog = deep booming kick, soft round snare, silky metallic hats (electro, hip-hop, ambient); "
           "hybrid = punchy clicky kick, bright snappy snare, gritty hats and rides (house, techno); "
           "glitch = digital microsound: sub sine pulses, single-sample clicks, pure high beeps, white and "
-          "decimated data noise, modem chirps (minimal, glitch, installation)"),
+          "decimated data noise, modem chirps (minimal, glitch, installation); trap = short punchy kick, tight "
+          "cracking snare, layered roomy clap, crisp bright hats for fast rolls"),
     PARAM(DRUMS_P_ACCENT, "accent", "drum.accent", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 0, NULL,
           "how much velocity changes level, decay and brightness (0 = every hit equal)"),
     PARAM(DRUMS_P_DRIVE, "drive", "drum.drive", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
@@ -57,6 +58,10 @@ const param_desc_t drums_params[DRUMS_P_COUNT] = {
     INST(DR_CYMBAL, "cymbal", "cymbal metal pitch", "cymbal length (crash/ride)", "brightness"),
     INST(DR_COWBELL, "cowbell", "cowbell pitch", "cowbell length", "brightness"),
     INST(DR_CLAVE, "clave", "clave pitch", "clave length", "unused"),
+    INST(DR_BASS, "bass", "bass drum transposition (it plays at its note's pitch, notes 0..34)",
+         "bass drum length: 1 = about 2 s, up to 5x", "drive: 0 = a clean sine, 1 = a growling, saturated boom"),
+    PARAM(DRUMS_P_GLIDE, "glide", "drum.bass.glide", 0.0f, 0.5f, 0.08f, PARAM_LIN, "s", 1, NULL,
+          "bass drum slide: a note played while the previous one is held slides from its pitch over this time")
 };
 
 int drums_instrument_for_note(int note)
@@ -74,7 +79,7 @@ int drums_instrument_for_note(int note)
     case 49: case 51: case 52: case 55: case 57: case 59: return DR_CYMBAL;
     case 56: return DR_COWBELL;
     case 75: case 76: case 77: return DR_CLAVE;
-    default: return -1;
+    default: return note >= 0 && note <= 34 ? DR_BASS : -1; /* under the drum map: the melodic bass drum */
     }
 }
 
@@ -138,7 +143,7 @@ static void clear_parts(drum_voice_t *v)
  * hybrid), `glitch_*` for the glitch kit. */
 
 typedef struct {
-    int inst, vi, hy;
+    int inst, vi, hy, note;
     float m;  /* tuning multiplier */
     float D;  /* decay multiplier (with accent) */
     float tn; /* tone 0..1 (with accent) */
@@ -436,6 +441,89 @@ static void setup_clave(drums_t *e, drum_voice_t *v, const drum_setup_t *c)
     reso_init(e, &v->reso[0], (hy ? 2700.0f : 2500.0f) * m, 0.06f * D, 1.0f);
 }
 
+/* ---------------- trap kit and the melodic bass drum ---------------- */
+
+/* The bass drum: a sine at the note's pitch with a short downward punch, a held body then a long decay, driven
+ * through tanh (tone), a soft click. Slides from the previous one when it is still held (set in voice_start). */
+static void setup_bass(drums_t *e, drum_voice_t *v, const drum_setup_t *c)
+{
+    v->f[0] = fm_mtof((float)c->note) * c->m;
+    v->mix_tone = 1.0f;
+    v->env_tone = 1.0f;
+    v->hold_tone = (int)(0.06f * e->sr);
+    v->c_tone = t60c(e, 2.0f * c->D);
+    v->pe_a = 1.0f, v->pe_a_st = 7.0f, v->pe_a_coef = t60c_block(e, 0.03f);
+    v->shape = 0.4f + 4.0f * c->tn;
+    v->env_click = 1.0f, v->c_click = t60c(e, 0.003f), v->mix_click = 0.25f;
+}
+
+static void trap_kick(drums_t *e, drum_voice_t *v, const drum_setup_t *c)
+{
+    /* short and punchy: a deep, fast sweep, a tight body, saturation and a hard click on top */
+    v->f[0] = 55.0f * c->m;
+    v->mix_tone = 1.0f, v->env_tone = 1.0f;
+    v->pe_a = 1.0f, v->pe_a_st = 26.0f, v->pe_a_coef = t60c_block(e, 0.045f);
+    v->c_tone = t60c(e, 0.45f * c->D);
+    v->shape = 2.6f;
+    v->env_noise = 1.0f, v->c_noise = t60c(e, 0.008f), v->mix_noise = 0.5f * c->tn;
+    svf_set_mode(&v->f1, SVF_HP);
+    svf_set(&v->f1, 3500.0f, 0.7f);
+    v->env_click = 1.0f, v->c_click = t60c(e, 0.0015f), v->mix_click = 0.7f * c->tn;
+}
+
+static void trap_snare(drums_t *e, drum_voice_t *v, const drum_setup_t *c)
+{
+    /* a tight crack: a short, high body and bright, quickly decaying wires */
+    v->f[0] = 205.0f * c->m, v->f[1] = 370.0f * c->m;
+    v->mix_tone2 = 0.5f;
+    v->pe_a = 1.0f, v->pe_a_st = 6.0f, v->pe_a_coef = t60c_block(e, 0.02f);
+    v->env_tone = 1.0f, v->c_tone = t60c(e, 0.09f * c->D);
+    v->mix_tone = 0.55f;
+    v->shape = 1.2f;
+    v->env_noise = 1.0f, v->c_noise = t60c(e, 0.17f * c->D);
+    v->mix_noise = (0.6f + 1.0f * c->tn) * 1.6f;
+    svf_set_mode(&v->f1, SVF_HP);
+    svf_set(&v->f1, 1800.0f, 0.6f);
+    svf_set_mode(&v->f2, SVF_LP);
+    svf_set(&v->f2, 11000.0f * fm_exp2(0.5f * (c->tn - 0.5f)), 0.6f);
+    v->noise_f2 = 1;
+    v->noise_att = 0.0f, v->noise_att_step = 1.0f / (0.0005f * e->sr);
+    v->env_click = 1.0f, v->c_click = t60c(e, 0.001f), v->mix_click = 0.4f;
+}
+
+static void trap_clap(drums_t *e, drum_voice_t *v, const drum_setup_t *c)
+{
+    /* several hands at once: dense bursts, a bright band, a roomy tail */
+    svf_set_mode(&v->f1, SVF_BP);
+    svf_set(&v->f1, 1600.0f * c->m * fm_exp2(c->tn - 0.5f), 0.9f);
+    svf_set_mode(&v->f2, SVF_HP);
+    svf_set(&v->f2, 900.0f * c->m, 0.7f);
+    v->noise_f2 = 1;
+    v->mix_noise = 1.1f;
+    v->burst_left = 5;
+    v->burst_period = (int)(0.006f * e->sr);
+    v->burst_timer = 0;
+    v->c_burst = t60c(e, 0.025f);
+    v->c_noise = t60c(e, 0.38f * c->D);
+}
+
+static void trap_hat(drums_t *e, drum_voice_t *v, const drum_setup_t *c)
+{
+    /* crisp and bright, made for fast rolls: metal with noise high up, a very short closed hat */
+    const int open = c->inst == DR_OHAT;
+    metal_init(e, v, metal6, 6, c->m * 1.15f);
+    v->mix_metal = 1.4f;
+    v->env_metal = 1.0f;
+    v->c_metal = t60c(e, (open ? 0.5f : 0.045f) * c->D);
+    v->metal_noise = 0.8f;
+    svf_set_mode(&v->f1, SVF_BP);
+    svf_set(&v->f1, 10500.0f * fm_exp2(c->tn - 0.5f), 0.8f);
+    svf_set_mode(&v->f2, SVF_HP);
+    svf_set(&v->f2, 8000.0f, 0.7f);
+    if (!open)
+        choke_open_hat(e, c->vi);
+}
+
 static const drum_recipe_t recipes[DR_COUNT] = {
     [DR_KICK] = setup_kick,
     [DR_SNARE] = setup_snare,
@@ -449,6 +537,7 @@ static const drum_recipe_t recipes[DR_COUNT] = {
     [DR_CYMBAL] = setup_cymbal,
     [DR_COWBELL] = setup_cowbell,
     [DR_CLAVE] = setup_clave,
+    [DR_BASS] = setup_bass,
 };
 static const drum_recipe_t glitch_recipes[DR_COUNT] = {
     [DR_KICK] = glitch_kick,
@@ -463,7 +552,25 @@ static const drum_recipe_t glitch_recipes[DR_COUNT] = {
     [DR_CYMBAL] = glitch_cymbal,
     [DR_COWBELL] = glitch_cowbell,
     [DR_CLAVE] = glitch_clave,
+    [DR_BASS] = setup_bass,
 };
+/* trap: its own kick, snare, clap and hats; the rest from the hybrid kit */
+static const drum_recipe_t trap_recipes[DR_COUNT] = {
+    [DR_KICK] = trap_kick,
+    [DR_SNARE] = trap_snare,
+    [DR_CLAP] = trap_clap,
+    [DR_RIM] = setup_rim,
+    [DR_CHAT] = trap_hat,
+    [DR_OHAT] = trap_hat,
+    [DR_LTOM] = setup_tom,
+    [DR_MTOM] = setup_tom,
+    [DR_HTOM] = setup_tom,
+    [DR_CYMBAL] = setup_cymbal,
+    [DR_COWBELL] = setup_cowbell,
+    [DR_CLAVE] = setup_clave,
+    [DR_BASS] = setup_bass,
+};
+static const drum_recipe_t *const kits[4] = {recipes, recipes, glitch_recipes, trap_recipes};
 
 static void voice_start(void *eng, int vi, int note, float vel, int hard)
 {
@@ -478,12 +585,12 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         return; /* not a drum note: the voice ends at the end of the block */
 
     const float *p = e->p;
-    const int kit = dsp_clampi((int)p[DRUMS_P_KIT], 0, 2);
+    const int kit = dsp_clampi((int)p[DRUMS_P_KIT], 0, 3);
     v->kit = kit;
     const float acc = p[DRUMS_P_ACCENT];
     vel = dsp_clampf(vel, 0.0f, 1.0f);
     drum_setup_t c;
-    c.inst = inst, c.vi = vi, c.hy = kit == 1;
+    c.inst = inst, c.vi = vi, c.hy = kit == 1 || kit == 3, c.note = note;
     c.m = fm_exp2(p[DRUMS_P(inst, DRUMS_TUNE)] * (1.0f / 12.0f));
     if (e->poly.vm[vi].tune != 0.0f) /* microtuning, at the hit (one-shots) */
         c.m *= fm_exp2(e->poly.vm[vi].tune * (1.0f / 12.0f));
@@ -497,13 +604,30 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
     svf_init(&v->f1, e->sr);
     svf_init(&v->f2, e->sr);
 
-    (kit == 2 ? glitch_recipes : recipes)[inst](e, v, &c);
+    kits[kit][inst](e, v, &c);
+    v->held = 1;
+    if (inst == DR_BASS) { /* one bass drum at a time: the previous one fades fast, and slides into this one if held */
+        const float pitch = (float)note + p[DRUMS_P(DR_BASS, DRUMS_TUNE)];
+        int slide = 0;
+        for (int j = 0; j < DRUMS_VOICES; j++) {
+            drum_voice_t *o = &e->v[j];
+            if (j == vi || o->inst != DR_BASS || !vpoly_active(&e->poly, j))
+                continue;
+            slide |= o->held && o->env_tone > 0.01f;
+            o->c_tone = t60c(e, 0.012f), o->hold_tone = 0;
+        }
+        if (slide && p[DRUMS_P_GLIDE] > 0.0f) {
+            v->pe_b = 1.0f, v->pe_b_st = e->bass_pitch - pitch, v->pe_b_coef = t60c_block(e, p[DRUMS_P_GLIDE]);
+            v->pe_a = 0.0f, v->env_click = 0.0f; /* a slide has no new punch */
+        }
+        e->bass_pitch = pitch;
+    }
     if (v->shape > 0.0f)
         v->shape_norm = 1.0f / fm_tanh(v->shape);
     v->level = 1.0f;
 }
 
-static void voice_release(void *eng, int vi) { (void)eng, (void)vi; } /* one-shots ignore note-off */
+static void voice_release(void *eng, int vi) { ((drums_t *)eng)->v[vi].held = 0; } /* one-shots ring on; the key is up */
 static float voice_level(const void *eng, int vi) { return ((const drums_t *)eng)->v[vi].level; }
 static void voice_silence(void *eng, int vi)
 {
@@ -708,14 +832,15 @@ static DSP_FAST_CODE void drums_render(void *st, float *L, float *R)
 
 static const engine_note_t drums_note_map[DR_COUNT] = {
     {36, "kick"}, {38, "snare"}, {39, "clap"}, {37, "rim"}, {42, "chat"}, {46, "ohat"},
-    {41, "ltom"}, {45, "mtom"}, {48, "htom"}, {49, "cymbal"}, {56, "cowbell"}, {75, "clave"},
+    {41, "ltom"}, {45, "mtom"}, {48, "htom"}, {49, "cymbal"}, {56, "cowbell"}, {75, "clave"}, {29, "bass"},
 };
 
 const engine_ops_t drums_engine = {
     .name = "drums",
-    .description = "drum machine, 12 instruments on GM notes (36 kick, 37 rim, 38 snare, 39 clap, 42 closed hat, 46 open "
+    .description = "drum machine, 12 instruments on GM notes plus a melodic bass drum (36 kick, 37 rim, 38 snare, 39 clap, 42 closed hat, 46 open "
                        "hat, 41/45/48 toms, 49 cymbal, 56 cowbell, 75 clave); kits: analog (early-80s analog machine) and "
-                       "hybrid (mid-80s analog/sample machine); per-instrument level, tune, decay, tone",
+                       "hybrid (mid-80s analog/sample machine), glitch, trap; under the map (notes 0..34) a melodic bass drum that "
+                       "slides between held notes; per-instrument level, tune, decay, tone",
     .params = drums_params,
     .param_count = DRUMS_P_COUNT,
     .voices = DRUMS_VOICES,

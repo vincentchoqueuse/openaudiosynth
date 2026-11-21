@@ -4,7 +4,9 @@
   "name": "acid_square",
   "description": "Square-wave acid: hollower and woodier, lower cutoff, more drive.",
   "params": {
-    "volume": -0.8,
+    "distortion": 0.2,
+    "dist_tone": 5500,
+    "volume": 0.9,
     "wave": "square",
     "cutoff": 300,
     "resonance": 0.7,

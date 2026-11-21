@@ -6,6 +6,9 @@
  * (digital microsound: gated sub sine pulses, single-sample clicks, pure high beeps, white and
  * sample-rate-reduced data noise, ring-modulated modem chirps, on precise grids).
  * Behaviour reconstructed from published circuit analyses and listening; no code or samples reused.
+ * A fourth kit, "trap": short punchy kick, tight cracking snare, layered roomy clap, crisp bright hats. Under
+ * the drum map (notes 0..34) a melodic bass drum plays at the note's pitch: a long sine boom with drive, one at a
+ * time, sliding from the previous one when the notes overlap (glide).
  * Velocity acts as accent. The closed hat chokes the open hat. */
 #ifndef ENGINE_DRUMS_H
 #define ENGINE_DRUMS_H
@@ -20,6 +23,7 @@
 enum {
     DR_KICK = 0, DR_SNARE, DR_CLAP, DR_RIM, DR_CHAT, DR_OHAT,
     DR_LTOM, DR_MTOM, DR_HTOM, DR_CYMBAL, DR_COWBELL, DR_CLAVE,
+    DR_BASS, /* melodic bass drum, notes 0..34 */
     DR_COUNT
 };
 
@@ -27,7 +31,8 @@ enum {
 enum { DRUMS_P_KIT = 0, DRUMS_P_ACCENT, DRUMS_P_DRIVE, DRUMS_P_STEREO, DRUMS_P_VOLUME, DRUMS_P_INST_BASE };
 enum { DRUMS_LEVEL = 0, DRUMS_TUNE, DRUMS_DECAY, DRUMS_TONE, DRUMS_PER_INST };
 #define DRUMS_P(inst, k) (DRUMS_P_INST_BASE + DRUMS_PER_INST * (inst) + (k))
-#define DRUMS_P_COUNT DRUMS_P(DR_COUNT, 0)
+#define DRUMS_P_GLIDE DRUMS_P(DR_COUNT, 0) /* bass drum slide time, after the instruments */
+#define DRUMS_P_COUNT (DRUMS_P_GLIDE + 1)
 
 extern const param_desc_t drums_params[DRUMS_P_COUNT];
 extern const engine_ops_t drums_engine;
@@ -58,6 +63,7 @@ typedef struct {
     int sh_period, sh_count;              /* noise sample-and-hold (sample-rate reduction) */
     float sh_val;
     int ring;                             /* tone osc 2 ring-modulates osc 1 */
+    int held;                             /* its key is down (bass drum: a new note slides from it) */
     int noise_f2;                         /* noise also goes through f2 (snare: high-pass + low-pass) */
     float noise_att, noise_att_step;      /* noise attack ramp (softens the wire burst) */
     svf_t f1, f2;
@@ -72,6 +78,7 @@ typedef struct {
     uint32_t rng, nan_count;
     vpoly_t poly;
     drum_voice_t v[DRUMS_VOICES];
+    float bass_pitch; /* the last bass drum note (MIDI, with its tune), where the next one slides from */
 } drums_t;
 
 #endif /* ENGINE_DRUMS_H */

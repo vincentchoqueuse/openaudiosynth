@@ -585,11 +585,11 @@
       }
     },
     "drums": {
-      "description": "drum machine, 12 instruments on GM notes (36 kick, 37 rim, 38 snare, 39 clap, 42 closed hat, 46 open hat, 41/45/48 toms, 49 cymbal, 56 cowbell, 75 clave); kits: analog (early-80s analog machine) and hybrid (mid-80s analog/sample machine); per-instrument level, tune, decay, tone",
+      "description": "drum machine, 12 instruments on GM notes plus a melodic bass drum (36 kick, 37 rim, 38 snare, 39 clap, 42 closed hat, 46 open hat, 41/45/48 toms, 49 cymbal, 56 cowbell, 75 clave); kits: analog (early-80s analog machine) and hybrid (mid-80s analog/sample machine), glitch, trap; under the map (notes 0..34) a melodic bass drum that slides between held notes; per-instrument level, tune, decay, tone",
       "voices": 16,
-      "notes": {"kick": 36, "snare": 38, "clap": 39, "rim": 37, "chat": 42, "ohat": 46, "ltom": 41, "mtom": 45, "htom": 48, "cymbal": 49, "cowbell": 56, "clave": 75},
+      "notes": {"kick": 36, "snare": 38, "clap": 39, "rim": 37, "chat": 42, "ohat": 46, "ltom": 41, "mtom": 45, "htom": 48, "cymbal": 49, "cowbell": 56, "clave": 75, "bass": 29},
       "params": {
-        "kit": {"type": "enum", "choices": ["analog", "hybrid", "glitch"], "default": "analog", "realtime": false, "role": "drum.kit", "help": "analog = deep booming kick, soft round snare, silky metallic hats (electro, hip-hop, ambient); hybrid = punchy clicky kick, bright snappy snare, gritty hats and rides (house, techno); glitch = digital microsound: sub sine pulses, single-sample clicks, pure high beeps, white and decimated data noise, modem chirps (minimal, glitch, installation)"},
+        "kit": {"type": "enum", "choices": ["analog", "hybrid", "glitch", "trap"], "default": "analog", "realtime": false, "role": "drum.kit", "help": "analog = deep booming kick, soft round snare, silky metallic hats (electro, hip-hop, ambient); hybrid = punchy clicky kick, bright snappy snare, gritty hats and rides (house, techno); glitch = digital microsound: sub sine pulses, single-sample clicks, pure high beeps, white and decimated data noise, modem chirps (minimal, glitch, installation); trap = short punchy kick, tight cracking snare, layered roomy clap, crisp bright hats for fast rolls"},
         "accent": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": false, "role": "drum.accent", "help": "how much velocity changes level, decay and brightness (0 = every hit equal)"},
         "drive": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "drum.drive", "help": "saturation of the whole kit: glue and grit, louder transients become rounder"},
         "stereo": {"type": "float", "range": [0, 1], "default": 0.4, "realtime": false, "role": "drum.stereo", "help": "spread of the instruments in the stereo field (0 = mono like the original machines)"},
@@ -641,7 +641,12 @@
         "clave_level": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "drum.clave.level", "help": "clave level"},
         "clave_tune": {"type": "float", "range": [-12, 12], "default": 0, "unit": "st", "realtime": true, "role": "drum.clave.tune", "help": "clave pitch"},
         "clave_decay": {"type": "float", "range": [0.2, 5], "default": 1, "unit": "x", "scale": "log", "realtime": true, "role": "drum.clave.decay", "help": "clave length"},
-        "clave_tone": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drum.clave.tone", "help": "unused"}
+        "clave_tone": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drum.clave.tone", "help": "unused"},
+        "bass_level": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "drum.bass.level", "help": "bass level"},
+        "bass_tune": {"type": "float", "range": [-12, 12], "default": 0, "unit": "st", "realtime": true, "role": "drum.bass.tune", "help": "bass drum transposition (it plays at its note's pitch, notes 0..34)"},
+        "bass_decay": {"type": "float", "range": [0.2, 5], "default": 1, "unit": "x", "scale": "log", "realtime": true, "role": "drum.bass.decay", "help": "bass drum length: 1 = about 2 s, up to 5x"},
+        "bass_tone": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drum.bass.tone", "help": "drive: 0 = a clean sine, 1 = a growling, saturated boom"},
+        "glide": {"type": "float", "range": [0, 0.5], "default": 0.08, "unit": "s", "realtime": true, "role": "drum.bass.glide", "help": "bass drum slide: a note played while the previous one is held slides from its pitch over this time"}
       }
     },
     "acid": {
@@ -658,7 +663,9 @@
         "slide": {"type": "float", "range": [0.01, 0.3], "default": 0.06, "unit": "s", "scale": "log", "realtime": true, "role": "voice.glide", "help": "slide time between overlapping notes ('~' in phrases); 60 ms is the classic"},
         "drive": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": true, "role": "filter.drive", "help": "saturation inside the filter: rounder, then grittier, louder resonance"},
         "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
-        "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"}
+        "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"},
+        "distortion": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "fx.distortion.amount", "help": "distortion after the filter, like a pedal: 0 = clean, 0.3 = warm grit, 0.6 = snarling, 1 = fuzz (level kept even)"},
+        "dist_tone": {"type": "float", "range": [1000, 12000], "default": 5000, "unit": "Hz", "scale": "log", "realtime": true, "role": "fx.distortion.tone", "help": "tone of the distortion: lower = darker, rounder; higher = fizzier"}
       }
     },
     "mono": {

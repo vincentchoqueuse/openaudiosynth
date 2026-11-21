@@ -33,6 +33,10 @@ const param_desc_t acid_params[ACID_P_COUNT] = {
           "saturation inside the filter: rounder, then grittier, louder resonance"),
     PARAM(ACID_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM_OVERSAMPLE(ACID_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"),
+    PARAM(ACID_P_DIST, "distortion", "fx.distortion.amount", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "distortion after the filter, like a pedal: 0 = clean, 0.3 = warm grit, 0.6 = snarling, 1 = fuzz (level kept even)"),
+    PARAM(ACID_P_DIST_TONE, "dist_tone", "fx.distortion.tone", 1000.0f, 12000.0f, 5000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "tone of the distortion: lower = darker, rounder; higher = fizzier"),
 };
 
 /* ---------------- vpoly callbacks (single voice) ---------------- */
@@ -105,6 +109,8 @@ static void acid_init(void *st, float sr)
     smooth_init(&e->sm_res, 0.005f, ctrl, e->p[ACID_P_RESO]);
     osc_init(&e->osc, sr);
     ladder_init(&e->filter, sr);
+    hb2x_reset(&e->dist_os);
+    e->dist_lp = 0.0f;
     ladder_set_mode(&e->filter, LADDER_LP18);
     ladder_set_oversampling(&e->filter, 2);
     e->pitch = 36.0f;
@@ -173,6 +179,23 @@ static DSP_FAST_CODE void acid_render(void *st, float *L, float *R)
         e->amp += (tgt - e->amp) * (tgt > e->amp ? e->amp_coef_up : e->amp_coef_down);
         x[i] *= e->amp;
     }
+    /* distortion: drive up to +36 dB into an asymmetric tanh (even harmonics too), 2x oversampled, then its tone
+     * (one-pole low-pass); the output is scaled back so turning it up changes the color more than the level */
+    const float dist = p[ACID_P_DIST];
+    if (dist > 0.0f) {
+        const float g = fm_db2lin(36.0f * dist), bias = 0.25f * dist, b0 = fm_tanh(bias);
+        const float mk = 0.7f / fm_tanh(0.7f * g);
+        const float a = 1.0f - fm_exp2(-FM_LOG2E * 6.2831853f * p[ACID_P_DIST_TONE] / e->sr);
+        for (int i = 0; i < n; i++) {
+            float u0, u1;
+            hb2x_up(&e->dist_os, x[i], &u0, &u1);
+            u0 = fm_tanh(g * u0 + bias) - b0;
+            u1 = fm_tanh(g * u1 + bias) - b0;
+            const float y = hb2x_down(&e->dist_os, u0, u1) * mk;
+            e->dist_lp += a * (y - e->dist_lp);
+            x[i] = e->dist_lp;
+        }
+    }
     const float g1 = ACID_GAIN * fm_db2lin(p[ACID_P_VOLUME]);
     dsp_ramp_mul(x, e->gain_prev, g1, n);
     e->gain_prev = g1;
@@ -184,7 +207,8 @@ static DSP_FAST_CODE void acid_render(void *st, float *L, float *R)
 static const engine_stage_t acid_stages[] = {
     {"osc", "Osc", "source", "wave tune", "", NULL, NULL, 0.0f, 0.0f},
     {"filter", "Filter", "filter", "cutoff resonance env_mod decay drive oversample", "osc", NULL, NULL, 0.0f, 0.0f},
-    {"amp", "Amp", "amp", "volume", "filter", NULL, NULL, 0.0f, 0.0f},
+    {"dist", "Distortion", "filter", "distortion dist_tone", "filter", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "volume", "dist", NULL, NULL, 0.0f, 0.0f},
     {"voice", "Accent and slide", "voice", "accent slide", "", NULL, NULL, 0.0f, 0.0f},
 };
 

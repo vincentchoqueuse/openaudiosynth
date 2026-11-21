@@ -1,5 +1,5 @@
-/* test_drums.c — drum engine through the public API: every instrument of both kits is finite, bounded
- * and deterministic; kick settles on its pitch; decay scales length; the closed hat chokes the open hat;
+/* test_drums.c — drum engine through the public API: every instrument of every kit is finite, bounded
+ * and deterministic; kick settles on its pitch; the bass drum plays at its note and slides between held notes; decay scales length; the closed hat chokes the open hat;
  * non-drum notes are silent. */
 #include <math.h>
 #include <stdlib.h>
@@ -22,11 +22,11 @@ static void render(float *L, float *R, int n)
         synth_render(synth_default(), L + i, R + i, n - i < 256 ? n - i : 256);
 }
 
-static void kit(int k) /* 0 analog, 1 hybrid, 2 glitch */
+static void kit(int k) /* 0 analog, 1 hybrid, 2 glitch, 3 trap */
 {
     synth_init(synth_default(), SR);
     synth_set_engine(synth_default(), SYNTH_ENGINE_DRUMS);
-    synth_set_param(synth_default(), DRUMS_P_KIT, (float)k / 2.0f);
+    synth_set_param(synth_default(), DRUMS_P_KIT, (float)k / 3.0f);
 }
 
 /* time (s) at which the 10 ms RMS first falls 40 dB below its maximum */
@@ -47,7 +47,7 @@ void suite_drums(void)
     float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
     float *L2 = malloc(sizeof(float) * (size_t)n), *R2 = malloc(sizeof(float) * (size_t)n);
 
-    for (int hy = 0; hy < 3; hy++) { /* analog, hybrid, glitch */
+    for (int hy = 0; hy < 4; hy++) { /* analog, hybrid, glitch, trap */
         for (int i = 0; i < DR_COUNT; i++) {
             for (int run = 0; run < 2; run++) {
                 kit(hy);
@@ -63,6 +63,29 @@ void suite_drums(void)
             CHECK(rms(L + n - 4800, 4800) < 1e-4f, "%s kit %d: still sounding after 3 s", drums_instrument_names[i], hy);
         }
     }
+
+    /* bass drum: at its note (A1 = 55 Hz); held F1 then A#1 slides from 43.7 Hz up to 58.3 Hz */
+    kit(3);
+    hit(33, 100);
+    render(L, R, 48000);
+    float fb = estimate_freq(L + 9600, 9600, SR);
+    CHECK(fabsf(fb - 55.0f) < 1.5f, "bass drum A1: %.1f Hz", (double)fb);
+    kit(3);
+    synth_set_param(synth_default(), DRUMS_P_GLIDE, 0.6f); /* 0.3 s */
+    hit(29, 100);
+    render(L, R, 12000);
+    hit(34, 100); /* F1 still held: a slide */
+    render(L, R, 48000);
+    const float f_start = estimate_freq(L + 480, 1920, SR), f_end = estimate_freq(L + 24000, 9600, SR);
+    CHECK(f_start < 52.0f && fabsf(f_end - 58.27f) < 1.5f, "bass drum slide: %.1f Hz -> %.1f Hz", (double)f_start, (double)f_end);
+    kit(3);
+    hit(29, 100);
+    render(L, R, 12000);
+    { const uint8_t off[3] = {0x80, 29, 0}; synth_midi(synth_default(), off, 3, 0); }
+    hit(34, 100); /* F1 released: no slide, A#1 at once */
+    render(L, R, 48000);
+    const float f_jump = estimate_freq(L + 2400, 4800, SR);
+    CHECK(fabsf(f_jump - 58.27f) < 2.5f, "bass drum without slide: %.1f Hz", (double)f_jump);
 
     /* analog kick settles near 49 Hz */
     kit(0);

@@ -10,7 +10,7 @@ export const SCALES = {
   lydian: [0, 2, 4, 6, 7, 9, 11], chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
 };
 // snap values of the piano roll, in beats
-export const GRIDS = [['1/32', 0.125], ['1/16', 0.25], ['1/8', 0.5], ['1/4', 1], ['1/2', 2], ['1 bar', 4]];
+export const GRIDS = [['1/32', 0.125], ['1/32t', 1 / 12], ['1/16', 0.25], ['1/16t', 1 / 6], ['1/8', 0.5], ['1/8t', 1 / 3], ['1/4', 1], ['1/2', 2], ['1 bar', 4]];
 
 export const noteName = (n) => NAMES[n % 12] + (Math.floor(n / 12) - 1);
 export const inScale = (n, root, scale) => (SCALES[scale] ?? SCALES.chromatic).includes(((n - root) % 12 + 12) % 12);

@@ -3,6 +3,7 @@
  * back, pink noise, LFO through the wheel, lo range), and bounded/deterministic output under random parameters. */
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "engines/acid.h"
 #include "engines/mono.h"
@@ -50,6 +51,29 @@ static void storm(int engine, int count, float *L, float *R, int n)
 
 void suite_classic(void)
 {
+    { /* acid distortion: off is bit-identical to no stage at all; on adds harmonics at about the same level */
+        const int n = 24000;
+        float *a = malloc(sizeof(float) * (size_t)n * 4), *b = a + n, *rr = a + 2 * n, *c = a + 3 * n;
+        for (int k = 0; k < 2; k++) {
+            synth_init(synth_default(), 48000.0f);
+            synth_set_engine(synth_default(), SYNTH_ENGINE_ACID);
+            setp(acid_params, ACID_P_DIST, k ? 0.8f : 0.0f);
+            midi3(0x90, 36, 100);
+            render(k ? c : a, rr, n);
+        }
+        synth_init(synth_default(), 48000.0f);
+        synth_set_engine(synth_default(), SYNTH_ENGINE_ACID);
+        midi3(0x90, 36, 100);
+        render(b, rr, n);
+        CHECK(memcmp(a, b, sizeof(float) * (size_t)n) == 0, "acid: distortion 0 changes the sound");
+        const float r0 = rms(a + 4800, n - 4800), r1 = rms(c + 4800, n - 4800);
+        const float crest0 = max_abs(a + 4800, n - 4800) / r0, crest1 = max_abs(c + 4800, n - 4800) / r1;
+        CHECK(all_finite_bounded(c, n, 1.0f) && fabsf(20.0f * log10f(r1 / r0)) < 6.0f && crest1 < crest0,
+              "acid distortion: level %.1f dB from clean, crest %.2f -> %.2f", (double)(20.0f * log10f(r1 / r0)),
+              (double)crest0, (double)crest1);
+        free(a);
+    }
+
     const int n = 48000 * 2;
     float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
     float *L2 = malloc(sizeof(float) * (size_t)n), *R2 = malloc(sizeof(float) * (size_t)n);

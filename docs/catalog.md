@@ -511,13 +511,13 @@ modal synthesis: banks of up to 32 resonators per note, struck (hammer/mallet + 
 
 ## Engine `drums` (16 voices)
 
-drum machine, 12 instruments on GM notes (36 kick, 37 rim, 38 snare, 39 clap, 42 closed hat, 46 open hat, 41/45/48 toms, 49 cymbal, 56 cowbell, 75 clave); kits: analog (early-80s analog machine) and hybrid (mid-80s analog/sample machine); per-instrument level, tune, decay, tone
+drum machine, 12 instruments on GM notes plus a melodic bass drum (36 kick, 37 rim, 38 snare, 39 clap, 42 closed hat, 46 open hat, 41/45/48 toms, 49 cymbal, 56 cowbell, 75 clave); kits: analog (early-80s analog machine) and hybrid (mid-80s analog/sample machine), glitch, trap; under the map (notes 0..34) a melodic bass drum that slides between held notes; per-instrument level, tune, decay, tone
 
-Notes: 36 `kick`, 38 `snare`, 39 `clap`, 37 `rim`, 42 `chat`, 46 `ohat`, 41 `ltom`, 45 `mtom`, 48 `htom`, 49 `cymbal`, 56 `cowbell`, 75 `clave`
+Notes: 36 `kick`, 38 `snare`, 39 `clap`, 37 `rim`, 42 `chat`, 46 `ohat`, 41 `ltom`, 45 `mtom`, 48 `htom`, 49 `cymbal`, 56 `cowbell`, 75 `clave`, 29 `bass`
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
-| `kit` | analog, hybrid, glitch | analog |  | `drum.kit` | analog = deep booming kick, soft round snare, silky metallic hats (electro, hip-hop, ambient); hybrid = punchy clicky kick, bright snappy snare, gritty hats and rides (house, techno); glitch = digital microsound: sub sine pulses, single-sample clicks, pure high beeps, white and decimated data noise, modem chirps (minimal, glitch, installation) |
+| `kit` | analog, hybrid, glitch, trap | analog |  | `drum.kit` | analog = deep booming kick, soft round snare, silky metallic hats (electro, hip-hop, ambient); hybrid = punchy clicky kick, bright snappy snare, gritty hats and rides (house, techno); glitch = digital microsound: sub sine pulses, single-sample clicks, pure high beeps, white and decimated data noise, modem chirps (minimal, glitch, installation); trap = short punchy kick, tight cracking snare, layered roomy clap, crisp bright hats for fast rolls |
 | `accent` | 0 .. 1 | 0.6 |  | `drum.accent` | how much velocity changes level, decay and brightness (0 = every hit equal) |
 | `drive` | 0 .. 1 | 0 | yes | `drum.drive` | saturation of the whole kit: glue and grit, louder transients become rounder |
 | `stereo` | 0 .. 1 | 0.4 |  | `drum.stereo` | spread of the instruments in the stereo field (0 = mono like the original machines) |
@@ -570,6 +570,11 @@ Notes: 36 `kick`, 38 `snare`, 39 `clap`, 37 `rim`, 42 `chat`, 46 `ohat`, 41 `lto
 | `clave_tune` | -12 .. 12 st | 0 | yes | `drum.clave.tune` | clave pitch |
 | `clave_decay` | 0.2 .. 5 x | 1 | yes | `drum.clave.decay` | clave length |
 | `clave_tone` | 0 .. 1 | 0.5 | yes | `drum.clave.tone` | unused |
+| `bass_level` | -60 .. 6 dB | 0 | yes | `drum.bass.level` | bass level |
+| `bass_tune` | -12 .. 12 st | 0 | yes | `drum.bass.tune` | bass drum transposition (it plays at its note's pitch, notes 0..34) |
+| `bass_decay` | 0.2 .. 5 x | 1 | yes | `drum.bass.decay` | bass drum length: 1 = about 2 s, up to 5x |
+| `bass_tone` | 0 .. 1 | 0.5 | yes | `drum.bass.tone` | drive: 0 = a clean sine, 1 = a growling, saturated boom |
+| `glide` | 0 .. 0.5 s | 0.08 | yes | `drum.bass.glide` | bass drum slide: a note played while the previous one is held slides from its pitch over this time |
 
 ## Engine `acid` (1 voices)
 
@@ -588,6 +593,8 @@ monophonic acid bass (early-80s transistor bass line spirit): saw/square, resona
 | `drive` | 0 .. 1 | 0.3 | yes | `filter.drive` | saturation inside the filter: rounder, then grittier, louder resonance |
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x) |
+| `distortion` | 0 .. 1 | 0 | yes | `fx.distortion.amount` | distortion after the filter, like a pedal: 0 = clean, 0.3 = warm grit, 0.6 = snarling, 1 = fuzz (level kept even) |
+| `dist_tone` | 1000 .. 12000 Hz | 5000 | yes | `fx.distortion.tone` | tone of the distortion: lower = darker, rounder; higher = fizzier |
 
 ## Engine `mono` (1 voices)
 

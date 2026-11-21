@@ -1,103 +1,111 @@
-// sequence.svelte.js — the step sequence played with the current sound, shared by the transport (play, tempo,
-// position) and the Sequence tab (grid and JSON): its settings and cells, the saved sequences (this browser
-// only), playing through the worklet's sample-accurate player (one phrase per row, edits take over in place)
-// and the playhead. It keeps playing whatever the page shows. The JSON form is toDoc / fromDoc (seqExport.js).
+// sequence.svelte.js — the sequence played with the current sound, a MIDI clip: notes {pitch, start, length,
+// velocity} in beats over a length that is the loop (played once when the loop is off), shared by the transport
+// (play, tempo, loop, position) and the Sequence tab (piano roll); the JSON tab edits the same clip (docText /
+// fromDoc in seqExport.js). Saved clips stay in this browser. It plays through the worklet's sample-accurate
+// player (w_notes), edits take over in place, and it keeps playing whatever the page shows.
 import { untrack } from 'svelte';
 import { session } from './session.svelte.js';
-import { scaleRows, phrases, buildSong, toDoc, fromDoc } from './seqExport.js';
+import { scaleRows, buildSong, docText, fromDoc, fromCells } from './seqExport.js';
 
-const KEY = 'synth.sequencer.v1';
+const KEY = 'synth.sequence.v2', OLD_KEY = 'synth.sequencer.v1';
 export const LOOPS = [1, 2, 4, 8, 16];
+let nid = 1; // note ids for the interface (not part of the clip)
+const withIds = (notes) => notes.map((n) => ({ ...n, id: nid++ }));
 
 class Sequence {
-  bpm = $state(80);
-  steps = $state(16);
-  stepLen = $state(0.5); // beats per step
-  gate = $state(0.85);
-  swing = $state(0);
+  name = $state('');
+  bpm = $state(96);
+  length = $state(8); // beats: the clip, and its loop
+  loop = $state(true);
+  grid = $state(0.25); // snap of the piano roll, in beats
   root = $state(4);
   scale = $state('minor');
-  octave = $state(3);
-  span = $state(2);
-  cells = $state({}); // "note:step" -> 'on' | 'acc' | 'soft' | 'tie'
-  name = $state('');
-  saved = $state({}); // name -> sequence, in this browser
+  octave = $state(3); // where the piano roll opens and random notes are drawn
+  notes = $state([]); // {id, pitch, start, length, velocity}
+  saved = $state({}); // name -> clip (document form), in this browser
   loops = $state(4); // times it plays in an exported song
-  playStep = $state(-1);
+  beat = $state(-1); // the playhead, in beats from the clip's start (-1: stopped)
   message = $state('');
 
-  rows = $derived(scaleRows(this.root, this.scale, this.octave, this.span)); // high notes first
   tempo = $derived(Math.min(300, Math.max(20, +this.bpm || 120))); // the field may be empty or absurd
   playing = $derived(session.seqPlaying);
-  // the playhead as bar . beat (4/4), from the step playing
+  // the playhead as bar . beat . sixteenth (4/4)
   position = $derived.by(() => {
-    if (this.playStep < 0) return '1.1';
-    const b = this.playStep * this.stepLen;
-    return `${Math.floor(b / 4) + 1}.${Math.floor(b % 4) + 1}`;
+    const b = Math.max(0, this.beat);
+    return `${Math.floor(b / 4) + 1}.${Math.floor(b % 4) + 1}.${Math.floor((b % 1) * 4) + 1}`;
   });
 
-  #silent = false; // the sequence sent last was empty: the player stops by itself, the transport stays on
+  #silent = false; // the clip sent last was empty: the player stops by itself, the transport stays on
   #pending = null;
   #ready = false;
 
   snap() {
-    const { name, tempo: bpm, steps, stepLen, gate, swing, root, scale, octave, span, cells } = this;
-    return { name, bpm, steps, stepLen, gate, swing, root, scale, octave, span, cells };
+    const { name, tempo: bpm, length, loop, grid, root, scale } = this;
+    return { name, bpm, length, loop, grid, root, scale, notes: this.notes.map(({ id, ...n }) => n) };
   }
   take(s) {
-    this.bpm = s.bpm; this.steps = s.steps; this.stepLen = s.stepLen; this.gate = s.gate; this.swing = s.swing;
-    this.root = s.root; this.scale = s.scale; this.octave = s.octave; this.span = s.span; this.cells = s.cells;
+    this.bpm = s.bpm; this.length = s.length; this.loop = s.loop; this.grid = s.grid; this.root = s.root;
+    this.scale = s.scale; this.notes = withIds(s.notes);
   }
 
-  // ---- persistence: the current sequence autosaved, named ones on Save; stored data goes through fromDoc ----
-  restore(st) {
-    if (!st || typeof st !== 'object') return;
-    try {
-      this.take(fromDoc(toDoc({ ...this.snap(), ...st, cells: st.cells && typeof st.cells === 'object' ? st.cells : {} })));
-      this.name = typeof st.name === 'string' ? st.name : '';
-      if (LOOPS.includes(st.loops)) this.loops = st.loops;
-    } catch { /* damaged: keep what is there */ }
+  // ---- persistence: the current clip autosaved, named ones on Save; stored data goes through fromDoc ----
+  #load(doc) {
+    try { this.take(fromDoc(doc)); this.name = typeof doc.name === 'string' && doc.name !== 'untitled' ? doc.name : ''; return true; }
+    catch { return false; }
   }
-  // called once by the page: brings the stored sequences back, then saves every change, resends while playing,
-  // follows the player's position
+  // an earlier grid sequence ({cells, stepLen, steps, …}) as a clip
+  #fromGrid(st) {
+    const stepLen = st.stepLen ?? 0.5, steps = st.steps ?? 16;
+    return { name: st.name ?? '', bpm: st.bpm ?? 96, length: steps * stepLen, loop: true, grid: '1/16',
+      key: `${['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][st.root ?? 4]} ${st.scale ?? 'minor'}`,
+      notes: fromCells(st.cells, stepLen, steps) };
+  }
+  // called once by the page: brings the stored clips back (the earlier grid sequences converted), then saves every
+  // change, resends while playing, follows the player's position
   attach() {
-    let d = {};
-    try { d = JSON.parse(localStorage.getItem(KEY)) ?? {}; } catch { /* storage unavailable */ }
-    this.saved = d.saved ?? d.patterns ?? {};
-    this.restore(d.current);
+    let d = null;
+    try { d = JSON.parse(localStorage.getItem(KEY)); } catch { /* storage unavailable */ }
+    if (!d) { // first time: the grid sequences of before
+      let old = {};
+      try { old = JSON.parse(localStorage.getItem(OLD_KEY)) ?? {}; } catch { /* none */ }
+      const saved = {};
+      for (const [n, st] of Object.entries(old.patterns ?? old.saved ?? {})) saved[n] = this.#fromGrid({ ...st, name: n });
+      d = { current: old.current ? this.#fromGrid(old.current) : null, saved };
+    }
+    this.saved = d.saved && typeof d.saved === 'object' ? d.saved : {};
+    if (d.current) this.#load(d.current);
     this.#ready = true;
     $effect.root(() => {
       $effect(() => {
-        const data = { current: $state.snapshot({ ...this.snap(), loops: this.loops }), saved: $state.snapshot(this.saved) };
+        const data = { current: JSON.parse(docText(this.snap())), saved: $state.snapshot(this.saved) };
         if (this.#ready) try { localStorage.setItem(KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
       });
       // any change of what is played is resent while playing
-      $effect(() => { this.tempo; this.stepLen; this.gate; this.swing; this.steps; this.rows; this.cells; untrack(() => this.changed()); });
-      // a new sound under a running sequence: the synth was re-initialized, its tempo comes back
+      $effect(() => { this.tempo; this.length; this.loop; JSON.stringify(this.notes); untrack(() => this.changed()); });
+      // a new sound under a running clip: the synth was re-initialized, its tempo comes back
       $effect(() => { session.patchGen; untrack(() => { if (this.playing) session.setP('tempo', this.tempo); }); });
     });
     session.synth.on('pos', (p) => {
       if (!this.playing) return;
-      if (p.frames < 0) { // the player was stopped from elsewhere: follow it
+      if (p.frames < 0) { // played once to its end, or stopped from elsewhere
         if (!this.#silent) this.stop(false);
         return;
       }
-      const t = p.frames / p.sampleRate, sd = (60 / this.tempo) * this.stepLen;
-      this.playStep = Math.floor(t / sd) % this.steps;
+      this.beat = ((p.frames / p.sampleRate) * this.tempo) / 60;
     });
   }
 
-  pick = (n) => { if (this.saved[n]) { this.restore(this.saved[n]); this.name = n; this.message = ''; } };
+  pick = (n) => { if (this.saved[n] && this.#load(this.saved[n])) { this.name = n; this.message = ''; } };
   fresh = () => {
-    this.cells = {};
+    this.notes = [];
     this.name = '';
-    this.message = 'New sequence: draw it or write it in JSON, then Save';
+    this.message = 'New clip: draw notes in the piano roll or write them in the JSON tab, then Save';
   };
   save = () => {
-    const n = (this.name || prompt('Name of the sequence') || '').trim();
+    const n = (this.name || prompt('Name of the clip') || '').trim();
     if (!n) return;
     this.name = n;
-    this.saved = { ...this.saved, [n]: $state.snapshot({ ...this.snap(), loops: this.loops }) };
+    this.saved = { ...this.saved, [n]: JSON.parse(docText(this.snap())) };
     this.message = `Saved "${n}" in this browser`;
   };
   remove = () => {
@@ -111,9 +119,8 @@ class Sequence {
   // ---- playing ----
   async send() {
     session.setP('tempo', this.tempo);
-    const rows = phrases(this.cells, this.rows, this.steps).join('\n'); // what you see is what plays
-    this.#silent = !rows;
-    const r = await session.synth.sequence(rows, this.tempo, this.stepLen, this.gate, this.swing, true);
+    this.#silent = !this.notes.length;
+    const r = await session.synth.notes(this.notes, this.tempo, this.length, this.loop);
     if (r.length < 0) this.message = r.error;
   }
   changed() { // debounced resend while playing: the loop keeps its position
@@ -121,43 +128,43 @@ class Sequence {
     clearTimeout(this.#pending);
     this.#pending = setTimeout(() => this.send(), 25);
   }
-  play = () => { if (session.playing) session.stop(); session.seqPlaying = true; this.send(); };
+  play = () => { if (session.playing) session.stop(); session.seqPlaying = true; this.beat = 0; this.send(); };
   stop = (toPlayer = true) => {
     clearTimeout(this.#pending);
     session.seqPlaying = false;
-    this.playStep = -1;
+    this.beat = -1;
     if (toPlayer) session.synth.stop();
   };
   toggle = () => (this.playing ? this.stop() : this.play());
 
-  // ---- editing ----
-  get = (n, s) => this.cells[`${n}:${s}`];
-  set = (n, s, v) => {
-    const cells = { ...this.cells };
-    if (v) cells[`${n}:${s}`] = v; else delete cells[`${n}:${s}`];
-    this.cells = cells;
+  // ---- editing (the piano roll) ----
+  add = (pitch, start, length, velocity = 100) => {
+    const n = { id: nid++, pitch, start, length, velocity };
+    this.notes = [...this.notes, n];
+    return n.id;
   };
-  clear = () => { this.cells = {}; };
+  update = (id, patch) => { this.notes = this.notes.map((n) => (n.id === id ? { ...n, ...patch } : n)); };
+  delete = (id) => { this.notes = this.notes.filter((n) => n.id !== id); };
+  clear = () => { this.notes = []; };
   random = () => {
-    const next = {}, pool = this.rows.slice(Math.floor(this.rows.length / 3));
-    for (let s = 0; s < this.steps; s++) {
+    const pool = scaleRows(this.root, this.scale, this.octave, 2), out = [];
+    for (let t = 0; t < this.length; t += this.grid) {
       if (Math.random() > 0.3) continue;
-      const n = pool[Math.floor(Math.random() * pool.length)];
-      next[`${n}:${s}`] = Math.random() < 0.2 ? 'acc' : 'on';
-      const hold = Math.floor(Math.random() * 3);
-      for (let k = 1; k <= hold && s + k < this.steps; k++) next[`${n}:${s + k}`] = 'tie';
+      const len = this.grid * (1 + Math.floor(Math.random() * 3));
+      out.push({ pitch: pool[Math.floor(Math.random() * pool.length)], start: t, length: Math.min(len, this.length - t),
+        velocity: Math.random() < 0.2 ? 120 : 90 });
     }
-    this.cells = next;
+    this.notes = withIds(out);
   };
 
   // ---- the JSON form ----
-  docText = () => JSON.stringify(toDoc(this.snap()), null, 2) + '\n';
+  docText = () => docText(this.snap());
   // applies a typed document; returns '' or what is wrong
   applyText = (text) => {
     try {
-      const s = fromDoc(JSON.parse(text));
+      const doc = JSON.parse(text), s = fromDoc(doc);
       this.take(s);
-      this.name = s.name === 'untitled' ? '' : s.name;
+      this.name = s.name;
       this.message = 'Applied';
       return '';
     } catch (e) {
@@ -165,13 +172,11 @@ class Sequence {
     }
   };
 
-  // ---- export: a song with the current sound inline, one track per row ----
+  // ---- export: a song with the current sound inline ----
   exportSong = () => {
-    const patch = session.currentPatch();
-    const song = buildSong({ name: (this.name || patch.name + '_sequence').replace(/\W+/g, '_'), bpm: this.tempo,
-      steps: this.steps, stepLen: this.stepLen, gate: this.gate, swing: this.swing, cells: this.cells, notes: this.rows,
-      loops: this.loops }, patch);
-    if (!song.tracks.length) { this.message = 'Nothing to export: the sequence is empty'; return; }
+    const patch = session.currentPatch(), s = this.snap();
+    const song = buildSong({ ...s, name: (this.name || patch.name + '_clip').replace(/\W+/g, '_') }, patch, this.loops);
+    if (!song.tracks.length) { this.message = 'Nothing to export: the clip is empty'; return; }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(song, null, 2) + '\n'], { type: 'application/json' }));
     a.download = song.name + '.json';

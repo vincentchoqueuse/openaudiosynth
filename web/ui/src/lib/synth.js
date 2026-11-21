@@ -112,6 +112,12 @@ export class Synth {
   audition(notes = '', loop = false) { return this.request('audition', { notes, loop }); }
   // rows: one phrase per line (audition syntax); replaces a running loop in place
   sequence(rows, bpm, step, gate, swing, loop = true) { return this.request('sequence', { rows, bpm, step, gate, swing, loop }); }
+  // a clip of notes [{pitch, start, length, velocity}] in beats over `length` beats; replaces a running loop in place
+  notes(notes, bpm, length, loop = true) {
+    const data = new Float32Array(notes.length * 4);
+    [...notes].sort((a, b) => a.start - b.start).forEach((n, i) => data.set([n.pitch, n.start, n.length, n.velocity], 4 * i));
+    return this.request('notes', { data: data.buffer, bpm, length, loop });
+  }
   // a song (songs/ format) with its patches inline, played live one part per track: resolves {length, error, warning}
   song(json, loop = false) { return this.request('song', { json, loop }); }
 

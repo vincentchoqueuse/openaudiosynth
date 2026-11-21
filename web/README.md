@@ -54,26 +54,31 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   double-click to add or remove a point, click a point to make it the sustain point or a loop boundary, loop mode
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
-- **Transport** (on top, always in view): play / stop the sequence (Space), tempo, position (bar . beat).
-- **Sequence tab**: a step sequence played with the current sound: scale notes (key, octave, range) x steps, cells
-  note / accent / soft / held, step length, gate, swing, random fill. Each row is played as its own phrase by the
-  worklet's sample-accurate player (`w_sequence`); edits while playing take over in place. It keeps playing while
-  the sound is edited and through patch loads. Sequences are kept in this browser (New, Save, the saved list) and
-  **Export song** writes a self-contained song (`songs/` format, the sound inline, one track per row).
-- **JSON tab**: the documents the page is made of, in an explorer (the sound as its patch file, the sequence),
-  opened in a code editor and applied back (Cmd/Ctrl+Enter). The sequence reads:
+- **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),
+  position (bar . beat . sixteenth).
+- **Sequence tab**: a MIDI clip played with the current sound, on a piano roll: click to draw a note and drag to
+  stretch it, drag a note to move it (time and pitch), its right edge to change its length, Alt-drag for its
+  velocity, double-click or right-click to delete; everything snaps to the grid (Shift: finer). The clip's length
+  is its loop (the brace on the ruler, drag its end, or the Length menu); the key colors the rows. It plays through
+  the worklet's sample-accurate player (`w_notes`), edits take over in place, and it keeps playing while the sound
+  is edited and through patch loads. Clips are kept in this browser (New, Save, the saved list; the step grids of
+  before are converted) and **Export song** writes a self-contained song (`songs/` format, the sound inline).
+- **JSON tab**: the documents the page is made of, in an explorer (the sound as its patch file, the clip), opened
+  in a code editor and applied back (Cmd/Ctrl+Enter). The clip is plain MIDI, one note per line:
 
   ```json
-  { "name": "riff", "bpm": 96, "step": "1/8", "steps": 16, "gate": 0.85, "swing": 0,
-    "key": "E minor", "octave": 3, "range": 2,
-    "rows": { "E4": "x_.. x... X... o...", "B3": "..x. ..x. ..x. ..x." } }
+  { "name": "riff", "bpm": 96, "length": 8, "loop": true, "grid": "1/16", "key": "E minor",
+    "notes": [
+      { "pitch": 64, "start": 0, "length": 1.5, "velocity": 100 },
+      { "pitch": 59, "start": 2, "length": 0.5, "velocity": 127 }
+    ] }
   ```
 
-  one line per note, high to low: `x` note, `X` accent, `o` soft, `_` held, `.` rest, in groups of four steps
-  (`toDoc` / `fromDoc` in `lib/seqExport.js`; a wrong document says what is wrong and where).
+  pitch: MIDI (60 = C4); start and length in beats; velocity 1..127 (`docText` / `fromDoc` in `lib/seqExport.js`;
+  a wrong document says what is wrong and where). The same note fields as OAHub's clips.
 - **Code**: `lib/session.svelte.js` (the sound and its actions) and `lib/sequence.svelte.js` (the sequence) hold
   the state; the components read them (Transport, SoundHeader, AuditionBar, MacroStrip, Scope, ChainView,
-  EditorTabs, ParamGroups, SequenceTab, StepGrid, JsonWorkspace, Keyboard, Sidebar).
+  EditorTabs, ParamGroups, SequenceTab, PianoRoll, JsonWorkspace, Keyboard, Sidebar).
 - **Export** downloads (and copies) the current sound as a patch file in the format of
   `docs/patch_format.md`, ready for `patches/` and `synth_render`.
 - Web MIDI input (MiniLab 3 included), on-screen keyboard, computer keyboard (physical key positions, so

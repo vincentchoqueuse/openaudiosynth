@@ -1,7 +1,8 @@
 // test_song.mjs — the Song tab's live player under Node, the way the page uses it: every song of songs/ with its
 // patches put inline, played by w_song for 4 s in 128-frame quanta (finite, not silent, within ±1), then every
 // track muted with w_part_param (part_mute) and the reverb's return closed (its tails last up to half a minute):
-// the output must fall silent within 2 s.
+// the output must fall silent within 2 s. Also the sequencer's clip player (w_notes): a looping clip keeps going
+// past its length, a clip played once stops at its end.
 // Usage: node web/test_song.mjs [build-wasm/web/wasm/synth.wasm]
 import { readFileSync, readdirSync } from 'node:fs';
 
@@ -52,5 +53,23 @@ for (const f of readdirSync('songs').filter((f) => f.endsWith('.json')).sort()) 
   if (!ok) fail++;
   w.w_stop();
 }
+// the clip player: 2 notes over 4 beats at 120 BPM (2 s), looped then once
+function clip(loop) {
+  const data = new Float32Array([60, 0, 1, 100, 67, 2, 1.5, 90]);
+  const p = w.w_alloc(data.byteLength);
+  new Float32Array(w.memory.buffer, p, data.length).set(data);
+  const len = w.w_notes(p, 2, 120, 4, loop);
+  w.w_free(p);
+  const a = play(1);
+  play(2); // past the clip's end
+  return { len, sounding: a.peak > 1e-4, pos: w.w_player_pos() };
+}
+w.w_patch(cstr('{"version":1,"engine":"sine","name":"t","params":{}}'));
+const looped = clip(1), once = clip(0);
+if (Math.abs(looped.len - 2) > 1e-6 || !looped.sounding || looped.pos < 0 || once.pos !== -1) {
+  console.log(`FAIL clip player: looped ${JSON.stringify(looped)}, once ${JSON.stringify(once)}`);
+  fail++;
+} else console.log('ok   clip player: loops past its length, played once it stops');
+w.w_stop();
 console.log(fail ? `FAILED: ${fail} song(s)` : 'ok');
 process.exit(fail ? 1 : 0);

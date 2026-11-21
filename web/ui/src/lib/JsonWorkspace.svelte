@@ -7,7 +7,7 @@
   import { untrack } from 'svelte';
   import { session as s } from './session.svelte.js';
   import { sequence as q } from './sequence.svelte.js';
-  import { SCALES, STEP_LENGTHS } from './seqExport.js';
+  import { SCALES, GRIDS } from './seqExport.js';
   const editor = import('./CodeEditor.svelte'); // the code editor stays out of the main bundle
 
   // the documents: what each is, its file name, its text from what plays, and how it is applied
@@ -16,7 +16,7 @@
       apply: async (t) => { const r = await s.applyFromEditor(t); return r.ok ? '' : r.text; },
       hint: 'The sound as its patch file (docs/patch_format.md): parameters in physical units or labels, macros with their targets, kit, audition. Apply reloads the sound from this text.' },
     { id: 'sequence', group: 'Sequence', file: () => `${q.name || 'untitled'}.json`, text: () => q.docText(), apply: async (t) => q.applyText(t),
-      hint: `One line per note, high to low: x note, X accent, o soft, _ held, . rest, in groups of four steps. key: a root and a scale (${Object.keys(SCALES).join(', ')}), from octave over range octaves; step: ${STEP_LENGTHS.map((l) => l[0]).join(', ')}.` },
+      hint: `A MIDI clip: notes {pitch (MIDI, 60 = C4), start and length in beats, velocity 1..127}; length is the clip in beats, and its loop when loop is true. grid: the piano roll's snap (${GRIDS.map((g) => g[0]).join(', ')}); key: the scale it shows (${Object.keys(SCALES).join(', ')}).` },
   ];
   let open = $state('sound');
   const doc = $derived(DOCS.find((d) => d.id === open));

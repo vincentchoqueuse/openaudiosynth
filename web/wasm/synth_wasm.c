@@ -450,6 +450,37 @@ EMSCRIPTEN_KEEPALIVE float w_sequence(const char *rows, float bpm, float step, f
 /* Player position in frames since the start of the phrase, or -1 when stopped (for the sequencer playhead). */
 EMSCRIPTEN_KEEPALIVE double w_player_pos(void) { return g_ev ? (double)g_pos : -1.0; }
 
+/* A clip of notes, as MIDI: 4 floats per note (pitch 0..127, start and length in beats, velocity 1..127), at bpm,
+ * over length_beats (the loop when loop != 0). Each note ends 2 ms early, so that a note starting where another of
+ * the same pitch ends (or the loop turns) is never cut by that note-off. A running loop goes on from the same
+ * position (edits take over in place). No note: silence, the player stops. Returns the length in seconds, or -1. */
+EMSCRIPTEN_KEEPALIVE float w_notes(const float *data, int count, float bpm, float length_beats, int loop)
+{
+    if (!(bpm >= 20.0f && bpm <= 400.0f) || !(length_beats > 0.0f) || count < 0) {
+        snprintf(g_err, sizeof g_err, "clip: bpm 20..400 and a length above 0 beats expected");
+        return -1.0f;
+    }
+    const float spb = 60.0f / bpm, len = length_beats * spb;
+    seq_t s;
+    seq_init(&s);
+    for (int i = 0; i < count; i++) {
+        const float *n = data + 4 * i;
+        const int pitch = (int)n[0], vel = (int)n[3];
+        if (pitch < 0 || pitch > 127 || !(n[1] >= 0.0f) || !(n[2] > 0.0f) || n[1] >= length_beats)
+            continue; /* outside the clip or malformed: not played */
+        const float dur = n[2] * spb - 0.002f;
+        seq_note(&s, n[1] * spb, pitch, vel < 1 ? 1 : vel > 127 ? 127 : vel, dur > 0.001f ? dur : 0.001f);
+    }
+    if (s.n == 0) {
+        seq_free(&s);
+        release_player_notes();
+        free(g_ev);
+        g_ev = NULL;
+        return 0.0f;
+    }
+    return player_start(&s, len, loop, 1);
+}
+
 /* ---------------- songs, played live ---------------- */
 
 static void set_global(int id, float physical)

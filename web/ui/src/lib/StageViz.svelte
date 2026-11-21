@@ -16,7 +16,7 @@
     if (find(/(^|_)attack$/) && find(/(^|_)release$/)) return 'env';
     if (wave && rate && st.kind === 'mod') return 'lfo';
     if (wave && st.kind === 'source') return 'osc';
-    if (st.kind === 'filter' && find(/(^|_)cutoff$/)) return 'filter';
+    if ((st.kind === 'filter' || st.id === 'outfilter') && find(/(^|_)cutoff$/)) return 'filter';
     return null;
   });
 
@@ -40,7 +40,7 @@
       const fc = get(find(/(^|_)cutoff$/).name);
       const rd = find(/(^|_)(resonance|emphasis)$/), r = rd ? get(rd.name) : 0.7;
       const q = rd && rd.max <= 1.5 ? 0.7 + r * 9 : Math.max(0.5, r); // a 0..1 resonance, or a Q
-      const mode = (label(find(/(^|_)(mode|type)$/)) ?? 'lp').toLowerCase();
+      const mode = (label(find(/(^|_)(mode|type)$/) ?? find(/^out_filter$/)) ?? 'lp').toLowerCase();
       const poles4 = /24|ladder/.test(mode) || st.label.toLowerCase().includes('ladder') || /^(mono|acid|poly)/.test(st.id) && !find(/(^|_)(mode|type)$/);
       const pts = [];
       for (let i = 0; i <= 120; i++) {

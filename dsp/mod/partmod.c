@@ -465,7 +465,7 @@ void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set)
 {
     for (int k = 0; m->n_maps && k < PM_MAPS; k++) {
         const int mac = (int)m->p[PM_MAP(k, PM_M_MACRO)], id = (int)m->p[PM_MAP(k, PM_M_DST)] - 1;
-        if (mac <= 0 || mac > PM_MACROS || id < SYNTH_PARAM_GLOBAL || id >= PM_MAP_DST_MAX)
+        if (mac <= 0 || mac > PM_MACROS || !pm_global_target(id))
             continue;
         const int g = id - SYNTH_PARAM_GLOBAL;
         const float from = m->p[PM_MAP(k, PM_M_FROM)], to = m->p[PM_MAP(k, PM_M_TO)];

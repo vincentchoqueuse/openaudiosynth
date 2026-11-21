@@ -6,7 +6,7 @@
 import { Synth, fromNorm, toNorm } from './synth.js';
 import { parseKit, filesToKit } from './kit.js';
 import { engineColor, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
-import { human } from './naming.js';
+import { human, unclaimed } from './naming.js';
 
 class Session {
   synth = new Synth();
@@ -108,8 +108,10 @@ class Session {
   paramById = (id) => (id >= 0 && id < 256 ? this.engine?.params[id] : this.shared.find((d) => d.id === id));
 
   // ---- macros: 8 macros, each moving targets kept in the part's 32 map slots (dsp/mod/partmod.h) ----
-  // a target: an engine parameter or the master / an effect (the shared ids below map1_destination's maximum)
-  #mapTarget = (id) => (id >= 0 && id < (this.byName.map1_destination?.max ?? 256) ? this.paramById(id) : undefined);
+  // the shared parameters a macro can move: those of the effect chain's stages (master, output filter, effects)
+  #fxIds = $derived(new Set(this.shared.filter((d) => d.id >= 256 && d.id < 512 && !unclaimed(this.catalog?.fx ?? [], [d]).length).map((d) => d.id)));
+  // a target: an engine parameter, or one of the effect chain's
+  #mapTarget = (id) => (id >= 0 && id < 256 ? this.paramById(id) : this.#fxIds.has(id) ? this.paramById(id) : undefined);
   // every slot: {slot (1..32), macro (0..7, -1: none), dst (descriptor or undefined), from, to (normalized)}
   macroMaps = $derived(Array.from({ length: 32 }, (_, i) => {
     const slot = i + 1, mac = Math.round(this.getP(`map${slot}_macro`));
@@ -119,7 +121,7 @@ class Session {
   // the parameters a macro can move: the engine's live ones, then the master and the effects
   macroTargets = $derived({
     engine: (this.engine?.params ?? []).filter((d) => d.realtime),
-    fx: this.shared.filter((d) => d.id >= 256 && this.#mapTarget(d.id) && d.realtime),
+    fx: this.shared.filter((d) => this.#fxIds.has(d.id) && d.realtime),
   });
   macroName = (k) => this.macroNames[k] || `Macro ${k + 1}`;
 

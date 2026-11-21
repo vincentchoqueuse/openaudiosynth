@@ -12,6 +12,7 @@
 #include "engines/engine.h"
 #include "engines/registry.h"
 #include "filter/dcblock.h"
+#include "filter/svf_tpt.h"
 #include "fx/fxbus.h"
 #include "mod/partmod.h"
 #include "mod/tempo.h"
@@ -66,7 +67,8 @@ typedef struct {
 } synth_event_t;
 
 const engine_stage_t synth_fx_stages[] = {
-    {"chorus", "Chorus", "fx", "chorus_", "engine", NULL, "chorus_mode", 0.0f, 1.0f},
+    {"outfilter", "Output filter", "fx", "out_", "engine", NULL, "out_filter", 0.0f, 1.0f},
+    {"chorus", "Chorus", "fx", "chorus_", "outfilter", NULL, "chorus_mode", 0.0f, 1.0f},
     {"delay", "Delay", "fx", "delay_", "chorus", NULL, "delay_mix", 0.0f, 0.25f},
     {"reverb", "Reverb", "fx", "reverb_", "delay", NULL, "reverb_mix", 0.0f, 0.3f},
     {"master", "Master", "fx", "master", "reverb", NULL, NULL, 0.0f, 0.0f},
@@ -118,7 +120,19 @@ static const param_desc_t tempo_desc[] = {
     PARAM(SYNTH_PARAM_A4_HZ, "a4_hz", "tuning.a4", 415.0f, 466.0f, 440.0f, PARAM_LIN, "Hz", 0, NULL,
           "concert pitch: the frequency of A4, for every part and every tuning (432, 440, 442, 415 baroque...)"),
 };
-_Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_desc / sizeof tempo_desc[0]), "tempo ids");
+_Static_assert(SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_desc / sizeof tempo_desc[0]), "tempo ids");
+
+/* the output filter of every part (macros and routes can move it) */
+static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
+static const param_desc_t out_desc[] = {
+    PARAM(SYNTH_PARAM_OUT_FILTER, "out_filter", "output.filter.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, out_filter_labels,
+          "a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB)"),
+    PARAM(SYNTH_PARAM_OUT_CUTOFF, "out_cutoff", "output.filter.cutoff", 20.0f, 20000.0f, 2000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "cutoff (or centre) of the output filter"),
+    PARAM(SYNTH_PARAM_OUT_RESO, "out_resonance", "output.filter.resonance", 0.0f, 1.0f, 0.2f, PARAM_LIN, "", 1, NULL,
+          "resonance of the output filter: 0 = smooth, 1 = sharp peak"),
+};
+_Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
 const param_desc_t *synth_global_param(int index)
 {
@@ -126,8 +140,10 @@ const param_desc_t *synth_global_param(int index)
         return &master_desc;
     if (index >= 1 && index <= FXB_P_COUNT)
         return &fxbus_params[index - 1];
-    if (index > FXB_P_COUNT && index < SYNTH_GLOBAL_COUNT)
+    if (index > FXB_P_COUNT && index < SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL)
         return &tempo_desc[index - 1 - FXB_P_COUNT];
+    if (index >= SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL && index < SYNTH_GLOBAL_COUNT)
+        return &out_desc[index - (SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL)];
     return 0;
 }
 
@@ -170,6 +186,9 @@ typedef struct {
     int switching, next_engine;
     float p[SYNTH_PART_COUNT]; /* mixer strip (physical values) */
     smooth_t gain;
+    svf_t out_f[2];  /* the output filter, left and right */
+    float out_oct;   /* its cutoff (log2 Hz), smoothed per block */
+    int out_mode;    /* the mode it was last set to (a change resets it) */
     float gain_prev;
     uint8_t sounding_note[128]; /* note sent to the engine for each received note (0xFF: none): transpose-safe note-offs */
     int16_t mpe_note[16];       /* MPE: note playing on each channel (-1: none) */
@@ -201,9 +220,11 @@ struct synth {
     float a4_hz;
     float master_db;
     /* the master level and effects as last set (normalized): what a macro target returns them to */
-    float gbase[SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL];
-    float gapplied[SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL]; /* the value a macro gave them */
-    uint8_t gheld[SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL];  /* 1 while a macro target holds them */
+    float gbase[SYNTH_GLOBAL_COUNT];
+    float gapplied[SYNTH_GLOBAL_COUNT]; /* the value a macro gave them */
+    uint8_t gheld[SYNTH_GLOBAL_COUNT];  /* 1 while a macro target holds them (master, effects, output filter) */
+    int out_mode;                       /* output filter: 0 off, 1 lp, 2 hp, 3 bp */
+    float out_cutoff, out_q, out_glide; /* Hz, Q, per-block glide of the cutoff */
     smooth_t master;
     float master_prev;
     dcblock_t dc[2];
@@ -278,6 +299,10 @@ static void part_init(synth_t *s, int k)
     pt->p[SYNTH_PART_CHANNEL - SYNTH_PART_PARAM] = k == 0 ? 0.0f : (float)(k + 1);
     smooth_init(&pt->gain, 0.005f, s->sr / (float)SYNTH_BLOCK, 1.0f);
     pt->gain_prev = 1.0f;
+    for (int c = 0; c < 2; c++)
+        svf_init(&pt->out_f[c], s->sr);
+    pt->out_mode = 0;
+    pt->out_oct = 11.0f;
     pt->switching = 0;
     partmod_init(&pt->mod, s->sr, 0x5EED0u + (uint32_t)k);
     pt->kit = 0;
@@ -540,6 +565,12 @@ static void global_apply(synth_t *s, int id, float norm)
 {
     if (id == SYNTH_PARAM_MASTER_DB)
         s->master_db = param_from_norm(&master_desc, norm);
+    else if (id == SYNTH_PARAM_OUT_FILTER)
+        s->out_mode = (int)param_from_norm(&out_desc[0], norm);
+    else if (id == SYNTH_PARAM_OUT_CUTOFF)
+        s->out_cutoff = param_from_norm(&out_desc[1], norm);
+    else if (id == SYNTH_PARAM_OUT_RESO)
+        s->out_q = 0.5f * fm_exp2(4.3f * param_from_norm(&out_desc[2], norm)); /* 0.5 .. ~10 */
     else
         fxbus_set_param(&s->fx, id - SYNTH_PARAM_CHORUS_MODE, norm);
 }
@@ -556,7 +587,7 @@ static void global_set(synth_t *s, int id, float norm)
  * block on top of the value last set, which comes back when no macro moves it any more. */
 static void global_targets(synth_t *s)
 {
-    enum { G = SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL };
+    enum { G = SYNTH_GLOBAL_COUNT };
     float val[G];
     uint8_t set[G] = {0};
     for (int k = 0; k < SYNTH_PARTS; k++)
@@ -589,7 +620,7 @@ static void ev_process(synth_t *s, uint32_t t0)
             handle_midi(s, ev->data, ev->len, ev->time);
             break;
         case EV_PARAM:
-            if (ev->id >= SYNTH_PARAM_MASTER_DB && ev->id < SYNTH_PARAM_TEMPO)
+            if (pm_global_target(ev->id))
                 global_set(s, ev->id, ev->value);
             else if (ev->id == SYNTH_PARAM_TEMPO)
                 tempo_set_bpm(&s->tempo, param_from_norm(&tempo_desc[0], ev->value));
@@ -675,6 +706,26 @@ static DSP_FAST_CODE int part_render(synth_t *s, synth_part_t *pt, float *busL, 
         dsp_ramp_mul(R, 1.0f, 0.0f, n);
         engine_start(s, pt, pt->next_engine);
         pt->switching = 0;
+    }
+    /* output filter: the same setting on every part, each with its own state; the cutoff glides (about 5 ms) */
+    if (s->out_mode > 0) {
+        if (pt->out_mode != s->out_mode) {
+            static const svf_mode_t mode[4] = {SVF_LP, SVF_LP, SVF_HP, SVF_BP};
+            for (int c = 0; c < 2; c++) {
+                svf_reset(&pt->out_f[c]);
+                svf_set_mode(&pt->out_f[c], mode[s->out_mode]);
+            }
+            pt->out_mode = s->out_mode;
+            pt->out_oct = fm_log2(s->out_cutoff);
+        }
+        pt->out_oct += (fm_log2(s->out_cutoff) - pt->out_oct) * s->out_glide;
+        const float fc = dsp_minf(fm_exp2(pt->out_oct), 0.45f * s->sr);
+        for (int c = 0; c < 2; c++)
+            svf_set(&pt->out_f[c], fc, s->out_q);
+        svf_process(&pt->out_f[0], L, L, n);
+        svf_process(&pt->out_f[1], R, R, n);
+    } else {
+        pt->out_mode = 0;
     }
     /* level (smoothed, mute = silent) and balance: centre keeps both sides at gain 1 */
     const float target = part_p(pt, SYNTH_PART_MUTE) > 0.5f ? 0.0f : fm_db2lin(part_p(pt, SYNTH_PART_LEVEL));
@@ -788,6 +839,7 @@ void synth_init(synth_t *s, float sample_rate)
 {
     dsp_denormals_off();
     s->sr = sample_rate;
+    s->out_glide = 1.0f - fm_exp2(-FM_LOG2E * (float)SYNTH_BLOCK / (0.005f * sample_rate)); /* cutoff glide, 5 ms */
     if (!g_engine_mem_built) {
         for (int id = 0; id < SYNTH_ENGINE_COUNT; id++)
             if (engine_registry[id]->shared_build) {
@@ -811,11 +863,13 @@ void synth_init(synth_t *s, float sample_rate)
     s->a4_hz = 440.0f;
     tuning_apply(s);
     s->master_db = master_desc.def;
-    for (int g = 0; g < SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL; g++) {
-        const param_desc_t *d = g == 0 ? &master_desc : &fxbus_params[g - 1];
+    for (int g = 0; g < SYNTH_GLOBAL_COUNT; g++) {
+        const param_desc_t *d = synth_global_param(g);
         s->gbase[g] = param_to_norm(d, d->def);
         s->gapplied[g] = s->gbase[g];
         s->gheld[g] = 0;
+        if (pm_global_target(SYNTH_PARAM_GLOBAL + g) && g > FXB_P_COUNT)
+            global_apply(s, SYNTH_PARAM_GLOBAL + g, s->gbase[g]); /* the output filter's defaults */
     }
     smooth_init(&s->master, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(s->master_db));
     s->master_prev = s->master.y;

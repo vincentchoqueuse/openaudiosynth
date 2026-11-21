@@ -1,6 +1,6 @@
 /* test_voicemod.c — per-voice modulation and what rides on it: comb filter (peaks at the multiples of f, hollow
  * version at the odd multiples of f/2, bounded at full feedback with a fast-moving tuning), just intonation
- * (exact 5/4 third), concert pitch (A4 = 432 Hz), the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
+ * (exact 5/4 third), concert pitch (A4 = 432 Hz), the output filter (by hand and by a macro), the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
  * only its own note), per-voice LFO (vibrato) and per-voice
  * MSEG (level envelope). */
 #include <math.h>
@@ -101,6 +101,35 @@ void suite_voicemod(void)
         const float want = just ? 261.6256f * (432.0f / 440.0f) * 1.25f : 432.0f;
         CHECK(fabsf(f - want) < 0.05f, "a4_hz 432 (%s): %.3f Hz, expected %.3f", just ? "just" : "equal", (double)f,
               (double)want);
+    }
+
+    /* output filter: off leaves the sound alone; a low-pass at 200 Hz takes an A5 down by more than 20 dB, a
+     * high-pass at 4 kHz an A3; a macro moving its cutoff from 20 kHz to 200 Hz does the same */
+    {
+        float lvl[4];
+        for (int k = 0; k < 4; k++) {
+            sine_sustain();
+            if (k == 1) setg(SYNTH_PARAM_OUT_FILTER, 1.0f), setg(SYNTH_PARAM_OUT_CUTOFF, 200.0f);
+            if (k == 2) setg(SYNTH_PARAM_OUT_FILTER, 2.0f), setg(SYNTH_PARAM_OUT_CUTOFF, 4000.0f);
+            if (k == 3) {
+                setg(SYNTH_PARAM_OUT_FILTER, 1.0f);
+                setmod(PM_MAP(0, PM_M_MACRO), 1.0f);
+                setmod(PM_MAP(0, PM_M_DST), (float)(SYNTH_PARAM_OUT_CUTOFF + 1));
+                setmod(PM_MAP(0, PM_M_FROM), 1.0f);
+                setmod(PM_MAP(0, PM_M_TO), param_to_norm(synth_global_param(SYNTH_PARAM_OUT_CUTOFF - SYNTH_PARAM_GLOBAL), 200.0f));
+                setmod(PM_MACRO(0), 1.0f);
+            }
+            midi3(0x90, k == 2 ? 57 : 81, 100);
+            render(24000);
+            lvl[k] = rms(L + 12000, 12000);
+        }
+        sine_sustain();
+        midi3(0x90, 57, 100);
+        render(24000);
+        const float a3 = rms(L + 12000, 12000);
+        CHECK(lvl[1] < 0.1f * lvl[0] && lvl[2] < 0.1f * a3 && lvl[3] < 0.1f * lvl[0],
+              "output filter: A5 %.4f, low-passed %.4f, A3 %.4f high-passed %.4f, by a macro %.4f", (double)lvl[0],
+              (double)lvl[1], (double)a3, (double)lvl[2], (double)lvl[3]);
     }
 
     /* MPE: the bend on channel 2 moves only the note on channel 2 (range 2 st: half bend = 1 st) */

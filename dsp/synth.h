@@ -60,6 +60,10 @@ enum {
     SYNTH_PARAM_TUNE_0,          /* custom: offset of each degree from root, -100 .. +100 cents (12 ids) */
     SYNTH_PARAM_TUNE_11 = SYNTH_PARAM_TUNE_0 + 11,
     SYNTH_PARAM_A4_HZ,           /* concert pitch: frequency of A4, 415 .. 466 Hz, default 440 */
+    /* output filter: on every part's output, after its engine and before the effects (off by default) */
+    SYNTH_PARAM_OUT_FILTER,      /* off, lp, hp, bp (12 dB state-variable) */
+    SYNTH_PARAM_OUT_CUTOFF,      /* 20 .. 20000 Hz */
+    SYNTH_PARAM_OUT_RESO,        /* 0 .. 1 */
     SYNTH_PARAM_GLOBAL_END
 };
 

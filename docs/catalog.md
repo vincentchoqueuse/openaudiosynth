@@ -48,6 +48,9 @@ the echoes) -> master -> DC blocker -> soft clipper. All effects are off by defa
 | `tune_10` | -100 .. 100 cent | 0 |  | `tuning.degree10.offset` | custom tuning: offset of degree 10 above the root |
 | `tune_11` | -100 .. 100 cent | 0 |  | `tuning.degree11.offset` | custom tuning: offset of degree 11 above the root |
 | `a4_hz` | 415 .. 466 Hz | 440 |  | `tuning.a4` | concert pitch: the frequency of A4, for every part and every tuning (432, 440, 442, 415 baroque...) |
+| `out_filter` | off, lp, hp, bp | off | yes | `output.filter.mode` | a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB) |
+| `out_cutoff` | 20 .. 20000 Hz | 2000 | yes | `output.filter.cutoff` | cutoff (or centre) of the output filter |
+| `out_resonance` | 0 .. 1 | 0.2 | yes | `output.filter.resonance` | resonance of the output filter: 0 = smooth, 1 = sharp peak |
 
 Other MIDI: pitch bend (engine `bend_range`), CC 1 `mod_wheel`, CC 64 `sustain`, CC 120 `all_sound_off`, CC 123 `all_notes_off`.
 
@@ -210,131 +213,131 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `vroute4_destination` | pitch, level, pan, brightness, timbre | pitch |  | `vroute4.destination` | per-voice route 4: pitch (+/-12 st), level (+/-24 dB), pan, brightness (+/-4 oct), timbre |
 | `vroute4_amount` | -1 .. 1 | 0 | yes | `vroute4.amount` | per-voice route 4: amount |
 | `map1_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map1.macro` | macro target 1: the macro that drives it (none = off) |
-| `map1_destination` | 0 .. 272 | 0 |  | `map1.destination` | macro target 1: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map1_destination` | 0 .. 293 | 0 |  | `map1.destination` | macro target 1: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map1_from` | 0 .. 1 | 0 | yes | `map1.from` | macro target 1: the destination's value with the macro at 0, as a fraction of its range |
 | `map1_to` | 0 .. 1 | 1 | yes | `map1.to` | macro target 1: the destination's value with the macro at 1, as a fraction of its range |
 | `map2_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map2.macro` | macro target 2: the macro that drives it (none = off) |
-| `map2_destination` | 0 .. 272 | 0 |  | `map2.destination` | macro target 2: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map2_destination` | 0 .. 293 | 0 |  | `map2.destination` | macro target 2: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map2_from` | 0 .. 1 | 0 | yes | `map2.from` | macro target 2: the destination's value with the macro at 0, as a fraction of its range |
 | `map2_to` | 0 .. 1 | 1 | yes | `map2.to` | macro target 2: the destination's value with the macro at 1, as a fraction of its range |
 | `map3_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map3.macro` | macro target 3: the macro that drives it (none = off) |
-| `map3_destination` | 0 .. 272 | 0 |  | `map3.destination` | macro target 3: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map3_destination` | 0 .. 293 | 0 |  | `map3.destination` | macro target 3: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map3_from` | 0 .. 1 | 0 | yes | `map3.from` | macro target 3: the destination's value with the macro at 0, as a fraction of its range |
 | `map3_to` | 0 .. 1 | 1 | yes | `map3.to` | macro target 3: the destination's value with the macro at 1, as a fraction of its range |
 | `map4_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map4.macro` | macro target 4: the macro that drives it (none = off) |
-| `map4_destination` | 0 .. 272 | 0 |  | `map4.destination` | macro target 4: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map4_destination` | 0 .. 293 | 0 |  | `map4.destination` | macro target 4: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map4_from` | 0 .. 1 | 0 | yes | `map4.from` | macro target 4: the destination's value with the macro at 0, as a fraction of its range |
 | `map4_to` | 0 .. 1 | 1 | yes | `map4.to` | macro target 4: the destination's value with the macro at 1, as a fraction of its range |
 | `map5_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map5.macro` | macro target 5: the macro that drives it (none = off) |
-| `map5_destination` | 0 .. 272 | 0 |  | `map5.destination` | macro target 5: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map5_destination` | 0 .. 293 | 0 |  | `map5.destination` | macro target 5: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map5_from` | 0 .. 1 | 0 | yes | `map5.from` | macro target 5: the destination's value with the macro at 0, as a fraction of its range |
 | `map5_to` | 0 .. 1 | 1 | yes | `map5.to` | macro target 5: the destination's value with the macro at 1, as a fraction of its range |
 | `map6_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map6.macro` | macro target 6: the macro that drives it (none = off) |
-| `map6_destination` | 0 .. 272 | 0 |  | `map6.destination` | macro target 6: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map6_destination` | 0 .. 293 | 0 |  | `map6.destination` | macro target 6: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map6_from` | 0 .. 1 | 0 | yes | `map6.from` | macro target 6: the destination's value with the macro at 0, as a fraction of its range |
 | `map6_to` | 0 .. 1 | 1 | yes | `map6.to` | macro target 6: the destination's value with the macro at 1, as a fraction of its range |
 | `map7_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map7.macro` | macro target 7: the macro that drives it (none = off) |
-| `map7_destination` | 0 .. 272 | 0 |  | `map7.destination` | macro target 7: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map7_destination` | 0 .. 293 | 0 |  | `map7.destination` | macro target 7: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map7_from` | 0 .. 1 | 0 | yes | `map7.from` | macro target 7: the destination's value with the macro at 0, as a fraction of its range |
 | `map7_to` | 0 .. 1 | 1 | yes | `map7.to` | macro target 7: the destination's value with the macro at 1, as a fraction of its range |
 | `map8_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map8.macro` | macro target 8: the macro that drives it (none = off) |
-| `map8_destination` | 0 .. 272 | 0 |  | `map8.destination` | macro target 8: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map8_destination` | 0 .. 293 | 0 |  | `map8.destination` | macro target 8: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map8_from` | 0 .. 1 | 0 | yes | `map8.from` | macro target 8: the destination's value with the macro at 0, as a fraction of its range |
 | `map8_to` | 0 .. 1 | 1 | yes | `map8.to` | macro target 8: the destination's value with the macro at 1, as a fraction of its range |
 | `map9_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map9.macro` | macro target 9: the macro that drives it (none = off) |
-| `map9_destination` | 0 .. 272 | 0 |  | `map9.destination` | macro target 9: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map9_destination` | 0 .. 293 | 0 |  | `map9.destination` | macro target 9: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map9_from` | 0 .. 1 | 0 | yes | `map9.from` | macro target 9: the destination's value with the macro at 0, as a fraction of its range |
 | `map9_to` | 0 .. 1 | 1 | yes | `map9.to` | macro target 9: the destination's value with the macro at 1, as a fraction of its range |
 | `map10_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map10.macro` | macro target 10: the macro that drives it (none = off) |
-| `map10_destination` | 0 .. 272 | 0 |  | `map10.destination` | macro target 10: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map10_destination` | 0 .. 293 | 0 |  | `map10.destination` | macro target 10: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map10_from` | 0 .. 1 | 0 | yes | `map10.from` | macro target 10: the destination's value with the macro at 0, as a fraction of its range |
 | `map10_to` | 0 .. 1 | 1 | yes | `map10.to` | macro target 10: the destination's value with the macro at 1, as a fraction of its range |
 | `map11_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map11.macro` | macro target 11: the macro that drives it (none = off) |
-| `map11_destination` | 0 .. 272 | 0 |  | `map11.destination` | macro target 11: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map11_destination` | 0 .. 293 | 0 |  | `map11.destination` | macro target 11: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map11_from` | 0 .. 1 | 0 | yes | `map11.from` | macro target 11: the destination's value with the macro at 0, as a fraction of its range |
 | `map11_to` | 0 .. 1 | 1 | yes | `map11.to` | macro target 11: the destination's value with the macro at 1, as a fraction of its range |
 | `map12_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map12.macro` | macro target 12: the macro that drives it (none = off) |
-| `map12_destination` | 0 .. 272 | 0 |  | `map12.destination` | macro target 12: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map12_destination` | 0 .. 293 | 0 |  | `map12.destination` | macro target 12: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map12_from` | 0 .. 1 | 0 | yes | `map12.from` | macro target 12: the destination's value with the macro at 0, as a fraction of its range |
 | `map12_to` | 0 .. 1 | 1 | yes | `map12.to` | macro target 12: the destination's value with the macro at 1, as a fraction of its range |
 | `map13_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map13.macro` | macro target 13: the macro that drives it (none = off) |
-| `map13_destination` | 0 .. 272 | 0 |  | `map13.destination` | macro target 13: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map13_destination` | 0 .. 293 | 0 |  | `map13.destination` | macro target 13: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map13_from` | 0 .. 1 | 0 | yes | `map13.from` | macro target 13: the destination's value with the macro at 0, as a fraction of its range |
 | `map13_to` | 0 .. 1 | 1 | yes | `map13.to` | macro target 13: the destination's value with the macro at 1, as a fraction of its range |
 | `map14_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map14.macro` | macro target 14: the macro that drives it (none = off) |
-| `map14_destination` | 0 .. 272 | 0 |  | `map14.destination` | macro target 14: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map14_destination` | 0 .. 293 | 0 |  | `map14.destination` | macro target 14: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map14_from` | 0 .. 1 | 0 | yes | `map14.from` | macro target 14: the destination's value with the macro at 0, as a fraction of its range |
 | `map14_to` | 0 .. 1 | 1 | yes | `map14.to` | macro target 14: the destination's value with the macro at 1, as a fraction of its range |
 | `map15_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map15.macro` | macro target 15: the macro that drives it (none = off) |
-| `map15_destination` | 0 .. 272 | 0 |  | `map15.destination` | macro target 15: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map15_destination` | 0 .. 293 | 0 |  | `map15.destination` | macro target 15: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map15_from` | 0 .. 1 | 0 | yes | `map15.from` | macro target 15: the destination's value with the macro at 0, as a fraction of its range |
 | `map15_to` | 0 .. 1 | 1 | yes | `map15.to` | macro target 15: the destination's value with the macro at 1, as a fraction of its range |
 | `map16_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map16.macro` | macro target 16: the macro that drives it (none = off) |
-| `map16_destination` | 0 .. 272 | 0 |  | `map16.destination` | macro target 16: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map16_destination` | 0 .. 293 | 0 |  | `map16.destination` | macro target 16: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map16_from` | 0 .. 1 | 0 | yes | `map16.from` | macro target 16: the destination's value with the macro at 0, as a fraction of its range |
 | `map16_to` | 0 .. 1 | 1 | yes | `map16.to` | macro target 16: the destination's value with the macro at 1, as a fraction of its range |
 | `map17_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map17.macro` | macro target 17: the macro that drives it (none = off) |
-| `map17_destination` | 0 .. 272 | 0 |  | `map17.destination` | macro target 17: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map17_destination` | 0 .. 293 | 0 |  | `map17.destination` | macro target 17: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map17_from` | 0 .. 1 | 0 | yes | `map17.from` | macro target 17: the destination's value with the macro at 0, as a fraction of its range |
 | `map17_to` | 0 .. 1 | 1 | yes | `map17.to` | macro target 17: the destination's value with the macro at 1, as a fraction of its range |
 | `map18_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map18.macro` | macro target 18: the macro that drives it (none = off) |
-| `map18_destination` | 0 .. 272 | 0 |  | `map18.destination` | macro target 18: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map18_destination` | 0 .. 293 | 0 |  | `map18.destination` | macro target 18: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map18_from` | 0 .. 1 | 0 | yes | `map18.from` | macro target 18: the destination's value with the macro at 0, as a fraction of its range |
 | `map18_to` | 0 .. 1 | 1 | yes | `map18.to` | macro target 18: the destination's value with the macro at 1, as a fraction of its range |
 | `map19_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map19.macro` | macro target 19: the macro that drives it (none = off) |
-| `map19_destination` | 0 .. 272 | 0 |  | `map19.destination` | macro target 19: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map19_destination` | 0 .. 293 | 0 |  | `map19.destination` | macro target 19: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map19_from` | 0 .. 1 | 0 | yes | `map19.from` | macro target 19: the destination's value with the macro at 0, as a fraction of its range |
 | `map19_to` | 0 .. 1 | 1 | yes | `map19.to` | macro target 19: the destination's value with the macro at 1, as a fraction of its range |
 | `map20_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map20.macro` | macro target 20: the macro that drives it (none = off) |
-| `map20_destination` | 0 .. 272 | 0 |  | `map20.destination` | macro target 20: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map20_destination` | 0 .. 293 | 0 |  | `map20.destination` | macro target 20: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map20_from` | 0 .. 1 | 0 | yes | `map20.from` | macro target 20: the destination's value with the macro at 0, as a fraction of its range |
 | `map20_to` | 0 .. 1 | 1 | yes | `map20.to` | macro target 20: the destination's value with the macro at 1, as a fraction of its range |
 | `map21_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map21.macro` | macro target 21: the macro that drives it (none = off) |
-| `map21_destination` | 0 .. 272 | 0 |  | `map21.destination` | macro target 21: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map21_destination` | 0 .. 293 | 0 |  | `map21.destination` | macro target 21: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map21_from` | 0 .. 1 | 0 | yes | `map21.from` | macro target 21: the destination's value with the macro at 0, as a fraction of its range |
 | `map21_to` | 0 .. 1 | 1 | yes | `map21.to` | macro target 21: the destination's value with the macro at 1, as a fraction of its range |
 | `map22_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map22.macro` | macro target 22: the macro that drives it (none = off) |
-| `map22_destination` | 0 .. 272 | 0 |  | `map22.destination` | macro target 22: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map22_destination` | 0 .. 293 | 0 |  | `map22.destination` | macro target 22: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map22_from` | 0 .. 1 | 0 | yes | `map22.from` | macro target 22: the destination's value with the macro at 0, as a fraction of its range |
 | `map22_to` | 0 .. 1 | 1 | yes | `map22.to` | macro target 22: the destination's value with the macro at 1, as a fraction of its range |
 | `map23_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map23.macro` | macro target 23: the macro that drives it (none = off) |
-| `map23_destination` | 0 .. 272 | 0 |  | `map23.destination` | macro target 23: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map23_destination` | 0 .. 293 | 0 |  | `map23.destination` | macro target 23: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map23_from` | 0 .. 1 | 0 | yes | `map23.from` | macro target 23: the destination's value with the macro at 0, as a fraction of its range |
 | `map23_to` | 0 .. 1 | 1 | yes | `map23.to` | macro target 23: the destination's value with the macro at 1, as a fraction of its range |
 | `map24_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map24.macro` | macro target 24: the macro that drives it (none = off) |
-| `map24_destination` | 0 .. 272 | 0 |  | `map24.destination` | macro target 24: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map24_destination` | 0 .. 293 | 0 |  | `map24.destination` | macro target 24: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map24_from` | 0 .. 1 | 0 | yes | `map24.from` | macro target 24: the destination's value with the macro at 0, as a fraction of its range |
 | `map24_to` | 0 .. 1 | 1 | yes | `map24.to` | macro target 24: the destination's value with the macro at 1, as a fraction of its range |
 | `map25_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map25.macro` | macro target 25: the macro that drives it (none = off) |
-| `map25_destination` | 0 .. 272 | 0 |  | `map25.destination` | macro target 25: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map25_destination` | 0 .. 293 | 0 |  | `map25.destination` | macro target 25: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map25_from` | 0 .. 1 | 0 | yes | `map25.from` | macro target 25: the destination's value with the macro at 0, as a fraction of its range |
 | `map25_to` | 0 .. 1 | 1 | yes | `map25.to` | macro target 25: the destination's value with the macro at 1, as a fraction of its range |
 | `map26_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map26.macro` | macro target 26: the macro that drives it (none = off) |
-| `map26_destination` | 0 .. 272 | 0 |  | `map26.destination` | macro target 26: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map26_destination` | 0 .. 293 | 0 |  | `map26.destination` | macro target 26: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map26_from` | 0 .. 1 | 0 | yes | `map26.from` | macro target 26: the destination's value with the macro at 0, as a fraction of its range |
 | `map26_to` | 0 .. 1 | 1 | yes | `map26.to` | macro target 26: the destination's value with the macro at 1, as a fraction of its range |
 | `map27_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map27.macro` | macro target 27: the macro that drives it (none = off) |
-| `map27_destination` | 0 .. 272 | 0 |  | `map27.destination` | macro target 27: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map27_destination` | 0 .. 293 | 0 |  | `map27.destination` | macro target 27: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map27_from` | 0 .. 1 | 0 | yes | `map27.from` | macro target 27: the destination's value with the macro at 0, as a fraction of its range |
 | `map27_to` | 0 .. 1 | 1 | yes | `map27.to` | macro target 27: the destination's value with the macro at 1, as a fraction of its range |
 | `map28_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map28.macro` | macro target 28: the macro that drives it (none = off) |
-| `map28_destination` | 0 .. 272 | 0 |  | `map28.destination` | macro target 28: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map28_destination` | 0 .. 293 | 0 |  | `map28.destination` | macro target 28: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map28_from` | 0 .. 1 | 0 | yes | `map28.from` | macro target 28: the destination's value with the macro at 0, as a fraction of its range |
 | `map28_to` | 0 .. 1 | 1 | yes | `map28.to` | macro target 28: the destination's value with the macro at 1, as a fraction of its range |
 | `map29_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map29.macro` | macro target 29: the macro that drives it (none = off) |
-| `map29_destination` | 0 .. 272 | 0 |  | `map29.destination` | macro target 29: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map29_destination` | 0 .. 293 | 0 |  | `map29.destination` | macro target 29: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map29_from` | 0 .. 1 | 0 | yes | `map29.from` | macro target 29: the destination's value with the macro at 0, as a fraction of its range |
 | `map29_to` | 0 .. 1 | 1 | yes | `map29.to` | macro target 29: the destination's value with the macro at 1, as a fraction of its range |
 | `map30_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map30.macro` | macro target 30: the macro that drives it (none = off) |
-| `map30_destination` | 0 .. 272 | 0 |  | `map30.destination` | macro target 30: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map30_destination` | 0 .. 293 | 0 |  | `map30.destination` | macro target 30: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map30_from` | 0 .. 1 | 0 | yes | `map30.from` | macro target 30: the destination's value with the macro at 0, as a fraction of its range |
 | `map30_to` | 0 .. 1 | 1 | yes | `map30.to` | macro target 30: the destination's value with the macro at 1, as a fraction of its range |
 | `map31_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map31.macro` | macro target 31: the macro that drives it (none = off) |
-| `map31_destination` | 0 .. 272 | 0 |  | `map31.destination` | macro target 31: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map31_destination` | 0 .. 293 | 0 |  | `map31.destination` | macro target 31: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map31_from` | 0 .. 1 | 0 | yes | `map31.from` | macro target 31: the destination's value with the macro at 0, as a fraction of its range |
 | `map31_to` | 0 .. 1 | 1 | yes | `map31.to` | macro target 31: the destination's value with the macro at 1, as a fraction of its range |
 | `map32_macro` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8 | none |  | `map32.macro` | macro target 32: the macro that drives it (none = off) |
-| `map32_destination` | 0 .. 272 | 0 |  | `map32.destination` | macro target 32: the parameter moved, an engine one or the master / an effect (by name in patches) |
+| `map32_destination` | 0 .. 293 | 0 |  | `map32.destination` | macro target 32: the parameter moved, an engine one or the master / an effect (by name in patches) |
 | `map32_from` | 0 .. 1 | 0 | yes | `map32.from` | macro target 32: the destination's value with the macro at 0, as a fraction of its range |
 | `map32_to` | 0 .. 1 | 1 | yes | `map32.to` | macro target 32: the destination's value with the macro at 1, as a fraction of its range |
 | `macro1_cc` | 0 .. 119 | 102 |  | `macro1.cc` | MIDI CC that turns macro 1 (0 = none; default 102..109, a free range) |

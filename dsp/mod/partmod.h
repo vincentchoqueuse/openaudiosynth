@@ -18,9 +18,13 @@
 #define PM_MSEGS 2
 #define PM_ROUTES 8
 #define PM_MAPS 32 /* macro targets: a macro moves a parameter between two values */
-/* a macro target's destination is a synth parameter id + 1: an engine parameter (0..255), or the master level and
- * the effects (SYNTH_PARAM_MASTER_DB .. the effect bus), which synth.c applies */
-#define PM_MAP_DST_MAX (SYNTH_PARAM_TEMPO) /* ids below this one */
+/* a macro target's destination is a synth parameter id + 1: an engine parameter (0..255), or the master level, the
+ * effects and the output filter, which synth.c applies (not the tempo, clock and tuning in between) */
+#define PM_MAP_DST_MAX (SYNTH_PARAM_GLOBAL_END) /* ids below this one */
+static inline int pm_global_target(int id)
+{
+    return (id >= SYNTH_PARAM_GLOBAL && id < SYNTH_PARAM_TEMPO) || (id >= SYNTH_PARAM_OUT_FILTER && id < SYNTH_PARAM_GLOBAL_END);
+}
 #define PM_ENGINE_PARAMS 256
 #define PM_LIVE_MAX 64 /* parameters gliding or modulated at the same time */
 #define PM_SMOOTH_S 0.005f

@@ -283,6 +283,7 @@ parameter and modulation layer of a part, the same for every engine. Parameter c
 - types: `partmod_t`
 - constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_COUNT`, `PM_WAVE_FOURIER` = 5, `PM_WAVE_WIENER` = 6
 - data: `const param_desc_t partmod_params[PM_COUNT]`
+- `int pm_global_target(int id)` — ids below this one
 - `void partmod_init(partmod_t *m, float sample_rate, uint32_t seed)`
 - `void partmod_engine(partmod_t *m, const engine_ops_t *ops)` — New engine: base values back to the engine's defaults, nothing modulated.
 - `void partmod_set(partmod_t *m, int index, float norm)` — Modulation parameter index (0..PM_COUNT-1), normalized value.

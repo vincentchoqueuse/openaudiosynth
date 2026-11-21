@@ -36,7 +36,8 @@ target_compile_options(synth_midi PRIVATE ${DSP_STRICT_FLAGS})
 # Portable host layer (no OS calls but stdio/malloc): JSON, catalog lookups, patches, sequences.
 # Shared by the macOS tools and the web build.
 set(SYNTH_HOST_CORE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/host/demos.c ${CMAKE_CURRENT_SOURCE_DIR}/host/json.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/host/catalog.c ${CMAKE_CURRENT_SOURCE_DIR}/host/patch.c)
+  ${CMAKE_CURRENT_SOURCE_DIR}/host/catalog.c ${CMAKE_CURRENT_SOURCE_DIR}/host/patch.c
+  ${CMAKE_CURRENT_SOURCE_DIR}/host/song.c)
 
 if(EMSCRIPTEN)
   add_subdirectory(web/wasm) # browser build: synth.wasm for the AudioWorklet (web/README.md)
@@ -53,7 +54,7 @@ target_compile_definitions(synth_dsp PUBLIC DSP_HOST)
 add_library(synth_host_core STATIC ${SYNTH_HOST_CORE_SOURCES})
 target_include_directories(synth_host_core PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/host)
 target_link_libraries(synth_host_core PUBLIC synth_dsp)
-add_library(synth_host_util STATIC host/wav.c host/song.c host/fm6_sysex.c host/kitfile.c)
+add_library(synth_host_util STATIC host/wav.c host/fm6_sysex.c host/kitfile.c)
 target_link_libraries(synth_host_util PUBLIC synth_host_core)
 
 add_executable(synth_link host/synth_link.c) # drives the boards over Ethernet (midi/link.h)

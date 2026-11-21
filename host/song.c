@@ -123,6 +123,75 @@ static char *pattern_to_notes(const json_t *pat, char *err, size_t errlen)
     return out;
 }
 
+int song_info(const json_t *root, song_info_t *info, char *err, size_t errlen)
+{
+    if ((int)num(root, "version", 0) != SONG_VERSION) {
+        snprintf(err, errlen, "\"version\": %d is required", SONG_VERSION);
+        return -1;
+    }
+    info->bpm = num(root, "bpm", 90.0);
+    info->beats = num(root, "length_beats", 64.0);
+    info->tail = num(root, "tail_s", 6.0);
+    if (!(info->bpm >= 10.0 && info->bpm <= 400.0) || !(info->beats > 0.0) || !(info->tail >= 0.0)) {
+        snprintf(err, errlen, "\"bpm\" must be 10..400, \"length_beats\" > 0 and \"tail_s\" >= 0");
+        return -1;
+    }
+    info->length_s = info->beats * 60.0 / info->bpm + info->tail;
+    if (info->length_s > SONG_MAX_SECONDS) {
+        snprintf(err, errlen, "song too long: %.0f s (%d s at most)", info->length_s, SONG_MAX_SECONDS);
+        return -1;
+    }
+    const json_t *tracks = json_get(root, "tracks");
+    if (!tracks || tracks->type != JSON_ARR || !tracks->child) {
+        snprintf(err, errlen, "\"tracks\" must be a non-empty array");
+        return -1;
+    }
+    return 0;
+}
+
+int song_track(const json_t *t, int ti, const song_info_t *info, patch_t *p, char **phrase, char *err, size_t errlen,
+               char *warn, size_t warnlen)
+{
+    *phrase = NULL;
+    const json_t *pp = json_get(t, "patch"), *notes = json_get(t, "notes"), *pat = json_get(t, "pattern");
+    if (!pp || (pp->type != JSON_STR && pp->type != JSON_OBJ) || ((!notes || notes->type != JSON_STR) && !pat)) {
+        snprintf(err, errlen, "track %d: \"patch\" (a file or an inline patch) and either \"notes\" or \"pattern\" are required", ti);
+        return -1;
+    }
+    char *grid = NULL;
+    if (pat && !(grid = pattern_to_notes(pat, err, errlen)))
+        return -1;
+    char perr[1024], pwarn[512];
+    const int loaded = pp->type == JSON_OBJ ? patch_from_object(pp, p, perr, sizeof perr, pwarn, sizeof pwarn)
+                                            : patch_load(pp->str, p, perr, sizeof perr, pwarn, sizeof pwarn);
+    if (loaded != 0 || patch_set_params(p, json_get(t, "params"), perr, sizeof perr, pwarn, sizeof pwarn) != 0) {
+        snprintf(err, errlen, "track %d (%s): %s", ti, pp->type == JSON_STR ? pp->str : "inline patch", perr);
+        free(grid);
+        return -1;
+    }
+    if (pwarn[0] && warn) {
+        const size_t u = strlen(warn);
+        snprintf(warn + u, warnlen - u, "track %d: %s", ti, pwarn);
+    }
+    p->bpm = (float)info->bpm;
+    /* same bounds as a patch's audition (patch.c); out-of-range values are clamped */
+    p->step_beats = dsp_clampf((float)num(t, "step", grid ? 0.25 : 1.0), 1.0f / 64.0f, 64.0f); /* grids: sixteenths */
+    p->gate = dsp_clampf((float)num(t, "gate", 1.0), 0.02f, 1.0f);
+    p->velocity = dsp_clampi((int)num(t, "velocity", 100), 1, 127);
+    p->humanize_vel = (float)num(t, "humanize_velocity", 0.0);
+    p->humanize_ms = (float)num(t, "humanize_ms", 0.0);
+    p->swing = (float)dsp_clampf((float)num(t, "swing", 0.0), 0.0f, 0.5f);
+    const int start = dsp_clampi((int)num(t, "start_step", 0), 0, 1 << 20);
+    const int repeat = dsp_clampi((int)num(t, "repeat", 1), 1, SONG_MAX_REPEAT);
+    *phrase = build_notes(grid ? grid : notes->str, start, repeat);
+    free(grid);
+    if (!*phrase) {
+        snprintf(err, errlen, "track %d: out of memory", ti);
+        return -1;
+    }
+    return 0;
+}
+
 int song_render(const char *path, float sr, float **Lp, float **Rp, char *err, size_t errlen, char *warn,
                 size_t warnlen)
 {
@@ -134,21 +203,10 @@ int song_render(const char *path, float sr, float **Lp, float **Rp, char *err, s
     if (warn && warnlen)
         warn[0] = 0;
 
-    if ((int)num(root, "version", 0) != SONG_VERSION) {
-        snprintf(err, errlen, "\"version\": %d is required", SONG_VERSION);
+    song_info_t info;
+    if (song_info(root, &info, err, errlen) != 0)
         goto out;
-    }
-    const double bpm = num(root, "bpm", 90.0);
-    const double beats = num(root, "length_beats", 64.0), tail = num(root, "tail_s", 6.0);
-    if (!(bpm >= 10.0 && bpm <= 400.0) || !(beats > 0.0) || !(tail >= 0.0)) {
-        snprintf(err, errlen, "\"bpm\" must be 10..400, \"length_beats\" > 0 and \"tail_s\" >= 0");
-        goto out;
-    }
-    const double length_s = beats * 60.0 / bpm + tail;
-    if (length_s > SONG_MAX_SECONDS) {
-        snprintf(err, errlen, "song too long: %.0f s (%d s at most)", length_s, SONG_MAX_SECONDS);
-        goto out;
-    }
+    const double bpm = info.bpm, length_s = info.length_s;
     frames = (int)(length_s * (double)sr);
     L = calloc((size_t)frames, sizeof(float));
     R = calloc((size_t)frames, sizeof(float));
@@ -160,52 +218,11 @@ int song_render(const char *path, float sr, float **Lp, float **Rp, char *err, s
     }
 
     const json_t *tracks = json_get(root, "tracks");
-    if (!tracks || tracks->type != JSON_ARR || !tracks->child) {
-        snprintf(err, errlen, "\"tracks\" must be a non-empty array");
-        frames = -1;
-        goto out;
-    }
     int ti = 0;
     for (const json_t *t = tracks->child; t; t = t->next, ti++) {
-        const json_t *pp = json_get(t, "patch"), *notes = json_get(t, "notes"), *pat = json_get(t, "pattern");
-        if (!pp || (pp->type != JSON_STR && pp->type != JSON_OBJ) || ((!notes || notes->type != JSON_STR) && !pat)) {
-            snprintf(err, errlen, "track %d: \"patch\" (a file or an inline patch) and either \"notes\" or \"pattern\" are required", ti);
-            frames = -1;
-            goto out;
-        }
-        char *grid = NULL;
-        if (pat && !(grid = pattern_to_notes(pat, err, errlen))) {
-            frames = -1;
-            goto out;
-        }
         patch_t p;
-        char perr[1024], pwarn[512];
-        const int loaded = pp->type == JSON_OBJ ? patch_from_object(pp, &p, perr, sizeof perr, pwarn, sizeof pwarn)
-                                                : patch_load(pp->str, &p, perr, sizeof perr, pwarn, sizeof pwarn);
-        if (loaded != 0 || patch_set_params(&p, json_get(t, "params"), perr, sizeof perr, pwarn, sizeof pwarn) != 0) {
-            snprintf(err, errlen, "track %d (%s): %s", ti, pp->type == JSON_STR ? pp->str : "inline patch", perr);
-            free(grid);
-            frames = -1;
-            goto out;
-        }
-        if (pwarn[0] && warn) {
-            const size_t u = strlen(warn);
-            snprintf(warn + u, warnlen - u, "track %d: %s", ti, pwarn);
-        }
-        p.bpm = (float)bpm;
-        /* same bounds as a patch's audition (patch.c); out-of-range values are clamped */
-        p.step_beats = dsp_clampf((float)num(t, "step", grid ? 0.25 : 1.0), 1.0f / 64.0f, 64.0f); /* grids: sixteenths */
-        p.gate = dsp_clampf((float)num(t, "gate", 1.0), 0.02f, 1.0f);
-        p.velocity = dsp_clampi((int)num(t, "velocity", 100), 1, 127);
-        p.humanize_vel = (float)num(t, "humanize_velocity", 0.0);
-        p.humanize_ms = (float)num(t, "humanize_ms", 0.0);
-        p.swing = (float)dsp_clampf((float)num(t, "swing", 0.0), 0.0f, 0.5f);
-        const int start = dsp_clampi((int)num(t, "start_step", 0), 0, 1 << 20);
-        const int repeat = dsp_clampi((int)num(t, "repeat", 1), 1, SONG_MAX_REPEAT);
-        char *phrase = build_notes(grid ? grid : notes->str, start, repeat);
-        free(grid);
-        if (!phrase) {
-            snprintf(err, errlen, "track %d: out of memory", ti);
+        char perr[1024], *phrase;
+        if (song_track(t, ti, &info, &p, &phrase, err, errlen, warn, warnlen) != 0) {
             frames = -1;
             goto out;
         }

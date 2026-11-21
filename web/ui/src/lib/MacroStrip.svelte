@@ -8,7 +8,8 @@
   import Param from './Param.svelte';
   import { fromNorm, toNorm, format } from './synth.js';
 
-  let { engine, shared, byName, values, setValue, names = $bindable(), baseline } = $props();
+  // editable: a click on a macro's name opens its editor (Synth tab); off, the knobs only play (Play tab)
+  let { engine, shared, byName, values, setValue, names = $bindable(), baseline, editable = true } = $props();
   const MACROS = 8, MAPS = 32;
   let open = $state(-1); // macro whose editor is shown
 
@@ -80,9 +81,13 @@
            ondblclick={() => reset(k)} title="drag up/down, wheel or arrows; double-click: the patch's value">
         <span class="val">{Math.round(m * 100)}</span>
       </div>
-      <button class="mname" onclick={() => (open = open === k ? -1 : k)} title="edit this macro">
-        {names[k] || `Macro ${k + 1}`}
-      </button>
+      {#if editable}
+        <button class="mname" onclick={() => (open = open === k ? -1 : k)} title="edit this macro">
+          {names[k] || `Macro ${k + 1}`}
+        </button>
+      {:else}
+        <span class="mname">{names[k] || `Macro ${k + 1}`}</span>
+      {/if}
       <div class="chips">
         {#each targets[k] as t (t.slot)}
           <span class="tgt" title="{t.dst.name}: {format(t.dst, fromNorm(t.dst, t.from))} → {format(t.dst, fromNorm(t.dst, t.to))}">

@@ -59,6 +59,17 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   double-click to add or remove a point, click a point to make it the sustain point or a loop boundary, loop mode
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
+- **Layout**: the sound library on the left; the top bar (the sound: instrument, name, Save, Export; undo / redo;
+  level and volume); two main tabs, **Play** (Live, Macros, Sequencer) and **Synth** (Structure, then Sound with
+  its editors), each in **Visual** or **Code** mode (the clip's or the patch's JSON); the keyboard along the bottom.
+- **Interface rules** (every part of the page follows them):
+  - one section shape (`lib/Section.svelte`): a small capital title, its own controls on the right, a chevron that
+    folds it to its title line (with a summary), remembered in the browser;
+  - underlined tabs move between pages or editors (Play / Synth, the Sound editors); pills choose a value or a mode
+    (Visual / Code, Draw / Select, an LFO's shape, an envelope's seconds / beats); never the other way round;
+  - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
+    text buttons, one height; a help line, when there is one, under the content in small muted text;
+  - parameters are cards of rows (label, control, value in its unit); everything is in English.
 - **Theme**: the sun / moon icon at the bottom of the sidebar cycles auto (as the system), light and dark; kept
   in the browser.
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),

@@ -1,34 +1,28 @@
-<!-- EditorTabs.svelte — the Sound section: everything about the sound in tabs, Description, Macros (its live
-     controls), Sound (the engine's parameters, or the sampler's kit), Effects, Part, Modulation (envelopes, LFOs
-     and the matrix) and Code (the documents it is made of, in a code editor). A sound picked in the library opens
-     on Macros. -->
+<!-- EditorTabs.svelte — the Synth tab's Sound section: the sound's editors in tabs, Description, Macros (their
+     names and targets), Sound (the engine's parameters, or the sampler's kit), Effects, Part, Modulation
+     (envelopes, LFOs and the matrix). A sound picked in the library opens on Macros. -->
 <script>
   import ParamGroups from './ParamGroups.svelte';
   import ModPanel from './ModPanel.svelte';
   import KitPanel from './KitPanel.svelte';
-  import JsonWorkspace from './JsonWorkspace.svelte';
   import DescriptionTab from './DescriptionTab.svelte';
   import MacroStrip from './MacroStrip.svelte';
   import { session as s } from './session.svelte.js';
   import { human } from './naming.js';
 
-  const TABS = [['desc', 'Description'], ['macros', 'Macros'], ['sound', 'Sound'], ['fx', 'Effects'], ['part', 'Part'], ['mod', 'Modulation'], ['code', 'Code']];
+  const TABS = [['desc', 'Description'], ['macros', 'Macros'], ['sound', 'Sound'], ['fx', 'Effects'], ['part', 'Part'], ['mod', 'Modulation']];
   let tab = $state('macros');
   $effect(() => { s.picks; tab = 'macros'; }); // a sound picked in the library opens on its live controls
 </script>
 
-<section class="section">
 <div class="tabs" role="tablist">
-  <h2 class="tabs-title">Sound</h2>
   {#each TABS as [id, name]}
     <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id)}>{name}</button>
   {/each}
   {#if tab === 'sound'}<button class="link small" onclick={s.resetEngine}>Defaults</button>{/if}
 </div>
 
-{#if tab === 'code'}
-  <JsonWorkspace />
-{:else if tab === 'desc'}
+{#if tab === 'desc'}
   <DescriptionTab />
 {:else if tab === 'macros'}
   <MacroStrip engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
@@ -41,4 +35,3 @@
 {:else}
   <ParamGroups {tab} />
 {/if}
-</section>

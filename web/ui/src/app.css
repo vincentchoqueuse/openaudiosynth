@@ -42,29 +42,31 @@ code { font-family: var(--mono); font-size: 12px; }
 
 /* layout: sidebar | main, keyboard along the bottom */
 .app { height: 100%; display: grid; grid-template: "side main" 1fr "side foot" auto / 232px 1fr; }
-/* the transport, on top of the page, always in view */
-.transport { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 16px; margin: -24px -32px 18px; padding: 10px 32px;
+/* the top bar: the sound, undo, level and volume; always in view */
+.topbar { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: -24px -32px 0; padding: 10px 32px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.transport .bpm { display: inline-flex; align-items: center; gap: 6px; }
-.transport .bpm input { width: 4.2em; border: 0; background: var(--faint); border-radius: 6px; padding: 4px 6px; color: var(--text); font: 13px var(--mono); }
-.transport .pos { font-size: 15px; color: var(--text); min-width: 3.5em; }
-.transport .seqname { color: var(--text); }
-.transport .spacer { flex: 1; }
-.transport .hist { display: inline-flex; gap: 2px; }
-.transport .hist button { width: 30px; padding: 3px 0; font-size: 16px; }
-.transport .hist button:not(:disabled) { color: var(--text); }
-.transport .hist button:disabled { opacity: .35; }
-.transport .volume { display: inline-flex; align-items: center; gap: 8px; }
-.transport .vu { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
-.transport .vu .track { width: 90px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
-.transport .vu .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
-.transport .vu span { min-width: 2.2em; text-align: right; color: var(--muted); }
-.transport .vu.hot .fill { background: var(--hot); }
-.transport .vu.hot span { color: var(--hot); }
-.transport .volume input { width: 120px; }
-.transport .volume .db { min-width: 4.6em; text-align: right; color: var(--text); }
-.transport .loopbtn { padding: 4px 10px; border-radius: 6px; background: var(--faint); color: var(--muted); font-size: 12px; }
-.transport .loopbtn.on { background: var(--accent-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
+.topbar .engine { border: 0; background: var(--faint); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text); }
+.topbar .name { margin: 0; font-size: 17px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar .btn { padding: 5px 12px; }
+.bpm { display: inline-flex; align-items: center; gap: 6px; }
+.bpm input { width: 4.2em; border: 0; background: var(--faint); border-radius: 6px; padding: 4px 6px; color: var(--text); font: 13px var(--mono); }
+.pos { font-size: 15px; color: var(--text); min-width: 3.5em; }
+.topbar .spacer { flex: 1; }
+.topbar .hist { display: inline-flex; gap: 2px; }
+.topbar .hist button { width: 30px; padding: 3px 0; font-size: 16px; }
+.topbar .hist button:not(:disabled) { color: var(--text); }
+.topbar .hist button:disabled { opacity: .35; }
+.topbar .volume { display: inline-flex; align-items: center; gap: 8px; }
+.topbar .vu { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
+.topbar .vu .track { width: 90px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
+.topbar .vu .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
+.topbar .vu span { min-width: 2.2em; text-align: right; color: var(--muted); }
+.topbar .vu.hot .fill { background: var(--hot); }
+.topbar .vu.hot span { color: var(--hot); }
+.topbar .volume input { width: 120px; }
+.topbar .volume .db { min-width: 4.6em; text-align: right; color: var(--text); }
+.loopbtn { padding: 4px 10px; border-radius: 6px; background: var(--faint); color: var(--muted); font-size: 12px; }
+.loopbtn.on { background: var(--accent-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
 .tabs .live { display: inline-block; width: 7px; height: 7px; margin-left: 7px; border-radius: 50%; background: var(--accent); vertical-align: 1px; animation: live 1s ease-in-out infinite alternate; }
 aside { grid-area: side; background: var(--side); display: flex; flex-direction: column; min-height: 0; padding: 18px 12px 10px; border-right: 1px solid var(--line); }
 .brand { font-size: 17px; padding: 0 8px 14px; display: flex; align-items: center; gap: 9px; }
@@ -137,14 +139,35 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs button:hover { color: var(--text); }
 .tabs button.on { color: var(--text); border-color: var(--accent); }
 .tabs .small { margin-left: auto; font-size: 12px; }
-/* the page's sections: Visualize, Sound, Sequence (a small title, its own controls, a fold) */
+/* the main tabs (Play, Synth) and their Visual / Code switch */
+.maintabs { display: flex; align-items: flex-end; gap: 14px; margin: 18px 0 4px; border-bottom: 1px solid var(--line); }
+.maintabs .tabs.big { border-bottom: 0; margin: 0; gap: 26px; }
+.maintabs .tabs.big button { font-size: 15px; font-weight: 600; padding: 6px 0 10px; }
+.maintabs .seg { margin-bottom: 8px; }
+.maintabs .spacer { flex: 1; }
+/* the one toolbar: settings on the left (a label, then its control), actions on the right, one height */
+.toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 30px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
+.toolbar label { display: inline-flex; align-items: center; gap: 6px; }
+.toolbar select, .toolbar input[type=number] { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; color: var(--text); font-size: 12px; }
+.toolbar select { max-width: 10em; }
+.toolbar > label:first-child select { max-width: 18em; }
+.toolbar .seg button { padding: 3px 9px; }
+.toolbar .spacer, .section-head .spacer { flex: 1; }
+.toolbar button.ghost { padding: 3px 8px; border-radius: 6px; color: var(--text); font-size: 12px; }
+.toolbar button.ghost:hover:not(:disabled) { background: var(--faint); }
+.toolbar button.ghost:disabled { color: var(--muted); opacity: .5; }
+.hint { font-size: 11.5px; color: var(--muted); margin: 10px 0 0; line-height: 1.5; }
+/* the page's sections (a small title, its own controls, a fold) */
 .section { margin-top: 22px; }
+.section-head .bpm input { width: 4.2em; border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; color: var(--text); font: 12px var(--mono); }
+.section-head .pos { font-size: 13px; color: var(--text); min-width: 4.5em; }
+.play.small { width: 28px; height: 28px; font-size: 11px; }
 .section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
 .section-head h2, .tabs-title { margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .tabs-title { padding-bottom: 9px; margin-right: 6px; }
 .section-head .summary { font-size: 12px; }
 .section-head .live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: live 1s ease-in-out infinite alternate; }
-.section-head .fold { margin-left: auto; width: 28px; height: 24px; padding: 0; border-radius: 6px; color: var(--muted); font-size: 15px; }
+.section-head .fold { width: 28px; height: 24px; padding: 0; border-radius: 6px; color: var(--muted); font-size: 15px; }
 .section-head .fold:hover { background: var(--faint); color: var(--text); }
 @keyframes live { to { opacity: .35; } }
 
@@ -203,7 +226,7 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 
 @media (max-width: 760px) {
   .app { grid-template: "side" auto "main" 1fr "foot" auto / 1fr; }
-  .transport { margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
+  .topbar { margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
   aside { max-height: 34vh; padding: 12px 16px 6px; border-right: 0; border-bottom: 1px solid var(--line); }
   .monitor { grid-template-columns: 1fr 1fr; height: 96px; }
     header.sound { flex-direction: column; }
@@ -249,25 +272,6 @@ h3 { font-size: 11px; font-weight: 600; color: var(--muted); margin: 14px 0 6px;
 input[type=range].bipolar::-webkit-slider-runnable-track {
   background: linear-gradient(to right, var(--track) var(--lo), var(--accent) var(--lo), var(--accent) var(--hi), var(--track) var(--hi)); }
 
-/* sequencer */
-.seq-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-bottom: 10px; font-size: 12px; color: var(--muted); }
-.seq-bar label { display: inline-flex; align-items: center; gap: 6px; }
-.seq-bar select, .seq-bar input[type=number] { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; color: var(--text); }
-.seq-bar input[type=number] { width: 4.5em; }
-.seq-bar input[type=range] { width: 90px; }
-.seq-bar .spacer { flex: 1; }
-.seq .grid { display: grid; grid-template-columns: 3.2em repeat(var(--steps), minmax(10px, 1fr)); gap: 2px; user-select: none; touch-action: none; columns: auto; }
-.seq .rowlabel { font: 10.5px var(--mono); color: var(--muted); display: flex; align-items: center; }
-.seq .rowlabel.root { color: var(--text); }
-.seq .cell { height: 18px; border-radius: 3px; background: var(--faint); cursor: pointer; }
-.seq .cell.beat { background: var(--track); }
-.seq .cell:hover { outline: 1px solid var(--accent); }
-.seq .cell.on { background: var(--accent); }
-.seq .cell.acc { background: var(--accent); box-shadow: inset 0 0 0 2px var(--text); }
-.seq .cell.soft { background: var(--accent); opacity: .45; }
-.seq .cell.tie { background: var(--accent); opacity: .7; border-radius: 0 3px 3px 0; margin-left: -2px; }
-.seq .cell.now { filter: brightness(1.35); outline: 1px solid var(--text); }
-.seq .hint { font-size: 11.5px; margin-top: 10px; }
 /* signal chain */
 .chain { margin: 4px 0 2px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
 .chain svg { display: block; overflow: visible; }
@@ -300,7 +304,6 @@ input[type=range].bipolar::-webkit-slider-runnable-track {
 .onoff.on { background: var(--accent); }
 .onoff.on::after { left: 16px; }
 section.off .param { opacity: .4; }
-.seq-bar .pname { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 8px; width: 10em; color: var(--text); }
 
 /* signature: "by Choc" next to the name */
 .brand .by { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 2px; }

@@ -1,20 +1,22 @@
-<!-- Transport.svelte — the bar at the top, as in a DAW: play / stop the clip (Space), its tempo, loop on / off
-     (off: it plays once), where it is (bar . beat . sixteenth), which clip, undo / redo, the output level and the listening volume. Always in
-     view, whatever tab is open. -->
+<!-- TopBar.svelte — the bar above both tabs: the sound (its instrument to switch, its name, how many parameters
+     moved since it was loaded with Revert, Save to library in development, Export), undo / redo, the output level
+     and the listening volume. Playing the clip is in the Play tab. -->
 <script>
-  import { sequence as q } from './sequence.svelte.js';
   import { session as s } from './session.svelte.js';
   import { history as h } from './history.svelte.js';
 </script>
 
-<div class="transport" role="toolbar" aria-label="Transport">
-  <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the sequence' : 'Play the sequence'}
-          title="Space">{q.playing ? '■' : '▶'}</button>
-  <label class="bpm"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
-  <button class="loopbtn" class:on={q.loop} onclick={() => (q.loop = !q.loop)} aria-pressed={q.loop}
-          title={q.loop ? `Loop on: the clip repeats every ${q.length} beats` : 'Loop off: the clip plays once'}>⟲ Loop</button>
-  <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
-  <span class="seqname">{q.name || 'untitled'}</span>
+<header class="topbar">
+  <select class="engine" value={s.engineId} onchange={(e) => s.setEngine(+e.target.value)} aria-label="Instrument">
+    {#each s.catalog.engines as e}<option value={e.id}>{e.name}</option>{/each}
+  </select>
+  <h1 class="name">{s.title}</h1>
+  {#if s.changedCount}
+    <span class="badge" title="parameters moved since the sound was loaded">{s.changedCount} edited</span>
+    <button class="link" onclick={s.revert} title={s.info ? 'reload the saved sound' : 'back to the defaults'}>Revert</button>
+  {/if}
+  {#if s.canSave}<button class="btn" onclick={s.openSave}>Save</button>{/if}
+  <button class="btn ghost" onclick={s.exportPatch}>Export</button>
   <span class="spacer"></span>
   <span class="hist">
     <button class="ghost" onclick={h.undo} disabled={!h.canUndo} title="Undo (⌘Z)" aria-label="Undo">↶</button>
@@ -30,4 +32,4 @@
            ondblclick={() => s.setVolume(0)} style="--p:{((s.volume + 60) / 60) * 100}%" aria-label="Volume" />
     <span class="mono db">{s.volume <= -60 ? 'off' : `${s.volume.toFixed(1)} dB`}</span>
   </label>
-</div>
+</header>

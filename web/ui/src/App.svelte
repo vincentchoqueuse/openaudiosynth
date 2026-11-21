@@ -1,24 +1,28 @@
-<!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the
-     transport on top (the clip: play, tempo, loop, position; undo; level and volume); the current sound's name;
-     then three sections: Visualize (Live: wave and spectrum, Structure: the signal chain), Sound (Description,
-     Macros, Sound, Effects, Part, Modulation, Code) and Sequence (the clip each preset brings); the keyboard along
-     the bottom. The state and the actions live in lib/session.svelte.js and lib/sequence.svelte.js; the whole
-     interface takes the color of the instrument playing. Space plays / stops the clip. -->
+<!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the top
+     bar (the sound: instrument, name, Save, Export; undo; level and volume); two main tabs, Play (Live, Macros,
+     Sequencer) and Synth (Structure, then the sound's editors), each in Visual or Code mode (the clip's or the
+     patch's JSON); the keyboard along the bottom. State and actions live in lib/session.svelte.js and
+     lib/sequence.svelte.js; the interface takes the color of the instrument playing. Space plays / stops the clip. -->
 <script>
   import { session as s } from './lib/session.svelte.js';
   import { keyIsForControl } from './lib/keys.js';
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
-  import SoundHeader from './lib/SoundHeader.svelte';
-  import ViewSection from './lib/ViewSection.svelte';
-  import EditorTabs from './lib/EditorTabs.svelte';
-  import SequenceSection from './lib/SequenceSection.svelte';
-  import Transport from './lib/Transport.svelte';
+  import TopBar from './lib/TopBar.svelte';
+  import PlayTab from './lib/PlayTab.svelte';
+  import SynthTab from './lib/SynthTab.svelte';
+  import CodeView from './lib/CodeView.svelte';
+  import { remembered, remember } from './lib/fold.js';
   import { sequence } from './lib/sequence.svelte.js';
   import { history } from './lib/history.svelte.js';
   import Keyboard from './lib/Keyboard.svelte';
   import SaveDialog from './lib/SaveDialog.svelte';
 
+  // the two main tabs, each in Visual or Code mode (kept in the browser)
+  let main = $state(remembered('synth.main', 'play'));
+  let mode = $state(remembered('synth.mode', { play: 'visual', synth: 'visual' }));
+  const pickMain = (t) => { main = t; remember('synth.main', t); };
+  const pickMode = (m) => { mode = { ...mode, [main]: m }; remember('synth.mode', mode); };
   let attached = false; // the sequence comes back from this browser's storage once audio runs
   $effect(() => { if (s.started && !attached) { attached = true; sequence.attach(); history.attach(); } });
 
@@ -55,11 +59,24 @@
     <Sidebar />
 
     <main>
-      <Transport />
-      <SoundHeader />
-      <ViewSection />
-      <EditorTabs />
-      <SequenceSection />
+      <TopBar />
+      <nav class="maintabs" aria-label="Views">
+        <div class="tabs big" role="tablist">
+          <button role="tab" aria-selected={main === 'play'} class:on={main === 'play'} onclick={() => pickMain('play')}>Play</button>
+          <button role="tab" aria-selected={main === 'synth'} class:on={main === 'synth'} onclick={() => pickMain('synth')}>Synth</button>
+        </div>
+        <span class="spacer"></span>
+        <div class="seg small" role="group" aria-label="Mode">
+          <button class:on={mode[main] === 'visual'} onclick={() => pickMode('visual')}>Visual</button>
+          <button class:on={mode[main] === 'code'} onclick={() => pickMode('code')} title="{main === 'play' ? 'the clip' : 'the patch'} as JSON">Code</button>
+        </div>
+      </nav>
+      <!-- Play stays mounted: its scope measures the level of the top bar -->
+      <div hidden={main !== 'play' || mode.play !== 'visual'}><PlayTab /></div>
+      {#if main === 'play' && mode.play === 'code'}<CodeView doc="clip" />{/if}
+      {#if main === 'synth'}
+        {#if mode.synth === 'code'}<CodeView doc="sound" />{:else}<SynthTab />{/if}
+      {/if}
     </main>
 
     <footer><Keyboard synth={s.synth} held={s.held} /></footer>

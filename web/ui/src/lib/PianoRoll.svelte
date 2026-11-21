@@ -12,6 +12,7 @@
   import { sequence as q } from './sequence.svelte.js';
   import { history } from './history.svelte.js';
   import { noteName, inScale } from './seqExport.js';
+  let { settings } = $props(); // the clip's settings, shown at the start of the roll's toolbar
 
   const ROW = 15, EDGE = 7, VEL_H = 56; // row height, grab width of a note's right edge, velocity lane (px)
   let width = $state(600); // of the time area
@@ -222,15 +223,17 @@
 
 <svelte:window onkeydown={key} />
 
-<div class="tools" role="toolbar" aria-label="Piano roll tools">
+<div class="toolbar" role="toolbar" aria-label="Piano roll tools">
+  {#if settings}{@render settings()}{/if}
+  <span class="spacer"></span>
+  {#if sel.size}<span class="muted">{sel.size} selected</span>{/if}
   <div class="seg small">
-    <button class:on={tool === 'draw'} onclick={() => (tool = 'draw')} title="Draw notes">✎ Draw</button>
-    <button class:on={tool === 'select'} onclick={() => (tool = 'select')} title="Select with a rectangle (or Cmd-drag in Draw)">▭ Select</button>
+    <button class:on={tool === 'draw'} onclick={() => (tool = 'draw')} title="Draw notes">Draw</button>
+    <button class:on={tool === 'select'} onclick={() => (tool = 'select')} title="Select with a rectangle (or Cmd-drag in Draw)">Select</button>
   </div>
   <button class="ghost" onclick={() => { history.step(); if (copy()) pasteAt(selEnd()); }} disabled={!sel.size} title="Duplicate after the selection (Cmd+D)">Duplicate</button>
   <button class="ghost" onclick={quantize} disabled={!q.notes.length} title="Starts to the grid, the selection or every note (Cmd+U)">Quantize</button>
   <button class="ghost" onclick={() => { history.step(); q.deleteMany(sel); sel = new Set(); }} disabled={!sel.size} title="Delete">Delete</button>
-  <span class="muted count">{sel.size ? `${sel.size} selected` : ''}</span>
 </div>
 
 <div class="roll" style="--ppb:{ppb}px; --row:{ROW}px; --grid:{q.grid * ppb}px; --gutter:{gutter}px">
@@ -281,8 +284,6 @@
 </div>
 
 <style>
-  .tools { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 12px; }
-  .tools .count { margin-left: auto; }
   .roll { display: grid; grid-template-columns: 44px 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); user-select: none; }
   .corner { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
   .ruler { position: relative; height: 24px; border-bottom: 1px solid var(--line); margin-right: var(--gutter, 0px); }

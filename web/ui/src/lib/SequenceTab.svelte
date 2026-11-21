@@ -1,5 +1,5 @@
 <!-- SequenceTab.svelte — the clip in the Clip view's Sequencer (it belongs to the sound: Save in the Menu keeps
-     both): a first toolbar (tempo, loop, position; Random, Clear, the loops of an exported song), then the piano roll with its toolbar (the clip's length,
+     both): a first toolbar (loop, position; the tempo is in the top bar; Random, Clear, the loops of an exported song), then the piano roll with its toolbar (the clip's length,
      grid, key and octave on the left, the editing tools on the right). -->
 <script>
   import PianoRoll from './PianoRoll.svelte';
@@ -10,7 +10,6 @@
 </script>
 
 <div class="toolbar">
-  <label>Tempo <input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
   <Switch label="Loop" on={q.loop} onchange={(v) => (q.loop = v)} title={q.loop ? `the clip repeats every ${q.length} beats` : 'the clip plays once'} />
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <span class="spacer"></span>
@@ -34,6 +33,5 @@
 <p class="hint">Click in the roll to edit it with the keyboard; every shortcut: press ?</p>
 
 <style>
-  .toolbar input[type=number] { width: 4.2em; }
   .pos { color: var(--text); font-size: 13px; min-width: 4.5em; }
 </style>

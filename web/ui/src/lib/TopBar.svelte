@@ -1,7 +1,7 @@
 <!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
      pills of one width, then the preset's name; the Menu holds (Save to the library in development, Export sound,
      Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right, each set apart by a rule: the CPU load and the output level
-     (Meter), the listening volume, and
+     (Meter), the listening volume, the tempo and
      play / stop the sequence (Space). -->
 <script>
   import { session as s } from './session.svelte.js';
@@ -61,6 +61,7 @@
     <span class="mono db">{s.volume <= -60 ? 'off' : `${s.volume.toFixed(1)} dB`}</span>
   </label>
   <span class="vsep" aria-hidden="true"></span>
+  <label class="tempo" title="Tempo of the clip and of everything synced (LFOs, delay)"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
   <span class="seqlabel">Sequencer</span>
   <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   </div>

@@ -105,6 +105,7 @@ input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bord
 
 /* ---- cards: one width, on one row that scrolls sideways (.groups) ---- */
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }
+section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; }
 section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
 .picker { margin: 0 0 10px; } /* what a card shows (a modulator, a pad), chosen above it */
 .card-head { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
@@ -237,6 +238,8 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .volume { display: inline-flex; align-items: center; gap: 8px; }
 .topbar .volume input { width: 96px; }
 .topbar .volume .db { width: 4.8em; text-align: right; color: var(--text); }
+.topbar .tempo { display: inline-flex; align-items: center; gap: 6px; }
+.topbar .tempo input { width: 4.2em; border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; color: var(--text); font: 12.5px var(--mono); }
 .topbar .seqlabel { margin-right: -4px; }
 
 /* the views: a title with its icon; Live (wave or spectrum) */
@@ -248,7 +251,7 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
 
 /* footer: the macros to play, the keyboard */
-footer .macrocard { margin-bottom: 10px; padding-bottom: 4px; }
+footer .macrocard { margin-bottom: 10px; }
 footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 12px; background: var(--side); }
 .keys-wrap { display: flex; gap: 14px; align-items: stretch; }
 .oct { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }
@@ -302,6 +305,11 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .chain .chip.pick:hover rect, .chain .chip.pick:focus-visible rect, .chain .chip.hot rect { stroke-opacity: 1; fill: var(--accent-soft); }
 .chain .led { fill: var(--track); }
 .chain .led.on { fill: var(--ok); }
+
+/* ---- a narrow window: the meters go first ---- */
+@media (max-width: 1250px) {
+  .topbar .meter, .topbar .meter + .vsep { display: none; }
+}
 
 /* ---- phone ---- */
 @media (max-width: 760px) {

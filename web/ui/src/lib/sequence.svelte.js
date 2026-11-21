@@ -80,7 +80,7 @@ class Sequence {
       d = { current: old.current ? this.#fromGrid(old.current) : null, saved };
     }
     this.saved = d.saved && typeof d.saved === 'object' ? d.saved : {};
-    session.clipHook = { take: (p) => this.fromPatch(p), give: () => this.toPatch() };
+    session.clipHook = { take: (p) => this.fromPatch(p), give: () => this.toPatch(), stop: () => this.playing && this.stop() };
     if (d.current) this.#load(d.current);
     this.#ready = true;
     $effect.root(() => {
@@ -90,8 +90,8 @@ class Sequence {
       });
       // any change of what is played is resent while playing
       $effect(() => { this.tempo; this.length; this.loop; JSON.stringify(this.notes); untrack(() => this.changed()); });
-      // a new sound under a running clip: the synth was re-initialized, its tempo comes back
-      $effect(() => { session.patchGen; untrack(() => { if (this.playing) session.setP('tempo', this.tempo); }); });
+      // the clip's tempo is the synth's (LFO and delay sync), also after a new sound re-initialized it
+      $effect(() => { session.patchGen; const t = this.tempo; untrack(() => session.setP('tempo', t)); });
     });
     session.synth.on('pos', (p) => {
       if (!this.playing) return;

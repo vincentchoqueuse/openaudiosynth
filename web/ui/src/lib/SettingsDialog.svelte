@@ -1,5 +1,5 @@
 <!-- SettingsDialog.svelte — the part's settings, apart from the sound's design: MIDI channel, key range,
-     transposition, level and pan in the mix, MPE, and the global tempo, clock and tuning (temperament, concert
+     transposition, level and pan in the mix, MPE, and the global clock (the tempo itself is in the top bar) and tuning (temperament, concert
      pitch). Opened from the gear in the sidebar; Escape or a click outside closes it. -->
 <script>
   import ParamGroups from './ParamGroups.svelte';

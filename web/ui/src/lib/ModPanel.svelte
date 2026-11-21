@@ -3,6 +3,7 @@
      each shown the same way, MsegEditor or LfoView: a bar of choices, its drawing, a bar of settings) and
      Assignments (the matrix of the part or of each note, chosen the same way: every slot, filled or empty; ModMatrix). -->
 <script>
+  import Card from './Card.svelte';
   import MsegEditor from './MsegEditor.svelte';
   import LfoView from './LfoView.svelte';
   import ModMatrix from './ModMatrix.svelte';
@@ -32,7 +33,7 @@
 
 {#if view === 'mods'}
   <div class="picker"><Seg items={MODS.map(([label, , src, kind], i) => ({ id: i, label, dot: drives(src, kind) }))} value={sel} onpick={(i) => (sel = i)} label="Modulator" /></div>
-  <section class="card">
+  <Card>
     {#key sel}
       {#if m[4] === 'env'}
         <MsegEditor prefix={m[1]} />
@@ -40,19 +41,18 @@
         <LfoView prefix={m[1]} />
       {/if}
     {/key}
-  </section>
+  </Card>
 {:else}
   <div class="picker"><Seg items={[{ id: 'part', label: 'Part' }, { id: 'voice', label: 'Each note' }]} value={scope} onpick={(v) => (scope = v)} label="Routes of" /></div>
-  <section class="card">
+  <Card>
     {#key scope}<ModMatrix kind={scope} />{/key}
-  </section>
+  </Card>
 {/if}
 
 {#if rest.length}
-  <section class="card">
-    <h2>Other</h2>
+  <Card title="Other">
     {#each rest as d (d.id)}
       <Param {d} label={human(d.name)} />
     {/each}
-  </section>
+  </Card>
 {/if}

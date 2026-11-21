@@ -7,6 +7,7 @@
      remembers its value to come back to). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
+  import Card from './Card.svelte';
   import Switch from './Switch.svelte';
   import Param from './Param.svelte';
   import StageViz from './StageViz.svelte';
@@ -27,10 +28,11 @@
     const row = (d, label) => ({ d, label: label ?? human(d.name) });
     const custom = s.byName.tuning?.labels?.[Math.round(s.getP('tuning'))] === 'custom';
     const tuning = globals.filter((d) => /^(tuning|a4_hz|tune_\d+)/.test(d.name) && (custom || !/^tune_\d+$/.test(d.name)));
-    const tempo = globals.filter((d) => !tuning.includes(d) && !/^tune_\d+$/.test(d.name));
+    // the tempo itself is set in the top bar (the clip's): here only how it is followed
+    const clock = globals.filter((d) => !tuning.includes(d) && !/^tune_\d+$/.test(d.name) && d.name !== 'tempo');
     return [
       ['Part', part.map((d) => row(d, human(d.name.replace(/^part_/, '')))), null],
-      ['Tempo', tempo.map((d) => row(d)), null],
+      ['Clock', clock.map((d) => row(d)), null],
       ['Tuning', tuning.map((d) => row(d, d.name === 'a4_hz' ? 'A4' : /^tune_\d+$/.test(d.name) ? `Degree ${+d.name.slice(5)}` : human(d.name.replace(/^tuning_?/, '') || 'temperament'))), null],
     ].filter(([, ps]) => ps.length);
   });
@@ -65,7 +67,7 @@
 
 {#snippet card(g, ps, st)}
   {@const on = stageOn(st)}
-  <section class="card" class:off={!on} class:lit={st && lit === st.id} data-stage={st?.id}>
+  <Card class="{on ? '' : 'off'} {st && lit === st.id ? 'lit' : ''}" data-stage={st?.id}>
     <div class="stage-head">
       <h2>{g}</h2>
       {#if st?.enable}
@@ -78,7 +80,7 @@
         <Param {d} {label} />
       {/each}
     {/if}
-  </section>
+  </Card>
 {/snippet}
 
 <div bind:this={host}>

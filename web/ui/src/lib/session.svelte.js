@@ -231,6 +231,7 @@ class Session {
 
   // a sound of the library; returns true when it is the current one
   loadPatch = async (p) => {
+    this.clipHook?.stop(); // another sound: the sequencer stops (its clip is replaced)
     const seq = ++this.#loadSeq;
     let text;
     try {

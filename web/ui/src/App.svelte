@@ -5,6 +5,7 @@
      lib/session.svelte.js and lib/sequence.svelte.js; the page takes the color of the instrument playing. Space
      plays / stops the clip; Cmd+Z / Shift+Cmd+Z undo / redo; ? opens the shortcuts. -->
 <script>
+  import Card from './lib/Card.svelte';
   import { session as s } from './lib/session.svelte.js';
   import { keyIsForControl } from './lib/keys.js';
   import Splash from './lib/Splash.svelte';
@@ -83,7 +84,7 @@
     </main>
 
     <footer>
-      <section class="card macrocard"><h2>Macro control</h2><MacroStrip /></section>
+      <Card title="Macro control" plain class="macrocard"><MacroStrip /></Card>
       <Keyboard synth={s.synth} held={lit} />
     </footer>
 

@@ -4,6 +4,7 @@
      direction), and its settings.
      Audio files dropped anywhere on the panel (or picked with the button) become a new kit. -->
 <script>
+  import Card from './Card.svelte';
   import Seg from './Seg.svelte';
   import Param from './Param.svelte';
   import { peaks, noteName } from './kit.js';
@@ -100,7 +101,7 @@
   <input bind:this={input} type="file" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" multiple hidden
          onchange={(e) => { if (e.target.files.length) s.dropFiles(e.target.files); e.target.value = ''; }} />
 </div>
-<section class="card kitpanel" class:drag aria-label="Kit"
+<Card class="kitpanel {drag ? 'drag' : ''}" aria-label="Kit"
          ondragover={(e) => { e.preventDefault(); drag = true; }} ondragleave={() => (drag = false)} ondrop={dropped}>
   {#if !entries.length}
     <p class="hint">Drop audio files here (WAV, AIFF, FLAC, MP3). A name starting with a MIDI note, like <code>36_kick.wav</code>, sets the pad's note; the others follow from C2.</p>
@@ -126,11 +127,11 @@
         {/each}
       </div>
     {/if}
-</section>
+</Card>
 
 <style>
-  .kitpanel { display: grid; gap: 12px; }
-  .kitpanel.drag { outline: 2px dashed var(--accent); outline-offset: -6px; }
+  :global(.kitpanel) { display: grid; gap: 12px; }
+  :global(.kitpanel.drag) { outline: 2px dashed var(--accent); outline-offset: -6px; }
   .picker { display: flex; align-items: flex-start; gap: 10px; }
   .pads :global(.seg) { flex-wrap: wrap; }
   .load { margin-left: auto; flex: none; }

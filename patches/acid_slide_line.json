@@ -8,12 +8,12 @@
     "cutoff": 360,
     "resonance": 0.86,
     "env_mod": 3.2,
-    "decay": 0.32,
+    "decay": 1.5,
     "accent": 0.85,
     "slide": 0.06,
     "drive": 0.85,
-    "delay_mix": 0.12,
-    "reverb_mix": 0.08,
+    "delay_mix": 0,
+    "reverb_mix": 0,
     "volume": 1.5
   },
   "clip": {

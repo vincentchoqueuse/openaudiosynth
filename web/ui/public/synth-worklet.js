@@ -26,6 +26,9 @@ function utf8Decode(b) {
   return s;
 }
 
+// a clock in ms: performance.now where the worklet scope has it, else Date.now (coarser, fine once averaged)
+const now = typeof performance !== 'undefined' && performance.now ? () => performance.now() : () => Date.now();
+
 class SynthProcessor extends AudioWorkletProcessor {
   constructor(options) {
     super();
@@ -138,7 +141,15 @@ class SynthProcessor extends AudioWorkletProcessor {
     if (!this.w) return false; // failed to start
     const out = outputs[0];
     const n = out[0].length;
+    const t0 = now();
     this.w.w_render(n);
+    // CPU load: time spent rendering over the audio's own time, averaged over ~0.25 s
+    this.busy = (this.busy || 0) + now() - t0;
+    this.span = (this.span || 0) + (1000 * n) / sampleRate;
+    if (this.span >= 250) {
+      this.port.postMessage({ type: 'cpu', load: this.busy / this.span });
+      this.busy = this.span = 0;
+    }
     if ((this.tick = (this.tick || 0) + 1) % 8 === 0) { // player position ~every 21 ms, for the sequencer playhead
       const pos = this.w.w_player_pos();
       if (pos >= 0 || this.lastPos >= 0) this.port.postMessage({ type: 'pos', frames: pos, sampleRate });

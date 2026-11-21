@@ -43,8 +43,8 @@
 <div class="codeview">
   <div class="toolbar">
     <Seg items={[{ id: 'sound', label: 'Instrument' }, { id: 'clip', label: 'Sequencer' }]} value={doc} onpick={pick} label="Document" />
-    <span class="status" class:bad={syntax || error} class:ok={!syntax && !error && !edited}>
-      {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : 'As it plays')}
+    <span class="status" class:bad={syntax || error}>
+      {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : '')}
     </span>
     <span class="spacer"></span>
     <button class="btn ghost" onclick={reload} disabled={!edited && !error} title="the text again from what plays">Reload</button>
@@ -66,6 +66,5 @@
   .hint { margin: 0; }
   .status { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .status.bad { color: var(--hot); white-space: normal; }
-  .status.ok { color: var(--ok); }
   .loading { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
 </style>

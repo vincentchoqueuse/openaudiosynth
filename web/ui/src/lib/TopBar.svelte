@@ -1,6 +1,6 @@
 <!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
      pills of one width, then the preset's name; the Menu holds (Save to the library in development, Export sound,
-     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right the output level, the listening volume and
+     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right the CPU load, the output level, the listening volume and
      play / stop the sequence (Space). -->
 <script>
   import { session as s } from './session.svelte.js';
@@ -46,6 +46,7 @@
   </div>
   </div>
   <div class="tb-right">
+  <span class="cpu" class:hot={s.cpu > 0.7} title="CPU: the share of the audio's time spent computing it (in this browser)">CPU {Math.round(s.cpu * 100)} %</span>
   <div class="vu" class:hot={s.meter.hold > -1} title="Output peak (dBFS), before the volume">
     <div class="track"><div class="fill" style="width:{s.meter.level * 100}%"></div></div>
     <span class="mono">{isFinite(s.meter.hold) && s.meter.hold > -90 ? s.meter.hold.toFixed(0) : '−∞'}</span>

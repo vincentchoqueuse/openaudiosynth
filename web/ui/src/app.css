@@ -226,6 +226,8 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .namebox .tag { font-size: 11px; }
 .topbar .name { font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .name.flash { animation: flash .9s ease-out; } /* a sound just loaded */
+.topbar .cpu { font-size: 11px; min-width: 4.6em; text-align: right; }
+.topbar .cpu.hot { color: var(--hot); }
 .topbar .vu { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
 .topbar .vu .track { width: 90px; height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
 .topbar .vu .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
@@ -312,7 +314,7 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   .topbar { grid-template-columns: 1fr; row-gap: 6px; margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
   .topbar .tb-left { flex-wrap: wrap; row-gap: 8px; }
   .topbar .tb-left > .vsep { display: none; }
-  .topbar .vu { display: none; }
+  .topbar .vu, .topbar .cpu { display: none; }
   .topbar .volume input { width: 90px; }
   .pills.lg button { width: auto; padding: 5px 12px; }
   .groups > section.card { flex-basis: 84vw; }

@@ -6,7 +6,7 @@
   import ModPanel from './ModPanel.svelte';
   import KitPanel from './KitPanel.svelte';
   import DescriptionTab from './DescriptionTab.svelte';
-  import MacroStrip from './MacroStrip.svelte';
+  import MacroMatrix from './MacroMatrix.svelte';
   import { session as s } from './session.svelte.js';
   import { human } from './naming.js';
 
@@ -25,8 +25,8 @@
 {#if tab === 'desc'}
   <DescriptionTab />
 {:else if tab === 'macros'}
-  <MacroStrip engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
-              bind:names={s.macroNames} baseline={s.baseline} />
+  <MacroMatrix engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
+               bind:names={s.macroNames} />
 
 {:else if tab === 'mod'}
   <ModPanel engine={s.engine} shared={s.shared} get={s.getP} set={s.setP} byName={s.byName} {human} values={s.values} setValue={s.setValue} />

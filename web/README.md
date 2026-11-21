@@ -60,8 +60,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
 - **Layout**: the sound library on the left; the top bar (the sound: instrument, name, Save, Export; undo / redo;
-  level and volume); two main tabs, **Play** (Live, Macros, Sequencer) and **Synth** (Structure, then Sound with
-  its editors), each in **Visual** or **Code** mode (the clip's or the patch's JSON); the keyboard along the bottom.
+  level and volume); two main tabs, **Play** (Live: wave or spectrum; Macros, the knobs to play; Sequencer) and **Synth** (Structure, then Sound with
+  its editors; there the macros are a table like the modulation matrix: names and CC, then targets), each in **Visual** or **Code** mode (the clip's or the patch's JSON); the keyboard along the bottom.
 - **Interface rules** (every part of the page follows them):
   - one section shape (`lib/Section.svelte`): a small capital title, its own controls on the right, a chevron that
     folds it to its title line (with a summary), remembered in the browser;

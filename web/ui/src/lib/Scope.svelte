@@ -1,10 +1,10 @@
 <!-- Scope.svelte — the output, from a Web Audio AnalyserNode, like the board's audio view: waveform triggered
      on a rising zero crossing with an automatic gain (a quiet sound still fills the panel), log-frequency
-     spectrum 30 Hz .. 20 kHz with falling peaks and a grid. It also measures the level (peak with hold) for the
+     spectrum 30 Hz .. 20 kHz with falling peaks and a grid; one at a time (`view`), at full width. It also measures the level (peak with hold) for the
      meter in the transport (session.meter). -->
 <script>
   import { session } from './session.svelte.js';
-  let { analyser } = $props();
+  let { analyser, view = 'wave' } = $props(); // 'wave' or 'spectrum': the one shown, at full width
   let wave, spec;
   const DB_FLOOR = -90;
 
@@ -101,7 +101,8 @@
   });
 </script>
 
+<!-- both stay drawn (the level is measured either way); the one not chosen is hidden -->
 <div class="monitor">
-  <div class="panel"><span class="tag">wave</span><canvas bind:this={wave}></canvas></div>
-  <div class="panel"><span class="tag">spectrum</span><canvas bind:this={spec}></canvas></div>
+  <div class="panel" hidden={view !== 'wave'}><canvas bind:this={wave}></canvas></div>
+  <div class="panel" hidden={view !== 'spectrum'}><canvas bind:this={spec}></canvas></div>
 </div>

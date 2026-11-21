@@ -68,6 +68,7 @@ void voicemod_block(voicemod_t *m, const voicemod_cfg_t *c)
         case 2: l = 2.0f * ph - 1.0f; break;
         case 3: l = ph < 0.5f ? 1.0f : -1.0f; break;
         case 4: l = m->lfo_sh; break;
+        case 5: l = voicemod_fourier(c->fourier, ph); break;
         default: l = fm_sin(ph);
         }
         m->src[VM_SRC_LFO] = l;

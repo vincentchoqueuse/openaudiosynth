@@ -1,11 +1,12 @@
 <!-- ModPanel.svelte — the Modulation tab: every modulator of the part in one card, chosen in one row (the two
      envelopes and the per-note one, the two LFOs and the per-note one; a dot on those that drive something), each
      shown the same way: its editor (MsegEditor or LfoView: a bar of choices, its drawing, a bar of settings), then
-     what it drives (its routes, and a button to add one). Below, every route of the part and of the notes. -->
+     what it drives (its routes, and a button to add one). Below, the matrix: every slot of the part and of the
+     notes, filled or empty (ModMatrix). -->
 <script>
   import MsegEditor from './MsegEditor.svelte';
   import LfoView from './LfoView.svelte';
-  import Routes from './Routes.svelte';
+  import ModMatrix from './ModMatrix.svelte';
   import Param from './Param.svelte';
   let { engine, shared, get, set, byName, human, values, setValue } = $props();
   // [label, prefix, route source name, kind, editor]
@@ -42,15 +43,15 @@
       <LfoView prefix={m[1]} {get} {set} {byName} />
     {/if}
     <h3>{m[3] === 'part' ? 'Drives' : 'Drives (each note)'}</h3>
-    <Routes {engine} {get} {set} {byName} {human} kind={m[3]} only={m[2]} />
+    <ModMatrix {engine} {get} {set} {byName} {human} kind={m[3]} only={m[2]} />
   {/key}
 </section>
 
 <section class="card">
-  <h2>All routes</h2>
-  <Routes {engine} {get} {set} {byName} {human} kind="part" />
+  <h2>Matrix</h2>
+  <ModMatrix {engine} {get} {set} {byName} {human} kind="part" />
   <h3>Each note</h3>
-  <Routes {engine} {get} {set} {byName} {human} kind="voice" />
+  <ModMatrix {engine} {get} {set} {byName} {human} kind="voice" />
 </section>
 
 {#if rest.length}

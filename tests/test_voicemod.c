@@ -1,6 +1,6 @@
 /* test_voicemod.c — per-voice modulation and what rides on it: comb filter (peaks at the multiples of f, hollow
  * version at the odd multiples of f/2, bounded at full feedback with a fast-moving tuning), just intonation
- * (exact 5/4 third), concert pitch (A4 = 432 Hz), MPE (a channel's bend moves only its own note), per-voice LFO (vibrato) and per-voice
+ * (exact 5/4 third), concert pitch (A4 = 432 Hz), the Fourier LFO shape, MPE (a channel's bend moves only its own note), per-voice LFO (vibrato) and per-voice
  * MSEG (level envelope). */
 #include <math.h>
 #include <stdlib.h>
@@ -113,6 +113,28 @@ void suite_voicemod(void)
     const float a_bent = level_at(L, 466.16f), a_plain = level_at(L, 440.0f), e5 = level_at(L, 659.26f);
     CHECK(a_bent > a_plain + 40.0f && e5 > a_plain + 40.0f, "MPE: 466 Hz %.1f dB, 440 Hz %.1f dB, E5 %.1f dB",
           (double)a_bent, (double)a_plain, (double)e5);
+
+    /* Fourier LFO shape: b1 = 1 is a sine; a2 alone is a cosine at twice the rate; any coefficients stay in -1..1 */
+    {
+        float c[2 * VM_FOURIER_H] = {0};
+        c[1] = 1.0f;
+        float err = 0.0f;
+        for (int i = 0; i < 64; i++)
+            err = fmaxf(err, fabsf(voicemod_fourier(c, (float)i / 64.0f) - fm_sin((float)i / 64.0f)));
+        CHECK(err < 1e-6f, "fourier b1 = 1: off a sine by %g", (double)err);
+        c[1] = 0.0f, c[2] = 1.0f;
+        CHECK(fabsf(voicemod_fourier(c, 0.0f) - 1.0f) < 1e-3f && fabsf(voicemod_fourier(c, 0.25f) + 1.0f) < 1e-3f,
+              "fourier a2: %g at 0, %g at 1/4", (double)voicemod_fourier(c, 0.0f), (double)voicemod_fourier(c, 0.25f));
+        uint32_t r = dsp_seed(9u);
+        float peak = 0.0f;
+        for (int t = 0; t < 50; t++) {
+            for (int k = 0; k < 2 * VM_FOURIER_H; k++)
+                c[k] = dsp_rand_bipolar(&r);
+            for (int i = 0; i < 256; i++)
+                peak = fmaxf(peak, fabsf(voicemod_fourier(c, (float)i / 256.0f)));
+        }
+        CHECK(peak <= 1.0001f, "fourier with random coefficients: peak %g", (double)peak);
+    }
 
     /* per-voice LFO on pitch: vibrato of +/- 0.12 st at 5 Hz */
     sine_sustain();

@@ -50,7 +50,13 @@ enum { PM_M_MACRO = 0, PM_M_DST, PM_M_FROM, PM_M_TO, PM_M_COUNT };
 #define PM_MAP(k, f) (PM_VROUTE(VM_ROUTES, 0) + (k) * PM_M_COUNT + (f))
 /* the MIDI CC that turns each macro (appended after the targets), 0 = none */
 #define PM_MACRO_CC(k) (PM_MAP(PM_MAPS, 0) + (k))
-#define PM_COUNT PM_MACRO_CC(PM_MACROS)
+/* Fourier LFO shape (appended): coefficient a (cosine) and b (sine) of harmonic k+1 of LFO l (0, 1: the part LFOs,
+ * 2: the per-voice one); the shape is sum(a cos 2 pi h ph + b sin 2 pi h ph) divided by sum(|a| + |b|) when that
+ * exceeds 1, so it stays within -1..1 */
+#define PM_FOURIER_H VM_FOURIER_H
+#define PM_FOURIER(l, k, ab) (PM_MACRO_CC(PM_MACROS) + ((l) * PM_FOURIER_H + (k)) * 2 + (ab))
+#define PM_COUNT PM_FOURIER(PM_LFOS + 1, 0, 0)
+#define PM_WAVE_FOURIER 5
 
 /* sources (index 0 = none) */
 enum { PM_SRC_NONE = 0, PM_SRC_MACRO1, PM_SRC_LFO1 = PM_SRC_MACRO1 + PM_MACROS, PM_SRC_MSEG1 = PM_SRC_LFO1 + PM_LFOS,

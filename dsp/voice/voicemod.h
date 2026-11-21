@@ -6,6 +6,7 @@
 #ifndef VOICEMOD_H
 #define VOICEMOD_H
 
+#include "../core/fastmath.h"
 #include "../env/mseg.h"
 
 enum { VM_PITCH = 0, VM_LEVEL, VM_PAN, VM_BRIGHT, VM_TIMBRE, VM_DST_COUNT };
@@ -18,10 +19,28 @@ enum { VM_SRC_NONE = 0, VM_SRC_MSEG, VM_SRC_LFO, VM_SRC_VELOCITY, VM_SRC_NOTE, V
 #define VM_LEVEL_RANGE 24.0f /* dB */
 #define VM_BRIGHT_RANGE 4.0f /* octaves */
 
+/* Fourier LFO shape: value at phase ph (cycles) of sum(a cos 2 pi h ph + b sin 2 pi h ph) over harmonics h = 1..8,
+ * c[2(h-1)] = a, c[2(h-1)+1] = b, divided by sum(|a| + |b|) when that exceeds 1 (it stays within -1..1). */
+#define VM_FOURIER_H 8
+static inline float voicemod_fourier(const float *c, float ph)
+{
+    float y = 0.0f, norm = 0.0f;
+    for (int k = 0; k < VM_FOURIER_H; k++) {
+        const float a = c[2 * k], b = c[2 * k + 1];
+        if (a == 0.0f && b == 0.0f)
+            continue;
+        const float p = ph * (float)(k + 1);
+        y += a * fm_cos(p) + b * fm_sin(p);
+        norm += dsp_absf(a) + dsp_absf(b);
+    }
+    return norm > 1.0f ? y / norm : y;
+}
+
 typedef struct {
     mseg_shape_t shape;               /* the per-voice MSEG */
     float lfo_rate;                   /* Hz, or a division when lfo_div > 0 */
-    int lfo_div, lfo_wave;            /* tempo division (0 = free), shape 0..4 (sine, tri, saw, square, sh) */
+    int lfo_div, lfo_wave;            /* tempo division (0 = free), shape 0..5 (sine, tri, saw, square, sh, fourier) */
+    float fourier[2 * VM_FOURIER_H];  /* the fourier shape's a, b of harmonics 1..8 */
     int src[VM_ROUTES], dst[VM_ROUTES];
     float amount[VM_ROUTES];
     int routes;                       /* number of usable routes (0: no per-voice modulation) */

@@ -1,7 +1,9 @@
-<!-- LfoView.svelte — an LFO edited the way an envelope is (MsegEditor): a bar of choices on top (its shape; free
-     rate or locked to the tempo), its drawing (two cycles, on a time axis in seconds or beats), and a bar of
-     settings below (rate or division, restart on a note for the part LFOs). Free or sync, as the envelopes. `prefix` is "mlfo1_", "mlfo2_" or
-     "vlfo_" (dsp/mod/partmod.h); the shapes are bipolar, sh draws random steps. -->
+<!-- LfoView.svelte — an LFO edited the way an envelope is (MsegEditor): a bar of choices on top (its shape; a rate
+     in Hz or a division in beats, as the envelopes' seconds or beats), its drawing (two cycles), and a bar of
+     settings below (rate or division, restart on a note for the part LFOs). The fourier shape is drawn from its
+     harmonics, set on drawbars: per harmonic 1..8, a (cosine) and b (sine), -1..1, dragged up and down
+     (double-click: back to the default). `prefix` is "mlfo1_", "mlfo2_" or "vlfo_" (dsp/mod/partmod.h); the shapes
+     are bipolar and drawn as the DSP computes them, sh as fixed random steps. -->
 <script>
   import Param from './Param.svelte';
   let { prefix, get, set, byName } = $props();
@@ -26,16 +28,41 @@
 
   // the shape over a cycle, phase 0..1 -> -1..1 (sh: steps from a fixed draw, so the picture holds still)
   const steps = [0.6, -0.3, 0.9, -0.8, 0.2, -0.5, 0.7, -0.1];
-  function shape(ph, k) {
+  const H_COUNT = 8;
+  const coef = $derived(Array.from({ length: H_COUNT }, (_, k) => [get(`${prefix}a${k + 1}`), get(`${prefix}b${k + 1}`)]));
+  function fourier(p) { // as voicemod_fourier: normalized by sum(|a| + |b|) above 1
+    let y = 0, norm = 0;
+    coef.forEach(([a, b], k) => {
+      if (!a && !b) return;
+      y += a * Math.cos(2 * Math.PI * (k + 1) * p) + b * Math.sin(2 * Math.PI * (k + 1) * p);
+      norm += Math.abs(a) + Math.abs(b);
+    });
+    return norm > 1 ? y / norm : y;
+  }
+  function shape(ph, k) { // as lfo_shape in dsp/mod/partmod.c
     const p = ph - Math.floor(ph);
     switch (waves[wave]) {
-      case 'tri': return p < 0.25 ? 4 * p : p < 0.75 ? 2 - 4 * p : 4 * p - 4;
-      case 'saw': return 1 - 2 * p;
+      case 'tri': return 1 - 4 * Math.abs(p - 0.5);
+      case 'saw': return 2 * p - 1;
       case 'square': return p < 0.5 ? 1 : -1;
       case 'sh': return steps[k % steps.length];
+      case 'fourier': return fourier(p);
       default: return Math.sin(2 * Math.PI * p);
     }
   }
+  // drawbars: drag up / down from where the pointer went down (200 px for the full range)
+  let bar = null;
+  function barDown(e, name) {
+    e.preventDefault();
+    e.currentTarget.setPointerCapture(e.pointerId);
+    bar = { name, y: e.clientY, v: get(prefix + name) };
+  }
+  function barMove(e) {
+    if (!bar) return;
+    const fine = e.shiftKey ? 0.2 : 1;
+    set(prefix + bar.name, Math.round(Math.min(1, Math.max(-1, bar.v + ((bar.y - e.clientY) / 100) * fine)) * 100) / 100);
+  }
+  function barReset(name) { set(prefix + name, name === 'b1' ? 1 : 0); }
   const X = (t) => PAD + ((W - 2 * PAD) * t) / (2 * cycle);
   const Y = (v) => H / 2 - (v * (H / 2 - PAD));
   const path = $derived.by(() => {
@@ -57,8 +84,8 @@
       {#each waves as w, i}<button class:on={wave === i} onclick={() => set(prefix + 'wave', i)}>{w}</button>{/each}
     </div>
     <div class="seg small">
-      <button class:on={!sync} title="a rate in Hz" onclick={() => set(prefix + 'sync', 0)}>free</button>
-      <button class:on={!!sync} title="a division, locked to the tempo" onclick={() => { if (!sync) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4'))); }}>sync</button>
+      <button class:on={!sync} title="a rate in Hz" onclick={() => set(prefix + 'sync', 0)}>Hz</button>
+      <button class:on={!!sync} title="a division, locked to the tempo" onclick={() => { if (!sync) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4'))); }}>beats</button>
     </div>
     <span class="muted info">{sync ? `one cycle per ${divs[sync]}` : `${+rate.toPrecision(3)} Hz`} · {fmt(cycle)} per cycle</span>
   </div>
@@ -74,6 +101,28 @@
       <path class="curve" d={path} />
     </svg>
   </div>
+
+  {#if waves[wave] === 'fourier'}
+    <div class="bars" role="group" aria-label="Harmonics">
+      {#each coef as [a, b], k}
+        <div class="harm">
+          <div class="pair">
+            {#each [['a', a, 'cosine'], ['b', b, 'sine']] as [ab, v, what]}
+              <div class="drawbar {ab}" role="slider" tabindex="0" aria-label="{what} of harmonic {k + 1}" aria-valuemin="-1" aria-valuemax="1"
+                   aria-valuenow={v} title="{ab}{k + 1} ({what}): {v.toFixed(2)} · drag (Shift: fine), double-click: reset"
+                   onpointerdown={(e) => barDown(e, ab + (k + 1))} onpointermove={barMove} onpointerup={() => (bar = null)}
+                   ondblclick={() => barReset(ab + (k + 1))}
+                   onkeydown={(e) => { const step = e.key === 'ArrowUp' ? 0.05 : e.key === 'ArrowDown' ? -0.05 : 0; if (step) { e.preventDefault(); set(prefix + ab + (k + 1), Math.min(1, Math.max(-1, Math.round((v + step) * 100) / 100))); } }}>
+                <div class="fill" style="{v >= 0 ? `bottom:50%; height:${v * 50}%` : `top:50%; height:${-v * 50}%`}"></div>
+              </div>
+            {/each}
+          </div>
+          <span class="mono">{k + 1}</span>
+        </div>
+      {/each}
+      <span class="muted legend"><i class="sw a"></i> a · cosine <i class="sw b"></i> b · sine</span>
+    </div>
+  {/if}
 
   <div class="mseg-bar lfo-settings">
     {#if sync}
@@ -96,6 +145,17 @@
 
 <style>
   .lfo-settings { gap: 16px; }
+  .bars { display: flex; align-items: flex-end; gap: 14px; margin: 4px 0 10px; flex-wrap: wrap; }
+  .harm { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10.5px; color: var(--muted); }
+  .pair { display: flex; gap: 3px; }
+  .drawbar { position: relative; width: 14px; height: 110px; border-radius: 4px; background: var(--faint); cursor: ns-resize; touch-action: none; outline: none; }
+  .drawbar::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: var(--line); }
+  .drawbar:focus-visible { box-shadow: 0 0 0 1.5px var(--accent); }
+  .drawbar .fill { position: absolute; left: 0; right: 0; border-radius: 3px; }
+  .drawbar.a .fill, .sw.a { background: var(--accent); }
+  .drawbar.b .fill, .sw.b { background: var(--text); opacity: .75; }
+  .legend { align-self: center; margin-left: 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
+  .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
   .rate { flex: 1; min-width: 260px; max-width: 520px; }
   .div { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
   .div select { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; color: var(--text); }

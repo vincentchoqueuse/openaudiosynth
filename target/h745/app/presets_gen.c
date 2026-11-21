@@ -2895,4 +2895,4 @@ const preset_t presets[] = {
 };
 
 const int preset_count = 87;
-const uint32_t preset_catalog = 0xCB19D466u; /* catalog_hash() */
+const uint32_t preset_catalog = 0x0BDA50C6u; /* catalog_hash() */

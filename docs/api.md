@@ -280,7 +280,7 @@ parameter descriptors: the single source of truth for UIs, MIDI learn, presets, 
 ## `dsp/mod/partmod.h`
 parameter and modulation layer of a part, the same for every engine. Parameter changes made while notes sound (knobs, CCs, macros, routes) glide to their target with a 5 ms one-pole, for every engine; with nothing sounding they apply at once (patch loading stays exact). Modulation: 8 macros, 2 LFOs (free or tempo-synced), 2 MSEGs, MIDI sources (mod wheel, aftertouch, pitch bend, velocity, note, random per note) and 8 routes {source, destination, amount, via} onto any `realtime` parameter of the part's engine. Evaluated once per block: each modulated parameter gets base + sum of its routes (normalized domain, clamped) through the engine's set_param; when a route goes away the base value is restored. One value per part (all voices).
 - types: `partmod_t`
-- constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_COUNT`
+- constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_COUNT`, `PM_WAVE_FOURIER` = 5
 - data: `const param_desc_t partmod_params[PM_COUNT]`
 - `void partmod_init(partmod_t *m, float sample_rate, uint32_t seed)`
 - `void partmod_engine(partmod_t *m, const engine_ops_t *ops)` — New engine: base values back to the engine's defaults, nothing modulated.
@@ -344,6 +344,7 @@ polyphonic voice allocation, engine independent. Same note already active: retri
 per-voice modulation, the same for every engine: each voice has its own MSEG and LFO, its note, velocity and random value, and its MPE expression (per-note pitch bend, pressure, slide); 4 routes send them to five voice destinations every engine understands: pitch (semitones), level (dB), pan, brightness (octaves of the engine's main brightness control) and timbre (-1..1 on the engine's main timbre control). Microtuning is a per-voice pitch offset too. Lives in vpoly; engines read vpoly_vmod().
 - types: `voicemod_cfg_t`, `voicemod_t`
 - constants: `VM_ROUTES` = 4, `VM_PITCH_RANGE` = 12.0f, `VM_LEVEL_RANGE` = 24.0f, `VM_BRIGHT_RANGE` = 4.0f
+- `float voicemod_fourier(const float *c, float ph)`
 - `void voicemod_init(voicemod_t *m, uint32_t seed)`
 - `void voicemod_start(voicemod_t *m, const voicemod_cfg_t *c, int note, float velocity, int hard)`
 - `void voicemod_note(voicemod_t *m, const voicemod_cfg_t *c, int note)`

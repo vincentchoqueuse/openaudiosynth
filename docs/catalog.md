@@ -84,11 +84,11 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `macro8` | 0 .. 1 | 0 | yes | `macro8.value` | macro knob 8: moves its targets (map*) and drives the routes whose source is macro8 |
 | `mlfo1_rate` | 0.01 .. 50 Hz | 0.5 | yes | `mlfo1.rate` | part LFO 1 rate when not synced |
 | `mlfo1_sync` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | off |  | `mlfo1.sync` | off = free rate; a division = one cycle per division, locked to the beat |
-| `mlfo1_wave` | sine, tri, saw, square, sh | sine |  | `mlfo1.waveform` | part LFO 1 shape (bipolar; sh = random steps) |
+| `mlfo1_wave` | sine, tri, saw, square, sh, fourier | sine |  | `mlfo1.waveform` | part LFO 1 shape (bipolar; sh = random steps; fourier = its harmonics f1..f8) |
 | `mlfo1_retrig` | off, on | off |  | `mlfo1.retrigger` | free LFO restarts when a note starts on a silent part |
 | `mlfo2_rate` | 0.01 .. 50 Hz | 0.1 | yes | `mlfo2.rate` | part LFO 2 rate when not synced |
 | `mlfo2_sync` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | off |  | `mlfo2.sync` | off = free rate; a division = one cycle per division, locked to the beat |
-| `mlfo2_wave` | sine, tri, saw, square, sh | sine |  | `mlfo2.waveform` | part LFO 2 shape (bipolar; sh = random steps) |
+| `mlfo2_wave` | sine, tri, saw, square, sh, fourier | sine |  | `mlfo2.waveform` | part LFO 2 shape (bipolar; sh = random steps; fourier = its harmonics f1..f8) |
 | `mlfo2_retrig` | off, on | off |  | `mlfo2.retrigger` | free LFO restarts when a note starts on a silent part |
 | `mseg1_mode` | oneshot, loop_held, loop_free | oneshot |  | `mseg1.mode` | oneshot; loop_held = repeat loop_start..loop_end while a note is held; loop_free = always |
 | `mseg1_sync` | seconds, beats | seconds |  | `mseg1.sync` | point times in seconds or in beats (follows the tempo) |
@@ -196,7 +196,7 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `vmseg_c16` | -1 .. 1 | 0 | yes | `vmseg.point16.curve` | per-voice MSEG: curve of the segment ending at point 16 |
 | `vlfo_rate` | 0.01 .. 50 Hz | 5 | yes | `vlfo.rate` | per-voice LFO rate (each note's LFO starts at its note-on) |
 | `vlfo_sync` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | off |  | `vlfo.sync` | per-voice LFO: off = free rate, or a tempo division |
-| `vlfo_wave` | sine, tri, saw, square, sh | sine |  | `vlfo.waveform` | per-voice LFO shape |
+| `vlfo_wave` | sine, tri, saw, square, sh, fourier | sine |  | `vlfo.waveform` | per-voice LFO shape (fourier = its harmonics f1..f8) |
 | `vroute1_source` | none, vmseg, vlfo, velocity, note, random, pressure, slide | none |  | `vroute1.source` | per-voice route 1: source (each note has its own value) |
 | `vroute1_destination` | pitch, level, pan, brightness, timbre | pitch |  | `vroute1.destination` | per-voice route 1: pitch (+/-12 st), level (+/-24 dB), pan, brightness (+/-4 oct), timbre |
 | `vroute1_amount` | -1 .. 1 | 0 | yes | `vroute1.amount` | per-voice route 1: amount |
@@ -345,6 +345,54 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `macro6_cc` | 0 .. 119 | 107 |  | `macro6.cc` | MIDI CC that turns macro 6 (0 = none; default 102..109, a free range) |
 | `macro7_cc` | 0 .. 119 | 108 |  | `macro7.cc` | MIDI CC that turns macro 7 (0 = none; default 102..109, a free range) |
 | `macro8_cc` | 0 .. 119 | 109 |  | `macro8.cc` | MIDI CC that turns macro 8 (0 = none; default 102..109, a free range) |
+| `mlfo1_a1` | -1 .. 1 | 0 | yes | `mlfo1.harmonic1.a` | Fourier shape: cosine coefficient of harmonic 1 |
+| `mlfo1_b1` | -1 .. 1 | 1 | yes | `mlfo1.harmonic1.b` | Fourier shape: sine coefficient of harmonic 1 |
+| `mlfo1_a2` | -1 .. 1 | 0 | yes | `mlfo1.harmonic2.a` | Fourier shape: cosine coefficient of harmonic 2 |
+| `mlfo1_b2` | -1 .. 1 | 0 | yes | `mlfo1.harmonic2.b` | Fourier shape: sine coefficient of harmonic 2 |
+| `mlfo1_a3` | -1 .. 1 | 0 | yes | `mlfo1.harmonic3.a` | Fourier shape: cosine coefficient of harmonic 3 |
+| `mlfo1_b3` | -1 .. 1 | 0 | yes | `mlfo1.harmonic3.b` | Fourier shape: sine coefficient of harmonic 3 |
+| `mlfo1_a4` | -1 .. 1 | 0 | yes | `mlfo1.harmonic4.a` | Fourier shape: cosine coefficient of harmonic 4 |
+| `mlfo1_b4` | -1 .. 1 | 0 | yes | `mlfo1.harmonic4.b` | Fourier shape: sine coefficient of harmonic 4 |
+| `mlfo1_a5` | -1 .. 1 | 0 | yes | `mlfo1.harmonic5.a` | Fourier shape: cosine coefficient of harmonic 5 |
+| `mlfo1_b5` | -1 .. 1 | 0 | yes | `mlfo1.harmonic5.b` | Fourier shape: sine coefficient of harmonic 5 |
+| `mlfo1_a6` | -1 .. 1 | 0 | yes | `mlfo1.harmonic6.a` | Fourier shape: cosine coefficient of harmonic 6 |
+| `mlfo1_b6` | -1 .. 1 | 0 | yes | `mlfo1.harmonic6.b` | Fourier shape: sine coefficient of harmonic 6 |
+| `mlfo1_a7` | -1 .. 1 | 0 | yes | `mlfo1.harmonic7.a` | Fourier shape: cosine coefficient of harmonic 7 |
+| `mlfo1_b7` | -1 .. 1 | 0 | yes | `mlfo1.harmonic7.b` | Fourier shape: sine coefficient of harmonic 7 |
+| `mlfo1_a8` | -1 .. 1 | 0 | yes | `mlfo1.harmonic8.a` | Fourier shape: cosine coefficient of harmonic 8 |
+| `mlfo1_b8` | -1 .. 1 | 0 | yes | `mlfo1.harmonic8.b` | Fourier shape: sine coefficient of harmonic 8 |
+| `mlfo2_a1` | -1 .. 1 | 0 | yes | `mlfo2.harmonic1.a` | Fourier shape: cosine coefficient of harmonic 1 |
+| `mlfo2_b1` | -1 .. 1 | 1 | yes | `mlfo2.harmonic1.b` | Fourier shape: sine coefficient of harmonic 1 |
+| `mlfo2_a2` | -1 .. 1 | 0 | yes | `mlfo2.harmonic2.a` | Fourier shape: cosine coefficient of harmonic 2 |
+| `mlfo2_b2` | -1 .. 1 | 0 | yes | `mlfo2.harmonic2.b` | Fourier shape: sine coefficient of harmonic 2 |
+| `mlfo2_a3` | -1 .. 1 | 0 | yes | `mlfo2.harmonic3.a` | Fourier shape: cosine coefficient of harmonic 3 |
+| `mlfo2_b3` | -1 .. 1 | 0 | yes | `mlfo2.harmonic3.b` | Fourier shape: sine coefficient of harmonic 3 |
+| `mlfo2_a4` | -1 .. 1 | 0 | yes | `mlfo2.harmonic4.a` | Fourier shape: cosine coefficient of harmonic 4 |
+| `mlfo2_b4` | -1 .. 1 | 0 | yes | `mlfo2.harmonic4.b` | Fourier shape: sine coefficient of harmonic 4 |
+| `mlfo2_a5` | -1 .. 1 | 0 | yes | `mlfo2.harmonic5.a` | Fourier shape: cosine coefficient of harmonic 5 |
+| `mlfo2_b5` | -1 .. 1 | 0 | yes | `mlfo2.harmonic5.b` | Fourier shape: sine coefficient of harmonic 5 |
+| `mlfo2_a6` | -1 .. 1 | 0 | yes | `mlfo2.harmonic6.a` | Fourier shape: cosine coefficient of harmonic 6 |
+| `mlfo2_b6` | -1 .. 1 | 0 | yes | `mlfo2.harmonic6.b` | Fourier shape: sine coefficient of harmonic 6 |
+| `mlfo2_a7` | -1 .. 1 | 0 | yes | `mlfo2.harmonic7.a` | Fourier shape: cosine coefficient of harmonic 7 |
+| `mlfo2_b7` | -1 .. 1 | 0 | yes | `mlfo2.harmonic7.b` | Fourier shape: sine coefficient of harmonic 7 |
+| `mlfo2_a8` | -1 .. 1 | 0 | yes | `mlfo2.harmonic8.a` | Fourier shape: cosine coefficient of harmonic 8 |
+| `mlfo2_b8` | -1 .. 1 | 0 | yes | `mlfo2.harmonic8.b` | Fourier shape: sine coefficient of harmonic 8 |
+| `vlfo_a1` | -1 .. 1 | 0 | yes | `vlfo.harmonic1.a` | Fourier shape: cosine coefficient of harmonic 1 |
+| `vlfo_b1` | -1 .. 1 | 1 | yes | `vlfo.harmonic1.b` | Fourier shape: sine coefficient of harmonic 1 |
+| `vlfo_a2` | -1 .. 1 | 0 | yes | `vlfo.harmonic2.a` | Fourier shape: cosine coefficient of harmonic 2 |
+| `vlfo_b2` | -1 .. 1 | 0 | yes | `vlfo.harmonic2.b` | Fourier shape: sine coefficient of harmonic 2 |
+| `vlfo_a3` | -1 .. 1 | 0 | yes | `vlfo.harmonic3.a` | Fourier shape: cosine coefficient of harmonic 3 |
+| `vlfo_b3` | -1 .. 1 | 0 | yes | `vlfo.harmonic3.b` | Fourier shape: sine coefficient of harmonic 3 |
+| `vlfo_a4` | -1 .. 1 | 0 | yes | `vlfo.harmonic4.a` | Fourier shape: cosine coefficient of harmonic 4 |
+| `vlfo_b4` | -1 .. 1 | 0 | yes | `vlfo.harmonic4.b` | Fourier shape: sine coefficient of harmonic 4 |
+| `vlfo_a5` | -1 .. 1 | 0 | yes | `vlfo.harmonic5.a` | Fourier shape: cosine coefficient of harmonic 5 |
+| `vlfo_b5` | -1 .. 1 | 0 | yes | `vlfo.harmonic5.b` | Fourier shape: sine coefficient of harmonic 5 |
+| `vlfo_a6` | -1 .. 1 | 0 | yes | `vlfo.harmonic6.a` | Fourier shape: cosine coefficient of harmonic 6 |
+| `vlfo_b6` | -1 .. 1 | 0 | yes | `vlfo.harmonic6.b` | Fourier shape: sine coefficient of harmonic 6 |
+| `vlfo_a7` | -1 .. 1 | 0 | yes | `vlfo.harmonic7.a` | Fourier shape: cosine coefficient of harmonic 7 |
+| `vlfo_b7` | -1 .. 1 | 0 | yes | `vlfo.harmonic7.b` | Fourier shape: sine coefficient of harmonic 7 |
+| `vlfo_a8` | -1 .. 1 | 0 | yes | `vlfo.harmonic8.a` | Fourier shape: cosine coefficient of harmonic 8 |
+| `vlfo_b8` | -1 .. 1 | 0 | yes | `vlfo.harmonic8.b` | Fourier shape: sine coefficient of harmonic 8 |
 
 ## Engine `sine` (8 voices)
 

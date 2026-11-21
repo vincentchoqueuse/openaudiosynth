@@ -5,7 +5,7 @@
 static const char *const src_labels[] = {"none", "macro1", "macro2", "macro3", "macro4", "macro5", "macro6", "macro7",
                                          "macro8", "mlfo1", "mlfo2", "mseg1", "mseg2", "mod_wheel", "aftertouch",
                                          "pitch_bend", "velocity", "note", "random", NULL};
-static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", NULL};
+static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", NULL};
 static const char *const mode_labels[] = {"oneshot", "loop_held", "loop_free", NULL};
 static const char *const time_labels[] = {"seconds", "beats", NULL};
 static const char *const vsrc_labels[] = {"none", "vmseg", "vlfo", "velocity", "note", "random", "pressure",
@@ -21,10 +21,17 @@ static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6",
           NULL, "part LFO " #K " rate when not synced"),                                                           \
     PARAM(PM_LFO(K - 1, PM_LFO_SYNC), "mlfo" #K "_sync", "mlfo" #K ".sync", 0.0f, (float)(TEMPO_DIV_COUNT - 1),     \
           0.0f, PARAM_INT, "", 0, tempo_div_labels, "off = free rate; a division = one cycle per division, locked to the beat"), \
-    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0,  \
-          wave_labels, "part LFO " #K " shape (bipolar; sh = random steps)"),                                      \
+    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 5.0f, 0.0f, PARAM_INT, "", 0,  \
+          wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics f1..f8)"),       \
     PARAM(PM_LFO(K - 1, PM_LFO_RETRIG), "mlfo" #K "_retrig", "mlfo" #K ".retrigger", 0.0f, 1.0f, 0.0f, PARAM_INT,  \
           "", 0, param_onoff_labels, "free LFO restarts when a note starts on a silent part")
+
+/* Fourier coefficients of harmonic H of LFO L (named "<lfo>_a<H>", "<lfo>_b<H>"); default: b1 = 1 (a sine) */
+#define FOURIER(L, NAME, H)                                                                                        \
+    PARAM(PM_FOURIER(L, H - 1, 0), NAME "_a" #H, NAME ".harmonic" #H ".a", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,    \
+          "Fourier shape: cosine coefficient of harmonic " #H),                                                     \
+    PARAM(PM_FOURIER(L, H - 1, 1), NAME "_b" #H, NAME ".harmonic" #H ".b", -1.0f, 1.0f, H == 1 ? 1.0f : 0.0f, PARAM_LIN, \
+          "", 1, NULL, "Fourier shape: sine coefficient of harmonic " #H)
 
 #define PT(K, I, t, l)                                                                                               \
     PARAM(PM_MSEG_PT(K - 1, I - 1, PM_PT_TIME), "mseg" #K "_t" #I, "mseg" #K ".point" #I ".time", 0.0f, 32.0f, t,    \
@@ -125,14 +132,20 @@ const param_desc_t partmod_params[PM_COUNT] = {
           "per-voice LFO rate (each note's LFO starts at its note-on)"),
     PARAM(PM_VLFO(PM_VLFO_SYNC), "vlfo_sync", "vlfo.sync", 0.0f, (float)(TEMPO_DIV_COUNT - 1), 0.0f, PARAM_INT, "", 0,
           tempo_div_labels, "per-voice LFO: off = free rate, or a tempo division"),
-    PARAM(PM_VLFO(PM_VLFO_WAVE), "vlfo_wave", "vlfo.waveform", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, wave_labels,
-          "per-voice LFO shape"),
+    PARAM(PM_VLFO(PM_VLFO_WAVE), "vlfo_wave", "vlfo.waveform", 0.0f, 5.0f, 0.0f, PARAM_INT, "", 0, wave_labels,
+          "per-voice LFO shape (fourier = its harmonics f1..f8)"),
     VROUTE(1), VROUTE(2), VROUTE(3), VROUTE(4),
     MAP(1),  MAP(2),  MAP(3),  MAP(4),  MAP(5),  MAP(6),  MAP(7),  MAP(8),
     MAP(9),  MAP(10), MAP(11), MAP(12), MAP(13), MAP(14), MAP(15), MAP(16),
     MAP(17), MAP(18), MAP(19), MAP(20), MAP(21), MAP(22), MAP(23), MAP(24),
     MAP(25), MAP(26), MAP(27), MAP(28), MAP(29), MAP(30), MAP(31), MAP(32),
     MACRO_CC(1), MACRO_CC(2), MACRO_CC(3), MACRO_CC(4), MACRO_CC(5), MACRO_CC(6), MACRO_CC(7), MACRO_CC(8),
+    FOURIER(0, "mlfo1", 1), FOURIER(0, "mlfo1", 2), FOURIER(0, "mlfo1", 3), FOURIER(0, "mlfo1", 4),
+    FOURIER(0, "mlfo1", 5), FOURIER(0, "mlfo1", 6), FOURIER(0, "mlfo1", 7), FOURIER(0, "mlfo1", 8),
+    FOURIER(1, "mlfo2", 1), FOURIER(1, "mlfo2", 2), FOURIER(1, "mlfo2", 3), FOURIER(1, "mlfo2", 4),
+    FOURIER(1, "mlfo2", 5), FOURIER(1, "mlfo2", 6), FOURIER(1, "mlfo2", 7), FOURIER(1, "mlfo2", 8),
+    FOURIER(2, "vlfo", 1), FOURIER(2, "vlfo", 2), FOURIER(2, "vlfo", 3), FOURIER(2, "vlfo", 4),
+    FOURIER(2, "vlfo", 5), FOURIER(2, "vlfo", 6), FOURIER(2, "vlfo", 7), FOURIER(2, "vlfo", 8),
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
 
@@ -153,6 +166,8 @@ static void build_vcfg(partmod_t *m)
     c->lfo_div = (int)m->p[PM_VLFO(PM_VLFO_SYNC)];
     c->lfo_rate = c->lfo_div > 0 ? tempo_div_beats[c->lfo_div] : m->p[PM_VLFO(PM_VLFO_RATE)];
     c->lfo_wave = (int)m->p[PM_VLFO(PM_VLFO_WAVE)];
+    for (int i = 0; i < 2 * PM_FOURIER_H; i++)
+        c->fourier[i] = m->p[PM_FOURIER(PM_LFOS, 0, 0) + i];
     c->routes = 0;
     for (int r = 0; r < VM_ROUTES; r++) {
         c->src[r] = (int)m->p[PM_VROUTE(r, PM_VR_SRC)];
@@ -324,9 +339,10 @@ void partmod_all_notes_off(partmod_t *m)
     }
 }
 
-static float lfo_shape(int wave, float ph, float sh)
+static float lfo_shape(int wave, float ph, float sh, const float *fourier)
 {
     switch (wave) {
+    case PM_WAVE_FOURIER: return voicemod_fourier(fourier, ph);
     case 1: return 1.0f - 4.0f * dsp_absf(ph - 0.5f);
     case 2: return 2.0f * ph - 1.0f;
     case 3: return ph < 0.5f ? 1.0f : -1.0f;
@@ -356,7 +372,8 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
             m->lfo_phase[k] = fm_frac(m->lfo_phase[k] + m->p[PM_LFO(k, PM_LFO_RATE)] * dt_s);
         if (m->lfo_phase[k] < prev) /* new cycle */
             m->lfo_sh[k] = dsp_rand_bipolar(&m->rng);
-        m->src[PM_SRC_LFO1 + k] = lfo_shape((int)m->p[PM_LFO(k, PM_LFO_WAVE)], m->lfo_phase[k], m->lfo_sh[k]);
+        m->src[PM_SRC_LFO1 + k] = lfo_shape((int)m->p[PM_LFO(k, PM_LFO_WAVE)], m->lfo_phase[k], m->lfo_sh[k],
+                                            &m->p[PM_FOURIER(k, 0, 0)]);
     }
     const float dt_beats = t->bpm * (1.0f / 60.0f) * dt_s;
     for (int k = 0; k < PM_MSEGS; k++)

@@ -148,7 +148,7 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .toggle input { accent-color: var(--accent); margin: 0; }
 
 /* output: wave | spectrum | level */
-.monitor { display: grid; grid-template-columns: 1fr; gap: 10px; height: 140px; margin-bottom: 14px; }
+.monitor { display: grid; grid-template-columns: 1fr; gap: 10px; height: max(320px, calc(100vh - 330px)); margin-bottom: 14px; }
 .monitor .panel { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .monitor canvas { display: block; width: 100%; height: 100%; }
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
@@ -158,6 +158,8 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs button:hover { color: var(--text); }
 .tabs button.on { color: var(--text); border-color: var(--accent); }
 .tabs .small { margin-left: auto; font-size: 12px; }
+.tabs .tabtools { margin-left: auto; align-self: center; margin-bottom: 4px; }
+.tabs .seg button { border-bottom: 0; margin: 0; padding: 3px 10px; }
 .tabs.small { gap: 18px; margin-bottom: 12px; }
 .tabs.small button { font-size: 12px; padding: 4px 0 7px; }
 /* the main tabs (Play, Synth) and their Visual / Code switch */
@@ -173,25 +175,12 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .toolbar select { max-width: 10em; }
 .toolbar > label:first-child select { max-width: 18em; }
 .toolbar .seg button { padding: 3px 9px; }
-.toolbar .spacer, .section-head .spacer { flex: 1; }
+.toolbar .spacer { flex: 1; }
 .toolbar button.ghost { padding: 3px 8px; border-radius: 6px; color: var(--text); font-size: 12px; }
 .toolbar button.ghost:hover:not(:disabled) { background: var(--faint); }
 .toolbar button.ghost:disabled { color: var(--muted); opacity: .5; }
 .hint { font-size: 11.5px; color: var(--muted); margin: 10px 0 0; line-height: 1.5; }
-/* the page's sections (a small title, its own controls, a fold) */
-.section { margin-top: 22px; }
 .play.small { width: 28px; height: 28px; font-size: 11px; }
-.section-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
-.section-head h2, .tabs-title { margin: 0; font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.tabs-title { padding-bottom: 9px; margin-right: 6px; }
-.section-head .summary { font-size: 12px; }
-.section-head .live { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: live 1s ease-in-out infinite alternate; }
-.section-head .stitle { all: unset; cursor: pointer; }
-.section-head .stitle:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
-.section-head .fold { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 50%; color: var(--muted); }
-.section-head .fold svg { transition: transform .15s ease; }
-.section-head .fold.closed svg { transform: rotate(180deg); }
-.section-head .fold:hover { background: var(--faint); color: var(--text); }
 @keyframes live { to { opacity: .35; } }
 
 /* parameter sections: cards in a grid */
@@ -199,6 +188,10 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .groups > section.card { break-inside: avoid; margin: 0 0 14px; }
 .groups.row { columns: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; align-items: start; }
 .groups.row > section.card { margin: 0; }
+.flow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; align-items: start; margin: 14px 0; }
+.flow .lane { display: grid; gap: 14px; align-content: start; }
+.flow .lane > section.card { margin: 0; }
+@media (max-width: 760px) { .flow { grid-auto-flow: row; } }
 /* in the narrow cards of a row: label and value on a line, the control under them at full width */
 .groups.row .param { grid-template-columns: 1fr auto; grid-template-areas: "l v" "c c"; row-gap: 2px; padding: 3px 0; }
 .groups.row .param .label { grid-area: l; }
@@ -265,7 +258,7 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   aside.open { max-height: 60vh; }
   .brand { padding-bottom: 6px; }
   .brand .drawer { display: inline-block; margin-left: auto; }
-  .monitor { height: 96px; }
+  .monitor { height: 220px; }
   .topbar { flex-wrap: wrap; row-gap: 6px; }
   .topbar .spacer { flex-basis: 100%; height: 0; }
   .topbar .volume input { width: 90px; }

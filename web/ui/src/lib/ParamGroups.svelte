@@ -1,7 +1,8 @@
 <!-- ParamGroups.svelte — the parameters of one editor as cards: the engine's (tab "engine"), the effect bus ("fx")
      or the part's settings ("settings": MIDI channel, keys, transposition, MPE, plus the global tempo and tuning no
      effect claims). One card per stage of the signal chain when the engine describes its stages, else by name
-     prefix (the effects side by side, one per column, in the order of the bus); a stage that can be switched off has a switch, and folds to its title while off (switched off, it
+     prefix. The engine's stages are laid out as its signal flows (sources, filters, amp in columns, modulators and
+     voice in a row below); the effects side by side, one per column, in the order of the bus; a stage that can be switched off has a switch, and folds to its title while off (switched off, it
      remembers its value to come back to). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
@@ -39,6 +40,15 @@
     if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); s.setP(st.enable, st.off); }
     else s.setP(st.enable, lastOn[st.enable] ?? st.on);
   }
+  // the engine with stages, laid out as its signal: one column per kind of audio stage (sources, filters, amps),
+  // in the engine's order, then the modulators and the voice in a row below
+  const lanes = $derived.by(() => {
+    if (tab !== 'engine' || !s.engine?.stages?.length) return null;
+    const of = (kinds) => groups.filter(([, , st]) => st && kinds.includes(st.kind));
+    const audio = [of(['source']), of(['filter']), of(['amp'])].filter((c) => c.length);
+    const other = groups.filter(([, , st]) => !st);
+    return { audio, mods: [...of(['mod']), ...of(['voice']), ...other] };
+  });
   // the stage the diagram asked for: scrolled into view, lit for a moment
   let host, lit = $state('');
   $effect(() => {
@@ -53,22 +63,38 @@
   });
 </script>
 
-<div class="groups" class:row={tab === 'fx'} bind:this={host}>
-  {#each groups as [g, ps, st] (g)}
-    {@const on = stageOn(st)}
-    <section class="card" class:off={!on} class:lit={st && lit === st.id} data-stage={st?.id}>
-      <div class="stage-head">
-        <h2>{g}</h2>
-        {#if st?.enable}
-          <button class="onoff" class:on onclick={() => toggle(st)} role="switch" aria-checked={on} aria-label="{g} on/off" title={on ? 'on' : 'off'}></button>
-        {/if}
-      </div>
-      {#if on}
-        {#if st}<StageViz {st} params={ps.map((p) => p.d)} get={s.getP} />{/if}
-        {#each ps as { d, label } (d.id)}
-          <Param {d} {label} value={s.values[d.id] ?? d.def} base={s.baseline[d.id] ?? d.def} onchange={(v) => s.setValue(d, v)} />
-        {/each}
+{#snippet card(g, ps, st)}
+  {@const on = stageOn(st)}
+  <section class="card" class:off={!on} class:lit={st && lit === st.id} data-stage={st?.id}>
+    <div class="stage-head">
+      <h2>{g}</h2>
+      {#if st?.enable}
+        <button class="onoff" class:on onclick={() => toggle(st)} role="switch" aria-checked={on} aria-label="{g} on/off" title={on ? 'on' : 'off'}></button>
       {/if}
-    </section>
-  {/each}
+    </div>
+    {#if on}
+      {#if st}<StageViz {st} params={ps.map((p) => p.d)} get={s.getP} />{/if}
+      {#each ps as { d, label } (d.id)}
+        <Param {d} {label} value={s.values[d.id] ?? d.def} base={s.baseline[d.id] ?? d.def} onchange={(v) => s.setValue(d, v)} />
+      {/each}
+    {/if}
+  </section>
+{/snippet}
+
+<div bind:this={host}>
+  {#if lanes}
+    <!-- the engine as its signal flows: sources, then filters, then the amp, each a column; modulators below -->
+    <div class="flow">
+      {#each lanes.audio as col}
+        <div class="lane">{#each col as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}</div>
+      {/each}
+    </div>
+    {#if lanes.mods.length}
+      <div class="groups row">{#each lanes.mods as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}</div>
+    {/if}
+  {:else}
+    <div class="groups" class:row={tab === 'fx'}>
+      {#each groups as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}
+    </div>
+  {/if}
 </div>

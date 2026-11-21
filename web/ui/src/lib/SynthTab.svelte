@@ -1,10 +1,19 @@
-<!-- SynthTab.svelte — the Synth tab: shaping the sound. Structure (its signal chain, which is also the editor's map:
-     a click on a block opens its settings) and Editor (Macros, the engine, Effects, Modulation). -->
+<!-- SynthTab.svelte — the Synth tab: shaping the sound, in tabs: Structure (its signal chain, a click on a block
+     opens the tab and the card that hold its settings), Macros (names, CC and targets), the engine (named after the
+     instrument: its parameters, or the sampler's kit), Effects (the bus) and Modulation (modulators and their
+     assignments). The tab open lives in the session; a sound picked in the library opens on Macros. -->
 <script>
-  import Section from './Section.svelte';
   import ChainView from './ChainView.svelte';
-  import EditorTabs from './EditorTabs.svelte';
+  import ParamGroups from './ParamGroups.svelte';
+  import ModPanel from './ModPanel.svelte';
+  import KitPanel from './KitPanel.svelte';
+  import MacroMatrix from './MacroMatrix.svelte';
   import { session as s } from './session.svelte.js';
+  import { human } from './naming.js';
+
+  const cap = (w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : 'Engine');
+  const TABS = $derived([['structure', 'Structure'], ['macros', 'Macros'], ['engine', s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name)],
+    ['fx', 'Effects'], ['mod', 'Modulation']]);
   // a block of the diagram -> the tab and the card that hold its settings
   function pick(st, kind) {
     if (kind === 'route') return s.goTo('mod');
@@ -13,10 +22,22 @@
   }
 </script>
 
-<Section id="structure" title="Structure">
-  <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} onpick={pick} />
-</Section>
+<div class="tabs" role="tablist" aria-label="Synth">
+  {#each TABS as [id, name]}
+    <button role="tab" aria-selected={s.editorTab === id} class:on={s.editorTab === id} onclick={() => s.goTo(id)}>{name}</button>
+  {/each}
+  {#if s.editorTab === 'engine'}<button class="link small tabtools" onclick={s.resetEngine} title="the instrument's default sound">Defaults</button>{/if}
+</div>
 
-<Section id="editor" title="Editor">
-  <EditorTabs />
-</Section>
+{#if s.editorTab === 'structure'}
+  <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} onpick={pick} />
+{:else if s.editorTab === 'macros'}
+  <MacroMatrix engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
+               bind:names={s.macroNames} />
+{:else if s.editorTab === 'mod'}
+  <ModPanel engine={s.engine} shared={s.shared} get={s.getP} set={s.setP} byName={s.byName} {human} values={s.values} setValue={s.setValue} />
+{:else if s.editorTab === 'engine' && s.engine?.name === 'sampler'}
+  <KitPanel kit={s.kit} kitName={s.kitLabel} byName={s.byName} values={s.values} setValue={s.setValue} synth={s.synth} onfiles={s.dropFiles} />
+{:else}
+  <ParamGroups tab={s.editorTab} />
+{/if}

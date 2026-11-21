@@ -1,6 +1,7 @@
-<!-- KitPanel.svelte — the sampler's kit: its 16 pads (the first 16 samples of the kit, by note) as a grid,
-     a click plays one and selects it; the selected pad's waveform with its start and end points, dragged with
-     the pointer (the region played is lit, an arrow tells the direction); its settings; the kit's own settings.
+<!-- KitPanel.svelte — the sampler's kit: its 16 pads (the first 16 samples of the kit, by note) in a row of small
+     tabs, one per pad (a click plays it and opens it), then Kit (the kit's own settings); a pad's tab shows its
+     waveform with its start and end points, dragged with the pointer (the region played is lit, an arrow tells the
+     direction), and its settings.
      Audio files dropped anywhere on the panel (or picked with the button) become a new kit. -->
 <script>
   import Param from './Param.svelte';
@@ -11,7 +12,7 @@
   const SETTINGS = ['tune', 'start', 'end', 'reverse', 'loop', 'decay', 'level', 'pan', 'cutoff', 'choke'];
   const KIT = ['volume', 'tune', 'velocity', 'resonance', 'release'];
 
-  let sel = $state(0);
+  let sel = $state(0); // a pad (0..15) or 'kit'
   let drag = $state(false);
   let wave = $state(null), width = $state(0);
   let input;
@@ -20,14 +21,14 @@
   const pads = $derived(Array.from({ length: PADS }, (_, k) => entries[k] ?? null));
   const extra = $derived(entries.slice(PADS));
   // a new kit: back to its first pad if the selected one is now empty
-  $effect(() => { if (kit && sel >= Math.min(PADS, kit.entries.length)) sel = 0; });
+  $effect(() => { if (kit && sel !== 'kit' && sel >= Math.min(PADS, kit.entries.length)) sel = 0; });
   const get = (n) => { const d = byName[n]; return d ? values[d.id] ?? d.def : 0; };
   const set = (n, v) => { const d = byName[n]; if (d) setValue(d, v); };
   const p = (k, s) => `pad${k + 1}_${s}`;
 
   function hit(k) {
     sel = k;
-    const e = entries[k];
+    const e = k === 'kit' ? null : entries[k];
     if (!e) return;
     synth.noteOn(e.note, 110);
     setTimeout(() => synth.noteOff(e.note), 250);
@@ -35,7 +36,7 @@
 
   // waveform with the region played
   $effect(() => {
-    const e = entries[sel], c = wave;
+    const e = sel === 'kit' ? null : entries[sel], c = wave;
     if (!c || !width) return;
     const s = get(p(sel, 'start')), en = get(p(sel, 'end')), rev = get(p(sel, 'reverse')) >= 0.5;
     const dpr = devicePixelRatio, W = Math.round(width * dpr), H = Math.round(c.clientHeight * dpr);
@@ -101,37 +102,34 @@
     <p class="hint">Drop audio files here (WAV, AIFF, FLAC, MP3). A name starting with a MIDI note, like <code>36_kick.wav</code>, sets the pad's note; the others follow from C2.</p>
   {/if}
 
-  <div class="pads">
+  <div class="tabs small pads" role="tablist" aria-label="Pads">
     {#each pads as e, k}
-      <button class="pad" class:on={k === sel} class:empty={!e} onclick={() => hit(k)} title={e ? `${e.name}, ${noteName(e.note)}, ${secs(e)}` : 'no sample'}>
-        <span class="num">{k + 1}</span>
-        <span class="pname">{e ? e.name : '—'}</span>
-        {#if e}<span class="note">{noteName(e.note)}</span>{/if}
-      </button>
+      <button role="tab" aria-selected={sel === k} class:on={sel === k} class:empty={!e} onclick={() => hit(k)}
+              title={e ? `${e.name}, ${noteName(e.note)}, ${secs(e)}` : 'no sample'}>{k + 1}{e ? ` ${e.name}` : ''}</button>
     {/each}
+    <button role="tab" aria-selected={sel === 'kit'} class:on={sel === 'kit'} class="kittab" onclick={() => (sel = 'kit')}>Kit</button>
   </div>
-
-  <div class="editor">
-    <canvas bind:this={wave} bind:clientWidth={width} class="wave" onpointerdown={down} onpointermove={move} onpointerup={up}
-            aria-label="waveform of pad {sel + 1}: drag the start and end points"></canvas>
-    <div class="settings">
-      <h3>Pad {sel + 1}{entries[sel] ? ` · ${entries[sel].name}` : ''}</h3>
-      {#each SETTINGS as s}
-        {@const d = byName[p(sel, s)]}
-        {#if d}<Param {d} label={s.charAt(0).toUpperCase() + s.slice(1)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />{/if}
-      {/each}
-    </div>
-    <div class="settings">
-      <h3>Kit</h3>
-      {#each KIT as s}
-        {@const d = byName[s]}
-        {#if d}<Param {d} label={s.charAt(0).toUpperCase() + s.slice(1)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />{/if}
-      {/each}
-      {#if extra.length}
-        <p class="hint">{extra.length} more sample{extra.length > 1 ? 's' : ''} ({extra.map((e) => noteName(e.note)).join(', ')}) play with the default settings.</p>
-      {/if}
-    </div>
-  </div>
+    {#if sel === 'kit'}
+      <div class="settings">
+        {#each KIT as s}
+          {@const d = byName[s]}
+          {#if d}<Param {d} label={s.charAt(0).toUpperCase() + s.slice(1)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />{/if}
+        {/each}
+        {#if extra.length}
+          <p class="hint">{extra.length} more sample{extra.length > 1 ? 's' : ''} ({extra.map((e) => noteName(e.note)).join(', ')}) play with the default settings.</p>
+        {/if}
+      </div>
+    {:else}
+      <p class="padinfo">{entries[sel] ? `${entries[sel].name} · ${noteName(entries[sel].note)} · ${secs(entries[sel])}` : 'No sample on this pad.'}</p>
+      <canvas bind:this={wave} bind:clientWidth={width} class="wave" onpointerdown={down} onpointermove={move} onpointerup={up}
+              aria-label="waveform of pad {sel + 1}: drag the start and end points"></canvas>
+      <div class="settings two">
+        {#each SETTINGS as s}
+          {@const d = byName[p(sel, s)]}
+          {#if d}<Param {d} label={s.charAt(0).toUpperCase() + s.slice(1)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />{/if}
+        {/each}
+      </div>
+    {/if}
 </section>
 
 <style>
@@ -140,20 +138,13 @@
   .kit-head { display: flex; align-items: center; gap: 10px; }
   .kit-head h2 { flex: 1; margin: 0; font-size: 14px; }
   .hint { margin: 0; color: var(--muted); font-size: 12.5px; }
-  .pads { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 6px; }
-  .pad { display: grid; gap: 2px; text-align: left; padding: 8px; min-height: 58px; border-radius: 8px; border: 1px solid var(--line);
-         background: var(--faint); color: var(--text); cursor: pointer; }
-  .pad.on { border-color: var(--accent); background: var(--accent-soft); }
-  .pad.empty { opacity: 0.45; }
-  .pad:active { transform: translateY(1px); }
-  .num { font-size: 10.5px; color: var(--muted); }
-  .pname { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .note { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  .editor { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
-  .wave { grid-column: 1 / -1; width: 100%; height: 110px; border-radius: 8px; background: var(--faint); cursor: ew-resize; touch-action: none; }
-  .settings h3 { margin: 0 0 6px; font-size: 12.5px; color: var(--muted); font-weight: 600; }
-  @media (max-width: 760px) {
-    .pads { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .editor { grid-template-columns: 1fr; }
-  }
+  .pads { overflow-x: auto; flex-wrap: nowrap; margin-bottom: 4px; }
+  .pads button { white-space: nowrap; }
+  .pads button.empty { opacity: .45; }
+  .pads .kittab { margin-left: auto; padding-left: 12px; }
+  .padinfo { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+  .wave { display: block; width: 100%; height: 110px; margin-bottom: 12px; border-radius: 8px; background: var(--faint); cursor: ew-resize; touch-action: none; }
+  .settings.two { columns: 2; column-gap: 28px; }
+  .settings { max-width: 760px; }
+  @media (max-width: 760px) { .settings.two { columns: 1; } }
 </style>

@@ -47,6 +47,7 @@ the echoes) -> master -> DC blocker -> soft clipper. All effects are off by defa
 | `tune_9` | -100 .. 100 cent | 0 |  | `tuning.degree9.offset` | custom tuning: offset of degree 9 above the root |
 | `tune_10` | -100 .. 100 cent | 0 |  | `tuning.degree10.offset` | custom tuning: offset of degree 10 above the root |
 | `tune_11` | -100 .. 100 cent | 0 |  | `tuning.degree11.offset` | custom tuning: offset of degree 11 above the root |
+| `a4_hz` | 415 .. 466 Hz | 440 |  | `tuning.a4` | concert pitch: the frequency of A4, for every part and every tuning (432, 440, 442, 415 baroque...) |
 
 Other MIDI: pitch bend (engine `bend_range`), CC 1 `mod_wheel`, CC 64 `sustain`, CC 120 `all_sound_off`, CC 123 `all_notes_off`.
 

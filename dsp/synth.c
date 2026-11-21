@@ -114,6 +114,8 @@ static const param_desc_t tempo_desc[] = {
     PARAM(SYNTH_PARAM_TUNING_ROOT, "tuning_root", "tuning.root", 0.0f, 11.0f, 0.0f, PARAM_INT, "", 0, root_labels,
           "the note the tuning is built on (its intervals are pure from there)"),
     TUNE(0), TUNE(1), TUNE(2), TUNE(3), TUNE(4), TUNE(5), TUNE(6), TUNE(7), TUNE(8), TUNE(9), TUNE(10), TUNE(11),
+    PARAM(SYNTH_PARAM_A4_HZ, "a4_hz", "tuning.a4", 415.0f, 466.0f, 440.0f, PARAM_LIN, "Hz", 0, NULL,
+          "concert pitch: the frequency of A4, for every part and every tuning (432, 440, 442, 415 baroque...)"),
 };
 _Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_desc / sizeof tempo_desc[0]), "tempo ids");
 
@@ -195,6 +197,7 @@ struct synth {
     int delay_sync; /* division index, 0 = off */
     int tuning, tuning_root;
     float tune_cents[12], tuning_st[12];
+    float a4_hz;
     float master_db;
     /* the master level and effects as last set (normalized): what a macro target returns them to */
     float gbase[SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL];
@@ -476,10 +479,15 @@ static void part_set(synth_part_t *pt, int id, float value)
 
 static void tuning_apply(synth_t *s)
 {
+    /* concert pitch as one offset on every degree (log2 once per change, never per sample) */
+    const float a4_st = s->a4_hz == 440.0f ? 0.0f : 12.0f * fm_log2(s->a4_hz * (1.0f / 440.0f));
     for (int k = 0; k < 12; k++)
-        s->tuning_st[k] = s->tuning == 5 ? 0.01f * s->tune_cents[k] : s->tuning > 0 ? tuning_tables[s->tuning - 1][k] : 0.0f;
-    for (int k = 0; k < SYNTH_PARTS; k++) /* equal temperament: no offset at all (bit-exact plain path) */
-        partmod_tuning(&s->part[k].mod, s->tuning ? s->tuning_st : 0, s->tuning_root);
+        s->tuning_st[k] = a4_st + (s->tuning == 5   ? 0.01f * s->tune_cents[k]
+                                   : s->tuning > 0 ? tuning_tables[s->tuning - 1][k]
+                                                   : 0.0f);
+    const int plain = s->tuning == 0 && a4_st == 0.0f; /* equal at 440: no offset at all (bit-exact plain path) */
+    for (int k = 0; k < SYNTH_PARTS; k++)
+        partmod_tuning(&s->part[k].mod, plain ? 0 : s->tuning_st, s->tuning_root);
 }
 
 static void tuning_set(synth_t *s, int id, float v)
@@ -488,6 +496,8 @@ static void tuning_set(synth_t *s, int id, float v)
         s->tuning = (int)v;
     else if (id == SYNTH_PARAM_TUNING_ROOT)
         s->tuning_root = (int)v;
+    else if (id == SYNTH_PARAM_A4_HZ)
+        s->a4_hz = v;
     else
         s->tune_cents[id - SYNTH_PARAM_TUNE_0] = v;
     tuning_apply(s);
@@ -797,6 +807,7 @@ void synth_init(synth_t *s, float sample_rate)
     s->tuning = s->tuning_root = 0;
     for (int k = 0; k < 12; k++)
         s->tune_cents[k] = 0.0f;
+    s->a4_hz = 440.0f;
     tuning_apply(s);
     s->master_db = master_desc.def;
     for (int g = 0; g < SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL; g++) {

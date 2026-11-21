@@ -38,7 +38,8 @@
         "tune_8": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": false, "role": "tuning.degree8.offset", "help": "custom tuning: offset of degree 8 above the root"},
         "tune_9": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": false, "role": "tuning.degree9.offset", "help": "custom tuning: offset of degree 9 above the root"},
         "tune_10": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": false, "role": "tuning.degree10.offset", "help": "custom tuning: offset of degree 10 above the root"},
-        "tune_11": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": false, "role": "tuning.degree11.offset", "help": "custom tuning: offset of degree 11 above the root"}
+        "tune_11": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": false, "role": "tuning.degree11.offset", "help": "custom tuning: offset of degree 11 above the root"},
+        "a4_hz": {"type": "float", "range": [415, 466], "default": 440, "unit": "Hz", "realtime": false, "role": "tuning.a4", "help": "concert pitch: the frequency of A4, for every part and every tuning (432, 440, 442, 415 baroque...)"}
     }
   },
   "part": {

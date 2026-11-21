@@ -59,6 +59,7 @@ enum {
     SYNTH_PARAM_TUNING_ROOT,     /* pitch class the tuning is built on (C .. B) */
     SYNTH_PARAM_TUNE_0,          /* custom: offset of each degree from root, -100 .. +100 cents (12 ids) */
     SYNTH_PARAM_TUNE_11 = SYNTH_PARAM_TUNE_0 + 11,
+    SYNTH_PARAM_A4_HZ,           /* concert pitch: frequency of A4, 415 .. 466 Hz, default 440 */
     SYNTH_PARAM_GLOBAL_END
 };
 

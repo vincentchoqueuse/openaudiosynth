@@ -246,6 +246,7 @@
     "sub.level": "sub oscillator level",
     "tempo.bpm": "tempo of the internal clock",
     "tempo.clock": "clock source: internal or MIDI clock",
+    "tuning.a4": "concert pitch: frequency of A4 in Hz",
     "tuning.degree<n>.offset": "custom tuning offset of degree n",
     "tuning.root": "note the tuning is built on",
     "tuning.scale": "temperament",

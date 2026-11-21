@@ -1,6 +1,6 @@
 /* test_voicemod.c — per-voice modulation and what rides on it: comb filter (peaks at the multiples of f, hollow
  * version at the odd multiples of f/2, bounded at full feedback with a fast-moving tuning), just intonation
- * (exact 5/4 third), MPE (a channel's bend moves only its own note), per-voice LFO (vibrato) and per-voice
+ * (exact 5/4 third), concert pitch (A4 = 432 Hz), MPE (a channel's bend moves only its own note), per-voice LFO (vibrato) and per-voice
  * MSEG (level envelope). */
 #include <math.h>
 #include <stdlib.h>
@@ -87,6 +87,19 @@ void suite_voicemod(void)
     float f = estimate_freq(L + 4800, N - 4800, SR);
     const float expect = 261.6256f * 1.25f;
     CHECK(fabsf(f - expect) < 0.05f, "just intonation: E4 = %.3f Hz, expected %.3f", (double)f, (double)expect);
+
+    /* concert pitch: A4 at 432 Hz, in equal temperament and on top of just intonation (E4 = 5/4 of C4 still) */
+    for (int just = 0; just < 2; just++) {
+        sine_sustain();
+        setg(SYNTH_PARAM_A4_HZ, 432.0f);
+        setg(SYNTH_PARAM_TUNING, (float)just);
+        midi3(0x90, just ? 64 : 69, 100);
+        render(N);
+        f = estimate_freq(L + 4800, N - 4800, SR);
+        const float want = just ? 261.6256f * (432.0f / 440.0f) * 1.25f : 432.0f;
+        CHECK(fabsf(f - want) < 0.05f, "a4_hz 432 (%s): %.3f Hz, expected %.3f", just ? "just" : "equal", (double)f,
+              (double)want);
+    }
 
     /* MPE: the bend on channel 2 moves only the note on channel 2 (range 2 st: half bend = 1 st) */
     sine_sustain();

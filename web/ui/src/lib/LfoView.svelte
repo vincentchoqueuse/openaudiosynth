@@ -3,7 +3,8 @@
      settings below (rate or division, restart on a note for the part LFOs). The fourier shape is drawn from its
      harmonics, set on drawbars: per harmonic 1..8, a (cosine) and b (sine), -1..1, dragged up and down
      (double-click: back to the default). `prefix` is "mlfo1_", "mlfo2_" or "vlfo_" (dsp/mod/partmod.h); the shapes
-     are bipolar and drawn as the DSP computes them, sh as fixed random steps. -->
+     are bipolar and drawn as the DSP computes them, sh as fixed random steps, wiener as a periodic random walk
+     like the one each LFO draws at start. -->
 <script>
   import Param from './Param.svelte';
   let { prefix, get, set, byName } = $props();
@@ -39,6 +40,16 @@
     });
     return norm > 1 ? y / norm : y;
   }
+  // wiener: a periodic random walk (a Brownian bridge, as voicemod_wiener_build); each LFO has its own, this one
+  // shows the kind of path
+  const walk = (() => {
+    let x = 0, seed = 7;
+    const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 1073741824) - 1;
+    const w = Array.from({ length: 32 }, () => { const v = x; x += rnd(); return v; }).map((v, k) => v - (x * k) / 32);
+    const mean = w.reduce((a, b) => a + b, 0) / 32, peak = Math.max(...w.map((v) => Math.abs(v - mean)));
+    return w.map((v) => (v - mean) / peak);
+  })();
+  const wiener = (p) => { const x = p * 32, i = Math.floor(x) % 32; return walk[i] + (walk[(i + 1) % 32] - walk[i]) * (x - Math.floor(x)); };
   function shape(ph, k) { // as lfo_shape in dsp/mod/partmod.c
     const p = ph - Math.floor(ph);
     switch (waves[wave]) {
@@ -47,6 +58,7 @@
       case 'square': return p < 0.5 ? 1 : -1;
       case 'sh': return steps[k % steps.length];
       case 'fourier': return fourier(p);
+      case 'wiener': return wiener(p);
       default: return Math.sin(2 * Math.PI * p);
     }
   }

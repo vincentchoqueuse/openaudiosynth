@@ -1,6 +1,7 @@
 /* test_voicemod.c — per-voice modulation and what rides on it: comb filter (peaks at the multiples of f, hollow
  * version at the odd multiples of f/2, bounded at full feedback with a fast-moving tuning), just intonation
- * (exact 5/4 third), concert pitch (A4 = 432 Hz), the Fourier LFO shape, MPE (a channel's bend moves only its own note), per-voice LFO (vibrato) and per-voice
+ * (exact 5/4 third), concert pitch (A4 = 432 Hz), the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
+ * only its own note), per-voice LFO (vibrato) and per-voice
  * MSEG (level envelope). */
 #include <math.h>
 #include <stdlib.h>
@@ -134,6 +135,20 @@ void suite_voicemod(void)
                 peak = fmaxf(peak, fabsf(voicemod_fourier(c, (float)i / 256.0f)));
         }
         CHECK(peak <= 1.0001f, "fourier with random coefficients: peak %g", (double)peak);
+    }
+
+    /* Wiener LFO shape: periodic (the cycle joins), within -1..1, centred, and not a plain sine */
+    {
+        float w[VM_WIENER_N];
+        voicemod_wiener_build(w, 7u);
+        float peak = 0.0f, mean = 0.0f, jump = fabsf(voicemod_wiener(w, 0.999f) - voicemod_wiener(w, 0.0f));
+        for (int i = 0; i < 512; i++) {
+            const float v = voicemod_wiener(w, (float)i / 512.0f);
+            peak = fmaxf(peak, fabsf(v));
+            mean += v / 512.0f;
+        }
+        CHECK(peak <= 1.0001f && peak > 0.9f && fabsf(mean) < 0.1f && jump < 0.2f,
+              "wiener shape: peak %g, mean %g, jump at the turn %g", (double)peak, (double)mean, (double)jump);
     }
 
     /* per-voice LFO on pitch: vibrato of +/- 0.12 st at 5 Hz */

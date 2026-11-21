@@ -57,6 +57,7 @@ enum { PM_M_MACRO = 0, PM_M_DST, PM_M_FROM, PM_M_TO, PM_M_COUNT };
 #define PM_FOURIER(l, k, ab) (PM_MACRO_CC(PM_MACROS) + ((l) * PM_FOURIER_H + (k)) * 2 + (ab))
 #define PM_COUNT PM_FOURIER(PM_LFOS + 1, 0, 0)
 #define PM_WAVE_FOURIER 5
+#define PM_WAVE_WIENER 6
 
 /* sources (index 0 = none) */
 enum { PM_SRC_NONE = 0, PM_SRC_MACRO1, PM_SRC_LFO1 = PM_SRC_MACRO1 + PM_MACROS, PM_SRC_MSEG1 = PM_SRC_LFO1 + PM_LFOS,
@@ -71,6 +72,7 @@ typedef struct {
     int shape_dirty;
     mseg_t mseg[PM_MSEGS];
     float lfo_phase[PM_LFOS], lfo_sh[PM_LFOS];
+    float wiener[PM_LFOS + 1][VM_WIENER_N]; /* the wiener shape of each LFO (the last: the per-voice one) */
     float src[PM_SRC_COUNT];
     float base[PM_ENGINE_PARAMS]; /* unmodulated normalized value of each engine parameter */
     float cur[PM_ENGINE_PARAMS];  /* value last given to the engine */

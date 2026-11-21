@@ -5,7 +5,7 @@
 static const char *const src_labels[] = {"none", "macro1", "macro2", "macro3", "macro4", "macro5", "macro6", "macro7",
                                          "macro8", "mlfo1", "mlfo2", "mseg1", "mseg2", "mod_wheel", "aftertouch",
                                          "pitch_bend", "velocity", "note", "random", NULL};
-static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", NULL};
+static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", NULL};
 static const char *const mode_labels[] = {"oneshot", "loop_held", "loop_free", NULL};
 static const char *const time_labels[] = {"seconds", "beats", NULL};
 static const char *const vsrc_labels[] = {"none", "vmseg", "vlfo", "velocity", "note", "random", "pressure",
@@ -21,8 +21,8 @@ static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6",
           NULL, "part LFO " #K " rate when not synced"),                                                           \
     PARAM(PM_LFO(K - 1, PM_LFO_SYNC), "mlfo" #K "_sync", "mlfo" #K ".sync", 0.0f, (float)(TEMPO_DIV_COUNT - 1),     \
           0.0f, PARAM_INT, "", 0, tempo_div_labels, "off = free rate; a division = one cycle per division, locked to the beat"), \
-    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 5.0f, 0.0f, PARAM_INT, "", 0,  \
-          wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics f1..f8)"),       \
+    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0,  \
+          wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk)"), \
     PARAM(PM_LFO(K - 1, PM_LFO_RETRIG), "mlfo" #K "_retrig", "mlfo" #K ".retrigger", 0.0f, 1.0f, 0.0f, PARAM_INT,  \
           "", 0, param_onoff_labels, "free LFO restarts when a note starts on a silent part")
 
@@ -132,8 +132,8 @@ const param_desc_t partmod_params[PM_COUNT] = {
           "per-voice LFO rate (each note's LFO starts at its note-on)"),
     PARAM(PM_VLFO(PM_VLFO_SYNC), "vlfo_sync", "vlfo.sync", 0.0f, (float)(TEMPO_DIV_COUNT - 1), 0.0f, PARAM_INT, "", 0,
           tempo_div_labels, "per-voice LFO: off = free rate, or a tempo division"),
-    PARAM(PM_VLFO(PM_VLFO_WAVE), "vlfo_wave", "vlfo.waveform", 0.0f, 5.0f, 0.0f, PARAM_INT, "", 0, wave_labels,
-          "per-voice LFO shape (fourier = its harmonics f1..f8)"),
+    PARAM(PM_VLFO(PM_VLFO_WAVE), "vlfo_wave", "vlfo.waveform", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0, wave_labels,
+          "per-voice LFO shape (fourier = its harmonics; wiener = a periodic random walk)"),
     VROUTE(1), VROUTE(2), VROUTE(3), VROUTE(4),
     MAP(1),  MAP(2),  MAP(3),  MAP(4),  MAP(5),  MAP(6),  MAP(7),  MAP(8),
     MAP(9),  MAP(10), MAP(11), MAP(12), MAP(13), MAP(14), MAP(15), MAP(16),
@@ -235,6 +235,10 @@ void partmod_init(partmod_t *m, float sample_rate, uint32_t seed)
         m->src[i] = 0.0f;
     for (int k = 0; k < PM_LFOS; k++)
         m->lfo_phase[k] = m->lfo_sh[k] = 0.0f;
+    for (int k = 0; k <= PM_LFOS; k++) /* a different walk for each LFO, the same at every start */
+        voicemod_wiener_build(m->wiener[k], seed * 31u + 0x5717u + (uint32_t)k);
+    for (int i = 0; i < VM_WIENER_N; i++)
+        m->vcfg.wiener[i] = m->wiener[PM_LFOS][i];
     build_shapes(m);
     for (int k = 0; k < PM_MSEGS; k++)
         mseg_reset(&m->mseg[k], &m->shape[k]);
@@ -339,9 +343,10 @@ void partmod_all_notes_off(partmod_t *m)
     }
 }
 
-static float lfo_shape(int wave, float ph, float sh, const float *fourier)
+static float lfo_shape(int wave, float ph, float sh, const float *fourier, const float *wiener)
 {
     switch (wave) {
+    case PM_WAVE_WIENER: return voicemod_wiener(wiener, ph);
     case PM_WAVE_FOURIER: return voicemod_fourier(fourier, ph);
     case 1: return 1.0f - 4.0f * dsp_absf(ph - 0.5f);
     case 2: return 2.0f * ph - 1.0f;
@@ -373,7 +378,7 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
         if (m->lfo_phase[k] < prev) /* new cycle */
             m->lfo_sh[k] = dsp_rand_bipolar(&m->rng);
         m->src[PM_SRC_LFO1 + k] = lfo_shape((int)m->p[PM_LFO(k, PM_LFO_WAVE)], m->lfo_phase[k], m->lfo_sh[k],
-                                            &m->p[PM_FOURIER(k, 0, 0)]);
+                                            &m->p[PM_FOURIER(k, 0, 0)], m->wiener[k]);
     }
     const float dt_beats = t->bpm * (1.0f / 60.0f) * dt_s;
     for (int k = 0; k < PM_MSEGS; k++)

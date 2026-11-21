@@ -21,6 +21,35 @@ enum { VM_SRC_NONE = 0, VM_SRC_MSEG, VM_SRC_LFO, VM_SRC_VELOCITY, VM_SRC_NOTE, V
 
 /* Fourier LFO shape: value at phase ph (cycles) of sum(a cos 2 pi h ph + b sin 2 pi h ph) over harmonics h = 1..8,
  * c[2(h-1)] = a, c[2(h-1)+1] = b, divided by sum(|a| + |b|) when that exceeds 1 (it stays within -1..1). */
+/* Wiener LFO shape: a periodic random walk. A Brownian bridge (a random walk over one cycle, brought back to where it
+ * started, so the cycle joins without a jump) of VM_WIENER_N points, centred and scaled to a peak of 1, read with
+ * linear interpolation: slow random drift with the spectrum of Wiener noise, the same at every cycle. */
+#define VM_WIENER_N 32
+static inline void voicemod_wiener_build(float *w, uint32_t seed)
+{
+    uint32_t r = dsp_seed(seed);
+    float x = 0.0f, mean = 0.0f, peak = 1e-6f;
+    for (int k = 0; k < VM_WIENER_N; k++) {
+        w[k] = x;
+        x += dsp_rand_bipolar(&r);
+    }
+    for (int k = 0; k < VM_WIENER_N; k++) { /* the bridge: the end comes back to the start */
+        w[k] -= x * (float)k * (1.0f / (float)VM_WIENER_N);
+        mean += w[k];
+    }
+    mean *= 1.0f / (float)VM_WIENER_N;
+    for (int k = 0; k < VM_WIENER_N; k++)
+        peak = dsp_maxf(peak, dsp_absf(w[k] - mean));
+    for (int k = 0; k < VM_WIENER_N; k++)
+        w[k] = (w[k] - mean) / peak;
+}
+static inline float voicemod_wiener(const float *w, float ph)
+{
+    const float x = ph * (float)VM_WIENER_N;
+    const int i = (int)x & (VM_WIENER_N - 1);
+    return w[i] + (w[(i + 1) & (VM_WIENER_N - 1)] - w[i]) * (x - (float)(int)x);
+}
+
 #define VM_FOURIER_H 8
 static inline float voicemod_fourier(const float *c, float ph)
 {
@@ -39,8 +68,9 @@ static inline float voicemod_fourier(const float *c, float ph)
 typedef struct {
     mseg_shape_t shape;               /* the per-voice MSEG */
     float lfo_rate;                   /* Hz, or a division when lfo_div > 0 */
-    int lfo_div, lfo_wave;            /* tempo division (0 = free), shape 0..5 (sine, tri, saw, square, sh, fourier) */
+    int lfo_div, lfo_wave;            /* tempo division (0 = free), shape 0..6 (sine, tri, saw, square, sh, fourier, wiener) */
     float fourier[2 * VM_FOURIER_H];  /* the fourier shape's a, b of harmonics 1..8 */
+    float wiener[VM_WIENER_N];        /* the wiener shape */
     int src[VM_ROUTES], dst[VM_ROUTES];
     float amount[VM_ROUTES];
     int routes;                       /* number of usable routes (0: no per-voice modulation) */

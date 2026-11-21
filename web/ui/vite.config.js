@@ -1,8 +1,8 @@
 // vite.config.js — dev server and build of the web prototype. The engine and the sounds are served from where
 // they live, without copies: synth.wasm from build-wasm (`just wasm`), the patches from patches/ with an index
-// generated on the fly (patches/index.json), the demo sample kits from build-host/kits (NAME.oidk, recorded by
-// host/kit_demo at every host build); `vite build` emits them next to the app. In development only,
-// POST /api/patches saves a sound into patches/ (the board's presets are generated from there).
+// generated on the fly (patches/index.json), the songs from songs/ likewise (songs/index.json), the demo sample
+// kits from build-host/kits (NAME.oidk, recorded by host/kit_demo at every host build); `vite build` emits them
+// next to the app. In development only, POST /api/patches saves a sound into patches/ (the board's presets are generated from there).
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
@@ -11,6 +11,7 @@ import { resolve } from 'node:path';
 const ROOT = resolve(__dirname, '../..');
 const WASM = resolve(ROOT, 'build-wasm/web/wasm/synth.wasm');
 const PATCHES = resolve(ROOT, 'patches');
+const SONGS = resolve(ROOT, 'songs');
 const KITS = resolve(ROOT, 'build-host/kits');
 const kitFiles = () => (existsSync(KITS) ? readdirSync(KITS).filter((f) => /^[a-z0-9_]+\.oidk$/.test(f)) : []);
 
@@ -22,6 +23,21 @@ function patchIndex() {
       out.push({ file, name: p.name ?? '', engine: p.engine ?? '', description: p.description ?? '' });
     } catch (e) { // one malformed patch must not empty the browser
       console.warn(`patches/${file} skipped: ${e.message}`);
+    }
+  }
+  return out;
+}
+
+// the songs (songs/): name, description, tempo, length and track count, for the Song tab
+function songIndex() {
+  const out = [];
+  for (const file of readdirSync(SONGS).filter((f) => f.endsWith('.json')).sort()) {
+    try {
+      const s = JSON.parse(readFileSync(resolve(SONGS, file), 'utf8'));
+      out.push({ file, name: s.name ?? file.replace(/\.json$/, ''), description: s.description ?? '', bpm: s.bpm ?? 90,
+        seconds: (s.length_beats ?? 64) * 60 / (s.bpm ?? 90) + (s.tail_s ?? 6), tracks: (s.tracks ?? []).length });
+    } catch (e) {
+      console.warn(`songs/${file} skipped: ${e.message}`);
     }
   }
   return out;
@@ -72,7 +88,7 @@ function engineAndSounds() {
   return {
     name: 'synth-engine-and-sounds',
     configureServer(server) {
-      server.watcher.add([WASM, PATCHES]);
+      server.watcher.add([WASM, PATCHES, SONGS]);
       server.middlewares.use((req, res, next) => {
         if (req.method === 'POST' && (req.url ?? '').split('?')[0] === '/api/patches') return savePatch(req, res);
         let url;
@@ -91,10 +107,11 @@ function engineAndSounds() {
           res.end(readFileSync(f));
           return;
         }
-        const m = url.match(/\/patches\/([\w.-]+\.json)$/);
+        const m = url.match(/\/(patches|songs)\/([\w.-]+\.json)$/);
         if (m) {
-          const body = m[1] === 'index.json' ? JSON.stringify(patchIndex()) : (() => {
-            const f = resolve(PATCHES, m[1]);
+          const [dir, index] = m[1] === 'songs' ? [SONGS, songIndex] : [PATCHES, patchIndex];
+          const body = m[2] === 'index.json' ? JSON.stringify(index()) : (() => {
+            const f = resolve(dir, m[2]);
             return existsSync(f) ? readFileSync(f, 'utf8') : null;
           })();
           if (body === null) { next(); return; }
@@ -113,6 +130,10 @@ function engineAndSounds() {
       for (const p of index)
         this.emitFile({ type: 'asset', fileName: `patches/${p.file}`, source: readFileSync(resolve(PATCHES, p.file), 'utf8') });
       this.emitFile({ type: 'asset', fileName: 'patches/index.json', source: JSON.stringify(index) });
+      const songs = songIndex();
+      for (const so of songs)
+        this.emitFile({ type: 'asset', fileName: `songs/${so.file}`, source: readFileSync(resolve(SONGS, so.file), 'utf8') });
+      this.emitFile({ type: 'asset', fileName: 'songs/index.json', source: JSON.stringify(songs) });
       for (const f of kitFiles()) this.emitFile({ type: 'asset', fileName: `kits/${f}`, source: readFileSync(resolve(KITS, f)) });
     },
   };

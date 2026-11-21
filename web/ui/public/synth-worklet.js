@@ -78,6 +78,7 @@ class SynthProcessor extends AudioWorkletProcessor {
     switch (m.type) {
       case 'midi': w.w_midi(m.data[0] | 0, m.data[1] | 0, m.data[2] | 0, m.data.length); break;
       case 'param': w.w_set_param(m.id, m.norm); break;
+      case 'partParam': w.w_part_param(m.part, m.id, m.norm); break;
       case 'engine': w.w_set_engine(m.id); break;
       case 'stop': w.w_stop(); break;
       case 'patch': {
@@ -108,6 +109,12 @@ class SynthProcessor extends AudioWorkletProcessor {
       case 'audition': {
         const len = this.withString(m.notes || '', (p) => w.w_audition(p, m.loop ? 1 : 0));
         this.port.postMessage({ type: 'audition', req: m.req, length: len, error: len < 0 ? this.str(w.w_error()) : '' });
+        break;
+      }
+      case 'song': { // a song with its patches inline, played live (one part per track)
+        const len = this.withString(m.json || '', (p) => w.w_song(p, m.loop ? 1 : 0));
+        this.port.postMessage({ type: 'song', req: m.req, length: len, error: len < 0 ? this.str(w.w_error()) : '',
+          warning: this.str(w.w_warning()) });
         break;
       }
       case 'sequence': {

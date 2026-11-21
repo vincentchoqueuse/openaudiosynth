@@ -96,6 +96,7 @@ export class Synth {
   noteOff(note) { this.midi([0x80, note, 0]); }
   setParam(id, norm) { this.send({ type: 'param', id, norm }); }
   setEngine(id) { this.send({ type: 'engine', id }); }
+  partParam(part, id, norm) { this.send({ type: 'partParam', part, id, norm }); }
   stop() { this.send({ type: 'stop' }); }
 
   request(type, m) { // each request carries an id, echoed by the worklet: concurrent requests cannot mix up
@@ -111,6 +112,8 @@ export class Synth {
   audition(notes = '', loop = false) { return this.request('audition', { notes, loop }); }
   // rows: one phrase per line (audition syntax); replaces a running loop in place
   sequence(rows, bpm, step, gate, swing, loop = true) { return this.request('sequence', { rows, bpm, step, gate, swing, loop }); }
+  // a song (songs/ format) with its patches inline, played live one part per track: resolves {length, error, warning}
+  song(json, loop = false) { return this.request('song', { json, loop }); }
 
   async enableMidi(onChange) {
     if (!navigator.requestMIDIAccess) throw new Error('Web MIDI unavailable (use Chrome or Edge)');

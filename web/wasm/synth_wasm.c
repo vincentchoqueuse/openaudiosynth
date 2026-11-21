@@ -13,7 +13,9 @@
 #include "core/kit.h"
 #include "global_params.h"
 #include "demos.h"
+#include "json.h"
 #include "patch.h"
+#include "song.h"
 #include "synth.h"
 
 #define W_MAX_FRAMES 1024 /* render quantum of Web Audio is 128; room for larger ones */
@@ -56,6 +58,8 @@ EMSCRIPTEN_KEEPALIVE void w_set_engine(int e)
 }
 
 EMSCRIPTEN_KEEPALIVE void w_set_param(int id, float norm) { synth_set_param(synth_default(), id, norm); }
+/* A parameter of one part (the song player's tracks: level, mute), normalized like w_set_param. */
+EMSCRIPTEN_KEEPALIVE void w_part_param(int part, int id, float norm) { synth_part_param(synth_default(), part, id, norm); }
 
 EMSCRIPTEN_KEEPALIVE void w_midi(int status, int d1, int d2, int len)
 {
@@ -445,6 +449,106 @@ EMSCRIPTEN_KEEPALIVE float w_sequence(const char *rows, float bpm, float step, f
 
 /* Player position in frames since the start of the phrase, or -1 when stopped (for the sequencer playhead). */
 EMSCRIPTEN_KEEPALIVE double w_player_pos(void) { return g_ev ? (double)g_pos : -1.0; }
+
+/* ---------------- songs, played live ---------------- */
+
+static void set_global(int id, float physical)
+{
+    synth_set_param(synth_default(), id, param_to_norm(synth_global_param(id - SYNTH_PARAM_GLOBAL), physical));
+}
+static void set_part(int part, int id, float physical)
+{
+    synth_part_param(synth_default(), part, id, param_to_norm(synth_part_param_info(id - SYNTH_PART_PARAM), physical));
+}
+static double jnum(const json_t *o, const char *key, double def)
+{
+    const json_t *v = o ? json_get(o, key) : NULL;
+    return v && v->type == JSON_NUM ? v->num : def;
+}
+
+/* Plays a song (songs/ format, its patches inline: the page fetches them) live: track k on part k, listening to
+ * channel k + 1, with its patch's engine and parameters, gain, pan and reverb send (the part's effect send, the
+ * song's reverb as the bus reverb). A fresh synth_init first, like a patch. Patches' effect settings, a track's
+ * pump and the master fades and normalization of the offline render are left out (reported in w_warning); tracks
+ * beyond SYNTH_PARTS too. Returns the length in seconds, or -1 (message in w_error). */
+EMSCRIPTEN_KEEPALIVE float w_song(const char *text, int loop)
+{
+    json_t *root = json_parse(text, g_err, sizeof g_err);
+    if (!root)
+        return -1.0f;
+    song_info_t info;
+    if (song_info(root, &info, g_err, sizeof g_err) != 0) {
+        json_free(root);
+        return -1.0f;
+    }
+    g_warn[0] = 0;
+    free(g_ev);
+    g_ev = NULL;
+    memset(g_on, 0, sizeof g_on);
+    synth_t *syn = synth_default();
+    synth_init(syn, g_sr);
+    seq_t all;
+    seq_init(&all);
+    static patch_t p; /* large: not on the stack */
+    int ti = 0, pumped = 0;
+    for (const json_t *t = json_get(root, "tracks")->child; t; t = t->next, ti++) {
+        if (ti >= SYNTH_PARTS) {
+            const size_t u = strlen(g_warn);
+            snprintf(g_warn + u, sizeof g_warn - u, "only the first %d tracks play live\n", SYNTH_PARTS);
+            break;
+        }
+        char *phrase;
+        const size_t u = strlen(g_warn);
+        if (song_track(t, ti, &info, &p, &phrase, g_err, sizeof g_err, g_warn + u, sizeof g_warn - u) != 0) {
+            seq_free(&all);
+            json_free(root);
+            return -1.0f;
+        }
+        synth_part_engine(syn, ti, (synth_engine_t)engine_id(p.engine));
+        for (int i = 0; i < p.n; i++) {
+            const int id = p.ids[i];
+            const float norm = param_to_norm(p.desc[i], p.values[i]);
+            if (id >= SYNTH_PARAM_TUNING && id < SYNTH_PARAM_GLOBAL_END)
+                synth_set_param(syn, id, norm); /* tuning and concert pitch: the whole synth */
+            else if (id < SYNTH_PARAM_GLOBAL || id >= SYNTH_PART_PARAM)
+                synth_part_param(syn, ti, id, norm); /* engine, part and modulation parameters */
+        }
+        set_part(ti, SYNTH_PART_CHANNEL, (float)(ti + 1));
+        set_part(ti, SYNTH_PART_LEVEL, (float)jnum(t, "gain_db", 0.0));
+        set_part(ti, SYNTH_PART_PAN, (float)jnum(t, "pan", 0.0));
+        set_part(ti, SYNTH_PART_FX_SEND, dsp_clampf((float)jnum(t, "reverb_send", 0.3), 0.0f, 1.0f));
+        pumped |= json_get(t, "pump") != NULL;
+
+        seq_t one;
+        seq_init(&one);
+        const float len = patch_audition(&p, phrase, &one, g_err, sizeof g_err);
+        free(phrase);
+        if (len < 0.0f) {
+            seq_free(&one);
+            seq_free(&all);
+            json_free(root);
+            return -1.0f;
+        }
+        for (int i = 0; i < one.n; i++)
+            if (one.ev[i].kind == SEQ_MIDI && one.ev[i].msg[0] >= 0x80 && one.ev[i].msg[0] < 0xF0)
+                seq_midi(&all, one.ev[i].t, (uint8_t)((one.ev[i].msg[0] & 0xF0) | ti), one.ev[i].msg[1],
+                         one.ev[i].msg[2]);
+        seq_free(&one);
+    }
+    if (pumped) {
+        const size_t u = strlen(g_warn);
+        snprintf(g_warn + u, sizeof g_warn - u, "the pump (sidechain) of the offline render is not played live\n");
+    }
+    /* the song's reverb: a part sending s to the bus at reverb mix m adds s m reverb(mono): the offline send */
+    const json_t *rv = json_get(root, "reverb");
+    set_global(SYNTH_PARAM_TEMPO, (float)info.bpm);
+    set_global(SYNTH_PARAM_REVERB_MIX, dsp_clampf(fm_db2lin((float)jnum(rv, "return_db", 0.0)), 0.0f, 1.0f));
+    set_global(SYNTH_PARAM_REVERB_DECAY, (float)jnum(rv, "decay", 0.7));
+    set_global(SYNTH_PARAM_REVERB_DAMPING, (float)jnum(rv, "damping_hz", 5000.0));
+    set_global(SYNTH_PARAM_REVERB_PREDELAY, (float)jnum(rv, "predelay_s", 0.03));
+    json_free(root);
+    return player_start(&all, (float)info.length_s, loop, 0);
+}
 
 /* Stops the player and releases every note (CC 123 on all channels). */
 EMSCRIPTEN_KEEPALIVE void w_stop(void)

@@ -25,6 +25,7 @@ fi
 if [ -d build-wasm ]; then
   step "wasm build"          warn cmake --build --preset wasm -j
   step "wasm smoke test"     node web/test_wasm.mjs build-wasm/web/wasm/synth.wasm
+  step "wasm song player"    node web/test_song.mjs build-wasm/web/wasm/synth.wasm
 fi
 if [ -d target/h745/Drivers ]; then  # STM32H745I-DISCO firmware, both cores (drivers copied by tools/stm32_drivers.sh)
   step "h745 build"          warn just h745

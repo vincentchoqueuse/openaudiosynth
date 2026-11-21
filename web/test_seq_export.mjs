@@ -1,17 +1,29 @@
 // test_seq_export.mjs — the web sequencer's clip format end to end: the JSON tab's document (one note per line) and
 // back exactly, its error messages, the earlier step grids turned into notes, and the song export (inline patch,
-// one track per pitch) that tools/validate.py accepts and synth_render --song renders without error, not silent.
+// one track per pitch) that tools/validate.py accepts, a random acid line's shape, and synth_render --song renders without error, not silent.
 // Usage: node web/test_seq_export.mjs [synth_render [synth_catalog [python]]]
 import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildSong, toDoc, docText, fromDoc, fromCells, phraseToNotes } from './ui/src/lib/seqExport.js';
+import { buildSong, toDoc, docText, fromDoc, fromCells, phraseToNotes, acidLine } from './ui/src/lib/seqExport.js';
 
 const render = process.argv[2] ?? 'build-host/host/synth_render';
 const catalog = process.argv[3] ?? 'build-host/host/synth_catalog';
 const python = process.argv[4] ?? ['.venv/bin/python3', 'python3'].find((p) => { try { execFileSync(p, ['-c', '1']); return true; } catch { return false; } });
 const fail = (m) => { console.log('FAILED: ' + m); process.exit(1); };
+
+{ // a random acid line: on the sixteenths, within the pool give or take an octave, accents, slides into a next note
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648);
+  const pool = [36, 39, 41, 43, 46, 48], line = acidLine(pool, 4, 0.25, rnd);
+  const starts = new Set(line.map((n) => n.start));
+  const okPitch = line.every((n) => pool.some((p) => [p - 12, p, p + 12].includes(n.pitch)));
+  const slides = line.filter((n) => n.length > 0.25);
+  if (line.length < 8 || !line.every((n) => n.start % 0.25 === 0) || !okPitch || !line.some((n) => n.velocity === 120)
+      || !slides.length || !slides.every((n) => starts.has(n.start + 0.25)))
+    fail('acidLine: ' + JSON.stringify(line));
+}
 
 // a clip: a long note, an accent, a soft one, a note off the grid, one past the loop's turn
 const clip = { name: 'riff', bpm: 90, length: 8, loop: true, grid: 0.5, root: 4, scale: 'minor', notes: [

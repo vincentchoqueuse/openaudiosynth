@@ -1,0 +1,106 @@
+{
+  "version": 1,
+  "engine": "acid",
+  "name": "acid_rubber",
+  "description": "A rubbery acid line in A minor: octave jumps, accents on the first beats, slides that bend into the next step; a warm saw with some grit.",
+  "params": {
+    "wave": "saw",
+    "cutoff": 420,
+    "resonance": 0.8,
+    "env_mod": 2.8,
+    "decay": 0.4,
+    "accent": 0.7,
+    "slide": 0.06,
+    "drive": 0.3,
+    "distortion": 0.45,
+    "dist_tone": 4500,
+    "volume": 2.5
+  },
+  "clip": {
+    "bpm": 126,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "key": "A minor",
+    "notes": [
+      {
+        "pitch": 45,
+        "start": 0.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 57,
+        "start": 0.25,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 45,
+        "start": 0.75,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 48,
+        "start": 1.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 43,
+        "start": 1.5,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 45,
+        "start": 1.75,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 52,
+        "start": 2.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 50,
+        "start": 2.5,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 48,
+        "start": 2.75,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 45,
+        "start": 3.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 43,
+        "start": 3.25,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 57,
+        "start": 3.5,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 40,
+        "start": 3.75,
+        "length": 0.15,
+        "velocity": 84
+      }
+    ]
+  }
+}

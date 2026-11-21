@@ -151,3 +151,19 @@ export function phraseToNotes(text, step = 0.25, gate = 0.8, velocity = 100) {
       length: +((n.steps - 1) * step + step * (n.slide ? 1.05 : gate)).toFixed(6), velocity: n.velocity })),
   };
 }
+
+/* A random acid line: one step per grid, a few rests, octave jumps, accents (velocity 120) and slides (a note held
+ * into the next one); `pool` is the scale's rows, `rnd` a random source (Math.random by default). */
+export function acidLine(pool, length, grid, rnd = Math.random) {
+  const out = [], steps = Math.round(length / grid);
+  const on = Array.from({ length: steps }, (_, i) => i === 0 || rnd() > 0.2);
+  for (let i = 0; i < steps; i++) {
+    if (!on[i]) continue;
+    const jump = rnd(), base = pool[Math.floor(rnd() * pool.length)];
+    const pitch = base + (jump < 0.15 ? 12 : jump < 0.25 ? -12 : 0);
+    const slide = rnd() < 0.25 && i + 1 < steps && on[i + 1];
+    out.push({ pitch, start: i * grid, length: slide ? grid * 1.08 : grid * 0.6, velocity: rnd() < 0.25 ? 120 : 84 });
+  }
+  return out;
+}
+

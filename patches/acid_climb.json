@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "engine": "acid",
+  "name": "acid_climb",
+  "description": "An acid line that climbs in C minor, accents piling up so the cutoff keeps rising over the bar, slides at the top; a hard, distorted saw.",
+  "params": {
+    "wave": "saw",
+    "cutoff": 300,
+    "resonance": 0.84,
+    "env_mod": 3.2,
+    "decay": 0.35,
+    "accent": 0.85,
+    "slide": 0.05,
+    "drive": 0.4,
+    "distortion": 0.7,
+    "dist_tone": 5000,
+    "volume": 1.1
+  },
+  "clip": {
+    "bpm": 138,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "key": "C minor",
+    "notes": [
+      {
+        "pitch": 36,
+        "start": 0.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 36,
+        "start": 0.25,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 39,
+        "start": 0.5,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 36,
+        "start": 0.75,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 41,
+        "start": 1.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 36,
+        "start": 1.25,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 43,
+        "start": 1.5,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 36,
+        "start": 1.75,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 46,
+        "start": 2.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 48,
+        "start": 2.25,
+        "length": 0.27,
+        "velocity": 120
+      },
+      {
+        "pitch": 51,
+        "start": 2.5,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 48,
+        "start": 2.75,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 43,
+        "start": 3.0,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 48,
+        "start": 3.5,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 46,
+        "start": 3.75,
+        "length": 0.15,
+        "velocity": 84
+      }
+    ]
+  }
+}

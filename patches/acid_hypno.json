@@ -1,0 +1,112 @@
+{
+  "version": 1,
+  "engine": "acid",
+  "name": "acid_hypno",
+  "description": "A hypnotic, rolling acid line in E Phrygian on the square wave: the root hammered on the sixteenths, the flat second leaning in on slides, accents off the beat.",
+  "params": {
+    "wave": "square",
+    "cutoff": 340,
+    "resonance": 0.86,
+    "env_mod": 3.0,
+    "decay": 0.32,
+    "accent": 0.65,
+    "slide": 0.07,
+    "drive": 0.35,
+    "distortion": 0.55,
+    "dist_tone": 4000,
+    "volume": 0.9
+  },
+  "clip": {
+    "bpm": 132,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "key": "E phrygian",
+    "notes": [
+      {
+        "pitch": 40,
+        "start": 0.0,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 40,
+        "start": 0.25,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 52,
+        "start": 0.5,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 40,
+        "start": 0.75,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 41,
+        "start": 1.0,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 40,
+        "start": 1.25,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 40,
+        "start": 1.75,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 40,
+        "start": 2.0,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 43,
+        "start": 2.25,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 41,
+        "start": 2.5,
+        "length": 0.15,
+        "velocity": 120
+      },
+      {
+        "pitch": 40,
+        "start": 2.75,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 52,
+        "start": 3.0,
+        "length": 0.27,
+        "velocity": 84
+      },
+      {
+        "pitch": 50,
+        "start": 3.25,
+        "length": 0.15,
+        "velocity": 84
+      },
+      {
+        "pitch": 40,
+        "start": 3.5,
+        "length": 0.15,
+        "velocity": 120
+      }
+    ]
+  }
+}

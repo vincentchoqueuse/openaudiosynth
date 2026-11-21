@@ -5,7 +5,7 @@
 // player (w_notes), edits take over in place, and it keeps playing whatever the page shows.
 import { untrack } from 'svelte';
 import { session } from './session.svelte.js';
-import { scaleRows, buildSong, docText, fromDoc, fromCells, toDoc, phraseToNotes } from './seqExport.js';
+import { scaleRows, buildSong, docText, fromDoc, fromCells, toDoc, phraseToNotes, acidLine } from './seqExport.js';
 
 const KEY = 'synth.sequence.v2', OLD_KEY = 'synth.sequencer.v1';
 export const LOOPS = [1, 2, 4, 8, 16];
@@ -184,6 +184,10 @@ class Sequence {
   deleteMany = (ids) => { this.notes = this.notes.filter((n) => !ids.has(n.id)); };
   clear = () => { this.notes = []; };
   random = () => {
+    if (session.engine?.name === 'acid') { // an acid line: sixteenths, rests, octave jumps, accents and slides
+      this.notes = withIds(acidLine(scaleRows(this.root, this.scale, Math.min(this.octave, 2), 1), this.length, Math.min(this.grid, 0.25)));
+      return;
+    }
     const pool = scaleRows(this.root, this.scale, this.octave, 2), out = [];
     for (let t = 0; t < this.length; t += this.grid) {
       if (Math.random() > 0.3) continue;

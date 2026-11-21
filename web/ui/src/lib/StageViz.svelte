@@ -4,6 +4,7 @@
      sustain, release, on a square-root time axis so short and long times both show) or an LFO's two cycles (a rate
      and a wave). Nothing when the stage is none of these. Drawn, not computed by the DSP: a picture of the settings. -->
 <script>
+  import { wave } from './waves.js';
   let { st, params, get } = $props(); // the stage, its parameter descriptors, value by name
 
   const W = 240, H = 46, P = 3;
@@ -19,21 +20,6 @@
     return null;
   });
 
-  // one cycle of a wave, phase 0..1 -> -1..1
-  function wave(name, p, pw = 0.5) {
-    switch (name) {
-      case 'saw': case 'supersaw': return 1 - 2 * p;
-      case 'rsaw': return 2 * p - 1;
-      case 'square': return p < 0.5 ? 1 : -1;
-      case 'pulse': return p < pw ? 1 : -1;
-      case 'wide': return p < 0.3 ? 1 : -1;
-      case 'narrow': return p < 0.12 ? 1 : -1;
-      case 'tri': return 1 - 4 * Math.abs(p - 0.5);
-      case 'shark': return p < 0.5 ? -1 + 4 * p * p * 2 * 0.5 : 1 - 2 * (p - 0.5) * 2; // rounded rise, straight fall
-      case 'sh': return [0.6, -0.4, 0.9, -0.7][Math.floor(p * 4) % 4];
-      default: return Math.sin(2 * Math.PI * p);
-    }
-  }
   const line = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
   const Y = (v) => H / 2 - v * (H / 2 - P);
 

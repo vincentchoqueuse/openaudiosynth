@@ -4,6 +4,7 @@
  * memory; synth_default is a static one (g_synth + g_fx_mem). The engines' read-only data (wavetables) is one
  * static arena shared by every instance (g_engine_mem). */
 #include "synth.h"
+#include "synth_probe.h"
 
 #include "core/denormal.h"
 #include "core/fastmath.h"
@@ -901,4 +902,29 @@ DSP_FAST_CODE void synth_render(synth_t *s, float *L, float *R, int n)
         done += k;
         s->time_served += (uint32_t)k;
     }
+}
+
+/* ---- read-only views for displays (synth_probe.h) ---- */
+
+float synth_probe_mseg(const synth_t *s, int part, int which)
+{
+    if (!s || part < 0 || part >= SYNTH_PARTS)
+        return -1.0f;
+    const synth_part_t *pt = &s->part[part];
+    if (which == 0 || which == 1)
+        return mseg_progress(&pt->mod.mseg[which], &pt->mod.shape[which]);
+    if (which != 2 || !pt->ops || !pt->ops->poly)
+        return -1.0f;
+    vpoly_t *p = pt->ops->poly((void *)&pt->eng);
+    if (!p || !p->vm_cfg)
+        return -1.0f;
+    float best = -1.0f, best_t = 1e30f; /* the note least far along its envelope: usually the last one */
+    for (int v = 0; v < p->n; v++) {
+        if (!p->v[v].active)
+            continue;
+        const float x = mseg_progress(&p->vm[v].env, &p->vm_cfg->shape);
+        if (x >= 0.0f && x < best_t)
+            best = x, best_t = x;
+    }
+    return best;
 }

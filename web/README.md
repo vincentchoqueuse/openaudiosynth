@@ -73,6 +73,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
     own views (macro Names / Assignments, Modulators / Assignments, one tab per sampler pad then Kit); no folds;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;
+  - a choice of waveforms or shapes is a row of drawn buttons (`lib/waves.js`: oscillators, LFOs, envelope starting
+    shapes); the envelope editor shows a playhead while the envelope runs (`synth_probe.h`, `w_mseg`);
   - every card has the same width, all on one row that scrolls sideways (`.groups`);
   - parameters are cards of rows (label without the card's own words, control, value in its unit), one card per
     stage of the engine (every engine with stages gives each parameter to one, tested); a dot after a label: moved

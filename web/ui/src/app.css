@@ -213,6 +213,10 @@ h2 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacin
 .param.changed .label::after { content: ' •'; color: var(--accent); } /* moved since the sound was loaded */
 .param .switch-cell { grid-column: 2 / 4; }
 .param .val { font-family: var(--mono); font-size: 11.5px; text-align: right; color: var(--muted); white-space: nowrap; }
+.param .waves { grid-column: 2 / 4; display: flex; gap: 2px; }
+.param .waves button { flex: 1; display: grid; place-items: center; height: 24px; border-radius: 6px; background: var(--faint); color: var(--muted); }
+.param .waves button:hover { color: var(--text); }
+.param .waves button.on { background: var(--accent); color: var(--on-accent); }
 .param select { grid-column: 2 / 4; border: 0; background: var(--faint); border-radius: 7px; padding: 4px 6px; font-size: 12px; }
 .seg { grid-column: 2 / 4; display: flex; background: var(--faint); border-radius: 7px; padding: 2px; gap: 2px; }
 .seg button { flex: 1; padding: 2px 4px; border-radius: 5px; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -268,10 +272,12 @@ h3 { font-size: 11px; font-weight: 600; color: var(--muted); margin: 14px 0 6px;
 
 /* envelope editor */
 .mseg-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; min-height: 30px; }
+.mseg .playhead { stroke: var(--accent); stroke-width: 1.5; opacity: .85; }
 .mseg-bar .vsep { width: 1px; height: 20px; background: var(--line); }
 .mseg-bar .shapes { display: inline-flex; gap: 2px; }
 .mseg-bar .shapes button { display: grid; place-items: center; width: 28px; height: 24px; border-radius: 6px; background: var(--faint); color: var(--muted); }
 .mseg-bar .shapes button:hover { color: var(--accent); }
+.mseg-bar .shapes button.on { background: var(--accent); color: var(--on-accent); }
 .mseg-bar .info { font-size: 12px; }
 .mseg-bar .preset { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; font-size: 12px; }
 .mseg-canvas { position: relative; margin: 8px 0; border-radius: 8px; background: var(--side); outline: none; touch-action: none; }

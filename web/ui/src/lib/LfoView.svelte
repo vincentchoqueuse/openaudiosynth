@@ -6,6 +6,7 @@
      are bipolar and drawn as the DSP computes them, sh as fixed random steps, wiener as a periodic random walk
      like the one each LFO draws at start. -->
 <script>
+  import { hasIcon, waveIcon } from './waves.js';
   import Param from './Param.svelte';
   let { prefix, get, set, byName } = $props();
   const H = 220, PAD = 16;
@@ -92,9 +93,14 @@
 
 <div class="mseg">
   <div class="mseg-bar">
-    <div class="seg small">
-      {#each waves as w, i}<button class:on={wave === i} onclick={() => set(prefix + 'wave', i)}>{w}</button>{/each}
+    <div class="shapes" role="group" aria-label="Shape">
+      {#each waves as w, i}
+        <button class:on={wave === i} onclick={() => set(prefix + 'wave', i)} title={w} aria-label={w} aria-pressed={wave === i}>
+          {#if hasIcon(w)}<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d={waveIcon(w)} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" /></svg>{:else}{w}{/if}
+        </button>
+      {/each}
     </div>
+    <span class="vsep" aria-hidden="true"></span>
     <div class="seg small">
       <button class:on={!sync} title="a rate in Hz" onclick={() => set(prefix + 'sync', 0)}>Hz</button>
       <button class:on={!!sync} title="a division, locked to the tempo" onclick={() => { if (!sync) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4'))); }}>beats</button>

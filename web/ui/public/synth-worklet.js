@@ -143,6 +143,12 @@ class SynthProcessor extends AudioWorkletProcessor {
       const pos = this.w.w_player_pos();
       if (pos >= 0 || this.lastPos >= 0) this.port.postMessage({ type: 'pos', frames: pos, sampleRate });
       this.lastPos = pos;
+      if (this.w.w_mseg) { // where the envelopes are, for the envelope editor's playhead
+        const e = [this.w.w_mseg(0), this.w.w_mseg(1), this.w.w_mseg(2)];
+        const on = e[0] >= 0 || e[1] >= 0 || e[2] >= 0;
+        if (on || this.msegOn) this.port.postMessage({ type: 'mseg', pos: e });
+        this.msegOn = on;
+      }
     }
     // views on the render buffers: rebuilt only when the memory has grown (a patch load) or the quantum changes,
     // so nothing is allocated on the audio thread in steady state

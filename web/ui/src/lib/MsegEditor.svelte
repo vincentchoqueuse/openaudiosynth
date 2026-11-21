@@ -1,11 +1,15 @@
 <!-- MsegEditor.svelte — graphical editor of one multi-segment envelope (part MSEG 1/2 or the per-note MSEG):
      drag points (time and level), drag a segment's middle handle to bend its curve, double-click to add or
      remove a point, click a point then set it as sustain / loop start / loop end; loop mode, time unit,
-     starting shapes as small drawn buttons. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
+     starting shapes as small drawn buttons; a line shows where the envelope runs while it plays. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
 <script>
   import { shape, curveThroughMid, readShape, writeShape, times, insertPoint, deletePoint, clone, PRESETS,
            fromPreset, MIN_TIME, MAX_TIME, MAX_POINTS } from './mseg.js';
+  import { session } from './session.svelte.js';
   let { prefix, get, set } = $props();
+  // the playhead: where the envelope runs now (the part's, or the newest note's), from the engine
+  const which = $derived({ mseg1_: 0, mseg2_: 1, vmseg_: 2 }[prefix] ?? -1);
+  const head = $derived(which >= 0 ? session.msegPos[which] : -1);
 
   const s = $derived(readShape(get, prefix));
   const x = $derived(times(s.pts));
@@ -146,6 +150,7 @@
         <rect class="loop" x={X(x[s.loopStart])} y={PAD} width={X(x[s.loopEnd]) - X(x[s.loopStart])} height={H - 2 * PAD} />
         <text class="mark-label" x={X(x[s.loopStart]) + 4} y={PAD + 11}>loop</text>
       {/if}
+      {#if head >= 0}<line class="playhead" x1={X(head * total)} x2={X(head * total)} y1={PAD} y2={H - PAD} />{/if}
       {#if s.sustain >= 0 && s.sustain < s.pts.length}
         <line class="sus" x1={X(x[s.sustain])} x2={X(x[s.sustain])} y1={PAD} y2={H - PAD} />
         <text class="mark-label" x={X(x[s.sustain]) + 4} y={H - PAD - 4}>sustain</text>

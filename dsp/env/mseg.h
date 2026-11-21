@@ -35,4 +35,22 @@ void mseg_gate(mseg_t *m, const mseg_shape_t *s, int on);   /* note on: restart;
 /* Advances by dt (seconds or beats) and returns the value. Bounded work whatever the times. */
 float mseg_advance(mseg_t *m, const mseg_shape_t *s, float dt);
 
+/* Where it is along the shape's time axis, 0..1 of the whole shape (for a display), or -1 when idle or finished.
+ * Not for the audio path's decisions: a loop jumps back. */
+static inline float mseg_progress(const mseg_t *m, const mseg_shape_t *s)
+{
+    if (m->seg < 1 || m->seg >= s->count)
+        return -1.0f;
+    float total = 0.0f, done = 0.0f;
+    for (int k = 1; k < s->count; k++) {
+        total += s->time[k];
+        if (k < m->seg)
+            done += s->time[k];
+    }
+    if (total <= 0.0f)
+        return -1.0f;
+    const float x = (done + (m->pos < s->time[m->seg] ? m->pos : s->time[m->seg])) / total;
+    return x < 1.0f ? x : 1.0f;
+}
+
 #endif /* MSEG_H */

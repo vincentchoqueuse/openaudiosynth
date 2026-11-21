@@ -17,6 +17,7 @@
 #include "patch.h"
 #include "song.h"
 #include "synth.h"
+#include "synth_probe.h"
 
 #define W_MAX_FRAMES 1024 /* render quantum of Web Audio is 128; room for larger ones */
 
@@ -448,6 +449,8 @@ EMSCRIPTEN_KEEPALIVE float w_sequence(const char *rows, float bpm, float step, f
 }
 
 /* Player position in frames since the start of the phrase, or -1 when stopped (for the sequencer playhead). */
+/* where an envelope is (synth_probe.h): which 0, 1 = the part's MSEGs, 2 = the newest note's; -1 = idle */
+EMSCRIPTEN_KEEPALIVE float w_mseg(int which) { return synth_probe_mseg(synth_default(), 0, which); }
 EMSCRIPTEN_KEEPALIVE double w_player_pos(void) { return g_ev ? (double)g_pos : -1.0; }
 
 /* A clip of notes, as MIDI: 4 floats per note (pitch 0..127, start and length in beats, velocity 1..127), at bpm,

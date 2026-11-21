@@ -36,6 +36,7 @@ class Session {
   focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
   goTo = (tab, id = null) => { this.editorTab = tab; this.focus = id ? { id, n: (this.focus?.n ?? 0) + 1 } : null; };
   shortcutsOpen = $state(false); // the shortcuts sheet
+  msegPos = $state([-1, -1, -1]); // where the part's envelopes and the newest note's are, 0..1 (-1: idle)
   shareOpen = $state(false); // the QR code that opens this page on another device
   settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);
@@ -129,6 +130,7 @@ class Session {
       this.resetValues(true);
       this.defaultMacros();
       this.baseline = { ...this.values };
+      this.synth.on('mseg', (d) => (this.msegPos = d.pos));
       this.synth.on('midiin', (d) => {
         const t = d[0] & 0xf0;
         if (t === 0xb0) { // a macro's CC: the synth has turned it, the knob follows

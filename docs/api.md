@@ -252,6 +252,7 @@ multi-segment envelope (loopable, any number of breakpoints): up to MSEG_POINTS 
 - `void mseg_reset(mseg_t *m, const mseg_shape_t *s)`
 - `void mseg_gate(mseg_t *m, const mseg_shape_t *s, int on)` — idle at the first point's level
 - `float mseg_advance(mseg_t *m, const mseg_shape_t *s, float dt)` — Advances by dt (seconds or beats) and returns the value. Bounded work whatever the times.
+- `float mseg_progress(const mseg_t *m, const mseg_shape_t *s)` — Where it is along the shape's time axis, 0..1 of the whole shape (for a display), or -1 when idle or finished. Not for the audio path's decisions: a loop jumps back.
 
 ## `dsp/mod/lfo.h`
 low-frequency oscillator evaluated at control rate (one value per block). Shapes: sine, triangle, saw, square, sample-and-hold. Bipolar output in [-1, 1]. No anti-aliasing needed: consumers interpolate the value over the block.
@@ -515,6 +516,10 @@ descriptors of the global parameters (SYNTH_PARAM_GLOBAL and above): master leve
 diagnostics of an instance, for tests and for a board's status screen; not part of the public API (dsp/synth.h), and free to change.
 - `void *synth_debug_engine_state(synth_t *s, int part)` — The state of the engine of a part (engines/registry.h: engine_state_t), or NULL if the part is off. Tests use it to inject a fault.
 - `uint32_t synth_debug_nan_count(const synth_t *s)` — How many times a part's or the effects' output was not finite (NaN or Inf) and was reset since synth_init.
+
+## `dsp/synth_probe.h`
+read-only views of an instance's state for displays (the web page, the board's screen): where the modulation envelopes are. Nothing here changes the sound; call it from the interface thread between renders (the value can be one block old). Kept apart from synth.h, the control API.
+- `float synth_probe_mseg(const synth_t *s, int part, int which)` — Position of an envelope along its shape, 0..1, or -1 when it is not running. which: 0 and 1 = the part's envelopes (MSEG 1 and 2), 2 = the per-note envelope of the most recent note still running.
 
 ## `midi/link.h`
 the board link: how a host (the Mac, later the Pi hub) drives a synth board over Ethernet with UDP datagrams. One datagram = a 12-byte header + one message: MIDI, parameter values, a preset, the choice of a built-in preset, or a chunk of a large transfer (a sample kit). Specified in docs/link.md. Encoding and decoding only (no sockets, no allocation, little-endian fields), shared by the board and the host tools; the transport is udpip.h on the board and BSD sockets on the host.

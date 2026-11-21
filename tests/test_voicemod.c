@@ -11,6 +11,7 @@
 #include "global_params.h"
 #include "mod/partmod.h"
 #include "synth.h"
+#include "synth_probe.h"
 #include "test.h"
 
 #define SR 48000.0f
@@ -182,4 +183,22 @@ void suite_voicemod(void)
     render(N);
     const float early = rms(L + 2400, 2400), late = rms(L + N - 2400, 2400);
     CHECK(late > 8.0f * early, "per-voice MSEG level: %.4f -> %.4f", (double)early, (double)late);
+
+    /* the display probe: the per-note envelope, 1 s long, is half way after 0.5 s and idle once done; nothing
+     * runs on the part's envelopes before a note */
+    sine_sustain();
+    setmod(PM_VMSEG(PM_MSEG_POINTS), 2.0f);
+    setmod(PM_VMSEG(PM_MSEG_SUSTAIN), -1.0f);
+    setmod(PM_VMSEG_PT(1, PM_PT_TIME), 1.0f);
+    setmod(PM_VROUTE(0, PM_VR_SRC), (float)VM_SRC_MSEG);
+    setmod(PM_VROUTE(0, PM_VR_DST), (float)VM_LEVEL);
+    setmod(PM_VROUTE(0, PM_VR_AMOUNT), 0.5f);
+    const float idle = synth_probe_mseg(synth_default(), 0, 0);
+    midi3(0x90, 69, 100);
+    render(24000);
+    const float half = synth_probe_mseg(synth_default(), 0, 2);
+    render(N);
+    const float done = synth_probe_mseg(synth_default(), 0, 2);
+    CHECK(idle < 0.0f && fabsf(half - 0.5f) < 0.02f && done < 0.0f, "mseg probe: idle %g, at 0.5 s %g, done %g",
+          (double)idle, (double)half, (double)done);
 }

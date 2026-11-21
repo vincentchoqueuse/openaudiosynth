@@ -12,6 +12,7 @@
   import Sidebar from './lib/Sidebar.svelte';
   import TopBar from './lib/TopBar.svelte';
   import ViewTitle from './lib/ViewTitle.svelte';
+  import { urlParams, showSound } from './lib/urlparams.js';
   import ClipTab from './lib/ClipTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
   import CodeView from './lib/CodeView.svelte';
@@ -28,9 +29,10 @@
   // the three main views (kept in the browser)
   const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }, { id: 'code', label: 'Code', icon: 'code' }];
   const VIEWS = $derived(s.phone ? ALL_VIEWS.filter((v) => v.id !== 'code') : ALL_VIEWS); // no code editing on a phone
-  let main = $state(remembered('synth.main', 'clip'));
+  let main = $state(urlParams.view ?? remembered('synth.main', 'clip')); // ?view= in the address first
   $effect(() => { if (!VIEWS.some((v) => v.id === main)) main = 'clip'; });
   $effect(() => remember('synth.main', main));
+  $effect(() => { if (s.started) showSound(s.current ? s.title : null); }); // the address names the sound playing
   const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
   const onAccent = $derived.by(() => {

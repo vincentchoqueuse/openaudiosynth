@@ -67,6 +67,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   the page. Each view starts with its title and its icon. On a phone the page leaves out what is for a desk: the Code view, the macros' MIDI CC and the
   shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
+- **Address**: `?sound=NAME` opens a preset, `?q=TEXT` fills the library search, `?view=sequence|synth|code` opens a
+  view (e.g. `/?sound=drone_glacial&view=synth`); the address bar follows the sound playing, and Share's QR code
+  opens on it (`lib/urlparams.js`).
 - **Interface rules** (every part of the page follows them):
   - one component per kind of control, used everywhere: `Pills` (the views, size lg; the Synth view's pills, md,
     with an icon; drawn choices of a waveform or a shape, icon), `Tabs` (an editor's own views, small and

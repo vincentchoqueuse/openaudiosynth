@@ -1,9 +1,10 @@
-<!-- ShareDialog.svelte — sharing the synth: a QR code of this page's address (to open it on a phone or pass it
+<!-- ShareDialog.svelte — sharing the synth: a QR code of this page's address on the sound playing (?sound=) (to open it on a phone or pass it
      around a room), the address itself and a button to copy it. Closed with Escape or a click outside. -->
 <script>
   import QRCode from 'qrcode';
   import { session as s } from './session.svelte.js';
-  const url = location.origin + location.pathname;
+  import { soundUrl } from './urlparams.js';
+  const url = soundUrl(s.current ? s.title : null); // opens on the sound playing
   let svg = $state(''), copied = $state(false);
   QRCode.toString(url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M', color: { dark: '#000000', light: '#ffffff' } })
     .then((t) => (svg = t));

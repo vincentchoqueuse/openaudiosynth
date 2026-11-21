@@ -7,6 +7,7 @@ import { Synth, fromNorm, toNorm } from './synth.js';
 import { parseKit, filesToKit } from './kit.js';
 import { engineColor, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
 import { human, unclaimed } from './naming.js';
+import { urlParams } from './urlparams.js';
 
 class Session {
   synth = new Synth();
@@ -167,6 +168,9 @@ class Session {
         this.held = held;
       });
       await this.listPatches();
+      const asked = urlParams.sound && this.patches.find((p) => p.name === urlParams.sound || p.file === urlParams.sound + '.json');
+      if (asked) await this.loadPatch(asked); // ?sound= in the address
+      else if (urlParams.sound) this.say(`No sound called ${urlParams.sound}`);
       this.synth.enableMidi((n) => (this.midiNames = n)).catch(() => (this.midiNames = []));
     } catch (e) {
       this.say('Could not start audio: ' + e.message);

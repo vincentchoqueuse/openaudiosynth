@@ -3,9 +3,10 @@
      presets of every instrument instead. -->
 <script>
   import { engineColor, engineRank } from './engines.js';
+  import { urlParams } from './urlparams.js';
   let { patches, current, onpick } = $props();
 
-  let search = $state('');
+  let search = $state(urlParams.q); // ?q= in the address fills it
   let open = $state(null); // engine whose presets are shown
 
   const instruments = $derived.by(() => {

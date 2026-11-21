@@ -4,11 +4,11 @@
   "name": "acid_slide_line",
   "description": "A 16-step acid line full of slides and accents (octave jumps up and down), on a driven saw: high resonance, short decay, accents that climb. Ride the cutoff and the env mod.",
   "params": {
-    "distortion": 0.5,
+    "distortion": 0.95,
     "dist_tone": 4500,
     "wave": "saw",
-    "cutoff": 566,
-    "resonance": 0.3,
+    "cutoff": 287,
+    "resonance": 0.75,
     "env_mod": 2.5,
     "decay": 0.43,
     "accent": 0.4,
@@ -16,7 +16,7 @@
     "drive": 0.85,
     "delay_mix": 0,
     "reverb_mix": 0,
-    "volume": 0.3
+    "volume": -0.5
   },
   "clip": {
     "bpm": 111,

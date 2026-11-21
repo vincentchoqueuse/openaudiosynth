@@ -20,6 +20,7 @@ enum {
     DRN_P_TEMPERATURE = 0, DRN_P_DENSITY, DRN_P_MOTION, DRN_P_DEPTH, DRN_P_BRIGHTNESS, DRN_P_SPARKLE, DRN_P_WIDTH,
     DRN_P_PARTIALS_LEVEL, DRN_P_BODY_LEVEL, DRN_P_AIR_LEVEL, DRN_P_SPARKLE_LEVEL,
     DRN_P_ATTACK, DRN_P_RELEASE, DRN_P_VOLUME, DRN_P_BEND_RANGE,
+    DRN_P_AIR_TONE, DRN_P_AIR_RESO, /* the air's bands: moved in octaves, their sharpness */
     DRN_P_COUNT
 };
 extern const param_desc_t drone_params[DRN_P_COUNT];

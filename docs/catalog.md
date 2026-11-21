@@ -1182,3 +1182,5 @@ drone machine: each note an endless drone of wandering harmonic partials, a warm
 | `amp_release` | 0.05 .. 180 s | 10 | yes | `amp.release` | fade out of a note (up to 3 minutes) |
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
+| `air_tone` | -3 .. 1 oct | 0 | yes | `drone.air_tone` | height of the air's bands: lower = a muffled rumble of wind and waves, higher = a hiss |
+| `air_reso` | 0 .. 1 | 1 | yes | `drone.air_reso` | resonance of the air's bands: 1 = as the temperature sets it (whistling when cold), 0 = wide and soft |

@@ -1244,7 +1244,9 @@
         "amp_attack": {"type": "float", "range": [0.05, 180], "default": 6, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "fade in of a note (up to 3 minutes)"},
         "amp_release": {"type": "float", "range": [0.05, 180], "default": 10, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "fade out of a note (up to 3 minutes)"},
         "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
-        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
+        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"},
+        "air_tone": {"type": "float", "range": [-3, 1], "default": 0, "unit": "oct", "realtime": true, "role": "drone.air_tone", "help": "height of the air's bands: lower = a muffled rumble of wind and waves, higher = a hiss"},
+        "air_reso": {"type": "float", "range": [0, 1], "default": 1, "realtime": true, "role": "drone.air_reso", "help": "resonance of the air's bands: 1 = as the temperature sets it (whistling when cold), 0 = wide and soft"}
       }
     }
   }

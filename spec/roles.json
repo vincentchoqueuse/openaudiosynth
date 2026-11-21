@@ -9,6 +9,8 @@
     "amp.sustain": "amplitude sustain level",
     "amp.velocity": "velocity to loudness",
     "drone.air_level": "level of a drone's air",
+    "drone.air_reso": "sharpness of the drone's air bands (0 wide .. 1 as set by temperature)",
+    "drone.air_tone": "height of the drone's air bands (octaves)",
     "drone.body_level": "level of a drone's body",
     "drone.brightness": "spectral tilt and body cut-off of a drone",
     "drone.density": "how full a drone is: partials and air",

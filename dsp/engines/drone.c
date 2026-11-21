@@ -42,6 +42,10 @@ const param_desc_t drone_params[DRN_P_COUNT] = {
     PARAM(DRN_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "volume"),
     PARAM(DRN_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL,
           "pitch-bend range"),
+    PARAM(DRN_P_AIR_TONE, "air_tone", "drone.air_tone", -3.0f, 1.0f, 0.0f, PARAM_LIN, "oct", 1, NULL,
+          "height of the air's bands: lower = a muffled rumble of wind and waves, higher = a hiss"),
+    PARAM(DRN_P_AIR_RESO, "air_reso", "drone.air_reso", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
+          "resonance of the air's bands: 1 = as the temperature sets it (whistling when cold), 0 = wide and soft"),
 };
 
 static float lerpf(float a, float b, float t) { return a + (b - a) * t; }
@@ -284,13 +288,14 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
     /* air: noise in two band-passes on harmonics of the note (high and sharp when cold, low and soft warm) */
     const float g_air = fm_db2lin(p[DRN_P_AIR_LEVEL]) * (0.15f + 0.85f * dens) * fm_exp2(depth * 1.0f * lfo1);
     if (g_air > 1e-5f) {
-        const float q = lerpf(22.0f, 4.0f, t);
+        const float q = lerpf(1.0f, lerpf(22.0f, 4.0f, t), p[DRN_P_AIR_RESO]);
         const float h_air[2] = {lerpf(6.0f, 2.0f, t), lerpf(11.0f, 3.0f, t)};
         const float gq = g_air * 5.0f * fm_exp2(0.5f * fm_log2(q)); /* sharper = narrower: same loudness */
+        const float air_shift = fm_exp2(p[DRN_P_AIR_TONE]);
         for (int i = 0; i < n; i++)
             tmp[i] = dsp_rand_bipolar(&v->noise);
         for (int b = 0; b < 2; b++) {
-            svf_set(&v->air_bp[b], dsp_clampf(f0 * h_air[b], 40.0f, fmax), q);
+            svf_set(&v->air_bp[b], dsp_clampf(f0 * h_air[b] * air_shift, 40.0f, fmax), q);
             svf_process(&v->air_bp[b], tmp, tmp2, n);
             const float gl = gq * (b ? 0.45f : 0.75f), gr = gq * (b ? 0.75f : 0.45f);
             for (int i = 0; i < n; i++)
@@ -364,7 +369,7 @@ static DSP_FAST_CODE void drone_render(void *st, float *L, float *R)
 static const engine_stage_t drone_stages[] = {
     {"partials", "Partials", "source", "partials_level", "", NULL, "partials_level", -60.0f, 0.0f},
     {"body", "Body", "source", "body_level", "", NULL, "body_level", -60.0f, -4.0f},
-    {"air", "Air", "source", "air_level", "", NULL, "air_level", -60.0f, -6.0f},
+    {"air", "Air", "source", "air_level air_tone air_reso", "", NULL, "air_level", -60.0f, -6.0f},
     {"sparkles", "Sparkles", "source", "sparkle sparkle_level", "", NULL, "sparkle", 0.0f, 0.15f},
     {"amp", "Amp", "amp", "amp_attack amp_release volume width", "partials body air sparkles", NULL, NULL, 0.0f, 0.0f},
     {"character", "Character", "mod", "temperature density brightness", "", "partials body air sparkles", NULL, 0.0f, 0.0f},

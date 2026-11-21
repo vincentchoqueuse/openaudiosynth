@@ -36,6 +36,7 @@ class Session {
   focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
   goTo = (tab, id = null) => { this.editorTab = tab; this.focus = id ? { id, n: (this.focus?.n ?? 0) + 1 } : null; };
   shortcutsOpen = $state(false); // the shortcuts sheet
+  shareOpen = $state(false); // the QR code that opens this page on another device
   settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)

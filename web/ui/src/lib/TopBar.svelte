@@ -1,4 +1,4 @@
-<!-- TopBar.svelte — the bar above both tabs: the sound (its instrument to switch, its name (its description is
+<!-- TopBar.svelte — the bar above both tabs: the sound (its name (its description is
      the Synth tab's Info), how many parameters moved since it was loaded with Revert, Save to library in development,
      Export), undo / redo, the output level and the listening volume. Playing the clip is in the Play tab. -->
 <script>
@@ -7,9 +7,6 @@
 </script>
 
 <header class="topbar">
-  <select class="engine" value={s.engineId} onchange={(e) => s.setEngine(+e.target.value)} aria-label="Instrument">
-    {#each s.catalog.engines as e}<option value={e.id}>{e.name}</option>{/each}
-  </select>
   <div class="namebox">
     {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
   </div>

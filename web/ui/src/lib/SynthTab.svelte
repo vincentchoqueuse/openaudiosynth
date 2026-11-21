@@ -1,5 +1,5 @@
-<!-- SynthTab.svelte — the Synth tab: shaping the sound, in tabs: Info (its description, its instrument, its file), Structure (its signal chain, a click on a block
-     opens the tab and the card that hold its settings), Macros (names, CC and targets), the engine (named after the
+<!-- SynthTab.svelte — the Synth view: shaping the sound. Its Structure always on top (the signal chain; a click on a
+     block opens the tab and the card that hold its settings), then tabs: Info (its description, instrument, file), Macros (names, CC and targets), the engine (named after the
      instrument: its parameters, or the sampler's kit), Effects (the bus) and Modulation (modulators and their
      assignments). The tab open lives in the session; a sound picked in the library opens on Macros. -->
 <script>
@@ -13,7 +13,7 @@
   import { human } from './naming.js';
 
   const cap = (w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : 'Engine');
-  const TABS = $derived([['info', 'Info'], ['structure', 'Structure'], ['macros', 'Macros'], ['engine', s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name)],
+  const TABS = $derived([['info', 'Info'], ['macros', 'Macros'], ['engine', s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name)],
     ['fx', 'Effects'], ['mod', 'Modulation']]);
   // a block of the diagram -> the tab and the card that hold its settings
   function pick(st, kind) {
@@ -23,7 +23,9 @@
   }
 </script>
 
-<div class="tabs sub" role="tablist" aria-label="Synth">
+<ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} onpick={pick} />
+
+<div class="tabs" role="tablist" aria-label="Synth">
   {#each TABS as [id, name]}
     <button role="tab" aria-selected={s.editorTab === id} class:on={s.editorTab === id} onclick={() => s.goTo(id)}>{name}</button>
   {/each}
@@ -32,8 +34,6 @@
 
 {#if s.editorTab === 'info'}
   <InfoPanel />
-{:else if s.editorTab === 'structure'}
-  <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} onpick={pick} />
 {:else if s.editorTab === 'macros'}
   <MacroMatrix engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
                bind:names={s.macroNames} />

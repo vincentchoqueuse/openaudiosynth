@@ -10,8 +10,7 @@
       ['double-click', 'delete a note'], ['Delete', 'delete the selection'], ['⌘A ⌘C ⌘X ⌘V', 'select all, copy, cut, paste'],
       ['⌘D', 'duplicate after the selection'], ['↑ ↓ (Shift)', 'a semitone (an octave)'], ['← →', 'a grid step'], ['⌘U', 'quantize'],
       ['Shift while dragging', 'finer than the grid']]],
-    ['Controls', [['double-click a label or slider', 'back to the sound\'s value'], ['drag a knob, wheel, arrows', 'turn a macro'],
-      ['click a block of Structure', 'open its settings']]],
+    ['Controls', [['double-click a label or slider', 'back to the sound\'s value'], ['click a block of Structure', 'open its settings']]],
   ];
 </script>
 

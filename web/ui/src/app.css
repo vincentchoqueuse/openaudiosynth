@@ -141,7 +141,7 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .toggle input { accent-color: var(--accent); margin: 0; }
 
 /* output: wave | spectrum | level */
-.monitor { display: grid; grid-template-columns: 1fr; gap: 10px; height: max(320px, calc(100vh - 330px)); margin-bottom: 14px; }
+.monitor { display: grid; grid-template-columns: 1fr; gap: 10px; height: 150px; margin-bottom: 14px; }
 .monitor .panel { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
 .monitor canvas { display: block; width: 100%; height: 100%; }
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
@@ -153,20 +153,17 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs .small { margin-left: auto; font-size: 12px; }
 .tabs .tabtools { margin-left: auto; align-self: center; margin-bottom: 4px; }
 .tabs .seg button { border-bottom: 0; margin: 0; padding: 3px 10px; }
-/* second level (the tabs of Play and of Synth): filled, rounded, no rule under them */
-.tabs.sub { gap: 4px; border-bottom: 0; margin: 14px 0 16px; }
-.tabs.sub > button[role=tab] { padding: 5px 13px; border: 0; margin: 0; border-radius: 8px; }
-.tabs.sub > button[role=tab]:hover { background: var(--faint); }
-.tabs.sub > button[role=tab].on { background: var(--accent); color: var(--on-accent); }
-/* third level (an editor's own tabs): small, underlined */
+/* third level (an editor's own tabs): smaller */
 .tabs.small { gap: 18px; margin-bottom: 12px; }
 .tabs.small button { font-size: 12px; padding: 4px 0 7px; }
-/* the main tabs (Play, Synth) and their Visual / Code switch */
-.maintabs { display: flex; align-items: flex-end; gap: 14px; margin: 18px 0 4px; border-bottom: 1px solid var(--line); }
-.maintabs .tabs.big { border-bottom: 0; margin: 0; gap: 26px; }
-.maintabs .tabs.big button { font-size: 15px; font-weight: 600; padding: 6px 0 10px; }
-.maintabs .seg { margin-bottom: 8px; }
-.maintabs .spacer { flex: 1; }
+/* the main views (Play, Synth, Code): nav tabs with an icon, the open one joined to the page under it */
+.maintabs { display: flex; gap: 2px; margin: 18px 0 16px; padding: 0 4px; border-bottom: 1px solid var(--line); }
+.maintabs button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px 8px 14px; margin-bottom: -1px;
+                   border: 1px solid transparent; border-bottom: 0; border-radius: 9px 9px 0 0; background: none;
+                   color: var(--muted); font-size: 13.5px; font-weight: 600; }
+.maintabs button:hover { color: var(--text); background: var(--faint); }
+.maintabs button.on { color: var(--text); background: var(--bg); border-color: var(--line); box-shadow: inset 0 2px 0 var(--accent); }
+.maintabs button.on svg { color: var(--accent); }
 /* the one toolbar: settings on the left (a label, then its control), actions on the right, one height */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 30px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .toolbar label { display: inline-flex; align-items: center; gap: 6px; }
@@ -257,7 +254,7 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   aside.open { max-height: 60vh; }
   .brand { padding-bottom: 6px; }
   .brand .drawer { display: inline-block; margin-left: auto; }
-  .monitor { height: 220px; }
+  .monitor { height: 96px; }
   .topbar { flex-wrap: wrap; row-gap: 6px; }
   .topbar .spacer { flex-basis: 100%; height: 0; }
   .topbar .volume input { width: 90px; }

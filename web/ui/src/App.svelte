@@ -1,7 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the top
-     bar (the sound: instrument, name, Save, Export; undo; level and volume); two main tabs, Play (Live, Macros,
-     Sequencer) and Synth (Structure, then the sound's editors), each in Visual or Code mode (the clip's or the
-     patch's JSON); the keyboard along the bottom. State and actions live in lib/session.svelte.js and
+     bar (the sound: name, Save, Export; undo; level and volume); three main views as nav tabs with an icon: Play (Live,
+     then Macros and Sequencer), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the keyboard along the bottom. State and actions live in lib/session.svelte.js and
      lib/sequence.svelte.js; the interface takes the color of the instrument playing. Space plays / stops the clip. -->
 <script>
   import { session as s } from './lib/session.svelte.js';
@@ -20,12 +19,16 @@
   import SaveDialog from './lib/SaveDialog.svelte';
   import SettingsDialog from './lib/SettingsDialog.svelte';
   import ShortcutsDialog from './lib/ShortcutsDialog.svelte';
+  import ShareDialog from './lib/ShareDialog.svelte';
 
-  // the two main tabs, each in Visual or Code mode (kept in the browser)
+  // the three main views (kept in the browser)
+  const VIEWS = [
+    ['play', 'Play', 'M4.5 3.2v9.6L12.5 8z'],
+    ['synth', 'Synth', 'M3 2.5v11M8 2.5v11M13 2.5v11M1.5 10h3M6.5 5.5h3M11.5 8.5h3'],
+    ['code', 'Code', 'M5.5 4 2 8l3.5 4M10.5 4 14 8l-3.5 4'],
+  ];
   let main = $state(remembered('synth.main', 'play'));
-  let mode = $state(remembered('synth.mode', { play: 'visual', synth: 'visual' }));
   const pickMain = (t) => { main = t; remember('synth.main', t); };
-  const pickMode = (m) => { mode = { ...mode, [main]: m }; remember('synth.mode', mode); };
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
   const onAccent = $derived.by(() => {
     const h = /^#?([0-9a-f]{6})$/i.exec(s.color ?? '');
@@ -37,7 +40,7 @@
   $effect(() => { if (s.started && !attached) { attached = true; sequence.attach(); history.attach(); } });
 
   function onKey(e) {
-    if (e.key === 'Escape' && (s.saving || s.settingsOpen || s.shortcutsOpen)) { s.saving = null; s.settingsOpen = s.shortcutsOpen = false; return; }
+    if (e.key === 'Escape' && (s.saving || s.settingsOpen || s.shortcutsOpen || s.shareOpen)) { s.saving = null; s.settingsOpen = s.shortcutsOpen = s.shareOpen = false; return; }
     if (e.key === '?' && s.started && !keyIsForControl(e)) { e.preventDefault(); s.shortcutsOpen = !s.shortcutsOpen; return; }
     // undo / redo: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z or Ctrl+Y; text fields and the code editor keep their own
     const mod = e.metaKey || e.ctrlKey;
@@ -72,23 +75,17 @@
     <main>
       <TopBar />
       <PlayerBar />
-      <nav class="maintabs" aria-label="Views">
-        <div class="tabs big" role="tablist">
-          <button role="tab" aria-selected={main === 'play'} class:on={main === 'play'} onclick={() => pickMain('play')}>Play</button>
-          <button role="tab" aria-selected={main === 'synth'} class:on={main === 'synth'} onclick={() => pickMain('synth')}>Synth</button>
-        </div>
-        <span class="spacer"></span>
-        <div class="seg small" role="group" aria-label="Mode">
-          <button class:on={mode[main] === 'visual'} onclick={() => pickMode('visual')}>Visual</button>
-          <button class:on={mode[main] === 'code'} onclick={() => pickMode('code')} title="{main === 'play' ? 'the clip' : 'the patch'} as JSON">Code</button>
-        </div>
+      <nav class="maintabs" role="tablist" aria-label="Views">
+        {#each VIEWS as [id, name, d]}
+          <button role="tab" aria-selected={main === id} class:on={main === id} onclick={() => pickMain(id)}>
+            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d={d} fill={id === 'play' ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>{name}
+          </button>
+        {/each}
       </nav>
       <!-- Play stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'play' || mode.play !== 'visual'}><PlayTab /></div>
-      {#if main === 'play' && mode.play === 'code'}<CodeView doc="clip" />{/if}
-      {#if main === 'synth'}
-        {#if mode.synth === 'code'}<CodeView doc="sound" />{:else}<SynthTab />{/if}
-      {/if}
+      <div hidden={main !== 'play'}><PlayTab /></div>
+      {#if main === 'synth'}<SynthTab />{/if}
+      {#if main === 'code'}<CodeView doc="sound" />{/if}
     </main>
 
     <footer><Keyboard synth={s.synth} held={s.held} /></footer>
@@ -97,5 +94,6 @@
     {#if s.saving}<SaveDialog />{/if}
     {#if s.settingsOpen}<SettingsDialog />{/if}
     {#if s.shortcutsOpen}<ShortcutsDialog />{/if}
+    {#if s.shareOpen}<ShareDialog />{/if}
   </div>
 {/if}

@@ -1,5 +1,5 @@
-<!-- ProjectLinks.svelte — small icons at the bottom of the sidebar: Settings (once audio runs), the theme
-     switch (auto / light / dark), the source code on GitHub and the author's site. -->
+<!-- ProjectLinks.svelte — small icons at the bottom of the sidebar: Settings (once audio runs), Share (a QR code
+     of the page), the theme switch (auto / light / dark), the source code on GitHub and the author's site. -->
 <script>
   import { REPO_URL, SITE_URL } from './links.js';
   import { theme } from './theme.svelte.js';
@@ -11,6 +11,9 @@
   {#if s.started}
     <button class="theme" onclick={() => (s.settingsOpen = true)} title="Settings: MIDI channel, keys, MPE, tempo, tuning" aria-label="Settings">
       <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></g></svg>
+    </button>
+    <button class="theme" onclick={() => (s.shareOpen = true)} title="Share: a QR code of this page" aria-label="Share">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1.8" y="1.8" width="4.6" height="4.6" rx=".6"/><rect x="9.6" y="1.8" width="4.6" height="4.6" rx=".6"/><rect x="1.8" y="9.6" width="4.6" height="4.6" rx=".6"/></g><path fill="currentColor" d="M9.6 9.6h2v2h-2zM12.2 12.2h2v2h-2zM12.2 9.6h2v1.4h-2zM9.6 12.6h1.6v1.6H9.6z"/></svg>
     </button>
   {/if}
   <button class="theme" onclick={theme.next} title="{LABEL[theme.mode]} (click to change)" aria-label={LABEL[theme.mode]}>

@@ -111,8 +111,6 @@ section.card { background: var(--surface); border: 1px solid var(--line); border
 section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; }
 section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
 .picker { margin: 0 0 10px; } /* what a card shows (a modulator, a pad), chosen above it */
-.card-head { display: flex; align-items: center; gap: 16px; margin-bottom: 10px; }
-.card-head h2 { margin: 0; }
 .stage-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; }
 .stage-head h2 { margin: 0; }
 section.card.off .stage-head { margin-bottom: 0; }

@@ -1,6 +1,6 @@
-<!-- JsonWorkspace.svelte — the JSON tab, laid out like a code editor: an explorer on the left lists the documents
-     the page is made of (the sound as its patch file, the sequence), the chosen one opens on the right (CodeEditor:
-     line numbers, colors, errors underlined). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader
+<!-- JsonWorkspace.svelte — the Code tab, laid out like a code editor: an explorer on the left lists the documents
+     the page is made of by file name (the sound's patch, NAME.json; its clip, NAME.clip.json), the chosen one
+     opens on the right (CodeEditor: line numbers, colors, errors underlined). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader
      for the sound, fromDoc for the sequence, whose message says what is wrong. Reload writes it again from what
      plays. The text follows what plays until it is typed in. -->
 <script>
@@ -12,10 +12,10 @@
 
   // the documents: what each is, its file name, its text from what plays, and how it is applied
   const DOCS = [
-    { id: 'sound', group: 'Sound', file: () => `${s.title}.json`, text: () => JSON.stringify(s.currentPatch(), null, 2) + '\n',
+    { id: 'sound', file: () => `${s.title}.json`, text: () => JSON.stringify(s.currentPatch(), null, 2) + '\n',
       apply: async (t) => { const r = await s.applyFromEditor(t); return r.ok ? '' : r.text; },
       hint: 'The sound as its patch file (docs/patch_format.md): parameters in physical units or labels, macros with their targets, kit, audition. Apply reloads the sound from this text.' },
-    { id: 'sequence', group: 'Sequence', file: () => `${q.name || 'untitled'}.json`, text: () => q.docText(), apply: async (t) => q.applyText(t),
+    { id: 'sequence', file: () => `${q.name || 'untitled'}.clip.json`, text: () => q.docText(), apply: async (t) => q.applyText(t),
       hint: `A MIDI clip: notes {pitch (MIDI, 60 = C4), start and length in beats, velocity 1..127}; length is the clip in beats, and its loop when loop is true. grid: the piano roll's snap (${GRIDS.map((g) => g[0]).join(', ')}); key: the scale it shows (${Object.keys(SCALES).join(', ')}).` },
   ];
   let open = $state('sound');
@@ -47,7 +47,6 @@
 <div class="jsonws">
   <nav class="explorer" aria-label="Documents">
     {#each DOCS as d}
-      <div class="group">{d.group}</div>
       <button class="file" class:on={open === d.id} onclick={() => (open = d.id)}>{d.file()}{open === d.id && edited ? ' •' : ''}</button>
     {/each}
   </nav>
@@ -72,7 +71,6 @@
 <style>
   .jsonws { display: grid; grid-template-columns: 200px 1fr; gap: 14px; align-items: start; }
   .explorer { display: flex; flex-direction: column; gap: 2px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 8px; }
-  .group { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); padding: 8px 8px 2px; }
   .file { text-align: left; font: 12px var(--mono); padding: 5px 8px; border-radius: 6px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .file:hover { background: var(--faint); }
   .file.on { background: var(--accent-soft); }

@@ -1,5 +1,5 @@
 <!-- SoundHeader.svelte — the current sound: its instrument (engine) to switch, how many parameters moved since it
-     was loaded (with Revert), its name and description, and Save to library (development) / Export. -->
+     was loaded (with Revert), its name, and Save to library (development) / Export. Its description has its tab. -->
 <script>
   import { session as s } from './session.svelte.js';
 </script>
@@ -16,7 +16,6 @@
       {/if}
     </div>
     <h1>{s.title}</h1>
-    <p class="desc">{s.info?.description || s.engine?.description}</p>
   </div>
   <div class="actions">
     {#if s.canSave}<button class="btn" onclick={s.openSave}>Save to library</button>{/if}

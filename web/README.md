@@ -25,7 +25,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - Every engine parameter, grouped by name prefix (`osc1_` → *Osc 1*); tabs for effects, part and modulation.
   Double-click a label or slider to reset it; changed parameters are highlighted; the help text is the tooltip.
 - **Layout**, from top to bottom: the sound's header and player, the macros, the output (wave, spectrum, level),
-  the signal chain, then the editors in tabs (Sound, Effects, Part, Modulation, Sequence, JSON); the transport on top.
+  the signal chain, then everything about the sound in tabs (Description, Macros, Sound, Effects, Part, Modulation,
+  Sequence, Code); the transport on top. A sound without macros of its own gets its instrument's (as on the board's
+  knobs: six main parameters around their value, then the delay and reverb sends).
 - **Signal chain** (always in view, above the editors): a display-only view of the engine's stages and the effect bus along the signal,
   modulators below with dashed links to what they act on (the active part routes too); a stage that is off is
   drawn dashed. Below it, the parameters are grouped by stage, and a stage that can be switched off has an on/off
@@ -72,7 +74,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   the worklet's sample-accurate player (`w_notes`), edits take over in place, and it keeps playing while the sound
   is edited and through patch loads. Clips are kept in this browser (New, Save, the saved list; the step grids of
   before are converted) and **Export song** writes a self-contained song (`songs/` format, the sound inline).
-- **JSON tab**: the documents the page is made of, in an explorer (the sound as its patch file, the clip), opened
+- **Code tab**: the documents the page is made of, by file name in an explorer (`NAME.json`, the sound's patch;
+  `NAME.clip.json`, its clip), opened
   in a code editor and applied back (Cmd/Ctrl+Enter). The clip is plain MIDI, one note per line:
 
   ```json

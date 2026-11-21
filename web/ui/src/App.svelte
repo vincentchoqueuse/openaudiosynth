@@ -1,6 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the
-     transport on top (the sequence: play, tempo, position); the current sound (header, macros, output,
-     signal chain); the editors in tabs (Sound, Effects, Part, Modulation, Sequence, JSON); the keyboard along the
+     transport on top (the sequence: play, tempo, position); the current sound (header, output,
+     signal chain); the editors in tabs (Description, Macros, Sound, Effects, Part, Modulation, Sequence, Code); the keyboard along the
      bottom. The state and the actions live in lib/session.svelte.js and lib/sequence.svelte.js; the whole
      interface takes the color of the instrument playing. Space plays / stops the clip, which each preset brings. -->
 <script>
@@ -9,7 +9,6 @@
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
   import SoundHeader from './lib/SoundHeader.svelte';
-  import MacroStrip from './lib/MacroStrip.svelte';
   import Scope from './lib/Scope.svelte';
   import ChainView from './lib/ChainView.svelte';
   import EditorTabs from './lib/EditorTabs.svelte';
@@ -58,8 +57,6 @@
     <main>
       <Transport />
       <SoundHeader />
-      <MacroStrip engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
-                  bind:names={s.macroNames} baseline={s.baseline} />
       <Scope analyser={s.synth.analyser} bind:peak />
       <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} />
       <EditorTabs />

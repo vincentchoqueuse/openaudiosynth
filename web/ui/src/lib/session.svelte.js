@@ -5,7 +5,8 @@
 // physical units; the synth gets them normalized (synth.js).
 import { Synth, fromNorm, toNorm } from './synth.js';
 import { parseKit, filesToKit } from './kit.js';
-import { engineColor } from './engines.js';
+import { engineColor, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
+import { human } from './naming.js';
 
 class Session {
   synth = new Synth();
@@ -18,6 +19,7 @@ class Session {
   patches = $state([]); // the library (patches/index.json)
   current = $state(''); // patch file of the current sound, '' for a new one
   info = $state(null); // its index entry (name, engine, description)
+  description = $state(''); // what the sound is (edited in the Description tab, saved with it)
   macroNames = $state(Array(8).fill('')); // the patch's "macros" names (their values live in parameters)
   kit = $state.raw(null); // the sample kit the synth plays (parsed, for display), null none
   kitName = $state(''); // its name when it comes from kits/ (a patch can name it), '' for dropped files
@@ -91,6 +93,8 @@ class Session {
       this.synth.setVolume(this.volume);
       this.started = true;
       this.resetValues(true);
+      this.defaultMacros();
+      this.baseline = { ...this.values };
       this.synth.on('midiin', (d) => {
         const t = d[0] & 0xf0;
         if (t === 0xb0) { // a macro's CC: the synth has turned it, the knob follows
@@ -131,8 +135,37 @@ class Session {
     this.current = '';
     this.info = null;
     this.resetValues(false);
+    this.description = '';
     // routes point at engine parameters by index: they mean nothing for another engine
     for (let r = 1; r <= 8; r++) if (this.getP(`route${r}_destination`)) this.setP(`route${r}_destination`, 0);
+    this.defaultMacros();
+    this.baseline = { ...this.values };
+  };
+
+  // The instrument's default macros for a sound that has none (as on the board's knobs): macros 1..6 on its main
+  // parameters, around their present value (a third of the travel either way; only a little towards a closed
+  // filter or a long attack), 7 and 8 on the delay and reverb sends over their whole travel. Each macro is set
+  // where the parameter is, so assigning them changes nothing in the sound.
+  defaultMacros = () => {
+    const names = [...(DEFAULT_MACROS[this.engine?.name] ?? []).slice(0, 6), ...Array(6).fill('')].slice(0, 6).concat(DEFAULT_MACRO_SENDS);
+    for (let s = 1; s <= 32; s++) if (this.getP(`map${s}_macro`)) this.setP(`map${s}_macro`, 0); // no leftovers
+    let slot = 1;
+    const labels = Array(8).fill('');
+    names.forEach((n, k) => {
+      const d = this.byName[n];
+      if (!d || !this.byName[`map${slot}_macro`]) return;
+      const v = toNorm(d, this.values[d.id] ?? d.def), send = k >= 6;
+      const closes = d.unit === 'Hz' || /cutoff/.test(n), opens = /attack/.test(n);
+      const from = send ? 0 : Math.max(0, v - (closes ? 0.12 : 0.35)), to = send ? 1 : Math.min(1, v + (opens ? 0.12 : 0.35));
+      this.setP(`map${slot}_macro`, k + 1);
+      this.setP(`map${slot}_destination`, d.id + 1);
+      this.setP(`map${slot}_from`, from);
+      this.setP(`map${slot}_to`, to);
+      this.setP(`macro${k + 1}`, to > from ? (v - from) / (to - from) : 0);
+      labels[k] = human(n);
+      slot++;
+    });
+    this.macroNames = labels;
   };
 
   // back to the engine's default sound (the engine too, not only the sliders)
@@ -180,6 +213,8 @@ class Session {
     try {
       const o = JSON.parse(text);
       this.#audition = o.audition ?? null;
+      this.description = typeof o.description === 'string' ? o.description : '';
+      if (!(o.macros ?? []).some((m) => m?.targets?.length)) this.defaultMacros();
       this.clipHook?.take(o);
     } catch { /* the C reader has accepted it: it is JSON */ }
     if (r.kit && r.kit !== this.kitName) await this.loadNamedKit(r.kit); // the synth keeps the last kit across patches
@@ -253,7 +288,7 @@ class Session {
     }
     while (macros.length && !Object.keys(macros[macros.length - 1]).length) macros.pop();
     const name = this.current ? this.current.replace('.json', '') : engine.name + '_new';
-    const p = { version: 1, engine: engine.name, name, description: this.info?.description ?? '', params };
+    const p = { version: 1, engine: engine.name, name, description: this.description, params };
     if (macros.length) p.macros = macros;
     if (this.kitName && engine.name === 'sampler') p.kit = this.kitName; // a dropped kit has no name to save
     if (this.#audition) p.audition = this.#audition;
@@ -288,6 +323,7 @@ class Session {
     const r = await res.json().catch(() => ({ error: 'no answer from the dev server' }));
     if (res.status === 409) { this.saving = { ...this.saving, exists: true, error: '' }; return; }
     if (!res.ok) { this.saving = { ...this.saving, error: r.error ?? 'could not save' }; return; }
+    this.description = p.description;
     this.saving = null;
     this.baseline = { ...this.values };
     await this.listPatches();

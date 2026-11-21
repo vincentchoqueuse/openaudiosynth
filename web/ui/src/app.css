@@ -118,6 +118,8 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs button:hover { color: var(--text); }
 .tabs button.on { color: var(--text); border-color: var(--accent); }
 .tabs .small { margin-left: auto; font-size: 12px; }
+.tabs .live { display: inline-block; width: 7px; height: 7px; margin-left: 7px; border-radius: 50%; background: var(--accent); vertical-align: 1px; animation: live 1s ease-in-out infinite alternate; }
+@keyframes live { to { opacity: .35; } }
 
 /* parameter sections: cards in a grid */
 .groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; align-items: start; margin-top: 14px; }

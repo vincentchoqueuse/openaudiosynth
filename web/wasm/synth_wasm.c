@@ -272,16 +272,17 @@ EMSCRIPTEN_KEEPALIVE char *w_alloc(int n) { return malloc((size_t)n); }
 EMSCRIPTEN_KEEPALIVE void w_free(void *p) { free(p); }
 
 /* Loads a patch (JSON text) exactly like synth_render does: fresh synth_init, then the engine and the
- * patch parameters. Returns 0, or -1 (message in w_error). Clamped values are reported in w_warning. */
+ * patch parameters; a running player keeps its place. Returns 0, or -1 (message in w_error). Clamped values are
+ * reported in w_warning. */
 EMSCRIPTEN_KEEPALIVE int w_patch(const char *json)
 {
     if (patch_parse(json, &g_patch, g_err, sizeof g_err, g_warn, sizeof g_warn) != 0) {
         g_have_patch = 0;
         return -1;
     }
-    free(g_ev);
-    g_ev = NULL;
-    memset(g_on, 0, sizeof g_on); /* synth_init silences everything: nothing left to release */
+    /* the player goes on (a sequence keeps looping under the new sound): synth_init silences every note, and
+     * the next ones start with the new sound */
+    memset(g_on, 0, sizeof g_on); /* nothing left to release */
     g_have_patch = 1;
     synth_init(synth_default(), g_sr);
     synth_part_kit(synth_default(), 0, g_kit, (size_t)g_kit_bytes); /* synth_init removed it */

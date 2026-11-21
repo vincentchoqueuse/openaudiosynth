@@ -43,6 +43,8 @@
   let held = $state(new Set());
   let notes = $state(''), loop = $state(false), playing = $state(false);
   let tab = $state('sound');
+  // the sequencer stays mounted on every tab: its loop keeps playing while the sound is edited
+  let seqPlaying = $state(false), patchGen = $state(0);
   let peak = $state(-Infinity);
   let lastOn = {}; // value of a stage's switch parameter before it was turned off (this sound only)
   let playTimer = null; // ends the "playing" state of a one-shot audition
@@ -173,6 +175,7 @@
 
   function setEngine(id) {
     stop();
+    patchGen++;
     engineId = id;
     synth.setEngine(id);
     current = '';
@@ -205,6 +208,7 @@
       message = 'Could not load the patch: ' + e.message;
       return;
     }
+    if (playing) stop(); // the audition of the previous sound
     const r = await applyPatch(text, seq);
     if (!r?.ok) return;
     current = p.file;
@@ -222,7 +226,8 @@
     if (seq !== loadSeq) return null; // another patch was clicked meanwhile
     if (!r.ok) { message = r.error; return r; }
     clearTimeout(playTimer);
-    playing = false; // loading a patch re-initializes the engine: the player is stopped
+    playing = false; // an audition ends with the sound it was playing; a running sequence goes on with the new one
+    patchGen++;
     lastOn = {};
     engineId = r.engine;
     resetValues(true); // a patch starts from a fresh synth_init, like synth_render
@@ -287,7 +292,7 @@
       if (!loop) playTimer = setTimeout(() => (playing = false), r.length * 1000 + 300);
     }
   }
-  function stop() { clearTimeout(playTimer); synth.stop(); playing = false; }
+  function stop() { clearTimeout(playTimer); if (playing) synth.stop(); playing = false; } // the sequence, if any, goes on
 
   // the current sound as a patch object (docs/patch_format.md): only what differs from the defaults
   function currentPatch() {
@@ -370,7 +375,7 @@
     if (saving && e.key === 'Escape') { saving = null; return; }
     // in the library, Space auditions the sound just picked instead of clicking its button again
     const inLibrary = e.code === 'Space' && e.target?.closest?.('.library nav');
-    if (!started || saving || tab === 'seq' || (!inLibrary && keyIsForControl(e))) return;
+    if (!started || saving || tab === 'seq' || seqPlaying || (!inLibrary && keyIsForControl(e))) return; // Space: the sequencer's
     if (e.code === 'Space') { e.preventDefault(); playing ? stop() : current && play(); }
   }
 </script>
@@ -435,8 +440,8 @@
       </header>
 
       <div class="player">
-        <button class="play" class:on={playing} onclick={() => (playing ? stop() : play())} disabled={!current && !playing}
-                aria-label={playing ? 'Stop' : 'Play audition'} title="Space">{playing ? '■' : '▶'}</button>
+        <button class="play" class:on={playing} onclick={() => (playing ? stop() : play())} disabled={(!current && !playing) || seqPlaying}
+                aria-label={playing ? 'Stop' : 'Play audition'} title={seqPlaying ? 'The sequencer is playing' : 'Space'}>{playing ? '■' : '▶'}</button>
         <input class="phrase" placeholder={current ? 'Audition phrase, or type notes: C3 E3 G3+B3 - _' : 'Load a sound to audition it'} bind:value={notes} />
         <label class="toggle"><input type="checkbox" bind:checked={loop} /> Loop</label>
       </div>
@@ -449,7 +454,7 @@
 
       <div class="tabs" role="tablist">
         {#each TABS as [id, name]}
-          <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id)}>{name}</button>
+          <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => (tab = id)}>{name}{#if id === 'seq' && seqPlaying}<span class="live" title="The sequence is playing"></span>{/if}</button>
         {/each}
         {#if tab === 'sound'}<button class="link small" onclick={resetEngine}>Defaults</button>{/if}
       </div>
@@ -459,7 +464,7 @@
       {:else if tab === 'mod'}
         <ModPanel {engine} {shared} get={getP} set={setP} {byName} {human} {values} {setValue} />
       {:else if tab === 'seq'}
-        <Sequencer {synth} setTempo={(b) => setP('tempo', b)} getPatch={currentPatch} />
+        <!-- the sequencer itself is below, mounted on every tab -->
       {:else}
         {#if tab === 'sound' && engine?.name === 'sampler'}
           <KitPanel {kit} kitName={kitLabel} {byName} {values} {setValue} {synth} onfiles={dropFiles} />
@@ -482,6 +487,10 @@
         </div>
         {/if}
       {/if}
+      <div class="seq-host" hidden={tab !== 'seq'}>
+        <Sequencer {synth} active={tab === 'seq'} bind:playing={seqPlaying} {patchGen}
+                   setTempo={(b) => setP('tempo', b)} getPatch={currentPatch} />
+      </div>
     </main>
 
     <footer><Keyboard {synth} {held} /></footer>

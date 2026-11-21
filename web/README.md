@@ -57,6 +57,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Sequencer tab**: a step grid of scale notes (root, scale, octave, range), cells on / accent / soft / held,
   tempo, step length, gate, swing, random fill, copy as phrases. Each row is played as its own phrase by the
   worklet's sample-accurate player (`w_sequence`); edits while playing take over in place, without restarting.
+  The loop keeps playing on every tab and through patch loads (a dot on the tab while it plays), so the sound
+  can be shaped under it; Space stops it from anywhere, the audition waits until it is stopped.
   The sequence is kept in this browser (autosave, named patterns) and **Export song** writes a self-contained
   song (`songs/` format, the sound as an inline patch, one track per row) for `synth_render --song`.
 - **Export** downloads (and copies) the current sound as a patch file in the format of

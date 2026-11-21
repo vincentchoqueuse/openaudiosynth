@@ -7,14 +7,17 @@
   import { onMount, onDestroy, untrack } from 'svelte';
   import { keyIsForControl } from './keys.js';
   import { NAMES, SCALES, noteName, scaleRows, phrases, buildSong } from './seqExport.js';
-  let { synth, setTempo, getPatch } = $props();
+  // active: its tab is shown (Space is its own only then, or while it plays); playing is bound by the app, which
+  // keeps this component mounted on every tab so that the loop goes on while the sound is edited; patchGen
+  // counts the patch loads and engine changes (they reset the synth's tempo, sent again here)
+  let { synth, setTempo, getPatch, active = true, playing = $bindable(false), patchGen = 0 } = $props();
   const STEP_LENGTHS = [['1/32', 0.125], ['1/16', 0.25], ['1/8', 0.5], ['1/4', 1], ['1/2', 2], ['1 bar', 4]];
   const STEP_COUNTS = [8, 12, 16, 24, 32], OCTAVES = [1, 2, 3, 4, 5], SPANS = [1, 2, 3], LOOPS = [1, 2, 4, 8, 16];
 
   let bpm = $state(80), steps = $state(16), stepLen = $state(0.5), gate = $state(0.85), swing = $state(0);
   let root = $state(4), scale = $state('minor'), octave = $state(3), span = $state(2);
   let cells = $state({}); // "note:step" -> 'on' | 'acc' | 'soft' | 'tie'
-  let playing = $state(false), playStep = $state(-1), message = $state('');
+  let playStep = $state(-1), message = $state('');
   let paint = null; // value applied while dragging across cells
 
   let loops = $state(4), patternName = $state(''), patterns = $state({});
@@ -142,10 +145,13 @@
     const t = d.frames / d.sampleRate, sd = (60 / tempo) * stepLen;
     playStep = Math.floor(t / sd) % steps;
   }));
-  onDestroy(() => { if (playing) stop(); }); // leaving the tab stops the loop (its transport lives here)
+  onDestroy(() => { if (playing) stop(); }); // the app going away (it stays mounted across tabs)
+  // a new sound under a running sequence: the synth was re-initialized, its tempo (synced delay, LFOs) comes back
+  $effect(() => { patchGen; untrack(() => { if (playing) setTempo?.(tempo); }); });
 
   function key(e) {
-    if (keyIsForControl(e)) return;
+    const inLibrary = e.target?.closest?.('.library nav'); // there Space is the transport's, not the list's
+    if ((keyIsForControl(e) && !inLibrary) || (!active && !playing)) return;
     if (e.code === 'Space') { e.preventDefault(); playing ? stop() : play(); }
   }
   // any change of what is played is resent while playing; `changed` reads `playing`, which must not be a

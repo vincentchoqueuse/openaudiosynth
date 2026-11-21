@@ -1,17 +1,18 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the
-     transport on top (the sequence: play, tempo, position); the current sound (header, output,
-     signal chain); the editors in tabs (Description, Macros, Sound, Effects, Part, Modulation, Sequence, Code); the keyboard along the
-     bottom. The state and the actions live in lib/session.svelte.js and lib/sequence.svelte.js; the whole
-     interface takes the color of the instrument playing. Space plays / stops the clip, which each preset brings. -->
+     transport on top (the clip: play, tempo, loop, position; undo; level and volume); the current sound's name;
+     then three sections: Visualize (Live: wave and spectrum, Structure: the signal chain), Sound (Description,
+     Macros, Sound, Effects, Part, Modulation, Code) and Sequence (the clip each preset brings); the keyboard along
+     the bottom. The state and the actions live in lib/session.svelte.js and lib/sequence.svelte.js; the whole
+     interface takes the color of the instrument playing. Space plays / stops the clip. -->
 <script>
   import { session as s } from './lib/session.svelte.js';
   import { keyIsForControl } from './lib/keys.js';
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
   import SoundHeader from './lib/SoundHeader.svelte';
-  import Scope from './lib/Scope.svelte';
-  import ChainView from './lib/ChainView.svelte';
+  import ViewSection from './lib/ViewSection.svelte';
   import EditorTabs from './lib/EditorTabs.svelte';
+  import SequenceSection from './lib/SequenceSection.svelte';
   import Transport from './lib/Transport.svelte';
   import { sequence } from './lib/sequence.svelte.js';
   import { history } from './lib/history.svelte.js';
@@ -56,9 +57,9 @@
     <main>
       <Transport />
       <SoundHeader />
-      <Scope analyser={s.synth.analyser} />
-      <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} />
+      <ViewSection />
       <EditorTabs />
+      <SequenceSection />
     </main>
 
     <footer><Keyboard synth={s.synth} held={s.held} /></footer>

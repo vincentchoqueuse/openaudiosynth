@@ -25,8 +25,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - Every engine parameter, grouped by name prefix (`osc1_` → *Osc 1*); tabs for effects, part and modulation.
   Double-click a label or slider to reset it; changed parameters are highlighted; the help text is the tooltip.
 - **Layout**, from top to bottom: the sound's header and player, the macros, the output (wave, spectrum, level),
-  the signal chain, then everything about the sound in tabs (Description, Macros, Sound, Effects, Part, Modulation,
-  Sequence, Code); the transport on top. A sound without macros of its own gets its instrument's (as on the board's
+  then three sections: Visualize (Live: wave and spectrum; Structure: the signal chain; foldable), Sound (tabs:
+  Description, Macros, Sound, Effects, Part, Modulation, Code) and Sequence (the clip; foldable); the transport on top. A sound without macros of its own gets its instrument's (as on the board's
   knobs: six main parameters around their value, then the delay and reverb sends).
 - **Signal chain** (always in view, above the editors): a display-only view of the engine's stages and the effect bus along the signal,
   modulators below with dashed links to what they act on (the active part routes too); a stage that is off is
@@ -64,7 +64,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),
   position (bar . beat . sixteenth), and the listening volume (after the synth and its meter, kept in the browser,
   untouched by sounds and patches; double-click: 0 dB).
-- **Sequence tab**: a MIDI clip played with the current sound (each preset brings its own: its `clip`, else its
+- **Sequence section**: a MIDI clip played with the current sound (each preset brings its own: its `clip`, else its
   audition phrase as notes; the audition bar is gone, the transport plays the clip), on a piano roll with a velocity lane below. Draw
   tool: click to draw a note and drag to stretch it; Select tool (or Cmd-drag): a rectangle selects. A click
   selects a note (Shift adds), dragging moves the selected notes (time and pitch), their right edge stretches

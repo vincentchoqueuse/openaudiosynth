@@ -1,11 +1,20 @@
 <!-- Param.svelte — one parameter from the descriptor table, as a row: its label, its control, its value in its
      unit. A thin slider in normalized space (exp curves feel right), a switch for off / on, drawn buttons for a
-     choice of waveforms, pills for a few choices, a menu for more. A dot after the label: moved since the sound was loaded (`base`); double-click on the
+     choice of waveforms, pills for a few choices, a menu for more. Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
+     moved since the sound was loaded; double-click on the
      label or the slider puts that value back. The descriptor's help text is the tooltip. -->
 <script>
   import { fromNorm, toNorm, format } from './synth.js';
   import { isWave, waveIcon } from './waves.js';
-  let { d, label, value, base = d.def, onchange } = $props();
+  import Seg from './Seg.svelte';
+  import Pills from './Pills.svelte';
+  import Switch from './Switch.svelte';
+  import { session } from './session.svelte.js';
+  // the value, the sound's value and the setter default to the session's: pass them only for something else
+  let { d, label, value: given, base: givenBase, onchange: given_set } = $props();
+  const value = $derived(given ?? session.values[d.id] ?? d.def);
+  const base = $derived(givenBase ?? session.baseline[d.id] ?? d.def);
+  const onchange = (v) => (given_set ?? ((x) => session.setValue(d, x)))(v);
   const norm = $derived(toNorm(d, value));
   const changed = $derived(Math.abs(value - base) > 1e-6);
   const idx = $derived(Math.round(value - d.min));
@@ -17,22 +26,11 @@
 <div class="param" class:changed title={d.help ?? ''}>
   <span class="label" role="button" tabindex="-1" title={changed ? 'moved · double-click: back to the sound\'s value' : ''} ondblclick={() => onchange(base)}>{label}</span>
   {#if toggle}
-    <span class="switch-cell"><button class="onoff" class:on={idx === 1} role="switch" aria-checked={idx === 1} aria-label={label}
-            onclick={() => onchange(d.min + (idx === 1 ? 0 : 1))}></button></span>
+    <span class="cell"><Switch on={idx === 1} onchange={(v) => onchange(d.min + (v ? 1 : 0))} name={label} /></span>
   {:else if waves}
-    <div class="waves" role="group" aria-label={label}>
-      {#each d.labels as l, i}
-        <button class:on={i === idx} onclick={() => onchange(d.min + i)} title={l} aria-label={l} aria-pressed={i === idx}>
-          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d={waveIcon(l)} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" /></svg>
-        </button>
-      {/each}
-    </div>
+    <div class="cell"><Pills items={d.labels.map((l, i) => ({ id: i, label: l, draw: waveIcon(l) }))} value={idx} onpick={(i) => onchange(d.min + i)} size="icon" {label} /></div>
   {:else if d.labels && d.labels.length <= 4}
-    <div class="seg">
-      {#each d.labels as l, i}
-        <button class:on={i === idx} onclick={() => onchange(d.min + i)}>{l}</button>
-      {/each}
-    </div>
+    <div class="cell"><Seg items={d.labels.map((l, i) => ({ id: i, label: l }))} value={idx} onpick={(i) => onchange(d.min + i)} wide {label} /></div>
   {:else if d.labels}
     <select aria-label={label} value={idx} onchange={(e) => onchange(d.min + +e.target.value)}>
       {#each d.labels as l, i}<option value={i}>{l}</option>{/each}

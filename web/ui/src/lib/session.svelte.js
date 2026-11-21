@@ -23,7 +23,6 @@ class Session {
   macroNames = $state(Array(8).fill('')); // the patch's "macros" names (their values live in parameters)
   kit = $state.raw(null); // the sample kit the synth plays (parsed, for display), null none
   kitName = $state(''); // its name when it comes from kits/ (a patch can name it), '' for dropped files
-  kitLabel = $state('');
   seqPlaying = $state(false); // the sequence plays
   // the clip a preset carries goes to the sequencer, and comes back into the patch when it is saved: set by
   // sequence.svelte.js (take(patch object), give() -> the patch's "clip" section or null)
@@ -83,11 +82,9 @@ class Session {
   // targets it shifts instead, so the parameter lands on the value set and the macro keeps moving it from there.
   #followMacros(d, v) {
     const n = toNorm(d, v);
-    for (let k = 1; k <= 32; k++) {
-      const mac = this.byName[`map${k}_macro`], dst = this.byName[`map${k}_destination`];
-      if (!mac || !dst || Math.round(this.values[mac.id] ?? 0) < 1 || Math.round(this.values[dst.id] ?? 0) !== d.id + 1) continue;
-      const m = this.getP(`macro${Math.round(this.values[mac.id])}`), from = this.getP(`map${k}_from`), to = this.getP(`map${k}_to`);
-      const delta = n - (from + (to - from) * m);
+    for (const { slot, macro, dst, from, to } of this.macroMaps) {
+      if (macro < 0 || dst?.id !== d.id) continue;
+      const m = this.getP(`macro${macro + 1}`), delta = n - (from + (to - from) * m);
       if (Math.abs(delta) < 1e-6) continue;
       // the range slides as a whole while it can stay within 0..1; what is left moves the end that weighs most where
       // the macro stands (its start when the macro is low, its end when high)
@@ -97,12 +94,28 @@ class Session {
         if (m < 0.5) f = Math.min(1, Math.max(0, (n - t * m) / (1 - m)));
         else t = Math.min(1, Math.max(0, (n - f * (1 - m)) / m));
       }
-      this.setP(`map${k}_from`, f);
-      this.setP(`map${k}_to`, t);
+      this.setP(`map${slot}_from`, f);
+      this.setP(`map${slot}_to`, t);
     }
   }
   // a synth parameter id: the engine's (0..255) or a shared one (master, effects...)
   paramById = (id) => (id >= 0 && id < 256 ? this.engine?.params[id] : this.shared.find((d) => d.id === id));
+
+  // ---- macros: 8 macros, each moving targets kept in the part's 32 map slots (dsp/mod/partmod.h) ----
+  // a target: an engine parameter or the master / an effect (the shared ids below map1_destination's maximum)
+  #mapTarget = (id) => (id >= 0 && id < (this.byName.map1_destination?.max ?? 256) ? this.paramById(id) : undefined);
+  // every slot: {slot (1..32), macro (0..7, -1: none), dst (descriptor or undefined), from, to (normalized)}
+  macroMaps = $derived(Array.from({ length: 32 }, (_, i) => {
+    const slot = i + 1, mac = Math.round(this.getP(`map${slot}_macro`));
+    return { slot, macro: mac >= 1 && mac <= 8 ? mac - 1 : -1, dst: this.#mapTarget(Math.round(this.getP(`map${slot}_destination`)) - 1),
+             from: this.getP(`map${slot}_from`), to: this.getP(`map${slot}_to`) };
+  }));
+  // the parameters a macro can move: the engine's live ones, then the master and the effects
+  macroTargets = $derived({
+    engine: (this.engine?.params ?? []).filter((d) => d.realtime),
+    fx: this.shared.filter((d) => d.id >= 256 && this.#mapTarget(d.id) && d.realtime),
+  });
+  macroName = (k) => this.macroNames[k] || `Macro ${k + 1}`;
 
   // ---- notices: errors stay longer ----
   notify = (text, kind = 'info') => {
@@ -267,19 +280,18 @@ class Session {
   };
 
   // ---- sample kits ----
-  async useKit(buf, name, label) {
+  async useKit(buf, name) {
     const r = await this.synth.loadKit(buf);
     if (r.count < 0) { this.notify('Not a valid kit', 'error'); return false; }
     this.kit = parseKit(buf);
     this.kitName = name;
-    this.kitLabel = label;
     return true;
   }
   async loadNamedKit(name) {
     try {
       const res = await fetch(`kits/${name}.oidk`);
       if (!res.ok) throw new Error(res.status === 404 ? 'not built (just build)' : String(res.status));
-      await this.useKit(await res.arrayBuffer(), name, name);
+      await this.useKit(await res.arrayBuffer(), name);
     } catch (e) {
       this.notify(`Kit ${name}: ${e.message}`, 'error');
     }
@@ -287,8 +299,7 @@ class Session {
   dropFiles = async (files) => {
     this.notify(`Reading ${files.length} file${files.length > 1 ? 's' : ''}…`);
     const { buffer, failed } = await filesToKit(files);
-    const n = files.length - failed.length;
-    if (buffer && (await this.useKit(buffer, '', `${n} dropped file${n > 1 ? 's' : ''}`)))
+    if (buffer && (await this.useKit(buffer, '')))
       this.notify(failed.length ? `Kit loaded; not audio: ${failed.join(', ')}` : `Kit loaded: ${this.kit.entries.length} samples`);
     else if (!buffer) this.notify('No audio file could be read', 'error');
   };

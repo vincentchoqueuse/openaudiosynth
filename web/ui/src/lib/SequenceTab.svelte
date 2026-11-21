@@ -1,8 +1,9 @@
-<!-- SequenceTab.svelte — the clip in the Clip view's Sequencer (it belongs to the sound: Save in the File menu keeps
+<!-- SequenceTab.svelte — the clip in the Clip view's Sequencer (it belongs to the sound: Save in the Menu keeps
      both): a first toolbar (tempo, loop, position; Random, Clear, the loops of an exported song), then the piano roll with its toolbar (the clip's length,
      grid, key and octave on the left, the editing tools on the right). -->
 <script>
   import PianoRoll from './PianoRoll.svelte';
+  import Switch from './Switch.svelte';
   import { sequence as q, LOOPS } from './sequence.svelte.js';
   import { NAMES, SCALES, GRIDS } from './seqExport.js';
   const BARS = [1, 2, 4, 8, 16], OCTAVES = [1, 2, 3, 4, 5];
@@ -10,8 +11,7 @@
 
 <div class="toolbar">
   <label>Tempo <input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
-  <button class="ghost" class:on={q.loop} onclick={() => (q.loop = !q.loop)} aria-pressed={q.loop}
-          title={q.loop ? `Loop on: the clip repeats every ${q.length} beats` : 'Loop off: the clip plays once'}>⟲ Loop {q.loop ? 'on' : 'off'}</button>
+  <Switch label="Loop" on={q.loop} onchange={(v) => (q.loop = v)} title={q.loop ? `the clip repeats every ${q.length} beats` : 'the clip plays once'} />
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <span class="spacer"></span>
   <button class="ghost" onclick={q.random}>Random</button>
@@ -36,5 +36,4 @@
 <style>
   .toolbar input[type=number] { width: 4.2em; }
   .pos { color: var(--text); font-size: 13px; min-width: 4.5em; }
-  .toolbar button.on { color: var(--accent); }
 </style>

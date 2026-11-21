@@ -6,13 +6,18 @@
      are bipolar and drawn as the DSP computes them, sh as fixed random steps, wiener as a periodic random walk
      like the one each LFO draws at start. -->
 <script>
-  import { hasIcon, waveIcon } from './waves.js';
+  import { waveIcon } from './waves.js';
+  import Seg from './Seg.svelte';
+  import Pills from './Pills.svelte';
+  import Switch from './Switch.svelte';
   import Param from './Param.svelte';
-  let { prefix, get, set, byName } = $props();
+  import { session } from './session.svelte.js';
+  let { prefix } = $props(); // "mlfo1_", "mlfo2_" or "vlfo_"
+  const get = session.getP, set = session.setP;
   const H = 220, PAD = 16;
   let W = $state(600);
 
-  const d = (n) => byName[prefix + n];
+  const d = (n) => session.byName[prefix + n];
   const waves = $derived(d('wave')?.labels ?? ['sine', 'tri', 'saw', 'square', 'sh']);
   const divs = $derived(d('sync')?.labels ?? ['off']);
   const wave = $derived(Math.round(get(prefix + 'wave')));
@@ -93,18 +98,10 @@
 
 <div class="mseg">
   <div class="mseg-bar">
-    <div class="shapes" role="group" aria-label="Shape">
-      {#each waves as w, i}
-        <button class:on={wave === i} onclick={() => set(prefix + 'wave', i)} title={w} aria-label={w} aria-pressed={wave === i}>
-          {#if hasIcon(w)}<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d={waveIcon(w)} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" /></svg>{:else}{w}{/if}
-        </button>
-      {/each}
-    </div>
+    <Pills items={waves.map((w, i) => ({ id: i, label: w, draw: waveIcon(w) }))} value={wave} onpick={(i) => set(prefix + 'wave', i)} size="icon" label="Shape" />
     <span class="vsep" aria-hidden="true"></span>
-    <div class="seg small">
-      <button class:on={!sync} title="a rate in Hz" onclick={() => set(prefix + 'sync', 0)}>Hz</button>
-      <button class:on={!!sync} title="a division, locked to the tempo" onclick={() => { if (!sync) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4'))); }}>beats</button>
-    </div>
+    <Seg items={[{ id: 0, label: 'Hz', title: 'a rate in Hz' }, { id: 1, label: 'beats', title: 'a division, locked to the tempo' }]} value={sync ? 1 : 0}
+         onpick={(b) => set(prefix + 'sync', b ? sync || Math.max(1, divs.indexOf('1/4')) : 0)} label="Rate in" />
     <span class="muted info">{sync ? `one cycle per ${divs[sync]}` : `${+rate.toPrecision(3)} Hz`} · {fmt(cycle)} per cycle</span>
   </div>
 
@@ -150,11 +147,10 @@
         </select>
       </label>
     {:else if d('rate')}
-      <div class="rate"><Param d={d('rate')} label="Rate" value={rate} onchange={(v) => set(prefix + 'rate', v)} /></div>
+      <div class="rate"><Param d={d('rate')} label="Rate" /></div>
     {/if}
     {#if d('retrig')}
-      <button class="chip" class:on={get(prefix + 'retrig') > 0.5} onclick={() => set(prefix + 'retrig', get(prefix + 'retrig') > 0.5 ? 0 : 1)}
-              title="restarts when a note starts on a silent part">Restart on note</button>
+      <Switch label="Restart on note" on={get(prefix + 'retrig') > 0.5} onchange={(v) => set(prefix + 'retrig', v ? 1 : 0)} title="restarts when a note starts on a silent part" />
     {:else}
       <span class="muted info">each note has its own, starting at its note-on</span>
     {/if}

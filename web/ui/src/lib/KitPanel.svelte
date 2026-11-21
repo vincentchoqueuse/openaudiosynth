@@ -4,10 +4,12 @@
      direction), and its settings.
      Audio files dropped anywhere on the panel (or picked with the button) become a new kit. -->
 <script>
+  import Seg from './Seg.svelte';
   import Param from './Param.svelte';
   import { peaks, noteName } from './kit.js';
 
-  let { kit, kitName, byName, values, setValue, synth, onfiles } = $props();
+  import { session as s } from './session.svelte.js';
+  const kit = $derived(s.kit), synth = $derived(s.synth);
   const PADS = 16;
   const SETTINGS = ['tune', 'start', 'end', 'reverse', 'loop', 'decay', 'level', 'pan', 'cutoff', 'choke'];
   const KIT = ['volume', 'tune', 'velocity', 'resonance', 'release'];
@@ -20,10 +22,12 @@
   const entries = $derived(kit?.entries ?? []);
   const pads = $derived(Array.from({ length: PADS }, (_, k) => entries[k] ?? null));
   const extra = $derived(entries.slice(PADS));
+  const padItems = $derived([...pads.map((e, k) => ({ id: k, label: e ? `${k + 1} ${e.name}` : `${k + 1}`,
+    title: e ? `${e.name}, ${noteName(e.note)}, ${secs(e)}` : 'no sample' })), { id: 'kit', label: 'Kit' }]);
   // a new kit: back to its first pad if the selected one is now empty
   $effect(() => { if (kit && sel !== 'kit' && sel >= Math.min(PADS, kit.entries.length)) sel = 0; });
-  const get = (n) => { const d = byName[n]; return d ? values[d.id] ?? d.def : 0; };
-  const set = (n, v) => { const d = byName[n]; if (d) setValue(d, v); };
+  const get = s.getP, set = s.setP;
+  const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
   const p = (k, s) => `pad${k + 1}_${s}`;
 
   function hit(k) {
@@ -85,33 +89,27 @@
   function dropped(ev) {
     ev.preventDefault();
     drag = false;
-    if (ev.dataTransfer?.files?.length) onfiles(ev.dataTransfer.files);
+    if (ev.dataTransfer?.files?.length) s.dropFiles(ev.dataTransfer.files);
   }
   const secs = (e) => (e.frames / 48000).toFixed(2) + ' s';
 </script>
 
-<section class="card kitpanel" class:drag role="region" aria-label="Kit"
+<section class="card kitpanel" class:drag aria-label="Kit"
          ondragover={(e) => { e.preventDefault(); drag = true; }} ondragleave={() => (drag = false)} ondrop={dropped}>
   <div class="card-head">
-    <div class="seg small pads" role="group" aria-label="Pads">
-      {#each pads as e, k}
-        <button class:on={sel === k} class:empty={!e} onclick={() => hit(k)}
-                title={e ? `${e.name}, ${noteName(e.note)}, ${secs(e)}` : 'no sample'}>{k + 1}{e ? ` ${e.name}` : ''}</button>
-      {/each}
-      <button class:on={sel === 'kit'} onclick={() => (sel = 'kit')}>Kit</button>
-    </div>
+    <div class="pads"><Seg items={padItems} value={sel} onpick={(k) => (k === 'kit' ? (sel = k) : hit(k))} label="Pads" /></div>
     <button class="btn ghost load" onclick={() => input.click()}>Load samples…</button>
     <input bind:this={input} type="file" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" multiple hidden
-           onchange={(e) => { if (e.target.files.length) onfiles(e.target.files); e.target.value = ''; }} />
+           onchange={(e) => { if (e.target.files.length) s.dropFiles(e.target.files); e.target.value = ''; }} />
   </div>
   {#if !entries.length}
     <p class="hint">Drop audio files here (WAV, AIFF, FLAC, MP3). A name starting with a MIDI note, like <code>36_kick.wav</code>, sets the pad's note; the others follow from C2.</p>
   {/if}
     {#if sel === 'kit'}
       <div class="settings">
-        {#each KIT as s}
-          {@const d = byName[s]}
-          {#if d}<Param {d} label={s.charAt(0).toUpperCase() + s.slice(1)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />{/if}
+        {#each KIT as key}
+          {@const d = s.byName[key]}
+          {#if d}<Param {d} label={cap(key)} />{/if}
         {/each}
         {#if extra.length}
           <p class="hint">{extra.length} more sample{extra.length > 1 ? 's' : ''} ({extra.map((e) => noteName(e.note)).join(', ')}) play with the default settings.</p>
@@ -122,9 +120,9 @@
       <canvas bind:this={wave} bind:clientWidth={width} class="wave" onpointerdown={down} onpointermove={move} onpointerup={up}
               aria-label="waveform of pad {sel + 1}: drag the start and end points"></canvas>
       <div class="settings two">
-        {#each SETTINGS as s}
-          {@const d = byName[p(sel, s)]}
-          {#if d}<Param {d} label={s.charAt(0).toUpperCase() + s.slice(1)} value={values[d.id] ?? d.def} onchange={(v) => setValue(d, v)} />{/if}
+        {#each SETTINGS as key}
+          {@const d = s.byName[p(sel, key)]}
+          {#if d}<Param {d} label={cap(key)} />{/if}
         {/each}
       </div>
     {/if}
@@ -134,10 +132,9 @@
   .kitpanel { display: grid; gap: 12px; }
   .kitpanel.drag { outline: 2px dashed var(--accent); outline-offset: -6px; }
   .card-head { display: flex; align-items: flex-start; gap: 10px; }
-  .pads { flex-wrap: wrap; }
-  .pads button.empty { opacity: .45; }
+  .pads :global(.seg) { flex-wrap: wrap; }
   .load { margin-left: auto; flex: none; }
-  .hint { margin: 0; color: var(--muted); font-size: 12.5px; }
+  .hint { margin: 0; }
   .padinfo { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
   .wave { display: block; width: 100%; height: 110px; margin-bottom: 12px; border-radius: 8px; background: var(--faint); cursor: ew-resize; touch-action: none; }
   .settings.two { columns: 2; column-gap: 28px; }

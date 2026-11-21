@@ -66,11 +66,14 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   the page. Each view starts with its title and its icon. Along the bottom, the 8 macros to play (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
 - **Interface rules** (every part of the page follows them):
-  - tabs move between views or editors; pills choose a value or a mode (Wave / Spectrum, Draw / Select, an LFO's
-    shape, an envelope's seconds / beats); never the other way round;
-  - three levels, each its own look: the main views as pills in the top bar (Sequence, Synth, Code); then smaller pills
-    (Info, Macros, the engine, Effects, Modulation); then smaller underlined tabs for an editor's
-    own views (macro Names / Assignments, Modulators / Assignments, one tab per sampler pad then Kit); no folds;
+  - one component per kind of control, used everywhere: `Pills` (the views, size lg; the Synth view's pills, md,
+    with an icon; drawn choices of a waveform or a shape, icon), `Tabs` (an editor's own views, small and
+    underlined), `Seg` (a mode or a value among a few words: one shot / loop held / loop free, Hz / beats, Part /
+    Each note, the sampler's pads), `Switch` (every on / off), `Icon` (every icon, named in `lib/icons.js`), `Param`
+    (a parameter row, reading and writing the session unless told otherwise);
+  - three levels of navigation, each its own look: the views as pills in the top bar (Sequence, Synth, Code); then
+    the Synth view's pills (Macros, Engine, Modulation, Info); then each pill's tabs, even a single one (Names /
+    Assignments; the instrument / Effects; Modulators / Assignments; Description); no folds;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;
   - a choice of waveforms or shapes is a row of drawn buttons (`lib/waves.js`: oscillators, LFOs, envelope starting
@@ -115,8 +118,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   pitch: MIDI (60 = C4); start and length in beats; velocity 1..127 (`docText` / `fromDoc` in `lib/seqExport.js`;
   a wrong document says what is wrong and where). The same note fields as OAHub's clips.
 - **Code**: `lib/session.svelte.js` (the sound and its actions) and `lib/sequence.svelte.js` (the sequence) hold
-  the state; the components read them (Transport, SoundHeader, AuditionBar, MacroStrip, Scope, ChainView,
-  EditorTabs, ParamGroups, SequenceTab, PianoRoll, JsonWorkspace, Keyboard, Sidebar).
+  the state, and the components read them directly (props only for what differs between two uses: a modulator's
+  prefix, a matrix's kind, an editor's tab). The session decodes the macros' 32 target slots once (`macroMaps`).
+  Styles: `src/app.css`, by part (tokens, shared controls, layout, editors); a component keeps only what is its own.
 - **Export** downloads (and copies) the current sound as a patch file in the format of
   `docs/patch_format.md`, ready for `patches/` and `synth_render`.
 - Web MIDI input (MiniLab 3 included), on-screen keyboard, computer keyboard (physical key positions, so
@@ -131,7 +135,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 | `ui/public/synth-worklet.js` | AudioWorkletProcessor: instantiates the module, handles port messages, renders each quantum |
 | `ui/src/lib/synth.js` | AudioContext, loading, normalized/physical conversions, Web MIDI |
 | `ui/vite.config.js` | serves `synth.wasm` from `build-wasm` and the sounds from `patches/` (index generated), no copies; `POST /api/patches` saves a sound (dev only) |
-| `ui/src/App.svelte` | interface; `lib/Library.svelte` (sounds), `lib/Scope.svelte` (output), `lib/engines.js` (order, colors), `lib/MsegEditor.svelte` + `lib/mseg.js` (envelopes), `lib/Routes.svelte`, `lib/ModPanel.svelte`, `lib/Sequencer.svelte` |
+| `ui/src/App.svelte` | the page: `Sidebar` + `Library`, `TopBar`, the views `ClipTab` (Scope, SequenceTab + PianoRoll), `SynthTab` (ChainView, MacroMatrix, ParamGroups / KitPanel, ModPanel: MsegEditor, LfoView, ModMatrix; InfoPanel), `CodeView`; `MacroStrip` and `Keyboard` at the bottom; the dialogs |
+| `ui/src/lib/*.svelte.js`, `*.js` | state (`session`, `sequence`, `history`, `theme`), data (`engines`, `icons`, `waves`, `mseg`, `kit`, `naming`, `seqExport`), browser storage (`prefs`) |
 
 - The main thread compiles the module and hands it to the worklet. Every API call goes through the worklet's
   port, so the API stays single-threaded as `synth.h` requires.

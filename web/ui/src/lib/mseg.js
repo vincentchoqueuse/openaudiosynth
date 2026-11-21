@@ -103,6 +103,11 @@ export const PRESETS = {
   },
 };
 
+// a small drawing of each starting shape, for its button (16 x 16 SVG path)
+export const PRESET_ICONS = { 'Swell': 'M1.5 12.5C5 12 6 3.5 8 3.5l2 2h2.5l2 7', 'Pluck': 'M1.5 12.5v-9c2.5 5.5 5.5 8 13 9',
+  'Breath loop': 'M1.5 12.5C3 4 5 4 6 9s3-5 4-5 3 8 4.5 8.5', 'Ramp loop': 'M1.5 12.5 7 3.5v9l5.5-9v9',
+  'Random steps': 'M1.5 9h3V5h3v6h3V4h3.5' };
+
 export function fromPreset(name, s) {
   const p = PRESETS[name]();
   return {

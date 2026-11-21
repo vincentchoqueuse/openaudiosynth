@@ -18,5 +18,4 @@
   .info h2 { margin: 0; font-size: 16px; }
   .info h3 { margin: 6px 0 0; font-size: 12px; color: var(--muted); font-weight: 600; }
   .info p { margin: 0; font-size: 12.5px; line-height: 1.5; }
-  .small { font-size: 11.5px; }
 </style>

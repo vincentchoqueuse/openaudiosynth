@@ -24,11 +24,11 @@ export function wave(name, p, pw = 0.5) {
 // shapes drawn by hand (the LFO's fourier and wiener have no single cycle to show)
 const DRAWN = { fourier: 'M2 8c1.5-6 3-6 4 0s2 3.5 3 0 2-5 3-2.5 1.5 4 2 2.5',
   wiener: 'M2 9l1.4-2 1 1.6 1.4-4.2 1.2 2.2 1.4-1 1 3.2 1.4-2.2 1 1.2 2.2-1.4' };
-export const hasIcon = (name) => isWave(name) || name in DRAWN;
 
 // one cycle and a bit, in a 16 x 16 box with a 2-unit margin; pulse drawn at 30 %, supersaw as two saws
 export function waveIcon(name) {
   if (name in DRAWN) return DRAWN[name];
+  if (!isWave(name)) return 'M2 8h12';
   const n = ALIAS[name] ?? name, pts = [];
   for (let i = 0; i <= 48; i++) {
     const t = i / 48, ph = (t * 1.25) % 1;

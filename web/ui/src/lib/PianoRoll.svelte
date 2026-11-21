@@ -8,6 +8,8 @@
      grid step, up / down a semitone, Shift an octave), Cmd+U (quantize), Esc.
      Everything snaps to the grid (Shift while dragging: finer). A drawn or moved note sounds. -->
 <script>
+  import Seg from './Seg.svelte';
+  const TOOLS = [{ id: 'draw', label: 'Draw', title: 'Draw notes' }, { id: 'select', label: 'Select', title: 'Select with a rectangle (or Cmd-drag in Draw)' }];
   import { session } from './session.svelte.js';
   import { sequence as q } from './sequence.svelte.js';
   import { history } from './history.svelte.js';
@@ -227,10 +229,7 @@
   {#if settings}{@render settings()}{/if}
   <span class="spacer"></span>
   {#if sel.size}<span class="muted">{sel.size} selected</span>{/if}
-  <div class="seg small">
-    <button class:on={tool === 'draw'} onclick={() => (tool = 'draw')} title="Draw notes">Draw</button>
-    <button class:on={tool === 'select'} onclick={() => (tool = 'select')} title="Select with a rectangle (or Cmd-drag in Draw)">Select</button>
-  </div>
+  <Seg items={TOOLS} value={tool} onpick={(t) => (tool = t)} label="Tool" />
   <button class="ghost" onclick={() => { history.step(); if (copy()) pasteAt(selEnd()); }} disabled={!sel.size} title="Duplicate after the selection (Cmd+D)">Duplicate</button>
   <button class="ghost" onclick={quantize} disabled={!q.notes.length} title="Starts to the grid, the selection or every note (Cmd+U)">Quantize</button>
   <button class="ghost" onclick={() => { history.step(); q.deleteMany(sel); sel = new Set(); }} disabled={!sel.size} title="Delete">Delete</button>

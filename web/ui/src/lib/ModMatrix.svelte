@@ -2,19 +2,19 @@
      filled or empty, each row a source, a destination, an amount and (part) a "via" source that scales it. The
      amount slider is bipolar and quadratic (amount = position x |position|): fine near zero, where most useful
      amounts are, and a long way to the extremes; its value reads in the destination's units. A new route starts
-     at 0 (nothing moves until the slider does); double-click on the slider: 0. With `only`, the table shows the
-     routes from that one source (a modulator's "drives") and a button adds one. -->
+     at 0 (nothing moves until the slider does); double-click on the slider: 0. -->
 <script>
-  let { engine, get, set, byName, kind = 'part', only = null, human } = $props();
+  import { session as s } from './session.svelte.js';
+  import { human } from './naming.js';
+  let { kind = 'part' } = $props(); // the part's 8 routes, or each note's 4 ('voice')
+  const get = s.getP, set = s.setP;
   const N = $derived(kind === 'part' ? 8 : 4);
   const pre = $derived(kind === 'part' ? 'route' : 'vroute');
-  const srcLabels = $derived(byName[pre + '1_source']?.labels ?? []);
-  const vdstLabels = $derived(byName['vroute1_destination']?.labels ?? []);
-  const dests = $derived(engine.params.filter((d) => d.realtime));
+  const srcLabels = $derived(s.byName[pre + '1_source']?.labels ?? []);
+  const vdstLabels = $derived(s.byName['vroute1_destination']?.labels ?? []);
+  const dests = $derived(s.macroTargets.engine);
   const srcOf = (r) => Math.round(get(`${pre}${r}_source`));
   const slots = $derived(Array.from({ length: N }, (_, k) => k + 1));
-  const rows = $derived(only ? slots.filter((r) => srcLabels[srcOf(r)] === only) : slots);
-  const free = $derived(slots.find((r) => srcOf(r) === 0));
 
   // slider position <-> amount (quadratic)
   const toPos = (a) => Math.sign(a) * Math.sqrt(Math.abs(a));
@@ -28,11 +28,6 @@
     set(`${pre}${r}_source`, v);
     if (!v) { clear(r); return; }
     if (kind === 'part' && !Math.round(get(`${pre}${r}_destination`)) && dests.length) set(`${pre}${r}_destination`, dests[0].id + 1);
-  }
-  function add() {
-    if (!free) return;
-    setSource(free, srcLabels.indexOf(only));
-    set(`${pre}${free}_amount`, 0);
   }
   function clear(r) {
     set(`${pre}${r}_amount`, 0);
@@ -50,7 +45,7 @@
       if (dst === 3) return `${sign(a)}${(a * 4).toFixed(2)} oct`;
       return `${sign(a)}${(a * 100).toFixed(0)} %`;
     }
-    const d = engine.params[Math.round(get(`${pre}${r}_destination`)) - 1];
+    const d = s.engine.params[Math.round(get(`${pre}${r}_destination`)) - 1];
     if (!d) return '';
     const v = d.curve === 'exp' ? a * Math.log2(d.max / d.min) : a * (d.max - d.min);
     const u = d.curve === 'exp' ? 'oct' : d.unit || '';
@@ -58,21 +53,17 @@
   }
 </script>
 
-<table class="matrix {kind}" class:only={!!only}>
-  {#if !only}
-    <thead><tr><th>#</th><th>Source</th><th>Destination</th><th>Amount</th><th></th>{#if kind === 'part'}<th>Via</th>{/if}<th></th></tr></thead>
-  {/if}
+<table class="matrix {kind}">
+  <thead><tr><th>#</th><th>Source</th><th>Destination</th><th>Amount</th><th></th>{#if kind === 'part'}<th>Via</th>{/if}<th></th></tr></thead>
   <tbody>
-    {#each rows as r (r)}
+    {#each slots as r (r)}
       {@const s = srcOf(r)}
       {@const a = get(`${pre}${r}_amount`)}
       <tr class:empty={!s}>
-        {#if !only}<td class="num mono">{r}</td>{/if}
-        {#if !only}
+        <td class="num mono">{r}</td>
           <td><select value={s} onchange={(e) => setSource(r, +e.target.value)} aria-label="Source of slot {r}">
             {#each srcLabels as l, i}<option value={i}>{i ? srcName(l) : '—'}</option>{/each}
           </select></td>
-        {/if}
         <td>
           {#if kind === 'part'}
             <select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(e) => set(`${pre}${r}_destination`, +e.target.value)} aria-label="Destination of slot {r}">
@@ -103,28 +94,3 @@
     {/each}
   </tbody>
 </table>
-{#if only}
-  {#if free}
-    <button class="ghost add" onclick={add}>+ Route {srcName(only)} to…</button>
-  {:else if !rows.length}
-    <span class="muted small">All {N} slots are used by other sources.</span>
-  {/if}
-{/if}
-
-<style>
-  .matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
-  th { text-align: left; font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; padding: 0 6px 6px; border-bottom: 1px solid var(--line); }
-  td { padding: 4px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); vertical-align: middle; }
-  tr.empty td { opacity: .55; }
-  tr.empty td:nth-child(2) { opacity: 1; }
-  .num { width: 1.6em; color: var(--muted); }
-  select { width: 100%; border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; font-size: 12px; min-width: 0; }
-  select:disabled { opacity: .6; }
-  .amt { width: 34%; min-width: 120px; }
-  .amt input { width: 100%; }
-  .val { width: 6.5em; text-align: right; color: var(--muted); white-space: nowrap; font-size: 11.5px; }
-  .x { width: 20px; height: 20px; border-radius: 50%; color: var(--muted); }
-  .x:hover { background: var(--faint); color: var(--text); }
-  .add { margin-top: 6px; }
-  .small { font-size: 11.5px; }
-</style>

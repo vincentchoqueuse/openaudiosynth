@@ -10,49 +10,42 @@
   import MacroMatrix from './MacroMatrix.svelte';
   import InfoPanel from './InfoPanel.svelte';
   import { session as s } from './session.svelte.js';
-  import { human } from './naming.js';
+  import Pills from './Pills.svelte';
+  import Tabs from './Tabs.svelte';
 
   const cap = (w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : 'Engine');
-  // the pills, each with the editors under it (its own tabs); Macros and Modulation draw theirs
+  // the pills, each with its editors under it as tabs (even a single one); the tab open is session.editorTab
   const GROUPS = $derived([
-    ['macros', 'Macros', null, 'M3 2.5v11M8 2.5v11M13 2.5v11M1.5 10h3M6.5 5.5h3M11.5 8.5h3'],
-    ['engine', 'Engine', [['engine', s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name)], ['fx', 'Effects']], 'M1.5 8c1.2 0 1.6-5 3.2-5s1.8 10 3.3 10 1.7-10 3.3-10 1.8 5 3.2 5'],
-    ['mod', 'Modulation', null, 'M1.5 11.5 5 4.5l3 7 3-7 3.5 7'],
-    ['info', 'Info', [['info', 'Description']], 'M8 1.8a6.2 6.2 0 1 0 0 12.4A6.2 6.2 0 0 0 8 1.8zM8 7.2v4M8 4.8v.1'],
+    { id: 'macros', label: 'Macros', icon: 'macros',
+      tabs: [{ id: 'macros', label: 'Names' }, { id: 'macros-assign', label: 'Assignments' }] },
+    { id: 'engine', label: 'Engine', icon: 'engine',
+      tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) }, { id: 'fx', label: 'Effects' }] },
+    { id: 'mod', label: 'Modulation', icon: 'modulation',
+      tabs: [{ id: 'mod', label: 'Modulators' }, { id: 'mod-assign', label: 'Assignments' }] },
+    { id: 'info', label: 'Info', icon: 'info', tabs: [{ id: 'info', label: 'Description' }] },
   ]);
-  const group = $derived(GROUPS.find(([id, , sub]) => id === s.editorTab || sub?.some(([t]) => t === s.editorTab)) ?? GROUPS[0]);
+  const group = $derived(GROUPS.find((g) => g.tabs.some((t) => t.id === s.editorTab)) ?? GROUPS[0]);
   // a block of the diagram -> the tab and the card that hold its settings
   function pick(st, kind) {
-    if (kind === 'route') return s.goTo('mod');
+    if (kind === 'route') return s.goTo('mod-assign');
     const bus = (s.catalog.fx ?? []).some((f) => f.id === st.id);
     s.goTo(bus ? 'fx' : 'engine', st.id);
   }
 </script>
 
-<ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} onpick={pick} />
+<ChainView onpick={pick} />
 
-<div class="tabs pills" role="tablist" aria-label="Synth">
-  {#each GROUPS as g}
-    <button role="tab" aria-selected={group === g} class:on={group === g} onclick={() => s.goTo(g[2]?.[0][0] ?? g[0])}><svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true"><path d={g[3]} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>{g[1]}</button>
-  {/each}
-</div>
-{#if group[2]}
-  <div class="tabs small" role="tablist" aria-label={group[1]}>
-    {#each group[2] as [id, name]}
-      <button role="tab" aria-selected={s.editorTab === id} class:on={s.editorTab === id} onclick={() => s.goTo(id)}>{name}</button>
-    {/each}
-  </div>
-{/if}
+<Pills items={GROUPS} value={group.id} onpick={(id) => s.goTo(id)} tabs label="Synth" />
+<Tabs items={group.tabs} value={s.editorTab} onpick={s.goTo} label={group.label} />
 
 {#if s.editorTab === 'info'}
   <InfoPanel />
-{:else if s.editorTab === 'macros'}
-  <MacroMatrix engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
-               bind:names={s.macroNames} />
-{:else if s.editorTab === 'mod'}
-  <ModPanel engine={s.engine} shared={s.shared} get={s.getP} set={s.setP} byName={s.byName} {human} values={s.values} setValue={s.setValue} />
+{:else if group.id === 'macros'}
+  <MacroMatrix view={s.editorTab === 'macros' ? 'names' : 'assign'} />
+{:else if group.id === 'mod'}
+  <ModPanel view={s.editorTab === 'mod' ? 'mods' : 'assign'} />
 {:else if s.editorTab === 'engine' && s.engine?.name === 'sampler'}
-  <KitPanel kit={s.kit} kitName={s.kitLabel} byName={s.byName} values={s.values} setValue={s.setValue} synth={s.synth} onfiles={s.dropFiles} />
+  <KitPanel />
 {:else}
   <ParamGroups tab={s.editorTab} />
 {/if}

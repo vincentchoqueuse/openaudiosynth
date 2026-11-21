@@ -4,9 +4,12 @@
      starting shapes as small drawn buttons; a line shows where the envelope runs while it plays. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
 <script>
   import { shape, curveThroughMid, readShape, writeShape, times, insertPoint, deletePoint, clone, PRESETS,
-           fromPreset, MIN_TIME, MAX_TIME, MAX_POINTS } from './mseg.js';
+           fromPreset, PRESET_ICONS, MIN_TIME, MAX_TIME, MAX_POINTS } from './mseg.js';
+  import Seg from './Seg.svelte';
+  import Pills from './Pills.svelte';
   import { session } from './session.svelte.js';
-  let { prefix, get, set } = $props();
+  let { prefix } = $props(); // "mseg1_", "mseg2_" or "vmseg_"
+  const get = session.getP, set = session.setP;
   // the playhead: where the envelope runs now (the part's, or the newest note's), from the engine
   const which = $derived({ mseg1_: 0, mseg2_: 1, vmseg_: 2 }[prefix] ?? -1);
   const head = $derived(which >= 0 ? session.msegPos[which] : -1);
@@ -109,30 +112,18 @@
     commit(next);
   }
   const fmtT = (t) => (t < 1 && !s.sync ? `${(t * 1000).toFixed(0)} ms` : `${+t.toFixed(2)} ${unit}`);
-  const MODES = ['one shot', 'loop held', 'loop free'];
-  // the starting shapes (PRESETS), each a button with a small drawing of it
-  const ICONS = { 'Swell': 'M1.5 12.5C5 12 6 3.5 8 3.5l2 2h2.5l2 7', 'Pluck': 'M1.5 12.5v-9c2.5 5.5 5.5 8 13 9',
-    'Breath loop': 'M1.5 12.5C3 4 5 4 6 9s3-5 4-5 3 8 4.5 8.5', 'Ramp loop': 'M1.5 12.5 7 3.5v9l5.5-9v9',
-    'Random steps': 'M1.5 9h3V5h3v6h3V4h3.5' };
+  const MODES = ['one shot', 'loop held', 'loop free'].map((label, id) => ({ id, label }));
+  const UNITS = [{ id: 0, label: 'seconds' }, { id: 1, label: 'beats' }];
+  const SHAPES = Object.keys(PRESETS).map((id) => ({ id, label: id, draw: PRESET_ICONS[id] }));
 </script>
 
 <div class="mseg">
   <div class="mseg-bar">
-    <div class="seg small">
-      {#each MODES as m, i}<button class:on={s.mode === i} onclick={() => commit({ ...clone(s), mode: i })}>{m}</button>{/each}
-    </div>
+    <Seg items={MODES} value={s.mode} onpick={(mode) => commit({ ...clone(s), mode })} label="Mode" />
     <span class="vsep" aria-hidden="true"></span>
-    <div class="shapes" role="group" aria-label="Start from a shape">
-      {#each Object.keys(PRESETS) as p}
-        <button title={p} aria-label={p} onclick={() => { commit(fromPreset(p, s)); sel = -1; }}>
-          <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d={ICONS[p] ?? 'M1.5 12.5h13'} fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
-        </button>
-      {/each}
-    </div>
+    <Pills items={SHAPES} value={null} onpick={(p) => { commit(fromPreset(p, s)); sel = -1; }} size="icon" label="Start from a shape" />
     <span class="vsep" aria-hidden="true"></span>
-    <div class="seg small">
-      {#each ['seconds', 'beats'] as m, i}<button class:on={s.sync === i} onclick={() => commit({ ...clone(s), sync: i })}>{m}</button>{/each}
-    </div>
+    <Seg items={UNITS} value={s.sync} onpick={(sync) => commit({ ...clone(s), sync })} label="Time unit" />
     <span class="muted info">{s.pts.length}/{MAX_POINTS} points · {fmtT(total)}</span>
   </div>
 

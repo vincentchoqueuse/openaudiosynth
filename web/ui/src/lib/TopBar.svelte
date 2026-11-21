@@ -7,6 +7,8 @@
   import { history as h } from './history.svelte.js';
   import { sequence as q } from './sequence.svelte.js';
   import { REPO_URL } from './links.js';
+  import Pills from './Pills.svelte';
+  import Icon from './Icon.svelte';
   let { view = $bindable(), views } = $props();
   let menu = $state(false);
   const act = (f) => { menu = false; f(); };
@@ -18,7 +20,7 @@
 <header class="topbar">
   <div class="tb-left">
   <div class="filemenu">
-    <button class="btn ghost" onclick={() => (menu = !menu)} aria-haspopup="menu" aria-expanded={menu}><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true"><path d="M2.5 4h11M2.5 8h11M2.5 12h11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" /></svg>Menu</button>
+    <button class="btn ghost" onclick={() => (menu = !menu)} aria-haspopup="menu" aria-expanded={menu}><Icon name="menu" size={14} />Menu</button>
     {#if menu}
       <div class="menu" role="menu">
         {#if s.canSave}<button role="menuitem" onclick={() => act(s.openSave)}>Save to library…</button>{/if}
@@ -36,13 +38,9 @@
       </div>
     {/if}
   </div>
-  <span class="sep" aria-hidden="true"></span>
-  <nav class="viewtabs" role="tablist" aria-label="Views">
-      {#each views as [id, name]}
-        <button role="tab" aria-selected={view === id} class:on={view === id} onclick={() => (view = id)}>{name}</button>
-      {/each}
-    </nav>
-  <span class="sep" aria-hidden="true"></span>
+  <span class="vsep" aria-hidden="true"></span>
+  <Pills items={views.map(({ id, label }) => ({ id, label }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />
+  <span class="vsep" aria-hidden="true"></span>
   <div class="namebox">
     <span class="tag">Preset</span>{#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
   </div>
@@ -58,7 +56,7 @@
            ondblclick={() => s.setVolume(0)} style="--p:{((s.volume + 60) / 60) * 100}%" aria-label="Volume" />
     <span class="mono db">{s.volume <= -60 ? 'off' : `${s.volume.toFixed(1)} dB`}</span>
   </label>
-  <span class="sep" aria-hidden="true"></span>
+  <span class="vsep" aria-hidden="true"></span>
   <span class="seqlabel">Sequencer</span>
   <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   </div>

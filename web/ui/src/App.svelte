@@ -1,17 +1,20 @@
-<!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the top
-     bar (File menu, the sound's name, play / stop, the views, undo, level and volume); three main views in the top bar: Sequence (Live,
-     then Sequencer), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the macros to play and the keyboard along the bottom. State and actions live in lib/session.svelte.js and
-     lib/sequence.svelte.js; the interface takes the color of the instrument playing. Space plays / stops the clip. -->
+<!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left (Sidebar);
+     the top bar (Menu, the three views, the preset; level, volume and the sequencer's play); the view open:
+     Sequence (Live, then the sequencer), Synth (Structure, then the editors) or Code (the instrument's or the clip's
+     JSON), each under its title; the macros to play and the keyboard along the bottom. State and actions live in
+     lib/session.svelte.js and lib/sequence.svelte.js; the page takes the color of the instrument playing. Space
+     plays / stops the clip; Cmd+Z / Shift+Cmd+Z undo / redo; ? opens the shortcuts. -->
 <script>
   import { session as s } from './lib/session.svelte.js';
   import { keyIsForControl } from './lib/keys.js';
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
   import TopBar from './lib/TopBar.svelte';
+  import Icon from './lib/Icon.svelte';
   import ClipTab from './lib/ClipTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
   import CodeView from './lib/CodeView.svelte';
-  import { remembered, remember } from './lib/fold.js';
+  import { remembered, remember } from './lib/prefs.js';
   import { sequence } from './lib/sequence.svelte.js';
   import { history } from './lib/history.svelte.js';
   import Keyboard from './lib/Keyboard.svelte';
@@ -22,14 +25,9 @@
   import ShareDialog from './lib/ShareDialog.svelte';
 
   // the three main views (kept in the browser)
-  const VIEWS = [
-    // id, name, the icon of its title (16 x 16, stroked)
-    ['clip', 'Sequence', 'M2 2.5v11M2 13.5h12M4.5 4.5h3.5M7 7.5h4.5M9.5 10.5h3'],
-    ['synth', 'Synth', 'M1.5 8c1.2 0 1.6-5 3.2-5s1.8 10 3.3 10 1.7-10 3.3-10 1.8 5 3.2 5'],
-    ['code', 'Code', 'M5.5 3.5C4 3.5 4 4.5 4 6s-.8 2-1.8 2c1 0 1.8.5 1.8 2s0 2.5 1.5 2.5M10.5 3.5c1.5 0 1.5 1 1.5 2.5s.8 2 1.8 2c-1 0-1.8.5-1.8 2s0 2.5-1.5 2.5'],
-  ];
+  const VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }, { id: 'code', label: 'Code', icon: 'code' }];
   let main = $state(remembered('synth.main', 'clip'));
-  if (!VIEWS.some(([id]) => id === main)) main = 'clip';
+  if (!VIEWS.some((v) => v.id === main)) main = 'clip';
   $effect(() => remember('synth.main', main));
   const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
@@ -70,7 +68,7 @@
 <svelte:window onkeydown={onKey} />
 
 {#snippet title(i)}
-  <h1 class="viewtitle"><span class="vicon"><svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path d={VIEWS[i][2]} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg></span>{VIEWS[i][1]}</h1>
+  <h1 class="viewtitle"><span class="vicon"><Icon name={VIEWS[i].icon} size={18} /></span>{VIEWS[i].label}</h1>
 {/snippet}
 
 {#if !s.started}
@@ -88,8 +86,7 @@
     </main>
 
     <footer>
-      <MacroStrip engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
-                  bind:names={s.macroNames} baseline={s.baseline} />
+      <MacroStrip />
       <Keyboard synth={s.synth} held={lit} />
     </footer>
 

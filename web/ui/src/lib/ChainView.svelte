@@ -6,7 +6,10 @@
 <script>
   // onpick(stage, kind): a block or modulator clicked ('audio' for the signal's stages, 'mod' for a modulator, 'route'
   // for a part route); without it the diagram is display only
-  let { engine, fx, values, byName, getP, onpick = null } = $props();
+  import { session } from './session.svelte.js';
+  let { onpick = null } = $props(); // a click on a block or a chip: onpick(stage, kind)
+  const engine = $derived(session.engine), fx = $derived(session.catalog.fx ?? []), byName = $derived(session.byName);
+  const getP = session.getP;
 
   let W = $state(800);
   let hover = $state(-1); // modulator under the pointer: only its links are drawn

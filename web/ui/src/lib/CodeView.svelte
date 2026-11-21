@@ -3,12 +3,13 @@
      whose message says what is wrong. Reload writes it again from what plays; the text follows what plays until
      it is typed in. -->
 <script>
+  import Seg from './Seg.svelte';
   import { untrack } from 'svelte';
   import { session as s } from './session.svelte.js';
   import { sequence as q } from './sequence.svelte.js';
   import { SCALES, GRIDS } from './seqExport.js';
   const editor = import('./CodeEditor.svelte'); // the code editor stays out of the main bundle
-  import { remembered, remember } from './fold.js';
+  import { remembered, remember } from './prefs.js';
   let doc = $state(remembered('synth.code', 'sound'));
   $effect(() => remember('synth.code', doc));
 
@@ -41,10 +42,7 @@
 
 <div class="codeview">
   <div class="toolbar">
-    <div class="seg small" role="group" aria-label="Document">
-      <button class:on={doc === 'sound'} onclick={() => pick('sound')}>Instrument</button>
-      <button class:on={doc === 'clip'} onclick={() => pick('clip')}>Sequencer</button>
-    </div>
+    <Seg items={[{ id: 'sound', label: 'Instrument' }, { id: 'clip', label: 'Sequencer' }]} value={doc} onpick={pick} label="Document" />
     <span class="status" class:bad={syntax || error} class:ok={!syntax && !error && !edited}>
       {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : 'As it plays')}
     </span>

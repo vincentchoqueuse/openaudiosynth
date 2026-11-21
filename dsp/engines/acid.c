@@ -180,6 +180,14 @@ static DSP_FAST_CODE void acid_render(void *st, float *L, float *R)
     vpoly_end_block(&e->poly, 0, e->gate || e->amp > 1e-4f);
 }
 
+/* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+static const engine_stage_t acid_stages[] = {
+    {"osc", "Osc", "source", "wave tune", "", NULL, NULL, 0.0f, 0.0f},
+    {"filter", "Filter", "filter", "cutoff resonance env_mod decay drive oversample", "osc", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "volume", "filter", NULL, NULL, 0.0f, 0.0f},
+    {"voice", "Accent and slide", "voice", "accent slide", "", NULL, NULL, 0.0f, 0.0f},
+};
+
 const engine_ops_t acid_engine = {
     .name = "acid",
     .description = "monophonic acid bass (early-80s transistor bass line spirit): saw/square, resonant 18 dB "
@@ -192,4 +200,6 @@ const engine_ops_t acid_engine = {
     .set_param = acid_set_param,
     .pitch_bend = acid_pitch_bend,
     .render = acid_render,
+    .stages = acid_stages,
+    .stage_count = (int)(sizeof acid_stages / sizeof acid_stages[0]),
 };

@@ -392,6 +392,19 @@ static DSP_FAST_CODE void poly_render(void *st, float *L, float *R)
     }
 }
 
+/* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+static const engine_stage_t poly_stages[] = {
+    {"osca", "Osc A", "source", "osca_ mix_a", "", NULL, "mix_a", 0.0f, 1.0f},
+    {"oscb", "Osc B", "source", "oscb_ mix_b", "", NULL, "mix_b", 0.0f, 0.7f},
+    {"noise", "Noise", "source", "noise", "", NULL, "noise", 0.0f, 0.2f},
+    {"filter", "Filter", "filter", "cutoff resonance keytrack fenv_amount oversample", "osca oscb noise", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "amp_ velocity volume pan_spread", "filter", NULL, NULL, 0.0f, 0.0f},
+    {"fenv", "Filter env", "mod", "fenv_attack fenv_decay fenv_sustain fenv_release", "", "filter", NULL, 0.0f, 0.0f},
+    {"polymod", "Poly-mod", "mod", "pm_", "", "osca filter", NULL, 0.0f, 0.0f},
+    {"lfo", "LFO", "mod", "lfo_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
+    {"voice", "Voice", "voice", "glide unison unison_detune drift bend_range", "", NULL, NULL, 0.0f, 0.0f},
+};
+
 const engine_ops_t poly_engine = {
     .name = "poly",
     .description = "classic polysynth (late-70s 5-voice spirit): osc A saw/pulse with hard sync, osc B saw/tri/pulse "
@@ -406,4 +419,6 @@ const engine_ops_t poly_engine = {
     .pitch_bend = poly_pitch_bend,
     .mod_wheel = poly_mod_wheel,
     .render = poly_render,
+    .stages = poly_stages,
+    .stage_count = (int)(sizeof poly_stages / sizeof poly_stages[0]),
 };

@@ -1,9 +1,12 @@
 <!-- ChainView.svelte — the signal chain of the current engine followed by the effect bus, drawn from the stage
      descriptors (dsp/engines/engine.h): audio stages in columns along the signal, modulators below; pointing at a
-     modulator draws its dashed links to what it acts on (including the active part routes: MSEG, LFO, macros...). Display only: it
-     reflects the controls (a stage switched off is drawn dashed, the signal passes through it). -->
+     modulator draws its dashed links to what it acts on (including the active part routes: MSEG, LFO, macros...). It
+     reflects the controls (a stage switched off is drawn dashed, the signal passes through it), and with `onpick`
+     it is the editor's map: a click on a block or a modulator opens its settings. -->
 <script>
-  let { engine, fx, values, byName, getP } = $props();
+  // onpick(stage, kind): a block or modulator clicked ('audio' for the signal's stages, 'mod' for a modulator, 'route'
+  // for a part route); without it the diagram is display only
+  let { engine, fx, values, byName, getP, onpick = null } = $props();
 
   let W = $state(800);
   let hover = $state(-1); // modulator under the pointer: only its links are drawn
@@ -108,8 +111,11 @@
     {#each audio as s (s.id)}
       {@const p = layout.xy[s.id]}
       {@const on = isOn(s)}
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex (the role is a button whenever it is focusable) -->
       <g class="block {s.kind}" class:off={!on} class:target={hover >= 0 && chips[hover]?.targets.split(' ').includes(s.id)}
-         transform="translate({p.x},{p.y})">
+         class:pick={!!onpick} transform="translate({p.x},{p.y})" role={onpick ? 'button' : 'img'} tabindex={onpick ? 0 : undefined}
+         aria-label="{s.label}{on ? '' : ' (off)'}" onclick={() => onpick?.(s, 'audio')}
+         onkeydown={(e) => { if (onpick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onpick(s, 'audio'); } }}>
         <title>{s.label}{on ? '' : ' (off)'}</title>
         <rect width={p.w} height={BH} rx="7" />
         <text x="9" y={BH / 2 + 4}>{s.label}</text>
@@ -117,8 +123,11 @@
       </g>
     {/each}
     {#each chips as c, i (c.id)}
-      <g class="chip {c.kind}" class:hot={hover === i} transform="translate({chipX(i)},{chipY - 11})" role="img"
-         aria-label="{c.label} modulates {c.targets}" onmouseenter={() => (hover = i)} onmouseleave={() => (hover = -1)}>
+      <!-- svelte-ignore a11y_no_noninteractive_tabindex (the role is a button whenever it is focusable) -->
+      <g class="chip {c.kind}" class:hot={hover === i} class:pick={!!onpick} transform="translate({chipX(i)},{chipY - 11})"
+         role={onpick ? 'button' : 'img'} tabindex={onpick ? 0 : undefined} aria-label="{c.label} modulates {c.targets}"
+         onmouseenter={() => (hover = i)} onmouseleave={() => (hover = -1)} onclick={() => onpick?.(c, c.kind === 'route' ? 'route' : 'mod')}
+         onkeydown={(e) => { if (onpick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onpick(c, c.kind === 'route' ? 'route' : 'mod'); } }}>
         <rect width="96" height="22" rx="11" />
         <text x="48" y="15" text-anchor="middle">{c.label}</text>
       </g>

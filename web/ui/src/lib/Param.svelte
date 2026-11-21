@@ -1,17 +1,22 @@
-<!-- Param.svelte — one parameter from the descriptor table: a thin slider in normalized space (so exp
-     curves feel right) with the physical value, or a segmented / menu choice for enumerations.
-     Double-click resets to the default. The descriptor's help text is the tooltip. -->
+<!-- Param.svelte — one parameter from the descriptor table, as a row: its label, its control, its value in its
+     unit. A thin slider in normalized space (exp curves feel right), a switch for off / on, pills for a few
+     choices, a menu for more. A dot after the label: moved since the sound was loaded (`base`); double-click on the
+     label or the slider puts that value back. The descriptor's help text is the tooltip. -->
 <script>
   import { fromNorm, toNorm, format } from './synth.js';
-  let { d, label, value, onchange } = $props();
+  let { d, label, value, base = d.def, onchange } = $props();
   const norm = $derived(toNorm(d, value));
-  const changed = $derived(Math.abs(value - d.def) > 1e-6);
+  const changed = $derived(Math.abs(value - base) > 1e-6);
   const idx = $derived(Math.round(value - d.min));
+  const toggle = $derived(d.labels?.length === 2 && d.labels[0] === 'off' && d.labels[1] === 'on');
 </script>
 
 <div class="param" class:changed title={d.help ?? ''}>
-  <span class="label" role="button" tabindex="-1" title="double-click: default value" ondblclick={() => onchange(d.def)}>{label}</span>
-  {#if d.labels && d.labels.length <= 4}
+  <span class="label" role="button" tabindex="-1" title={changed ? 'moved · double-click: back to the sound\'s value' : ''} ondblclick={() => onchange(base)}>{label}</span>
+  {#if toggle}
+    <span class="switch-cell"><button class="onoff" class:on={idx === 1} role="switch" aria-checked={idx === 1} aria-label={label}
+            onclick={() => onchange(d.min + (idx === 1 ? 0 : 1))}></button></span>
+  {:else if d.labels && d.labels.length <= 4}
     <div class="seg">
       {#each d.labels as l, i}
         <button class:on={i === idx} onclick={() => onchange(d.min + i)}>{l}</button>
@@ -23,7 +28,7 @@
     </select>
   {:else}
     <input type="range" aria-label={label} aria-valuetext={format(d, value)} min="0" max="1" step="0.001" value={norm} style="--p:{norm * 100}%"
-           oninput={(e) => onchange(fromNorm(d, +e.target.value))} ondblclick={() => onchange(d.def)} />
+           oninput={(e) => onchange(fromNorm(d, +e.target.value))} ondblclick={() => onchange(base)} />
     <span class="val">{format(d, value)}</span>
   {/if}
 </div>

@@ -30,7 +30,13 @@ class Session {
   clipHook = null;
   #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
-  picks = $state(0); // sounds picked in the library (the editors open on Sound)
+  picks = $state(0); // sounds picked in the library (the editor opens on Macros)
+  // the Synth tab's editor: which tab is open, and the stage the diagram asked to show (scrolled to, lit)
+  editorTab = $state('macros');
+  focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
+  goTo = (tab, id = null) => { this.editorTab = tab; this.focus = id ? { id, n: (this.focus?.n ?? 0) + 1 } : null; };
+  shortcutsOpen = $state(false); // the shortcuts sheet
+  settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)
   saving = $state(null); // the save dialog: {name, description, exists, error}
@@ -192,6 +198,7 @@ class Session {
     this.info = p;
     this.baseline = { ...this.values };
     this.picks++;
+    this.editorTab = 'macros';
     return true;
   };
 

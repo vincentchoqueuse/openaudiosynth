@@ -60,8 +60,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
 - **Layout**: the sound library on the left; the top bar (the sound: instrument, name, Save, Export; undo / redo;
-  level and volume); two main tabs, **Play** (Live: wave or spectrum; Macros, the knobs to play; Sequencer) and **Synth** (Structure, then Sound with
-  its editors; there the macros are a table like the modulation matrix: names and CC, then targets), each in **Visual** or **Code** mode (the clip's or the patch's JSON); the keyboard along the bottom.
+  level and volume); two main tabs, **Play** (Live: wave or spectrum; Macros, the knobs to play; Sequencer) and **Synth** (Structure, whose blocks open their settings, then the Editor:
+  Macros as a table like the modulation matrix, the engine named after the instrument, Effects, Modulation), each in **Visual** or **Code** mode (the clip's or the patch's JSON); the keyboard along the bottom.
 - **Interface rules** (every part of the page follows them):
   - one section shape (`lib/Section.svelte`): a small capital title, its own controls on the right, a chevron that
     folds it to its title line (with a summary), remembered in the browser;
@@ -69,7 +69,13 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
     (Visual / Code, Draw / Select, an LFO's shape, an envelope's seconds / beats); never the other way round;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;
-  - parameters are cards of rows (label, control, value in its unit); everything is in English.
+  - parameters are cards of rows (label without the card's own words, control, value in its unit), one card per
+    stage of the engine (every engine with stages gives each parameter to one, tested); a dot after a label: moved
+    since the sound was loaded, double-click puts it back; on / off is always a switch; a stage switched off folds;
+  - text on the accent color is dark or white by the accent's brightness; everything is in English.
+- **Top bar**: a click on the sound's name opens its description; **?** (or the ? key) the sheet of shortcuts.
+- **Settings** (the gear at the bottom of the sidebar): the part (MIDI channel, keys, transposition, MPE), the
+  tempo and the tuning, apart from the sound's design.
 - **Theme**: the sun / moon icon at the bottom of the sidebar cycles auto (as the system), light and dark; kept
   in the browser.
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),

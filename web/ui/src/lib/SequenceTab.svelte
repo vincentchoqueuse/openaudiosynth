@@ -1,6 +1,6 @@
-<!-- SequenceTab.svelte — the clip in the Play tab's Sequencer: a first toolbar for the clip itself (which one,
-     saved in this browser: New, Save, Delete; Random, Clear; Export song), then the piano roll with its toolbar
-     (the clip's length, grid, key and octave on the left, the editing tools on the right). -->
+<!-- SequenceTab.svelte — the clip in the Play tab's Sequencer (it belongs to the sound: Save in the top bar keeps
+     both): a first toolbar (Random, Clear, Export song), then the piano roll with its toolbar (the clip's length,
+     grid, key and octave on the left, the editing tools on the right). -->
 <script>
   import PianoRoll from './PianoRoll.svelte';
   import { sequence as q, LOOPS } from './sequence.svelte.js';
@@ -9,15 +9,7 @@
 </script>
 
 <div class="toolbar">
-  <label>Clip
-    <select value={q.saved[q.name] ? q.name : ''} onchange={(e) => q.pick(e.target.value)}>
-      <option value="">{q.name ? q.name + (q.saved[q.name] ? '' : ' (not saved)') : 'untitled'}</option>
-      {#each Object.keys(q.saved).sort() as n}<option value={n}>{n}</option>{/each}
-    </select>
-  </label>
-  <button class="ghost" onclick={q.fresh}>New</button>
-  <button class="ghost" onclick={q.save}>Save</button>
-  <button class="ghost" onclick={q.remove} disabled={!q.saved[q.name]}>Delete</button>
+  <span class="muted">The clip is saved with the sound.</span>
   <span class="spacer"></span>
   <button class="ghost" onclick={q.random}>Random</button>
   <button class="ghost" onclick={q.clear}>Clear</button>
@@ -37,6 +29,4 @@
     <label>Octave <select bind:value={q.octave}>{#each OCTAVES as o}<option value={o}>{o}</option>{/each}</select></label>
   {/snippet}
 </PianoRoll>
-<p class="hint">Draw: click, drag to stretch · Select: drag a rectangle (or Cmd-drag) · Shift-click: add to the selection ·
-  drag notes to move them, their right edge to stretch them, Alt-drag or the lane below for velocity · click in the
-  roll, then: Delete, Cmd+A, Cmd+C / X / V, Cmd+D duplicate, arrows move (Shift: octave), Cmd+U quantize · Cmd+Z undo</p>
+<p class="hint">Click in the roll to edit it with the keyboard; every shortcut: press ?</p>

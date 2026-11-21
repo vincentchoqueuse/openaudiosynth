@@ -1,7 +1,7 @@
 // test_wasm.mjs — smoke test of synth.wasm under Node, the way the worklet uses it: every patch of patches/
 // is loaded (with the sample kit it names, from build-host/kits/NAME.oidk, as the page does), its audition
-// rendered for 2 s in 128-frame quanta; the output must be finite, not silent and within ±1. Also reports how
-// fast wasm renders compared with real time.
+// rendered for 2 s in 128-frame quanta; the output must be finite, not silent and within ±1. Also checks that the
+// engines' stage descriptions cover their parameters, and reports how fast wasm renders compared with real time.
 // Usage: node web/test_wasm.mjs [build-wasm/web/wasm/synth.wasm]
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 
@@ -17,8 +17,19 @@ const cstr = (s) => { const e = new TextEncoder().encode(s); const p = w.w_alloc
 w.w_init(SR);
 const cat = JSON.parse(str(w.w_catalog()));
 console.log(`catalog: ${cat.engines.length} engines, ${cat.shared.length} shared parameters`);
+// an engine that describes its stages (the page's cards and diagram) gives every parameter to one, and names no
+// parameter it does not have
+const claims = (tok, name) => tok.split(' ').filter(Boolean).some((t) => (t.endsWith('_') ? name.startsWith(t) : name === t));
+let stageFail = 0;
+for (const e of cat.engines.filter((e) => e.stages?.length)) {
+  const left = e.params.map((p) => p.name).filter((n) => !e.stages.some((st) => claims(st.params, n)));
+  const ghost = e.stages.flatMap((st) => st.params.split(' ').filter(Boolean)
+    .filter((t) => !e.params.some((p) => (t.endsWith('_') ? p.name.startsWith(t) : p.name === t))).map((t) => `${st.id}:${t}`));
+  if (left.length || ghost.length) { console.log(`FAIL ${e.name} stages: unclaimed ${left.join(' ')} unknown ${ghost.join(' ')}`); stageFail++; }
+}
 
-let fail = 0, frames = 0, t0 = performance.now();
+
+let fail = stageFail, frames = 0, t0 = performance.now();
 for (const f of readdirSync('patches').filter((f) => f.endsWith('.json')).sort()) {
   const p = cstr(readFileSync('patches/' + f, 'utf8'));
   const rc = w.w_patch(p);

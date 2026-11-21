@@ -231,6 +231,15 @@ static DSP_FAST_CODE void coupled_render(void *st, float *L, float *R)
             voice_render(e, vi, L, R);
 }
 
+/* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+static const engine_stage_t coupled_stages[] = {
+    {"network", "Partials", "source", "partials stretch spread tilt", "", NULL, NULL, 0.0f, 0.0f},
+    {"coupling", "Coupling", "filter", "amp_coupling phase_coupling pitch_by_level reach freeze", "network", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "amp_ volume pan_spread", "coupling", NULL, NULL, 0.0f, 0.0f},
+    {"motion", "Motion", "mod", "drift drift_time", "", "network", NULL, 0.0f, 0.0f},
+    {"voice", "Voice", "voice", "bend_range", "", NULL, NULL, 0.0f, 0.0f},
+};
+
 const engine_ops_t coupled_engine = {
     .name = "coupled",
     .description = "coupled-oscillator networks: each note is a network of Stuart-Landau partials whose modulus bends "
@@ -244,4 +253,6 @@ const engine_ops_t coupled_engine = {
     .set_param = coupled_set_param,
     .pitch_bend = coupled_pitch_bend,
     .render = coupled_render,
+    .stages = coupled_stages,
+    .stage_count = (int)(sizeof coupled_stages / sizeof coupled_stages[0]),
 };

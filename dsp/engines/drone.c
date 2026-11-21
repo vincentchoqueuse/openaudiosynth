@@ -360,6 +360,18 @@ static DSP_FAST_CODE void drone_render(void *st, float *L, float *R)
             voice_render(e, vi, L, R);
 }
 
+/* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+static const engine_stage_t drone_stages[] = {
+    {"partials", "Partials", "source", "partials_level", "", NULL, "partials_level", -60.0f, 0.0f},
+    {"body", "Body", "source", "body_level", "", NULL, "body_level", -60.0f, -4.0f},
+    {"air", "Air", "source", "air_level", "", NULL, "air_level", -60.0f, -6.0f},
+    {"sparkles", "Sparkles", "source", "sparkle sparkle_level", "", NULL, "sparkle", 0.0f, 0.15f},
+    {"amp", "Amp", "amp", "amp_attack amp_release volume width", "partials body air sparkles", NULL, NULL, 0.0f, 0.0f},
+    {"character", "Character", "mod", "temperature density brightness", "", "partials body air sparkles", NULL, 0.0f, 0.0f},
+    {"motion", "Motion", "mod", "motion depth", "", "partials body air", NULL, 0.0f, 0.0f},
+    {"voice", "Voice", "voice", "bend_range", "", NULL, NULL, 0.0f, 0.0f},
+};
+
 const engine_ops_t drone_engine = {
     .name = "drone",
     .description = "drone machine: each note an endless drone of wandering harmonic partials, a warm body of saws, "
@@ -373,4 +385,6 @@ const engine_ops_t drone_engine = {
     .set_param = drone_set_param,
     .pitch_bend = drone_pitch_bend,
     .render = drone_render,
+    .stages = drone_stages,
+    .stage_count = (int)(sizeof drone_stages / sizeof drone_stages[0]),
 };

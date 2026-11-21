@@ -1,12 +1,18 @@
-<!-- ProjectLinks.svelte — the theme switch (auto / light / dark), the source code on GitHub and the author's
-     site, as small icons. -->
+<!-- ProjectLinks.svelte — small icons at the bottom of the sidebar: Settings (once audio runs), the theme
+     switch (auto / light / dark), the source code on GitHub and the author's site. -->
 <script>
   import { REPO_URL, SITE_URL } from './links.js';
   import { theme } from './theme.svelte.js';
+  import { session as s } from './session.svelte.js';
   const LABEL = { auto: 'Theme: as the system', light: 'Theme: light', dark: 'Theme: dark' };
 </script>
 
 <nav class="links" aria-label="Project">
+  {#if s.started}
+    <button class="theme" onclick={() => (s.settingsOpen = true)} title="Settings: MIDI channel, keys, MPE, tempo, tuning" aria-label="Settings">
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></g></svg>
+    </button>
+  {/if}
   <button class="theme" onclick={theme.next} title="{LABEL[theme.mode]} (click to change)" aria-label={LABEL[theme.mode]}>
     <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
       {#if theme.mode === 'light'}

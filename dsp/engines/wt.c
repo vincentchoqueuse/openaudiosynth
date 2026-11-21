@@ -413,6 +413,21 @@ static DSP_FAST_CODE void wt_render(void *st, float *L, float *R)
             voice_render(e, vi, L, R);
 }
 
+/* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+static const engine_stage_t wt_stages[] = {
+    {"osca", "Osc A", "source", "a_", "", NULL, "a_level", 0.0f, 1.0f},
+    {"oscb", "Osc B", "source", "b_", "", NULL, "b_level", 0.0f, 0.5f},
+    {"sub", "Sub", "source", "sub", "", NULL, "sub", 0.0f, 0.3f},
+    {"noise", "Noise", "source", "noise", "", NULL, "noise", 0.0f, 0.1f},
+    {"filter", "Filter", "filter", "filter_type cutoff resonance drive keytrack oversample", "osca oscb sub noise", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "amp_ velocity volume pan_spread", "filter", NULL, NULL, 0.0f, 0.0f},
+    {"env2", "Env 2", "mod", "env2_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
+    {"lfo1", "LFO 1", "mod", "lfo1_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
+    {"lfo2", "LFO 2", "mod", "lfo2_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
+    {"matrix", "Matrix", "mod", "mod1_ mod2_ mod3_ mod4_ mod5_ mod6_", "", "osca oscb filter amp", NULL, 0.0f, 0.0f},
+    {"voice", "Voice", "voice", "voice_mode glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
+};
+
 const engine_ops_t wt_engine = {
     .name = "wt",
     .description = "wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position morphing, "
@@ -430,4 +445,6 @@ const engine_ops_t wt_engine = {
     .shared_floats = WT_FACTORY_FLOATS,
     .shared_build = wt_shared_build,
     .shared_attach = wt_shared_attach,
+    .stages = wt_stages,
+    .stage_count = (int)(sizeof wt_stages / sizeof wt_stages[0]),
 };

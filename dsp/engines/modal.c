@@ -453,6 +453,16 @@ static DSP_FAST_CODE void modal_render(void *st, float *L, float *R)
             voice_render(e, vi, vol0, vol1, L, R);
 }
 
+/* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+static const engine_stage_t modal_stages[] = {
+    {"exciter", "Exciter", "source", "hardness position noise bow bow_attack vel_brightness", "", NULL, NULL, 0.0f, 0.0f},
+    {"resonator", "Resonator", "filter", "model modes stretch inharmonicity decay damping brightness decay_keytrack tension unison aftersound",
+     "exciter", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "release volume pan_spread", "resonator", NULL, NULL, 0.0f, 0.0f},
+    {"motion", "Motion", "mod", "variation", "", "resonator", NULL, 0.0f, 0.0f},
+    {"voice", "Voice", "voice", "bend_range", "", NULL, NULL, 0.0f, 0.0f},
+};
+
 const engine_ops_t modal_engine = {
     .name = "modal",
     .description = "modal synthesis: banks of up to 32 resonators per note, struck (hammer/mallet + noise) or bowed (noise), "
@@ -467,4 +477,6 @@ const engine_ops_t modal_engine = {
     .pitch_bend = modal_pitch_bend,
     .mod_wheel = NULL,
     .render = modal_render,
+    .stages = modal_stages,
+    .stage_count = (int)(sizeof modal_stages / sizeof modal_stages[0]),
 };

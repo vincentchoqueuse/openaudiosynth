@@ -1,7 +1,9 @@
 <!-- Transport.svelte — the bar at the top, as in a DAW: play / stop the clip (Space), its tempo, loop on / off
-     (off: it plays once), where it is (bar . beat . sixteenth) and which clip. Always in view, whatever tab is open. -->
+     (off: it plays once), where it is (bar . beat . sixteenth), which clip, and the listening volume. Always in
+     view, whatever tab is open. -->
 <script>
   import { sequence as q } from './sequence.svelte.js';
+  import { session as s } from './session.svelte.js';
 </script>
 
 <div class="transport" role="toolbar" aria-label="Transport">
@@ -12,4 +14,11 @@
           title={q.loop ? `Loop on: the clip repeats every ${q.length} beats` : 'Loop off: the clip plays once'}>⟲ Loop</button>
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <span class="seqname">{q.name || 'untitled'}</span>
+  <span class="spacer"></span>
+  <label class="volume" title="Listening volume (double-click: 0 dB)">
+    <span aria-hidden="true">Vol</span>
+    <input type="range" min="-60" max="0" step="0.5" value={s.volume} oninput={(e) => s.setVolume(+e.target.value)}
+           ondblclick={() => s.setVolume(0)} style="--p:{((s.volume + 60) / 60) * 100}%" aria-label="Volume" />
+    <span class="mono db">{s.volume <= -60 ? 'off' : `${s.volume.toFixed(1)} dB`}</span>
+  </label>
 </div>

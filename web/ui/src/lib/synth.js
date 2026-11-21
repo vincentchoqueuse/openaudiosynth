@@ -71,8 +71,12 @@ export class Synth {
       this.analyser = ctx.createAnalyser();
       this.analyser.fftSize = 4096;
       this.analyser.smoothingTimeConstant = 0.6;
+      // the listening volume, after the meter (which shows the synth's own level): outside the synth, so no
+      // sound or patch changes it
+      this.volume = ctx.createGain();
       node.connect(this.analyser);
-      this.analyser.connect(ctx.destination);
+      this.analyser.connect(this.volume);
+      this.volume.connect(ctx.destination);
       this.ctx = ctx;
       this.node = node;
       await ctx.resume();
@@ -96,6 +100,12 @@ export class Synth {
   noteOff(note) { this.midi([0x80, note, 0]); }
   setParam(id, norm) { this.send({ type: 'param', id, norm }); }
   setEngine(id) { this.send({ type: 'engine', id }); }
+  // listening volume in dB (-60 or below: silent), glided over ~20 ms so that a move never clicks
+  setVolume(db) {
+    if (!this.volume) return;
+    const g = db <= -60 ? 0 : 10 ** (db / 20);
+    this.volume.gain.setTargetAtTime(g, this.ctx.currentTime, 0.02);
+  }
   partParam(part, id, norm) { this.send({ type: 'partParam', part, id, norm }); }
   stop() { this.send({ type: 'stop' }); }
 

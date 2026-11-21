@@ -49,6 +49,10 @@ code { font-family: var(--mono); font-size: 12px; }
 .transport .bpm input { width: 4.2em; border: 0; background: var(--faint); border-radius: 6px; padding: 4px 6px; color: var(--text); font: 13px var(--mono); }
 .transport .pos { font-size: 15px; color: var(--text); min-width: 3.5em; }
 .transport .seqname { color: var(--text); }
+.transport .spacer { flex: 1; }
+.transport .volume { display: inline-flex; align-items: center; gap: 8px; }
+.transport .volume input { width: 120px; }
+.transport .volume .db { min-width: 4.6em; text-align: right; color: var(--text); }
 .transport .loopbtn { padding: 4px 10px; border-radius: 6px; background: var(--faint); color: var(--muted); font-size: 12px; }
 .transport .loopbtn.on { background: var(--accent-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent); }
 .tabs .live { display: inline-block; width: 7px; height: 7px; margin-left: 7px; border-radius: 50%; background: var(--accent); vertical-align: 1px; animation: live 1s ease-in-out infinite alternate; }

@@ -33,6 +33,13 @@ class Session {
   saving = $state(null); // the save dialog: {name, description, exists, error}
   toast = $state(null); // {text, kind}: a short notice at the bottom
   canSave = import.meta.env.DEV; // writing into patches/ goes through the dev server
+  // the listening volume (dB, -60 = silent), kept in this browser; applied after the synth, whatever the sound
+  volume = $state((() => { try { const v = +localStorage.getItem('synth.volume'); return Number.isFinite(v) && v <= 0 && v >= -60 && localStorage.getItem('synth.volume') !== null ? v : -6; } catch { return -6; } })());
+  setVolume = (db) => {
+    this.volume = Math.min(0, Math.max(-60, db));
+    this.synth.setVolume(this.volume);
+    try { localStorage.setItem('synth.volume', String(this.volume)); } catch { /* storage unavailable */ }
+  };
 
   engine = $derived(this.catalog?.engines[this.engineId]);
   shared = $derived(this.catalog?.shared ?? []);
@@ -81,6 +88,7 @@ class Session {
     this.starting = true;
     try {
       this.catalog = await this.synth.start();
+      this.synth.setVolume(this.volume);
       this.started = true;
       this.resetValues(true);
       this.synth.on('midiin', (d) => {

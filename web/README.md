@@ -55,7 +55,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
 - **Transport** (on top, always in view): play / stop the clip (Space), tempo, loop on / off (off: it plays once),
-  position (bar . beat . sixteenth).
+  position (bar . beat . sixteenth), and the listening volume (after the synth and its meter, kept in the browser,
+  untouched by sounds and patches; double-click: 0 dB).
 - **Sequence tab**: a MIDI clip played with the current sound, on a piano roll: click to draw a note and drag to
   stretch it, drag a note to move it (time and pitch), its right edge to change its length, Alt-drag for its
   velocity, double-click or right-click to delete; everything snaps to the grid (Shift: finer). The clip's length

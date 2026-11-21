@@ -114,7 +114,7 @@
       {#each MODES as m, i}<button class:on={s.mode === i} onclick={() => commit({ ...clone(s), mode: i })}>{m}</button>{/each}
     </div>
     <div class="seg small">
-      {#each ['seconds', 'beats'] as m, i}<button class:on={s.sync === i} onclick={() => commit({ ...clone(s), sync: i })}>{m}</button>{/each}
+      {#each [['free', 'times in seconds'], ['sync', 'times in beats, locked to the tempo']] as [m, t], i}<button class:on={s.sync === i} title={t} onclick={() => commit({ ...clone(s), sync: i })}>{m}</button>{/each}
     </div>
     <select class="preset" value="" onchange={(e) => { if (e.target.value) { commit(fromPreset(e.target.value, s)); sel = -1; } e.target.value = ''; }}>
       <option value="">Shape…</option>

@@ -1,6 +1,6 @@
 <!-- LfoView.svelte — an LFO edited the way an envelope is (MsegEditor): a bar of choices on top (its shape; free
      rate or locked to the tempo), its drawing (two cycles, on a time axis in seconds or beats), and a bar of
-     settings below (rate or division, restart on a note for the part LFOs). `prefix` is "mlfo1_", "mlfo2_" or
+     settings below (rate or division, restart on a note for the part LFOs). Free or sync, as the envelopes. `prefix` is "mlfo1_", "mlfo2_" or
      "vlfo_" (dsp/mod/partmod.h); the shapes are bipolar, sh draws random steps. -->
 <script>
   import Param from './Param.svelte';
@@ -57,8 +57,8 @@
       {#each waves as w, i}<button class:on={wave === i} onclick={() => set(prefix + 'wave', i)}>{w}</button>{/each}
     </div>
     <div class="seg small">
-      <button class:on={!sync} onclick={() => set(prefix + 'sync', 0)}>free</button>
-      <button class:on={!!sync} onclick={() => { if (!sync) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4'))); }}>tempo</button>
+      <button class:on={!sync} title="a rate in Hz" onclick={() => set(prefix + 'sync', 0)}>free</button>
+      <button class:on={!!sync} title="a division, locked to the tempo" onclick={() => { if (!sync) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4'))); }}>sync</button>
     </div>
     <span class="muted info">{sync ? `one cycle per ${divs[sync]}` : `${+rate.toPrecision(3)} Hz`} · {fmt(cycle)} per cycle</span>
   </div>

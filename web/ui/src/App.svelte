@@ -30,6 +30,7 @@
   let main = $state(remembered('synth.main', 'clip'));
   if (!VIEWS.some(([id]) => id === main)) main = 'clip';
   $effect(() => remember('synth.main', main));
+  const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
   const onAccent = $derived.by(() => {
     const h = /^#?([0-9a-f]{6})$/i.exec(s.color ?? '');
@@ -78,13 +79,13 @@
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
       <div hidden={main !== 'clip'}><h1 class="viewtitle">Clip</h1><ClipTab /></div>
       {#if main === 'synth'}<h1 class="viewtitle">Synth</h1><SynthTab />{/if}
-      {#if main === 'code'}<h1 class="viewtitle">Code</h1><CodeView doc="sound" />{/if}
+      {#if main === 'code'}<h1 class="viewtitle">Code</h1><CodeView />{/if}
     </main>
 
     <footer>
       <MacroStrip engine={s.engine} shared={s.shared} byName={s.byName} values={s.values} setValue={s.setValue}
                   bind:names={s.macroNames} baseline={s.baseline} />
-      <Keyboard synth={s.synth} held={s.held} />
+      <Keyboard synth={s.synth} held={lit} />
     </footer>
 
     {#if s.toast}<div class="toast {s.toast.kind}" role="status">{s.toast.text}</div>{/if}

@@ -43,7 +43,7 @@ code { font-family: var(--mono); font-size: 12px; }
 /* layout: sidebar | main, keyboard along the bottom */
 .app { height: 100%; display: grid; grid-template: "side main" 1fr "side foot" auto / 232px 1fr; }
 /* the top bar: the sound, undo, level and volume; always in view */
-.topbar { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: -24px -32px 18px; padding: 10px 32px;
+.topbar { position: sticky; top: -24px; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr); align-items: center; gap: 14px; margin: -24px -32px 18px; padding: 10px 32px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .topbar .namebox { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .topbar .play { width: 30px; height: 30px; font-size: 11px; margin-right: 6px; }
@@ -56,7 +56,10 @@ code { font-family: var(--mono); font-size: 12px; }
 .topbar .menu button:hover:not(:disabled) { background: var(--faint); }
 .topbar .menu button:disabled { color: var(--muted); opacity: .6; }
 .topbar .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
-.topbar .viewtabs { display: flex; gap: 4px; margin-left: 6px; }
+.topbar .viewtabs { display: flex; gap: 4px; }
+.topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 14px; }
+.topbar .tb-left { min-width: 0; }
+.topbar .tb-right { justify-content: flex-end; }
 .topbar .viewtabs button { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px 5px 11px; border-radius: 999px;
                            background: var(--faint); color: var(--muted); font-size: 13px; font-weight: 600; }
 .topbar .viewtabs button:hover { color: var(--text); }
@@ -185,18 +188,8 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 @keyframes live { to { opacity: .35; } }
 
 /* parameter sections: cards in a grid */
-.groups { columns: 320px; column-gap: 14px; margin-top: 14px; } /* cards fill the columns: no holes between them */
-.groups > section.card { break-inside: avoid; margin: 0 0 14px; }
-.groups.row { columns: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; align-items: start; }
-.groups.row > section.card { margin: 0; }
-.groups.even { columns: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
-.groups.even > section.card { margin: 0; }
-/* in the narrow cards of a row: label and value on a line, the control under them at full width */
-.groups.row .param { grid-template-columns: 1fr auto; grid-template-areas: "l v" "c c"; row-gap: 2px; padding: 3px 0; }
-.groups.row .param .label { grid-area: l; }
-.groups.row .param .val, .groups.row .param .switch-cell { grid-area: v; }
-.groups.row .param input[type=range], .groups.row .param select, .groups.row .param .seg { grid-area: c; grid-column: 1 / -1; }
-.groups.row .param:has(.switch-cell) { grid-template-areas: "l v"; }
+.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; margin-top: 14px; } /* every card one width */
+.groups > section.card { margin: 0; }
 section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
 section.card.off .stage-head { margin-bottom: 0; }
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }

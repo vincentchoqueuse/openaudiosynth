@@ -2,7 +2,7 @@
      or the part's settings ("settings": MIDI channel, keys, transposition, MPE, plus the global tempo and tuning no
      effect claims). One card per stage of the signal chain when the engine describes its stages, else by name
      prefix. The engine's cards all one width, in the order its signal flows (sources, filters, amp, then modulators
-     and voice); the effects side by side, one per column, in the order of the bus; a stage that can be switched off has a switch, and folds to its title while off (switched off, it
+     and voice); the effects in the order of the bus; every card one width; a stage that can be switched off has a switch, and folds to its title while off (switched off, it
      remembers its value to come back to). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
@@ -80,7 +80,7 @@
 {/snippet}
 
 <div bind:this={host}>
-  <div class="groups" class:row={tab === 'fx'} class:even={tab !== 'fx'}>
+  <div class="groups">
     {#each ordered as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}
   </div>
 </div>

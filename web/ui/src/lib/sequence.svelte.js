@@ -35,6 +35,13 @@ class Sequence {
     return `${Math.floor(b / 4) + 1}.${Math.floor(b % 4) + 1}.${Math.floor((b % 1) * 4) + 1}`;
   });
 
+  // the pitches the clip plays now, for the keyboard to light
+  sounding = $derived.by(() => {
+    if (!this.playing || this.beat < 0) return new Set();
+    const b = this.loop && this.length > 0 ? this.beat % this.length : this.beat;
+    return new Set(this.notes.filter((n) => b >= n.start && b < n.start + n.length).map((n) => n.pitch));
+  });
+
   #silent = false; // the clip sent last was empty: the player stops by itself, the transport stays on
   #pending = null;
   #ready = false;

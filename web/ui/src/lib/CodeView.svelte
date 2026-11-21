@@ -1,6 +1,5 @@
-<!-- CodeView.svelte — the Code mode of a tab: the one document that tab is about, in a code editor (CodeEditor: line
-     numbers, colors, errors underlined). `doc` = "sound" (the patch file, Synth tab) or "clip" (the clip, Play
-     tab). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader for the sound, fromDoc for the clip,
+<!-- CodeView.svelte — the Code view: the instrument (the sound's patch file) or the sequencer (the clip), chosen
+     with a pill, in a code editor as tall as the page (CodeEditor: line numbers, colors, errors underlined). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader for the sound, fromDoc for the clip,
      whose message says what is wrong. Reload writes it again from what plays; the text follows what plays until
      it is typed in. -->
 <script>
@@ -9,7 +8,9 @@
   import { sequence as q } from './sequence.svelte.js';
   import { SCALES, GRIDS } from './seqExport.js';
   const editor = import('./CodeEditor.svelte'); // the code editor stays out of the main bundle
-  let { doc } = $props();
+  import { remembered, remember } from './fold.js';
+  let doc = $state(remembered('synth.code', 'sound'));
+  $effect(() => remember('synth.code', doc));
 
   const DOCS = {
     sound: { text: () => JSON.stringify(s.currentPatch(), null, 2) + '\n',
@@ -34,11 +35,16 @@
     busy = false;
     if (!error) text = shown;
   }
+  function pick(v) { doc = v; error = ''; text = shown = DOCS[v].text(); } // another document: its text as it plays
   function reload() { error = ''; text = shown; }
 </script>
 
 <div class="codeview">
   <div class="toolbar">
+    <div class="seg small" role="group" aria-label="Document">
+      <button class:on={doc === 'sound'} onclick={() => pick('sound')}>Instrument</button>
+      <button class:on={doc === 'clip'} onclick={() => pick('clip')}>Sequencer</button>
+    </div>
     <span class="status" class:bad={syntax || error} class:ok={!syntax && !error && !edited}>
       {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : 'As it plays')}
     </span>
@@ -49,15 +55,19 @@
   {#await editor}
     <div class="loading">Loading the editor…</div>
   {:then m}
-    <m.default bind:value={text} onrun={apply} />
+    <div class="edit"><m.default bind:value={text} onrun={apply} /></div>
   {/await}
   <p class="hint">{d.hint}</p>
 </div>
 
 <style>
-  .codeview { display: grid; gap: 10px; }
+  .codeview { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; height: calc(100% - 96px); min-height: 360px; }
+  .codeview .toolbar { margin: 0; }
+  .edit { min-height: 0; }
+  .edit :global(.code) { height: 100%; resize: none; }
+  .hint { margin: 0; }
   .status { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .status.bad { color: var(--hot); white-space: normal; }
   .status.ok { color: var(--ok); }
-  .loading { height: 460px; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
+  .loading { height: 100%; display: grid; place-items: center; color: var(--muted); font-size: 12px; }
 </style>

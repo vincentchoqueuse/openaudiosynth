@@ -1,32 +1,17 @@
-<!-- TopBar.svelte — the bar above both tabs: the sound (its instrument to switch, its name, which opens its
-     description, how many parameters moved since it was loaded with Revert, Save to library in development,
+<!-- TopBar.svelte — the bar above both tabs: the sound (its instrument to switch, its name (its description is
+     the Synth tab's Info), how many parameters moved since it was loaded with Revert, Save to library in development,
      Export), undo / redo, the output level and the listening volume. Playing the clip is in the Play tab. -->
 <script>
   import { session as s } from './session.svelte.js';
   import { history as h } from './history.svelte.js';
-  let about = $state(false); // the sound's description, under its name
 </script>
-
-<svelte:window onpointerdown={(e) => { if (about && !e.target.closest?.('.namebox')) about = false; }}
-               onkeydown={(e) => { if (e.key === 'Escape') about = false; }} />
 
 <header class="topbar">
   <select class="engine" value={s.engineId} onchange={(e) => s.setEngine(+e.target.value)} aria-label="Instrument">
     {#each s.catalog.engines as e}<option value={e.id}>{e.name}</option>{/each}
   </select>
   <div class="namebox">
-    {#key s.picks}
-      <button class="name" class:flash={s.picks > 0} onclick={() => (about = !about)} aria-expanded={about} title="its description">{s.title} <span class="caret">˅</span></button>
-    {/key}
-    {#if about}
-      <div class="about" role="dialog" aria-label="About this sound">
-        <label>Description
-          <textarea rows="4" bind:value={s.description} placeholder="What it sounds like, how to play it"></textarea>
-        </label>
-        <p class="muted small"><b>{s.engine?.name}</b> — {s.engine?.description}</p>
-        {#if s.current}<p class="muted small mono">patches/{s.current}</p>{/if}
-      </div>
-    {/if}
+    {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
   </div>
   {#if s.changedCount}
     <span class="badge" title="parameters moved since the sound was loaded">{s.changedCount} edited</span>

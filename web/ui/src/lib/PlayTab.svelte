@@ -14,7 +14,7 @@
   const pickLive = (v) => { live = v; remember('synth.live', v); };
 </script>
 
-<div class="tabs" role="tablist" aria-label="Play">
+<div class="tabs sub" role="tablist" aria-label="Play">
   {#each TABS as [id, name]}
     <button role="tab" aria-selected={tab === id} class:on={tab === id} onclick={() => pick(id)}>{name}</button>
   {/each}

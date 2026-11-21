@@ -60,13 +60,13 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
 - **Layout**: the sound library on the left; the top bar (the sound: instrument, name, Save, Export; undo / redo;
-  level and volume); two main tabs, **Play** (tabs: Visualizer, wave or spectrum; Macros, sliders to play, with their CC; Sequencer) and **Synth** (tabs: Structure, whose blocks open their settings;
+  level and volume); two main tabs, **Play** (tabs: Visualizer, wave or spectrum; Macros, sliders to play, with their CC; Sequencer) and **Synth** (tabs: Info, the sound's description; Structure, whose blocks open their settings;
   Macros as a table like the modulation matrix; the engine named after the instrument; Effects; Modulation), each in **Visual** or **Code** mode (the clip's or the patch's JSON); the keyboard along the bottom.
 - **Interface rules** (every part of the page follows them):
   - underlined tabs move between pages or editors (Play / Synth, the Sound editors); pills choose a value or a mode
     (Visual / Code, Draw / Select, an LFO's shape, an envelope's seconds / beats); never the other way round;
-  - three levels of underlined tabs, each smaller than the one above: Play / Synth; then the tabs of each
-    (Visualizer, Macros, Sequencer; Structure, Macros, the engine, Effects, Modulation); then an editor's own views
+  - three levels of tabs, each one its own look: Play / Synth, large and underlined; then the tabs of each, filled
+    and rounded (Visualizer, Macros, Sequencer; Info, Structure, Macros, the engine, Effects, Modulation); then, small and underlined, an editor's own views
     (macro Names / Assignments, Modulators / Assignments, one tab per sampler pad then Kit); everything flat, no folds;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;

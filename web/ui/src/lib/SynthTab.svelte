@@ -25,7 +25,7 @@
 
 <ChainView engine={s.engine} fx={s.catalog.fx} values={s.values} byName={s.byName} getP={s.getP} onpick={pick} />
 
-<div class="tabs" role="tablist" aria-label="Synth">
+<div class="tabs pills" role="tablist" aria-label="Synth">
   {#each TABS as [id, name]}
     <button role="tab" aria-selected={s.editorTab === id} class:on={s.editorTab === id} onclick={() => s.goTo(id)}>{name}</button>
   {/each}

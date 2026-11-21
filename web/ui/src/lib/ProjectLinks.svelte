@@ -10,7 +10,7 @@
 <nav class="links" aria-label="Project">
   {#if s.started}
     <button class="theme" onclick={() => (s.settingsOpen = true)} title="Settings: MIDI channel, keys, MPE, tempo, tuning" aria-label="Settings">
-      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="8" cy="8" r="2.3"/><path d="M8 1.5v2M8 12.5v2M1.5 8h2M12.5 8h2M3.4 3.4l1.4 1.4M11.2 11.2l1.4 1.4M3.4 12.6l1.4-1.4M11.2 4.8l1.4-1.4"/></g></svg>
+      <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"><path d="M13.29,6.93 L15.15,7.14 L15.15,8.86 L13.29,9.07 L12.50,10.98 L13.66,12.45 L12.45,13.66 L10.98,12.50 L9.07,13.29 L8.86,15.15 L7.14,15.15 L6.93,13.29 L5.02,12.50 L3.55,13.66 L2.34,12.45 L3.50,10.98 L2.71,9.07 L0.85,8.86 L0.85,7.14 L2.71,6.93 L3.50,5.02 L2.34,3.55 L3.55,2.34 L5.02,3.50 L6.93,2.71 L7.14,0.85 L8.86,0.85 L9.07,2.71 L10.98,3.50 L12.45,2.34 L13.66,3.55 L12.50,5.02Z"/><circle cx="8" cy="8" r="2.2"/></g></svg>
     </button>
   {/if}
   <button class="theme" onclick={theme.next} title="{LABEL[theme.mode]} (click to change)" aria-label={LABEL[theme.mode]}>

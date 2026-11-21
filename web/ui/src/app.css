@@ -50,6 +50,7 @@ code { font-family: var(--mono); font-size: 12px; }
 .topbar .seqlabel { font-size: 12px; color: var(--muted); margin-right: -6px; }
 .topbar .sep { width: 1px; height: 22px; background: var(--line); }
 .topbar .filemenu { position: relative; }
+.topbar .filemenu > button { display: inline-flex; align-items: center; gap: 7px; }
 .topbar .caret { font-size: 10px; color: var(--muted); }
 .topbar .menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 6; min-width: 200px; display: grid; padding: 5px;
                 background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.25); }
@@ -61,7 +62,7 @@ code { font-family: var(--mono); font-size: 12px; }
 .topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 14px; }
 .topbar .tb-left { min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; }
-.topbar .viewtabs button { width: 84px; padding: 5px 0; text-align: center; border-radius: 999px;
+.topbar .viewtabs button { width: 84px; padding: 5px 0; text-align: center; border-radius: 7px;
                            background: var(--faint); color: var(--muted); font-size: 13px; font-weight: 600; }
 .topbar .viewtabs button:hover { color: var(--text); }
 .topbar .viewtabs button.on { background: var(--accent); color: var(--on-accent); }
@@ -170,7 +171,12 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .tabs .small { margin-left: auto; font-size: 12px; }
 .tabs .tabtools { margin-left: auto; align-self: center; margin-bottom: 4px; }
 .tabs .seg button { border-bottom: 0; margin: 0; padding: 3px 10px; }
-/* third level (an editor's own tabs): smaller */
+/* second level (the Synth view's tabs): pills, smaller than the views' */
+.tabs.pills { gap: 4px; border-bottom: 0; margin: 14px 0 14px; }
+.tabs.pills > button[role=tab] { padding: 4px 12px; border: 0; margin: 0; border-radius: 6px; background: var(--faint); font-size: 12.5px; }
+.tabs.pills > button[role=tab]:hover { color: var(--text); }
+.tabs.pills > button[role=tab].on { background: var(--accent); color: var(--on-accent); }
+/* third level (an editor's own tabs): small, underlined */
 .tabs.small { gap: 18px; margin-bottom: 12px; }
 .tabs.small button { font-size: 12px; padding: 4px 0 7px; }
 /* the one toolbar: settings on the left (a label, then its control), actions on the right, one height */

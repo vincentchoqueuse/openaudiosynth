@@ -55,18 +55,19 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   double-click to add or remove a point, click a point to make it the sustain point or a loop boundary, loop mode
   (one shot, loop held, loop free), seconds or beats, starting shapes. Under it, the routes that envelope drives;
   then every route as a readable row (source → parameter by name, amount shown in the destination's units, via).
-- **Layout**: the sound library on the left (it also picks the instrument); one top bar: the File menu (Save,
-  Export sound, Export song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts) and the sound's
-  name on the left; on the right the level, the volume, Sequencer ▶ (play / stop), a rule, then the three views,
-  pills of one width: **Sequence** (Live, wave or spectrum, then the sequencer: tempo, loop, position, piano roll),
-  **Synth** (Structure always on top, its blocks open their settings, then tabs: Info, Macros (Names; Assignments,
-  16 fixed rows), the engine (in the order the signal flows), Effects, Modulation) and **Code** (the instrument, the
-  patch file, or the sequencer, the clip, in an editor as tall as the page). Each view starts with its title. Along
-  the bottom, the 8 macros to play (2 rows of 4) above the keyboard, which lights the notes the clip plays.
+- **Layout**: the sound library on the left (it also picks the instrument); one top bar, read from the left: the
+  three views, pills of one width (**Sequence**, **Synth**, **Code**), a rule, the Menu (Save, Export sound, Export
+  song, Revert, Instrument defaults, Share (QR code), Undo / Redo, Shortcuts) and the sound's name; on the right the
+  level, the volume, a rule and Sequencer ▶ (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
+  (tempo, loop, position, piano roll). **Synth**: Structure always on top, its blocks open their settings, then
+  smaller pills: Info, Macros (Names; Assignments, 16 fixed rows), the engine (in the order the signal flows),
+  Effects, Modulation. **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
+  the page. Each view starts with its title. Along the bottom, the 8 macros to play (2 rows of 4) above the
+  keyboard, which lights the notes the clip plays.
 - **Interface rules** (every part of the page follows them):
   - tabs move between views or editors; pills choose a value or a mode (Wave / Spectrum, Draw / Select, an LFO's
     shape, an envelope's seconds / beats); never the other way round;
-  - three levels, each its own look: the main views as pills in the top bar (Sequence, Synth, Code); then underlined tabs
+  - three levels, each its own look: the main views as pills in the top bar (Sequence, Synth, Code); then smaller pills
     (Info, Macros, the engine, Effects, Modulation); then smaller underlined tabs for an editor's
     own views (macro Names / Assignments, Modulators / Assignments, one tab per sampler pad then Kit); no folds;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain

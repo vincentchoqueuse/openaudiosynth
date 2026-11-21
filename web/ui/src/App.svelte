@@ -1,6 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the top
-     bar (the sound: name, Save, Export; undo; level and volume); three main views as nav tabs with an icon: Play (Live,
-     then Macros and Sequencer), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the keyboard along the bottom. State and actions live in lib/session.svelte.js and
+     bar (File menu, the sound's name, play / stop, the views, undo, level and volume); three main views in the top bar: Clip (Live,
+     then Sequencer and Macros), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the keyboard along the bottom. State and actions live in lib/session.svelte.js and
      lib/sequence.svelte.js; the interface takes the color of the instrument playing. Space plays / stops the clip. -->
 <script>
   import { session as s } from './lib/session.svelte.js';
@@ -8,8 +8,7 @@
   import Splash from './lib/Splash.svelte';
   import Sidebar from './lib/Sidebar.svelte';
   import TopBar from './lib/TopBar.svelte';
-  import PlayerBar from './lib/PlayerBar.svelte';
-  import PlayTab from './lib/PlayTab.svelte';
+  import ClipTab from './lib/ClipTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
   import CodeView from './lib/CodeView.svelte';
   import { remembered, remember } from './lib/fold.js';
@@ -23,12 +22,13 @@
 
   // the three main views (kept in the browser)
   const VIEWS = [
-    ['play', 'Play', 'M4.5 3.2v9.6L12.5 8z'],
+    ['clip', 'Clip', 'M2 4h5M5.5 8h6M9 12h5'],
     ['synth', 'Synth', 'M3 2.5v11M8 2.5v11M13 2.5v11M1.5 10h3M6.5 5.5h3M11.5 8.5h3'],
     ['code', 'Code', 'M5.5 4 2 8l3.5 4M10.5 4 14 8l-3.5 4'],
   ];
-  let main = $state(remembered('synth.main', 'play'));
-  const pickMain = (t) => { main = t; remember('synth.main', t); };
+  let main = $state(remembered('synth.main', 'clip'));
+  if (!VIEWS.some(([id]) => id === main)) main = 'clip';
+  $effect(() => remember('synth.main', main));
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
   const onAccent = $derived.by(() => {
     const h = /^#?([0-9a-f]{6})$/i.exec(s.color ?? '');
@@ -73,17 +73,9 @@
     <Sidebar />
 
     <main>
-      <TopBar />
-      <PlayerBar />
-      <nav class="maintabs" role="tablist" aria-label="Views">
-        {#each VIEWS as [id, name, d]}
-          <button role="tab" aria-selected={main === id} class:on={main === id} onclick={() => pickMain(id)}>
-            <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d={d} fill={id === 'play' ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>{name}
-          </button>
-        {/each}
-      </nav>
-      <!-- Play stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'play'}><PlayTab /></div>
+      <TopBar bind:view={main} views={VIEWS} />
+      <!-- Clip stays mounted: its scope measures the level of the top bar -->
+      <div hidden={main !== 'clip'}><ClipTab /></div>
       {#if main === 'synth'}<SynthTab />{/if}
       {#if main === 'code'}<CodeView doc="sound" />{/if}
     </main>

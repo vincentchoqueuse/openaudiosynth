@@ -43,15 +43,24 @@ code { font-family: var(--mono); font-size: 12px; }
 /* layout: sidebar | main, keyboard along the bottom */
 .app { height: 100%; display: grid; grid-template: "side main" 1fr "side foot" auto / 232px 1fr; }
 /* the top bar: the sound, undo, level and volume; always in view */
-.topbar { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: -24px -32px 0; padding: 10px 32px;
+.topbar { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: -24px -32px 18px; padding: 10px 32px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.playerbar { position: sticky; top: 27px; z-index: 3; display: flex; align-items: center; gap: 14px; margin: 0 -32px; padding: 8px 32px;
-  background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.playerbar .play { width: 30px; height: 30px; font-size: 11px; }
-.playerbar .pos { font-size: 14px; color: var(--text); min-width: 4.5em; }
-.playerbar .clipname { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.topbar .engine { border: 0; background: var(--faint); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text); }
-.topbar .namebox { position: relative; min-width: 0; }
+.topbar .namebox { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.topbar .play { width: 30px; height: 30px; font-size: 11px; }
+.topbar .filemenu { position: relative; }
+.topbar .caret { font-size: 10px; color: var(--muted); }
+.topbar .menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 6; min-width: 200px; display: grid; padding: 5px;
+                background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 28px rgba(0,0,0,.25); }
+.topbar .menu button { text-align: left; padding: 6px 10px; border-radius: 6px; font-size: 12.5px; color: var(--text); }
+.topbar .menu button:hover:not(:disabled) { background: var(--faint); }
+.topbar .menu button:disabled { color: var(--muted); opacity: .6; }
+.topbar .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
+.topbar .viewtabs { display: flex; gap: 2px; align-self: flex-end; margin: 0 0 -11px 8px; }
+.topbar .viewtabs button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 16px 9px 13px; border: 1px solid transparent;
+                           border-bottom: 0; border-radius: 9px 9px 0 0; color: var(--muted); font-size: 13.5px; font-weight: 600; }
+.topbar .viewtabs button:hover { color: var(--text); background: var(--faint); }
+.topbar .viewtabs button.on { color: var(--text); background: var(--bg); border-color: var(--line); box-shadow: inset 0 2px 0 var(--accent); }
+.topbar .viewtabs button.on svg { color: var(--accent); }
 .topbar .name.flash { animation: flash .9s ease-out; } /* a sound just loaded */
 @keyframes flash { from { color: var(--accent); } to { color: var(--text); } }
 .topbar .help { width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--line); color: var(--muted); font-size: 12px; }
@@ -156,14 +165,6 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 /* third level (an editor's own tabs): smaller */
 .tabs.small { gap: 18px; margin-bottom: 12px; }
 .tabs.small button { font-size: 12px; padding: 4px 0 7px; }
-/* the main views (Play, Synth, Code): nav tabs with an icon, the open one joined to the page under it */
-.maintabs { display: flex; gap: 2px; margin: 18px 0 16px; padding: 0 4px; border-bottom: 1px solid var(--line); }
-.maintabs button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 18px 8px 14px; margin-bottom: -1px;
-                   border: 1px solid transparent; border-bottom: 0; border-radius: 9px 9px 0 0; background: none;
-                   color: var(--muted); font-size: 13.5px; font-weight: 600; }
-.maintabs button:hover { color: var(--text); background: var(--faint); }
-.maintabs button.on { color: var(--text); background: var(--bg); border-color: var(--line); box-shadow: inset 0 2px 0 var(--accent); }
-.maintabs button.on svg { color: var(--accent); }
 /* the one toolbar: settings on the left (a label, then its control), actions on the right, one height */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 30px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .toolbar label { display: inline-flex; align-items: center; gap: 6px; }
@@ -184,10 +185,8 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .groups > section.card { break-inside: avoid; margin: 0 0 14px; }
 .groups.row { columns: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; align-items: start; }
 .groups.row > section.card { margin: 0; }
-.flow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 14px; align-items: start; margin: 14px 0; }
-.flow .lane { display: grid; gap: 14px; align-content: start; }
-.flow .lane > section.card { margin: 0; }
-@media (max-width: 760px) { .flow { grid-auto-flow: row; } }
+.groups.even { columns: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; align-items: start; }
+.groups.even > section.card { margin: 0; }
 /* in the narrow cards of a row: label and value on a line, the control under them at full width */
 .groups.row .param { grid-template-columns: 1fr auto; grid-template-areas: "l v" "c c"; row-gap: 2px; padding: 3px 0; }
 .groups.row .param .label { grid-area: l; }
@@ -247,24 +246,8 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 
 @media (max-width: 760px) {
   .app { grid-template: "side" auto "main" 1fr "foot" auto / 1fr; }
-  .topbar { margin: -16px -16px 0; padding: 8px 16px; top: -16px; }
-  .playerbar { margin: 0 -16px; padding: 6px 16px; top: 0; position: static; }
-  aside { padding: 10px 16px 6px; border-right: 0; border-bottom: 1px solid var(--line); }
-  aside:not(.open) .library, aside:not(.open) .side-foot { display: none; }
-  aside.open { max-height: 60vh; }
-  .brand { padding-bottom: 6px; }
-  .brand .drawer { display: inline-block; margin-left: auto; }
-  .monitor { height: 96px; }
-  .topbar { flex-wrap: wrap; row-gap: 6px; }
-  .topbar .spacer { flex-basis: 100%; height: 0; }
-  .topbar .volume input { width: 90px; }
-  .topbar .vu .track { width: 60px; }
-  .tabs { overflow-x: auto; gap: 18px; }
-  .tabs button { white-space: nowrap; }
-  main { padding: 16px; }
-  footer { padding: 8px 16px; }
-  .param { grid-template-columns: 7.5em 1fr 4.8em; }
-}
+  .topbar { margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
+  }
 
 /* cards (modulation tab) */
 .card { border-top: 1px solid var(--faint); padding-top: 14px; margin-bottom: 26px; }

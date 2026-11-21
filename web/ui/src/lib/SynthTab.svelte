@@ -29,7 +29,6 @@
   {#each TABS as [id, name]}
     <button role="tab" aria-selected={s.editorTab === id} class:on={s.editorTab === id} onclick={() => s.goTo(id)}>{name}</button>
   {/each}
-  {#if s.editorTab === 'engine'}<button class="link small tabtools" onclick={s.resetEngine} title="the instrument's default sound">Defaults</button>{/if}
 </div>
 
 {#if s.editorTab === 'info'}

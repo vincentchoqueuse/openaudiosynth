@@ -43,11 +43,12 @@ code { font-family: var(--mono); font-size: 12px; }
 /* layout: sidebar | main, keyboard along the bottom */
 .app { height: 100%; display: grid; grid-template: "side main" 1fr "side foot" auto / 232px 1fr; }
 /* the top bar: the sound, undo, level and volume; always in view */
-.topbar { position: sticky; top: -24px; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr); align-items: center; gap: 14px; margin: -24px -32px 18px; padding: 10px 32px;
+.topbar { position: sticky; top: -24px; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 14px; margin: -24px -32px 18px; padding: 10px 32px;
   background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .topbar .namebox { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.topbar .play { width: 30px; height: 30px; font-size: 11px; margin-right: 6px; }
+.topbar .play { width: 30px; height: 30px; font-size: 11px; }
 .topbar .seqlabel { font-size: 12px; color: var(--muted); margin-right: -6px; }
+.topbar .sep { width: 1px; height: 22px; background: var(--line); }
 .topbar .filemenu { position: relative; }
 .topbar .caret { font-size: 10px; color: var(--muted); }
 .topbar .menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 6; min-width: 200px; display: grid; padding: 5px;
@@ -60,7 +61,7 @@ code { font-family: var(--mono); font-size: 12px; }
 .topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 14px; }
 .topbar .tb-left { min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; }
-.topbar .viewtabs button { display: inline-flex; align-items: center; gap: 7px; padding: 5px 14px 5px 11px; border-radius: 999px;
+.topbar .viewtabs button { width: 84px; padding: 5px 0; text-align: center; border-radius: 999px;
                            background: var(--faint); color: var(--muted); font-size: 13px; font-weight: 600; }
 .topbar .viewtabs button:hover { color: var(--text); }
 .topbar .viewtabs button.on { background: var(--accent); color: var(--on-accent); }
@@ -162,7 +163,7 @@ h1 { font-size: 26px; font-weight: 650; letter-spacing: -.025em; margin: 0; whit
 .monitor canvas { display: block; width: 100%; height: 100%; }
 .monitor .tag { position: absolute; top: 7px; left: 10px; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; pointer-events: none; }
 
-.tabs { display: flex; gap: 22px; align-items: center; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: 22px; align-items: flex-end; margin: 0 0 16px; border-bottom: 1px solid var(--line); }
 .tabs button { padding: 6px 0 9px; color: var(--muted); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
 .tabs button:hover { color: var(--text); }
 .tabs button.on { color: var(--text); border-color: var(--accent); }

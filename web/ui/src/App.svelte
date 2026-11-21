@@ -1,5 +1,5 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left; the top
-     bar (File menu, the sound's name, play / stop, the views, undo, level and volume); three main views in the top bar: Clip (Live,
+     bar (File menu, the sound's name, play / stop, the views, undo, level and volume); three main views in the top bar: Sequence (Live,
      then Sequencer), Synth (Structure, then the sound's editors) and Code (the sound's JSON); the macros to play and the keyboard along the bottom. State and actions live in lib/session.svelte.js and
      lib/sequence.svelte.js; the interface takes the color of the instrument playing. Space plays / stops the clip. -->
 <script>
@@ -23,9 +23,9 @@
 
   // the three main views (kept in the browser)
   const VIEWS = [
-    ['clip', 'Clip', 'M2 4h5M5.5 8h6M9 12h5'],
-    ['synth', 'Synth', 'M3 2.5v11M8 2.5v11M13 2.5v11M1.5 10h3M6.5 5.5h3M11.5 8.5h3'],
-    ['code', 'Code', 'M5.5 4 2 8l3.5 4M10.5 4 14 8l-3.5 4'],
+    ['clip', 'Sequence'],
+    ['synth', 'Synth'],
+    ['code', 'Code'],
   ];
   let main = $state(remembered('synth.main', 'clip'));
   if (!VIEWS.some(([id]) => id === main)) main = 'clip';
@@ -77,7 +77,7 @@
     <main>
       <TopBar bind:view={main} views={VIEWS} />
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'clip'}><h1 class="viewtitle">Clip</h1><ClipTab /></div>
+      <div hidden={main !== 'clip'}><h1 class="viewtitle">Sequence</h1><ClipTab /></div>
       {#if main === 'synth'}<h1 class="viewtitle">Synth</h1><SynthTab />{/if}
       {#if main === 'code'}<h1 class="viewtitle">Code</h1><CodeView />{/if}
     </main>

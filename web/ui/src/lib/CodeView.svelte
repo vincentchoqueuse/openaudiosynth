@@ -61,9 +61,9 @@
 </div>
 
 <style>
-  .codeview { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; gap: 10px; height: calc(100% - 96px); min-height: 360px; }
+  .codeview { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr) auto; min-width: 0; gap: 10px; height: calc(100% - 96px); min-height: 360px; }
   .codeview .toolbar { margin: 0; }
-  .edit { min-height: 0; }
+  .edit { min-height: 0; min-width: 0; overflow: hidden; }
   .edit :global(.code) { height: 100%; resize: none; }
   .hint { margin: 0; }
   .status { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

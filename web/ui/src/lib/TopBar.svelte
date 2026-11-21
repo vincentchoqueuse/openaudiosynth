@@ -1,6 +1,6 @@
 <!-- TopBar.svelte — the one bar above everything: the File menu (Save to the library in development, Export sound,
-     Export song, Revert, Share, Undo / Redo, Shortcuts), the sound's name, the three views (Clip, Synth, Code) as pills with an
-     icon, play / stop the clip (Space), the output level and the listening volume. -->
+     Export song, Revert, Share, Undo / Redo, Shortcuts), the sound's name; on the right the output level, the listening volume,
+     play / stop the sequence (Space), then the three views (Sequence, Synth, Code), pills of one width. -->
 <script>
   import { session as s } from './session.svelte.js';
   import { history as h } from './history.svelte.js';
@@ -23,6 +23,7 @@
         <button role="menuitem" onclick={() => act(s.exportPatch)}>Export sound (JSON)</button>
         <button role="menuitem" onclick={() => act(q.exportSong)}>Export song</button>
         <button role="menuitem" disabled={!s.changedCount} onclick={() => act(s.revert)}>{s.info ? 'Revert to saved' : 'Back to defaults'}</button>
+        <button role="menuitem" onclick={() => act(s.resetEngine)}>Instrument defaults</button>
         <button role="menuitem" onclick={() => act(() => (s.shareOpen = true))}>Share (QR code)…</button>
         <hr />
         <button role="menuitem" disabled={!h.canUndo} onclick={() => act(h.undo)}>Undo <kbd>⌘Z</kbd></button>
@@ -36,16 +37,7 @@
     {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
   </div>
   </div>
-  <nav class="viewtabs" role="tablist" aria-label="Views">
-    {#each views as [id, name, d]}
-      <button role="tab" aria-selected={view === id} class:on={view === id} onclick={() => (view = id)}>
-        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><path d={d} fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>{name}
-      </button>
-    {/each}
-  </nav>
   <div class="tb-right">
-  <span class="seqlabel">Sequencer</span>
-  <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   <div class="vu" class:hot={s.meter.hold > -1} title="Output peak (dBFS), before the volume">
     <div class="track"><div class="fill" style="width:{s.meter.level * 100}%"></div></div>
     <span class="mono">{isFinite(s.meter.hold) && s.meter.hold > -90 ? s.meter.hold.toFixed(0) : '−∞'}</span>
@@ -56,5 +48,13 @@
            ondblclick={() => s.setVolume(0)} style="--p:{((s.volume + 60) / 60) * 100}%" aria-label="Volume" />
     <span class="mono db">{s.volume <= -60 ? 'off' : `${s.volume.toFixed(1)} dB`}</span>
   </label>
+  <span class="seqlabel">Sequencer</span>
+  <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
+  <span class="sep" aria-hidden="true"></span>
+  <nav class="viewtabs" role="tablist" aria-label="Views">
+      {#each views as [id, name]}
+        <button role="tab" aria-selected={view === id} class:on={view === id} onclick={() => (view = id)}>{name}</button>
+      {/each}
+    </nav>
   </div>
 </header>

@@ -184,7 +184,7 @@ the sequencer: notes are sent when they are due, with the heartbeat while they a
 
 ```sh
 tools/board.py --iface en0 discover
-tools/board.py --iface en0 audition gull_laugh
+tools/board.py --iface en0 audition modal_bowl_bowed
 tools/board.py --iface en0 play "A2 A2 C3 A2 - A2 G2 A2" --bpm 130 --loop 4 --sweep 13:10:120
 tools/board.py --iface en0 test --seconds 2      # every preset: select, play its phrase, read the load
 ```

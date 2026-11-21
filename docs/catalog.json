@@ -1161,33 +1161,6 @@
         "pad16_cutoff": {"type": "float", "range": [20, 20000], "default": 20000, "unit": "Hz", "scale": "log", "realtime": true, "role": "pad16.cutoff", "help": "low-pass cutoff (20 kHz: open)"},
         "pad16_choke": {"type": "int", "range": [0, 8], "default": 0, "realtime": false, "role": "pad16.choke", "help": "choke group 1..8: a pad stops the others of its group (closed hi-hat over open); 0 none"}
       }
-    },
-    "gull": {
-      "description": "seabird calls: each note a series of syllables jumping up then sliding down, a nasal pulse through a moving vowel formant, hoarse subharmonic, jitter and breath; several notes make a colony (8 voices)",
-      "voices": 8,
-      "params": {
-        "calls": {"type": "int", "range": [1, 16], "default": 3, "realtime": false, "role": "gull.calls", "help": "syllables in one call (1 = a single 'kee-ow', 6 = a laugh); random varies it from call to call"},
-        "loop": {"type": "enum", "choices": ["off", "on"], "default": "off", "realtime": false, "role": "gull.loop", "help": "on: the bird keeps calling while the key is held, with pauses between its calls"},
-        "syllable": {"type": "float", "range": [0.04, 1.5], "default": 0.24, "unit": "s", "scale": "log", "realtime": true, "role": "gull.syllable", "help": "length of the first syllable"},
-        "gap": {"type": "float", "range": [0, 1], "default": 0.07, "unit": "s", "realtime": true, "role": "gull.gap", "help": "silence between syllables"},
-        "accel": {"type": "float", "range": [-0.3, 0.3], "default": 0.08, "realtime": true, "role": "gull.accel", "help": "each syllable shorter than the last by this fraction (> 0: the laugh speeds up)"},
-        "rise": {"type": "float", "range": [0, 12], "default": 5, "unit": "st", "realtime": true, "role": "gull.rise", "help": "the jump up at the start of each syllable"},
-        "fall": {"type": "float", "range": [0, 24], "default": 9, "unit": "st", "realtime": true, "role": "gull.fall", "help": "the slide down after the peak, below the note"},
-        "peak": {"type": "float", "range": [0.05, 0.8], "default": 0.25, "realtime": true, "role": "gull.peak", "help": "where the pitch peaks in the syllable (0.25 = early: 'KEE-ow')"},
-        "roughness": {"type": "float", "range": [0, 1], "default": 0.35, "realtime": true, "role": "gull.roughness", "help": "subharmonic (period doubling): a hoarse, breaking voice"},
-        "jitter": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": true, "role": "gull.jitter", "help": "unsteady pitch"},
-        "noise": {"type": "float", "range": [0, 1], "default": 0.15, "realtime": true, "role": "gull.noise", "help": "breath noise"},
-        "pulse_width": {"type": "float", "range": [0.05, 0.5], "default": 0.18, "realtime": true, "role": "osc1.pulse_width", "help": "narrow = nasal and thin, 0.5 = hollow"},
-        "formant": {"type": "float", "range": [300, 4000], "default": 1500, "unit": "Hz", "scale": "log", "realtime": true, "role": "filter.cutoff", "help": "size of the throat: the formants scale with it (1 kHz = a human voice, higher = a smaller bird)"},
-        "resonance": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": true, "role": "filter.resonance", "help": "formant sharpness"},
-        "vowel": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "filter.character", "help": "vowel at the start of a syllable (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u)"},
-        "vowel_end": {"type": "float", "range": [0, 1], "default": 0.1, "realtime": true, "role": "gull.vowel_end", "help": "vowel at its end ('ee' -> 'ow')"},
-        "random": {"type": "float", "range": [0, 1], "default": 0.4, "realtime": true, "role": "gull.random", "help": "how much the birds improvise: each syllable's length, gap, contour and pitch, the number of syllables of each call, short 'kek's among the long ones, the pauses between calls (loop)"},
-        "amp_release": {"type": "float", "range": [0.005, 5], "default": 0.08, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "fade after the key is released"},
-        "volume": {"type": "float", "range": [-60, 6], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
-        "pan_spread": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per bird"},
-        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
-      }
     }
   }
 }

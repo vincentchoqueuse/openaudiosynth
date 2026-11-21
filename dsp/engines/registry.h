@@ -7,7 +7,6 @@
 #include "coupled.h"
 #include "drums.h"
 #include "fm6.h"
-#include "gull.h"
 #include "modal.h"
 #include "mono.h"
 #include "poly.h"
@@ -29,7 +28,6 @@ typedef union {
     wt_t wt;
     coupled_t coupled;
     selfosc_engine_t selfosc;
-    gull_engine_t gull;
     sampler_t sampler;
 } engine_state_t;
 

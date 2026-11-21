@@ -5,7 +5,7 @@ sequencer: notes are sent as they are due (with the heartbeat the boards expect 
 pattern can change while it plays and several boards share one clock.
 
     tools/board.py --iface en0 discover
-    tools/board.py --iface en0 select gull_laugh
+    tools/board.py --iface en0 select modal_bowl_bowed
     tools/board.py --iface en0 note B5 --dur 3
     tools/board.py --iface en0 play "C4 E4 G4 C5 _ _ - -" --bpm 120 --loop 4
     tools/board.py --iface en0 play "A2 _ A2 C3" --sweep 13:0:127        # knob 1 (CC 13) up over the phrase

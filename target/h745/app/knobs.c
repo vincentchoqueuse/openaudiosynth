@@ -48,7 +48,6 @@ static const struct {
     {"coupled", {"amp_coupling", "phase_coupling", "stretch", "tilt", "drift", "amp_release"}},
     {"selfosc", {"drive", "stiffness", "entrain", "cutoff", "resonance", "amp_release"}},
     {"sampler", {"tune", "resonance", "release", "pad1_decay", "pad2_decay", "pad3_decay"}},
-    {"gull", {"rise", "fall", "syllable", "roughness", "formant", "random"}},
 };
 /* macros 7 and 8 on every engine: the effect sends */
 static const int knob_globals[2] = {SYNTH_PARAM_DELAY_MIX, SYNTH_PARAM_REVERB_MIX};

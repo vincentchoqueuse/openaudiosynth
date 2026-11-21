@@ -34,7 +34,6 @@ set(SYNTH_DSP_SOURCES
   dsp/engines/wt.c
   dsp/engines/coupled.c
   dsp/engines/selfosc.c
-  dsp/engines/gull.c
   dsp/engines/sampler.c
   dsp/osc/splay.c
   dsp/osc/splay_table.c

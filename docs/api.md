@@ -422,6 +422,12 @@ coupled-oscillator engine: each note is a network of partials, each a Stuart-Lan
 - constants: `CPL_VOICES` = 8, `CPL_PARTIALS` = 24
 - data: `const param_desc_t coupled_params[CPL_P_COUNT]`, `const engine_ops_t coupled_engine`
 
+## `dsp/engines/drone.h`
+drone engine: each note is a whole drone that never repeats. Four layers: partials (harmonic sines, glassy and slightly stretched when cold, with two beating twins), a body (two detuned saws in a low-pass, faded in as it warms up), air (noise in two band-passes on the note's harmonics) and sparkles (rare pings of a high harmonic). Every partial's level, pitch and place wander on smoothed random walks (no cycle to hear), and the two slow LFOs of a note have periods in the golden ratio. Seven macros move it all: temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width. Envelopes up to 3 minutes. References: the Ornstein-Uhlenbeck process for the walks; additive synthesis of harmonic series (J.-C. Risset).
+- types: `drone_walk_t`, `drone_voice_t`, `drone_t`
+- constants: `DRN_VOICES` = 6, `DRN_PARTIALS` = 12
+- data: `const param_desc_t drone_params[DRN_P_COUNT]`, `const engine_ops_t drone_engine`
+
 ## `dsp/engines/drums.h`
 drum machine engine: 12 instruments on General-MIDI note numbers, two kits: "analog" (in the spirit of the classic early-80s analog machines: resonant sine kick with a long boom, two-tone + noise snare, 6 detuned square "metal" oscillators for hats/cymbal, multi-burst clap, cowbell from two squares), "hybrid" (mid-80s analog/sample hybrids: punchy waveshaped kick with a deep pitch sweep and click, brighter snappy snare, grittier 6-bit-quantized metal) and "glitch" (digital microsound: gated sub sine pulses, single-sample clicks, pure high beeps, white and sample-rate-reduced data noise, ring-modulated modem chirps, on precise grids). Behaviour reconstructed from published circuit analyses and listening; no code or samples reused. Velocity acts as accent. The closed hat chokes the open hat.
 - types: `drum_voice_t`, `drums_t`
@@ -441,12 +447,6 @@ the interface every synthesis engine implements, and the engine registry. synth.
 - types: `fm6_voice_t`, `fm6_t`, `fm6_algorithm_t`
 - constants: `FM6_VOICES` = 16, `FM6_OPS` = 6
 - data: `const param_desc_t fm6_params[FM6_P_COUNT]`, `const engine_ops_t fm6_engine`, `const fm6_algorithm_t fm6_algorithms[32]`
-
-## `dsp/engines/gull.h`
-seabird call engine (a joke engine that takes itself seriously): each note is a call, a series of syllables ("kee-ow, kyow kyow...") whose pitch jumps up then slides down, voiced by a narrow anti-aliased pulse (nasal) through a vowel formant filter that moves from "ee" to "ow" along each syllable, roughened by a subharmonic (period doubling, as in a breaking voice) and pitch jitter, with some breath noise. Every syllable is a little different (randomness); several notes make a colony. Calls of gulls: harmonic, harsh, arched pitch contours of 0.1 to 0.5 s (bioacoustics field guides), rebuilt here by ear, not from recordings.
-- types: `gull_voice_t`, `gull_engine_t`
-- constants: `GULL_VOICES` = 8
-- data: `const param_desc_t gull_params[GULL_P_COUNT]`, `const engine_ops_t gull_engine`
 
 ## `dsp/engines/modal.h`
 modal synthesis engine: each voice is a bank of up to 32 damped resonators (modes) excited by a mallet strike (raised-cosine pulse + noise burst) and/or a continuous "bow" (filtered noise). Mode frequency ratios come from physical models (ideal string, stiff string, free bar, tuned marimba bar, church bell, circular membrane, bowl, closed tube); decay, damping of high modes, brightness and strike position shape the timbre. References: J.-M. Adrien, "The missing link: modal synthesis" (1991); P. Cook, "Real Sound Synthesis for Interactive Applications" (2002); N. Fletcher & T. Rossing, "The Physics of Musical Instruments" (mode ratios, stiff-string inharmonicity f_k = k f0 sqrt(1 + B k^2)); G. Weinreich, "Coupled piano strings" (JASA 1977) for the unison beating and double decay.

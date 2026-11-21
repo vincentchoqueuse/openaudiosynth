@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "engine": "drone",
+  "name": "drone_tide",
+  "description": "Tide: warm partials and a lot of air breathing on the harmonics, deep slow drifts, like waves coming and going.",
+  "params": {
+    "temperature": 0.6,
+    "density": 0.55,
+    "motion": 0.45,
+    "depth": 0.75,
+    "brightness": 0.45,
+    "sparkle": 0.08,
+    "width": 0.9,
+    "air_level": 0,
+    "amp_attack": 8,
+    "amp_release": 14,
+    "reverb_mix": 0.45,
+    "reverb_decay": 0.93,
+    "reverb_damping": 3500,
+    "reverb_predelay": 0.04
+  },
+  "audition": {
+    "notes": "A2+E3 _ _ _ _ _ _ _",
+    "bpm": 60,
+    "step": 4
+  }
+}

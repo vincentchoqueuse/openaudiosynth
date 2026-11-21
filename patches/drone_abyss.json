@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "engine": "drone",
+  "name": "drone_abyss",
+  "description": "Abyss: very low and dark, few partials, a deep body, almost no air; a pressure more than a note.",
+  "params": {
+    "temperature": 0.8,
+    "density": 0.2,
+    "motion": 0.2,
+    "depth": 0.4,
+    "brightness": 0.15,
+    "sparkle": 0.0,
+    "width": 0.6,
+    "air_level": -24,
+    "body_level": -2,
+    "amp_attack": 10,
+    "amp_release": 18,
+    "reverb_mix": 0.35,
+    "reverb_decay": 0.92,
+    "reverb_damping": 1800,
+    "reverb_predelay": 0.03,
+    "volume": 5
+  },
+  "audition": {
+    "notes": "A1+E2 _ _ _ _ _ _ _",
+    "bpm": 60,
+    "step": 4
+  }
+}

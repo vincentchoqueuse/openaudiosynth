@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "engine": "drone",
+  "name": "drone_beating",
+  "description": "Beating: pure partials drifting far and slowly, so they beat against each other in long waves; hypnotic, for meditation.",
+  "params": {
+    "temperature": 0.2,
+    "density": 0.4,
+    "motion": 0.12,
+    "depth": 1.0,
+    "brightness": 0.5,
+    "sparkle": 0.0,
+    "width": 0.9,
+    "air_level": -18,
+    "amp_attack": 10,
+    "amp_release": 16,
+    "reverb_mix": 0.45,
+    "reverb_decay": 0.94,
+    "reverb_damping": 5000,
+    "reverb_predelay": 0.05,
+    "volume": -2
+  },
+  "audition": {
+    "notes": "G2+D3 _ _ _ _ _ _ _",
+    "bpm": 60,
+    "step": 4
+  }
+}

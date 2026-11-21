@@ -33,7 +33,7 @@
         <button role="menuitem" disabled={!h.canUndo} onclick={() => act(h.undo)}>Undo <kbd>⌘Z</kbd></button>
         <button role="menuitem" disabled={!h.canRedo} onclick={() => act(h.redo)}>Redo <kbd>⇧⌘Z</kbd></button>
         <hr />
-        <button role="menuitem" onclick={() => act(() => (s.shortcutsOpen = true))}>Shortcuts <kbd>?</kbd></button>
+        {#if !s.phone}<button role="menuitem" onclick={() => act(() => (s.shortcutsOpen = true))}>Shortcuts <kbd>?</kbd></button>{/if}
         <a role="menuitem" href="{REPO_URL}/issues/new?template=web_bug.md&title=%5Bweb%5D%20&labels=bug,web" target="_blank" rel="noopener noreferrer" onclick={() => (menu = false)}>Report a bug <kbd>↗</kbd></a>
       </div>
     {/if}

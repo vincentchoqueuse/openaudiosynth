@@ -33,9 +33,14 @@ class Session {
   // the Synth tab's editor: which tab is open, and the stage the diagram asked to show (scrolled to, lit)
   editorTab = $state('macros');
   focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
+  constructor() {
+    if (typeof matchMedia === 'function') matchMedia('(max-width: 760px)').addEventListener('change', (e) => (this.phone = e.matches));
+  }
   goTo = (tab, id = null) => { this.editorTab = tab; this.focus = id ? { id, n: (this.focus?.n ?? 0) + 1 } : null; };
   shortcutsOpen = $state(false); // the shortcuts sheet
   msegPos = $state([-1, -1, -1]); // where the part's envelopes and the newest note's are, 0..1 (-1: idle)
+  // a phone: the page leaves out what is for a desk (the Code view, MIDI CC settings)
+  phone = $state(typeof matchMedia === 'function' && matchMedia('(max-width: 760px)').matches);
   shareOpen = $state(false); // the QR code that opens this page on another device
   settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);

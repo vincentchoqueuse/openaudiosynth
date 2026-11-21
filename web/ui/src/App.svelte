@@ -25,9 +25,10 @@
   import ShareDialog from './lib/ShareDialog.svelte';
 
   // the three main views (kept in the browser)
-  const VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }, { id: 'code', label: 'Code', icon: 'code' }];
+  const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }, { id: 'code', label: 'Code', icon: 'code' }];
+  const VIEWS = $derived(s.phone ? ALL_VIEWS.filter((v) => v.id !== 'code') : ALL_VIEWS); // no code editing on a phone
   let main = $state(remembered('synth.main', 'clip'));
-  if (!VIEWS.some((v) => v.id === main)) main = 'clip';
+  $effect(() => { if (!VIEWS.some((v) => v.id === main)) main = 'clip'; });
   $effect(() => remember('synth.main', main));
   const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
@@ -68,7 +69,7 @@
 <svelte:window onkeydown={onKey} />
 
 {#snippet title(i)}
-  <h1 class="viewtitle"><span class="vicon"><Icon name={VIEWS[i].icon} size={18} /></span>{VIEWS[i].label}</h1>
+  <h1 class="viewtitle"><span class="vicon"><Icon name={ALL_VIEWS[i].icon} size={18} /></span>{ALL_VIEWS[i].label}</h1>
 {/snippet}
 
 {#if !s.started}

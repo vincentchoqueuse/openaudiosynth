@@ -1,5 +1,5 @@
 <!-- MacroMatrix.svelte — the macros set up in the Synth view, as tables like the modulation matrix, in two tabs:
-     Names (the eight macros' names and the MIDI CC that turns them), then Assignments (16 fixed rows, filled or
+     Names (the eight macros' names and the MIDI CC that turns them, not on a phone), then Assignments (16 fixed rows, filled or
      none, like the modulation matrix: which macro, which parameter (any that moves live: the engine's, the master or an effect), its value with
      the macro at 0 and at 1, sliders over the parameter's travel, read in its units). They are played above the
      keyboard (MacroStrip). The slots are decoded once, in the session (macroMaps). -->
@@ -31,15 +31,15 @@
 
 {#if view === 'names'}
 <table class="matrix">
-  <thead><tr><th>#</th><th>Name</th><th>CC</th><th>Targets</th></tr></thead>
+  <thead><tr><th>#</th><th>Name</th>{#if !s.phone}<th>CC</th>{/if}<th>Targets</th></tr></thead>
   <tbody>
     {#each s.macroNames as name, k}
       {@const n = count(k)}
       <tr class:empty={!name && !n}>
         <td class="num mono">{k + 1}</td>
         <td><input class="name" placeholder="Macro {k + 1}" value={name} oninput={(e) => (s.macroNames[k] = e.target.value)} aria-label="Name of macro {k + 1}" /></td>
-        <td class="cc"><input type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC of macro {k + 1}"
-                   onchange={(e) => s.setP(`macro${k + 1}_cc`, Math.max(0, Math.min(119, Math.round(+e.target.value || 0))))} title="MIDI CC that turns it (0 = none)" /></td>
+        {#if !s.phone}<td class="cc"><input type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC of macro {k + 1}"
+                   onchange={(e) => s.setP(`macro${k + 1}_cc`, Math.max(0, Math.min(119, Math.round(+e.target.value || 0))))} title="MIDI CC that turns it (0 = none)" /></td>{/if}
         <td class="muted">{n ? `${n} target${n > 1 ? 's' : ''}` : '—'}</td>
       </tr>
     {/each}

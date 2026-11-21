@@ -63,7 +63,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   smaller pills of one width with an icon, each with its own tabs under it, even a single one: Macros (Names;
   Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows, the sampler's pads chosen like the modulators; Effects), Modulation
   (Modulators; Assignments, of the part or of each note), Info (Description). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
-  the page. Each view starts with its title and its icon. Along the bottom, the 8 macros to play (2 rows of 4) above the
+  the page. Each view starts with its title and its icon. On a phone the page leaves out what is for a desk: the Code view, the macros' MIDI CC and the
+  shortcuts sheet. Along the bottom, the 8 macros to play (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
 - **Interface rules** (every part of the page follows them):
   - one component per kind of control, used everywhere: `Pills` (the views, size lg; the Synth view's pills, md,

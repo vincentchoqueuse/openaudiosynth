@@ -14,3 +14,6 @@ target/*/Drivers/
 target/*/build/
 target/*/CM4/build/
 target/*/CM7/build/
+# your reference sounds stay on your machine (rights, size); only the cutter page is versioned
+references/*
+!references/cutter.html

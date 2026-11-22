@@ -1,0 +1,258 @@
+<!doctype html>
+<!-- cutter.html — cut a reference sound and loop it, to extract the part worth analysing: drop a WAV (or any file the
+     browser decodes), select a region on the waveform, hear it looping, export it as a WAV at its own sample rate
+     (32-bit float, lossless). Standalone: open it in a browser, nothing to install. The sounds in references/ stay
+     out of git; only this page is versioned. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sample cutter</title>
+<style>
+  :root { --bg: #0e1013; --surface: #171b20; --text: #e8edf2; --muted: #7d8893; --faint: #1f252c; --line: #222930;
+          --accent: #5ab4e0; --sel: color-mix(in srgb, #5ab4e0 18%, transparent); --mono: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 12.5px/1.45 var(--mono); }
+  main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 40px; display: grid; gap: 14px; }
+  h1 { margin: 0; font-size: 18px; }
+  .muted { color: var(--muted); }
+  .drop { border: 1px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center; color: var(--muted); cursor: pointer; }
+  .drop.over { border-color: var(--accent); color: var(--text); }
+  .wave { position: relative; height: 220px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; touch-action: none; }
+  canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+  .bar .spacer { flex: 1; }
+  button { font: inherit; color: var(--text); background: var(--faint); border: 0; border-radius: 7px; padding: 6px 12px; cursor: pointer; }
+  button:hover { filter: brightness(1.2); }
+  button.on, button.primary { background: var(--accent); color: #06121a; }
+  button:disabled { opacity: .4; cursor: default; }
+  label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
+  input[type=number], input[type=text] { width: 7.5em; font: inherit; color: var(--text); background: var(--faint); border: 0; border-radius: 6px; padding: 4px 6px; }
+  input[type=text] { width: 16em; }
+  .info { font-size: 11.5px; color: var(--muted); }
+  kbd { font: 11px var(--mono); padding: 1px 5px; border-radius: 4px; background: var(--faint); color: var(--text); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Sample cutter <span class="muted">— cut a reference sound, loop it, export it</span></h1>
+  <div class="drop" id="drop">Drop a sound here, or click to choose one (WAV keeps its own sample rate)
+    <input type="file" id="file" accept="audio/*,.wav,.aif,.aiff,.flac,.mp3" hidden></div>
+  <div class="info" id="fileinfo"></div>
+  <div class="wave"><canvas id="cv"></canvas></div>
+  <div class="bar">
+    <button id="play" disabled>▶ Play</button>
+    <button id="loop" class="on">Loop</button>
+    <label>Start <input type="number" id="start" step="0.001" min="0"> s</label>
+    <label>End <input type="number" id="end" step="0.001" min="0"> s</label>
+    <span class="info" id="len"></span>
+    <span class="spacer"></span>
+    <button id="zoom" disabled>Zoom on selection</button>
+    <button id="full" disabled>Whole file</button>
+    <button id="zero" disabled title="move both edges to the nearest zero crossing: a click-free loop">Snap to zero</button>
+  </div>
+  <div class="bar">
+    <label>Fades <input type="number" id="fade" value="3" min="0" max="200" step="1"> ms</label>
+    <label>Name <input type="text" id="name" placeholder="name of the cut"></label>
+    <span class="spacer"></span>
+    <button id="export" class="primary" disabled>Export WAV</button>
+  </div>
+  <p class="info">Drag on the waveform to select, drag an edge to adjust it, double-click to select everything.
+    <kbd>Space</kbd> play / stop · <kbd>L</kbd> loop · <kbd>Z</kbd> zoom on the selection · <kbd>Esc</kbd> whole file ·
+    <kbd>E</kbd> export. Exports are downloaded: move them into <code>references/</code> next to this page.</p>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const cv = $('cv'), g = cv.getContext('2d');
+let ctx = null, buf = null, fileName = 'cut';
+let sel = [0, 0], view = [0, 0];           // seconds
+let src = null, t0 = 0, playing = false;   // playback
+let drag = null;
+
+// the sample rate written in a WAV's header, so the context decodes it without resampling
+function wavRate(ab) {
+  const d = new DataView(ab);
+  if (ab.byteLength < 44 || d.getUint32(0) !== 0x52494646 || d.getUint32(8) !== 0x57415645) return 0;
+  for (let p = 12; p + 8 <= ab.byteLength;) {
+    const id = d.getUint32(p), size = d.getUint32(p + 4, true);
+    if (id === 0x666d7420) return d.getUint32(p + 12, true); // 'fmt '
+    p += 8 + size + (size & 1);
+  }
+  return 0;
+}
+
+async function load(file) {
+  stop();
+  const ab = await file.arrayBuffer();
+  const rate = wavRate(ab);
+  if (ctx) await ctx.close();
+  ctx = rate ? new AudioContext({ sampleRate: rate }) : new AudioContext();
+  try { buf = await ctx.decodeAudioData(ab.slice(0)); } catch (e) { $('fileinfo').textContent = 'Could not read this file: ' + e.message; return; }
+  fileName = file.name.replace(/\.[^.]+$/, '');
+  $('name').value = fileName + '_cut';
+  $('fileinfo').textContent = `${file.name} · ${buf.duration.toFixed(3)} s · ${buf.sampleRate} Hz · ${buf.numberOfChannels} channel${buf.numberOfChannels > 1 ? 's' : ''}` +
+    (rate ? '' : ' (decoded at the browser rate)');
+  sel = [0, buf.duration]; view = [0, buf.duration];
+  for (const b of ['play', 'zoom', 'full', 'zero', 'export']) $(b).disabled = false;
+  sync(); draw();
+}
+
+// ---- drawing ----
+const X = (t) => ((t - view[0]) / (view[1] - view[0])) * cv.width;
+const T = (x) => view[0] + (x / cv.width) * (view[1] - view[0]);
+function draw() {
+  const dpr = devicePixelRatio || 1, w = cv.clientWidth * dpr, h = cv.clientHeight * dpr;
+  if (cv.width !== w || cv.height !== h) cv.width = w, cv.height = h;
+  g.clearRect(0, 0, w, h);
+  if (!buf) return;
+  const css = getComputedStyle(document.documentElement);
+  // selection
+  g.fillStyle = css.getPropertyValue('--sel');
+  g.fillRect(X(sel[0]), 0, X(sel[1]) - X(sel[0]), h);
+  // waveform: min / max per pixel column, channels summed
+  const chans = [...Array(buf.numberOfChannels)].map((_, c) => buf.getChannelData(c));
+  const sr = buf.sampleRate, i0 = Math.floor(view[0] * sr), i1 = Math.ceil(view[1] * sr), per = (i1 - i0) / w;
+  g.fillStyle = css.getPropertyValue('--accent');
+  for (let x = 0; x < w; x++) {
+    const a = Math.max(0, Math.floor(i0 + x * per)), b = Math.min(buf.length, Math.max(a + 1, Math.floor(i0 + (x + 1) * per)));
+    let lo = 1, hi = -1;
+    for (let i = a; i < b; i++) { let v = 0; for (const ch of chans) v += ch[i]; v /= chans.length; if (v < lo) lo = v; if (v > hi) hi = v; }
+    if (hi < lo) continue;
+    g.fillRect(x, h / 2 - hi * h * 0.46, 1, Math.max(1, (hi - lo) * h * 0.46));
+  }
+  // edges and playhead
+  g.fillStyle = css.getPropertyValue('--text');
+  for (const t of sel) g.fillRect(Math.round(X(t)) - dpr, 0, 2 * dpr, h);
+  if (playing) {
+    const len = sel[1] - sel[0], el = ctx.currentTime - t0;
+    const pos = sel[0] + ($('loop').classList.contains('on') ? el % len : Math.min(el, len));
+    g.fillStyle = '#e5a33d';
+    g.fillRect(X(pos), 0, dpr, h);
+  }
+}
+function sync() {
+  $('start').value = sel[0].toFixed(3);
+  $('end').value = sel[1].toFixed(3);
+  const len = sel[1] - sel[0];
+  $('len').textContent = `${len.toFixed(3)} s` + (buf ? ` · ${Math.round(len * buf.sampleRate)} samples` : '');
+}
+(function tick() { if (playing) draw(); requestAnimationFrame(tick); })();
+addEventListener('resize', draw);
+
+// ---- selection with the pointer ----
+cv.addEventListener('pointerdown', (e) => {
+  if (!buf) return;
+  const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) * (cv.width / r.width), t = T(x), tol = 6 * (devicePixelRatio || 1);
+  if (Math.abs(x - X(sel[0])) < tol) drag = { edge: 0 };
+  else if (Math.abs(x - X(sel[1])) < tol) drag = { edge: 1 };
+  else drag = { from: t }, sel = [t, t];
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove', (e) => {
+  if (!drag) return;
+  const r = cv.getBoundingClientRect(), t = Math.min(buf.duration, Math.max(0, T((e.clientX - r.left) * (cv.width / r.width))));
+  if (drag.edge !== undefined) sel[drag.edge] = t;
+  else sel = [Math.min(drag.from, t), Math.max(drag.from, t)];
+  if (sel[0] > sel[1]) sel.reverse(), drag.edge = drag.edge === undefined ? undefined : 1 - drag.edge;
+  sync(); draw();
+});
+cv.addEventListener('pointerup', () => {
+  if (drag && sel[1] - sel[0] < 0.002) sel = [0, buf.duration]; // a click, not a selection
+  drag = null; sync(); draw();
+  if (playing) play(); // the new selection plays at once
+});
+cv.addEventListener('dblclick', () => { if (buf) { sel = [0, buf.duration]; sync(); draw(); } });
+for (const [id, k] of [['start', 0], ['end', 1]])
+  $(id).addEventListener('change', (e) => {
+    if (!buf) return;
+    sel[k] = Math.min(buf.duration, Math.max(0, +e.target.value || 0));
+    if (sel[0] > sel[1]) sel.reverse();
+    sync(); draw(); if (playing) play();
+  });
+
+// ---- playback: the selection, looped or once ----
+function play() {
+  stop(true);
+  if (!buf || sel[1] - sel[0] < 0.001) return;
+  ctx.resume();
+  src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = $('loop').classList.contains('on');
+  src.loopStart = sel[0]; src.loopEnd = sel[1];
+  src.connect(ctx.destination);
+  src.onended = () => { if (!src?.loop) { playing = false; $('play').textContent = '▶ Play'; draw(); } };
+  t0 = ctx.currentTime;
+  src.start(0, sel[0], src.loop ? undefined : sel[1] - sel[0]);
+  playing = true; $('play').textContent = '■ Stop';
+}
+function stop(keep) {
+  if (src) { src.onended = null; try { src.stop(); } catch {} src = null; }
+  playing = false;
+  if (!keep) { $('play').textContent = '▶ Play'; draw(); }
+}
+$('play').onclick = () => (playing ? stop() : play());
+$('loop').onclick = () => { $('loop').classList.toggle('on'); if (playing) play(); };
+
+// ---- view ----
+$('zoom').onclick = () => { if (sel[1] - sel[0] > 0.001) { const m = (sel[1] - sel[0]) * 0.05; view = [Math.max(0, sel[0] - m), Math.min(buf.duration, sel[1] + m)]; draw(); } };
+$('full').onclick = () => { view = [0, buf.duration]; draw(); };
+
+// edges to the nearest zero crossing (rising, on the summed channels), so the loop joins without a click
+$('zero').onclick = () => {
+  const sr = buf.sampleRate, chans = [...Array(buf.numberOfChannels)].map((_, c) => buf.getChannelData(c));
+  const v = (i) => chans.reduce((a, ch) => a + ch[i], 0);
+  const near = (t) => {
+    const c = Math.round(t * sr);
+    for (let d = 0; d < sr * 0.02; d++)
+      for (const i of [c - d, c + d]) if (i > 0 && i < buf.length && v(i - 1) <= 0 && v(i) > 0) return i / sr;
+    return t;
+  };
+  sel = [near(sel[0]), near(sel[1])];
+  sync(); draw(); if (playing) play();
+};
+
+// ---- export: the selection as a 32-bit float WAV at the file's rate, with short fades ----
+function exportWav() {
+  if (!buf) return;
+  const sr = buf.sampleRate, nc = buf.numberOfChannels, a = Math.round(sel[0] * sr), b = Math.round(sel[1] * sr), n = b - a;
+  if (n < 2) return;
+  const fade = Math.min(Math.floor(n / 2), Math.round((+$('fade').value || 0) * sr / 1000));
+  const bytes = 44 + n * nc * 4, ab = new ArrayBuffer(bytes), d = new DataView(ab);
+  const str = (p, s) => [...s].forEach((c, i) => d.setUint8(p + i, c.charCodeAt(0)));
+  str(0, 'RIFF'); d.setUint32(4, bytes - 8, true); str(8, 'WAVE');
+  str(12, 'fmt '); d.setUint32(16, 16, true); d.setUint16(20, 3, true); d.setUint16(22, nc, true);
+  d.setUint32(24, sr, true); d.setUint32(28, sr * nc * 4, true); d.setUint16(32, nc * 4, true); d.setUint16(34, 32, true);
+  str(36, 'data'); d.setUint32(40, n * nc * 4, true);
+  const chans = [...Array(nc)].map((_, c) => buf.getChannelData(c));
+  for (let i = 0; i < n; i++) {
+    const gain = fade ? Math.min(1, i / fade, (n - 1 - i) / fade) : 1;
+    for (let c = 0; c < nc; c++) d.setFloat32(44 + (i * nc + c) * 4, chans[c][a + i] * gain, true);
+  }
+  const name = ($('name').value.trim() || fileName + '_cut').replace(/[^\w.-]+/g, '_');
+  const url = URL.createObjectURL(new Blob([ab], { type: 'audio/wav' }));
+  Object.assign(document.createElement('a'), { href: url, download: name + '.wav' }).click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+$('export').onclick = exportWav;
+
+// ---- file ----
+const drop = $('drop');
+drop.onclick = () => $('file').click();
+$('file').onchange = (e) => e.target.files[0] && load(e.target.files[0]);
+for (const ev of ['dragover', 'dragenter']) addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); });
+addEventListener('dragleave', () => drop.classList.remove('over'));
+addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) load(f); });
+
+// ---- keys ----
+addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || !buf) return;
+  if (e.code === 'Space') { e.preventDefault(); playing ? stop() : play(); }
+  else if (e.key === 'l' || e.key === 'L') $('loop').click();
+  else if (e.key === 'z' || e.key === 'Z') $('zoom').click();
+  else if (e.key === 'Escape') $('full').click();
+  else if (e.key === 'e' || e.key === 'E') exportWav();
+});
+draw();
+</script>
+</body>
+</html>

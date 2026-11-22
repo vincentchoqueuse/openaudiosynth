@@ -5,11 +5,13 @@
   const GROUPS = [
     ['Anywhere', [['Space', 'play / stop the clip'], ['⌘Z / ⇧⌘Z', 'undo / redo'], ['?', 'this sheet'], ['Esc', 'close a sheet or a menu']]],
     ['Computer keyboard', [['Z S X D C V…', 'notes, bottom row from C'], ['Q 2 W 3 E…', 'notes, an octave up'], ['← →', 'octave down / up']]],
-    ['Piano roll (click in it first)', [['click, drag', 'draw a note, stretch it'], ['⌘-drag', 'select with a rectangle'],
-      ['Shift-click', 'add to the selection'], ['drag a note / its edge', 'move / stretch the selection'], ['Alt-drag', 'velocity'],
-      ['double-click', 'delete a note'], ['Delete', 'delete the selection'], ['⌘A ⌘C ⌘X ⌘V', 'select all, copy, cut, paste'],
-      ['⌘D', 'duplicate after the selection'], ['↑ ↓ (Shift)', 'a semitone (an octave)'], ['← →', 'a grid step'], ['⌘U', 'quantize'],
-      ['Shift while dragging', 'finer than the grid']]],
+    ['Piano roll (when the Sequence view is shown)', [['click, drag', 'draw a note, stretch it'], ['⌘-drag', 'select with a rectangle'],
+      ['Shift-click', 'add to the selection'], ['drag a note / its edge', 'move / stretch the selection'], ['Alt-drag', 'move a copy'],
+      ['click the ruler', 'insertion point: where Paste lands'], ['double-click, right-click', 'delete a note'],
+      ['Delete', 'delete the selection'], ['⌘A ⌘C ⌘X ⌘V', 'select all, copy, cut, paste (the clipboard stays across sounds)'],
+      ['⌘D', 'duplicate after the selection'], ['⌘L', 'legato: each note until the next'], ['⌘U', 'quantize'],
+      ['↑ ↓ (Shift)', 'the selection a semitone (an octave)'], ['← → (Alt)', 'the selection a grid step (finer)'],
+      ['Shift ← →', 'shorten / lengthen the selection'], ['Shift while dragging', 'finer than the grid'], ['velocity lane', 'drag on a bar']]],
     ['Controls', [['double-click a label or slider', 'back to the sound\'s value'], ['click a block of Structure', 'open its settings']]],
   ];
 </script>

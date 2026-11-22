@@ -1,12 +1,17 @@
 <!-- PianoRoll.svelte — the clip's notes on a piano roll: pitches high on top (the key's notes lighter, C named),
      time over the clip's length, which is also the loop (the brace on the ruler; drag its end), and a velocity lane
-     below. Two tools: Draw, where a click on an empty place draws a note and dragging stretches it, and Select,
-     where dragging on an empty place selects with a rectangle (Cmd-drag in Draw). In both, a click selects a note
-     (Shift adds or removes), dragging moves the selected notes (time and pitch), their right edge stretches them,
-     Alt-drag sets their velocity; double-click deletes. Keys, once the roll has the focus (the computer keyboard
-     keeps its letters): Delete, Cmd+A, Cmd+C / X / V, Cmd+D (duplicate after the selection), arrows (move by a
-     grid step, up / down a semitone, Shift an octave), Cmd+U (quantize), Esc.
-     Everything snaps to the grid (Shift while dragging: finer). A drawn or moved note sounds. -->
+     below (drag on a note's bar). Two tools: Draw, where a click on an empty place draws a note and dragging
+     stretches it, and Select, where dragging on an empty place selects with a rectangle (Cmd-drag in Draw) and a
+     click sets the insertion point. In both, a click selects a note (Shift adds or removes), dragging moves the
+     selected notes (time and pitch), their right edge stretches them, Alt-drag moves a copy; double-click or
+     right-click deletes. A click on the ruler sets the insertion point, where Paste lands (then moves past what
+     was pasted, so pastes follow each other); without one, a paste goes after the selection or at the start.
+     The clipboard is kept across sounds and clips. Keys, whenever the Sequence view is shown and no text field
+     has the focus: Delete, Cmd+A, Cmd+C / X / V, Cmd+D (duplicate after the selection), Cmd+L (legato), Cmd+U
+     (quantize), Esc; with a selection, the arrows move it (a grid step; up / down a semitone, Shift an octave),
+     Shift + left / right shortens / lengthens it by a grid step, Alt + left / right nudges it finer than the grid
+     (without a selection the arrows stay the computer keyboard's octave). Everything snaps to the grid (Shift
+     while dragging: finer). A drawn or moved note sounds. -->
 <script>
   import Seg from './Seg.svelte';
   const TOOLS = [{ id: 'draw', label: 'Draw', title: 'Draw notes' }, { id: 'select', label: 'Select', title: 'Select with a rectangle (or Cmd-drag in Draw)' }];
@@ -53,7 +58,7 @@
 
   // ---- pointer gestures on the notes ----
   let area;
-  let drag = null; // {mode: 'move' | 'size' | 'vel' | 'box', beat0, pitch0, y0, orig: Map(id -> note), box}
+  let drag = null; // {mode: 'move' | 'size' | 'box', beat0, pitch0, y0, orig: Map(id -> note), box}
   let box = $state(null); // the selection rectangle {x, y, w, h} in px
   const snapTo = (b, fine) => { const g = fine ? q.grid / 4 : q.grid; return Math.round(b / g) * g; };
   function at(e) {
@@ -85,11 +90,19 @@
       }
       if (!sel.has(id)) sel = new Set([id]);
       const r = hit.getBoundingClientRect();
-      startDrag(e.altKey ? 'vel' : e.clientX > r.right - EDGE ? 'size' : 'move', e, pos);
+      if (e.altKey) { // Alt-drag: a copy of the selection moves, the originals stay
+        history.hold();
+        sel = new Set(q.addMany(selected.map(({ id: _, ...n }) => n)));
+        startDrag('move', e, pos);
+        history.release();
+        return;
+      }
+      startDrag(e.clientX > r.right - EDGE ? 'size' : 'move', e, pos);
       return;
     }
-    if (tool === 'select' || e.metaKey || e.ctrlKey) { // a rectangle selects
+    if (tool === 'select' || e.metaKey || e.ctrlKey) { // a rectangle selects; a plain click sets the insertion point
       if (!e.shiftKey) sel = new Set();
+      if (tool === 'select') q.cursor = Math.min(snapTo(pos.beat, false), q.length);
       startDrag('box', e, pos);
       return;
     }
@@ -126,9 +139,6 @@
       });
       const after = Math.min(127, Math.max(0, lead.pitch + dPitch));
       if (after !== before) sound(after);
-    } else {
-      const dv = Math.round((drag.y0 - e.clientY) / 2);
-      q.edit(ids, (n) => ({ velocity: Math.min(127, Math.max(1, o.get(n.id).velocity + dv)) }));
     }
   }
   function up() {
@@ -170,55 +180,80 @@
   }
   function velUp() { if (velDrag) history.release(); velDrag = null; }
 
-  // ---- keys (while this tab is shown and the focus is not in a field) ----
-  let clip = []; // copied notes, starts relative to the first one: {pitch, start, length, velocity}
-  let clipSpan = 0;
+  // ---- editing commands (the toolbar's buttons and the keys) ----
   function copy() {
     if (!selected.length) return false;
     const first = Math.min(...selected.map((n) => n.start));
-    clip = selected.map(({ id, ...n }) => ({ ...n, start: n.start - first }));
-    clipSpan = Math.max(...selected.map((n) => n.start + n.length)) - first;
+    q.clipboard = { notes: selected.map(({ id, ...n }) => ({ ...n, start: n.start - first })),
+      span: Math.ceil((Math.max(...selected.map((n) => n.start + n.length)) - first) / q.grid - 1e-9) * q.grid };
     return true;
   }
   function pasteAt(at) {
-    if (!clip.length) return;
-    const ids = q.addMany(clip.map((n) => ({ ...n, start: at + n.start })).filter((n) => n.start < q.length));
+    const c = q.clipboard;
+    if (!c?.notes.length || at >= q.length) return;
+    const ids = q.addMany(c.notes.map((n) => ({ ...n, start: at + n.start })).filter((n) => n.start < q.length));
     sel = new Set(ids);
+    q.cursor = Math.min(q.length, at + c.span); // the next paste follows this one
   }
   const selEnd = () => Math.ceil(Math.max(...selected.map((n) => n.start + n.length)) / q.grid - 1e-9) * q.grid;
-  function quantize() {
-    history.step();
-    const ids = sel.size ? sel : new Set(q.notes.map((n) => n.id));
-    q.edit(ids, (n) => ({ start: Math.min(Math.round(n.start / q.grid) * q.grid, Math.max(0, q.length - q.grid)) }));
-  }
+  const cmd = {
+    cut: () => { if (copy()) { q.deleteMany(sel); sel = new Set(); } },
+    copy,
+    paste: () => pasteAt(q.cursor >= 0 ? q.cursor : sel.size ? selEnd() : 0),
+    duplicate: () => { if (copy()) pasteAt(selEnd()); },
+    legato: () => q.legato(sel.size ? sel : new Set(q.notes.map((n) => n.id))),
+    quantize: () => {
+      const ids = sel.size ? sel : new Set(q.notes.map((n) => n.id));
+      q.edit(ids, (n) => ({ start: Math.min(Math.round(n.start / q.grid) * q.grid, Math.max(0, q.length - q.grid)) }));
+    },
+    remove: () => { q.deleteMany(sel); sel = new Set(); },
+  };
+  const run = (name) => { history.step(); cmd[name](); };
+
+  // ---- keys: whenever this view is shown (the roll is laid out) and no field types; arrows need a selection ----
+  const typing = (t) => t?.closest?.('.cm-editor') || t?.isContentEditable || t?.tagName === 'TEXTAREA' || t?.tagName === 'SELECT' ||
+    (t?.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button'].includes(t.type));
   function key(e) {
-    const t = e.target;
-    if (!t?.closest?.('.roll')) return; // the roll has the focus (a click in it gives it)
-    const mod = e.metaKey || e.ctrlKey, k = e.key;
-    history.step();
-    let done = true;
-    if (k === 'Delete' || k === 'Backspace') { if (sel.size) { q.deleteMany(sel); sel = new Set(); } }
-    else if (mod && e.code === 'KeyA') sel = new Set(q.notes.map((n) => n.id));
-    else if (mod && e.code === 'KeyC') copy();
-    else if (mod && e.code === 'KeyX') { if (copy()) { q.deleteMany(sel); sel = new Set(); } }
-    else if (mod && e.code === 'KeyV') pasteAt(sel.size ? selEnd() : 0);
-    else if (mod && e.code === 'KeyD') { if (copy()) pasteAt(selEnd()); }
-    else if (mod && e.code === 'KeyU') quantize();
-    else if (k === 'Escape') sel = new Set();
-    else if (sel.size && (k === 'ArrowUp' || k === 'ArrowDown')) {
+    if (!area?.offsetParent || typing(e.target) || session.saving || session.shortcutsOpen || session.settingsOpen || session.shareOpen) return;
+    const mod = e.metaKey || e.ctrlKey, k = e.key, arrow = k.startsWith('Arrow');
+    if (arrow && !sel.size) return; // the computer keyboard's octave
+    const C = { KeyA: () => (sel = new Set(q.notes.map((n) => n.id))), KeyC: cmd.copy, KeyX: cmd.cut, KeyV: cmd.paste,
+      KeyD: cmd.duplicate, KeyL: cmd.legato, KeyU: cmd.quantize };
+    let act = null;
+    const idle = (e.code === 'KeyC' || e.code === 'KeyX' || e.code === 'KeyD') && !sel.size || e.code === 'KeyV' && !q.clipboard?.notes.length;
+    if (mod && C[e.code] && !idle) act = C[e.code]; // with nothing to copy or paste, the page keeps the key
+    else if (!mod && (k === 'Delete' || k === 'Backspace') && sel.size) act = cmd.remove;
+    else if (!mod && k === 'Escape' && (sel.size || q.cursor >= 0)) act = () => { sel = new Set(); q.cursor = -1; };
+    else if (!mod && (k === 'ArrowUp' || k === 'ArrowDown')) {
       const d = (k === 'ArrowUp' ? 1 : -1) * (e.shiftKey ? 12 : 1);
-      q.edit(sel, (n) => ({ pitch: Math.min(127, Math.max(0, n.pitch + d)) }));
-      sound(Math.min(127, Math.max(0, selected[0].pitch + d)));
-    } else if (sel.size && (k === 'ArrowLeft' || k === 'ArrowRight')) {
-      const d = k === 'ArrowRight' ? q.grid : -q.grid;
-      if (selected.every((n) => n.start + d >= 0 && n.start + d < q.length)) q.edit(sel, (n) => ({ start: n.start + d }));
-    } else done = false;
-    if (done) e.preventDefault();
+      act = () => {
+        q.edit(sel, (n) => ({ pitch: Math.min(127, Math.max(0, n.pitch + d)) }));
+        sound(Math.min(127, Math.max(0, selected[0].pitch)));
+      };
+    } else if (!mod && (k === 'ArrowLeft' || k === 'ArrowRight')) {
+      const dir = k === 'ArrowRight' ? 1 : -1;
+      if (e.shiftKey) act = () => q.edit(sel, (n) => ({ length: Math.max(q.grid, n.length + dir * q.grid) })); // length
+      else {
+        const d = dir * (e.altKey ? q.grid / 4 : q.grid); // Alt: finer than the grid
+        act = () => { if (selected.every((n) => n.start + d >= 0 && n.start + d < q.length)) q.edit(sel, (n) => ({ start: n.start + d })); };
+      }
+    }
+    if (!act) return;
+    e.preventDefault();
+    e.stopImmediatePropagation(); // the computer keyboard (arrows: its octave) does not see it
+    history.step();
+    act();
   }
 
   // ---- the loop's end on the ruler ----
   let sizing = null;
+  function rulerDown(e) { // a click on the ruler (not on the loop's handle): the insertion point
+    if (e.button !== 0 || e.target.closest('.handle')) return;
+    const r = e.currentTarget.getBoundingClientRect();
+    q.cursor = Math.min(q.length, Math.max(0, snapTo((e.clientX - r.left) / ppb, e.shiftKey)));
+  }
   function loopDown(e) {
+    e.stopPropagation();
     e.preventDefault();
     e.currentTarget.setPointerCapture(e.pointerId);
     sizing = { x0: e.clientX, len0: q.length, ppb0: ppb };
@@ -232,24 +267,32 @@
   function loopUp() { if (sizing) history.release(); sizing = null; }
 </script>
 
-<svelte:window onkeydown={key} />
+<svelte:window onkeydowncapture={key} />
 
+{#if settings}<div class="toolbar">{@render settings()}</div>{/if}
 <div class="toolbar" role="toolbar" aria-label="Piano roll tools">
-  {#if settings}{@render settings()}{/if}
-  <span class="spacer"></span>
-  {#if sel.size}<span class="muted">{sel.size} selected</span>{/if}
   <Seg items={TOOLS} value={tool} onpick={(t) => (tool = t)} label="Tool" />
-  <button class="ghost" onclick={() => { history.step(); if (copy()) pasteAt(selEnd()); }} disabled={!sel.size} title="Duplicate after the selection (Cmd+D)">Duplicate</button>
-  <button class="ghost" onclick={quantize} disabled={!q.notes.length} title="Starts to the grid, the selection or every note (Cmd+U)">Quantize</button>
-  <button class="ghost" onclick={() => { history.step(); q.deleteMany(sel); sel = new Set(); }} disabled={!sel.size} title="Delete">Delete</button>
+  <span class="vsep" aria-hidden="true"></span>
+  <button class="ghost" onclick={() => run('cut')} disabled={!sel.size} title="Cut the selection (Cmd+X)">Cut</button>
+  <button class="ghost" onclick={() => run('copy')} disabled={!sel.size} title="Copy the selection (Cmd+C)">Copy</button>
+  <button class="ghost" onclick={() => run('paste')} disabled={!q.clipboard?.notes.length}
+          title="Paste at the insertion point (click the ruler to set it), else after the selection (Cmd+V)">Paste</button>
+  <button class="ghost" onclick={() => run('duplicate')} disabled={!sel.size} title="Duplicate after the selection (Cmd+D)">Duplicate</button>
+  <span class="vsep" aria-hidden="true"></span>
+  <button class="ghost" onclick={() => run('legato')} disabled={!q.notes.length} title="Each note lasts until the next one, the selection or every note (Cmd+L)">Legato</button>
+  <button class="ghost" onclick={() => run('quantize')} disabled={!q.notes.length} title="Starts to the grid, the selection or every note (Cmd+U)">Quantize</button>
+  <button class="ghost" onclick={() => run('remove')} disabled={!sel.size} title="Delete the selection (Delete)">Delete</button>
+  <span class="spacer"></span>
+  <span class="muted">{sel.size ? `${sel.size} selected` : ''}{sel.size && q.cursor >= 0 ? ' · ' : ''}{q.cursor >= 0 ? `insert at ${Math.floor(q.cursor / 4) + 1}.${Math.floor(q.cursor % 4) + 1}` : ''}</span>
 </div>
 
 <div class="roll" style="--row:{ROW}px; --gutter:{gutter}px">
   <div class="corner"></div>
-  <div class="ruler" class:off={!q.loop}>
+  <div class="ruler" class:off={!q.loop} onpointerdown={rulerDown} role="presentation" title="Click: the insertion point (where Paste lands)">
     {#each bars as b}
       <span class="bar" style="left:{b * 4 * ppb}px">{b + 1}</span>
     {/each}
+    {#if q.cursor >= 0}<span class="mark" style="left:{q.cursor * ppb}px"></span>{/if}
     <div class="brace" style="width:{q.length * ppb}px" title={q.loop ? `Loop: ${q.length} beats` : `Plays once: ${q.length} beats`}>
       <span class="handle" role="slider" tabindex="0" aria-label="Clip length (beats)" aria-valuenow={q.length}
             aria-valuemin="1" aria-valuemax="64" onpointerdown={loopDown} onpointermove={loopMove} onpointerup={loopUp}
@@ -279,6 +322,7 @@
         {/if}
       {/each}
       {#if box}<div class="box" style="left:{box.x}px; top:{box.y}px; width:{box.w}px; height:{box.h}px"></div>{/if}
+      {#if q.cursor >= 0}<div class="cursor" style="left:{q.cursor * ppb}px"></div>{/if}
       {#if q.beat >= 0}<div class="playhead" style="left:{(q.beat % q.length) * ppb}px"></div>{/if}
     </div>
   </div>
@@ -321,6 +365,10 @@
   .note .edge { position: absolute; right: 0; top: 0; bottom: 0; width: 7px; cursor: ew-resize; }
   .note:hover { filter: brightness(1.15); }
   .box { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); pointer-events: none; }
+  .cursor { position: absolute; top: 0; bottom: 0; width: 0; border-left: 1px dashed var(--accent); pointer-events: none; }
+  .ruler { cursor: text; }
+  .ruler .mark { position: absolute; top: 0; width: 0; height: 0; margin-left: -5px; border: 5px solid transparent; border-top-color: var(--accent); pointer-events: none; }
+  .vsep { width: 1px; align-self: stretch; margin: 4px 2px; background: var(--line); }
   .playhead { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--text); pointer-events: none; }
   .vlabel { border-top: 1px solid var(--line); border-right: 1px solid var(--line); font: 9.5px var(--mono); color: var(--muted); text-align: right; padding: 4px 5px; }
   .vlane { position: relative; border-top: 1px solid var(--line); cursor: ns-resize; touch-action: none; }

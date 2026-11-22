@@ -30,7 +30,7 @@
     <label>Octave <select bind:value={q.octave}>{#each OCTAVES as o}<option value={o}>{o}</option>{/each}</select></label>
   {/snippet}
 </PianoRoll>
-<p class="hint">Click in the roll to edit it with the keyboard; every shortcut: press ?</p>
+<p class="hint">Select notes, then ⌘C / ⌘V (the insertion point: click the ruler), arrows to move, Shift + arrows to resize; every shortcut: press ?</p>
 
 <style>
   .pos { color: var(--text); font-size: 13px; min-width: 4.5em; }

@@ -26,6 +26,10 @@ class Sequence {
   loops = $state(4); // times it plays in an exported song
   beat = $state(-1); // the playhead, in beats from the clip's start (-1: stopped)
   message = $state('');
+  // the piano roll's clipboard ({notes: starts relative to the first, span: beats}), kept across sounds and clips,
+  // and its insertion point (beats, -1: none), where a paste lands
+  clipboard = $state(null);
+  cursor = $state(-1);
 
   tempo = $derived(Math.min(300, Math.max(20, +this.bpm || 120))); // the field may be empty or absurd
   playing = $derived(session.seqPlaying);
@@ -182,6 +186,15 @@ class Sequence {
   };
   addMany = (list) => { const added = withIds(list); this.notes = [...this.notes, ...added]; return added.map((n) => n.id); };
   deleteMany = (ids) => { this.notes = this.notes.filter((n) => !ids.has(n.id)); };
+  // legato: each note of ids lasts until the next note starts (of any pitch, after it), the last one until the
+  // clip's end
+  legato = (ids) => {
+    const starts = [...new Set(this.notes.map((n) => n.start))].sort((a, b) => a - b);
+    this.edit(ids, (n) => {
+      const next = starts.find((t) => t > n.start + 1e-9);
+      return { length: (next ?? this.length) - n.start };
+    });
+  };
   clear = () => { this.notes = []; };
   random = () => {
     if (session.engine?.name === 'acid') { // an acid line: sixteenths, rests, octave jumps, accents and slides

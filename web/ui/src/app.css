@@ -326,6 +326,9 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   .topbar .tb-left { flex-wrap: wrap; row-gap: 8px; }
   .topbar .tb-left > .vsep { display: none; }
   .topbar .meter, .topbar .tb-right > .vsep { display: none; }
+  .topbar .tb-right { width: 100%; margin-left: 0; gap: 10px; justify-content: space-between; } /* volume, tempo, play: all on screen */
+  .topbar .seqlabel { display: none; }
+  .topbar { --bar-w: 72px; }
   .pills.lg button { width: auto; padding: 5px 12px; }
   .groups > section.card { flex-basis: 84vw; }
   footer { padding: 12px 16px 10px; }

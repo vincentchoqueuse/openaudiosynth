@@ -16,7 +16,7 @@
   <div class="livesw"><Seg items={[{ id: 'wave', label: 'Wave' }, { id: 'spectrum', label: 'Spectrum' }]} value={live} onpick={pickLive} label="Live view" /></div>
 </div>
 
-<SequenceTab />
+{#if !s.phone}<SequenceTab />{/if} <!-- a phone plays the clip (top bar), it does not edit it -->
 
 <style>
   .live { position: relative; }

@@ -64,8 +64,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   smaller pills of one width with an icon, each with its own tabs under it, even a single one: Macros (Names;
   Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows, the sampler's pads chosen like the modulators; Effects: the output filter, chorus, delay, reverb, master), Modulation
   (Modulators; Assignments, of the part or of each note), Info (Description). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
-  the page. Each view starts with its title and its icon. On a phone the page leaves out what is for a desk: the Code view, the macros' MIDI CC and the
-  shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
+  the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (menu, sound, volume, tempo, play), the live display,
+  the macros and the keyboard, with the library in its drawer; no Synth or Code view, no piano roll (the clip plays
+  from the top bar), no macro CC, no shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.
 - **Address**: `?sound=NAME` opens a preset, `?q=TEXT` fills the library search, `?view=sequence|synth|code` opens a
   view (e.g. `/?sound=drone_glacial&view=synth`); the address bar follows the sound playing, and Share's QR code

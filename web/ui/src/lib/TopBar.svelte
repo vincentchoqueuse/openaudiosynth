@@ -41,7 +41,7 @@
     {/if}
   </div>
   <span class="vsep" aria-hidden="true"></span>
-  <Pills items={views.map(({ id, label }) => ({ id, label }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />
+  {#if views.length > 1}<Pills items={views.map(({ id, label }) => ({ id, label }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
   <span class="vsep" aria-hidden="true"></span>
   <div class="namebox">
     <span class="tag">Preset</span>{#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}

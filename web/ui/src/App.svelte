@@ -28,7 +28,8 @@
 
   // the three main views (kept in the browser)
   const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }, { id: 'code', label: 'Code', icon: 'code' }];
-  const VIEWS = $derived(s.phone ? ALL_VIEWS.filter((v) => v.id !== 'code') : ALL_VIEWS); // no code editing on a phone
+  // a phone plays: the clip, the macros and the keyboard only (no editing views)
+  const VIEWS = $derived(s.phone ? ALL_VIEWS.slice(0, 1) : ALL_VIEWS);
   let main = $state(urlParams.view ?? remembered('synth.main', 'clip')); // ?view= in the address first
   $effect(() => { if (!VIEWS.some((v) => v.id === main)) main = 'clip'; });
   $effect(() => remember('synth.main', main));
@@ -80,7 +81,7 @@
     <main>
       <TopBar bind:view={main} views={VIEWS} />
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
-      <div hidden={main !== 'clip'}><ViewTitle {...ALL_VIEWS[0]} /><ClipTab /></div>
+      <div hidden={main !== 'clip'}>{#if !s.phone}<ViewTitle {...ALL_VIEWS[0]} />{/if}<ClipTab /></div>
       {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} /><SynthTab />{/if}
       {#if main === 'code'}<ViewTitle {...ALL_VIEWS[2]} /><CodeView />{/if}
     </main>

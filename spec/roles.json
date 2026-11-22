@@ -190,6 +190,8 @@
     "osc<n>.wave_triangle": "oscillator n triangle on/off",
     "osc<n>.waveform": "oscillator n shape",
     "osc<n>.wavetable": "wavetable selection of oscillator n",
+    "output.crush.bits": "resolution of the instrument's output (bits, 24 = clean)",
+    "output.crush.rate": "sample rate of the instrument's output (Hz, 48000 = clean)",
     "output.filter.cutoff": "cutoff of the filter on the instrument's output (Hz)",
     "output.filter.mode": "filter on the instrument's output: off, lp, hp, bp",
     "output.filter.resonance": "resonance of the output filter",

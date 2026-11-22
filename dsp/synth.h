@@ -64,6 +64,9 @@ enum {
     SYNTH_PARAM_OUT_FILTER,      /* off, lp, hp, bp (12 dB state-variable) */
     SYNTH_PARAM_OUT_CUTOFF,      /* 20 .. 20000 Hz */
     SYNTH_PARAM_OUT_RESO,        /* 0 .. 1 */
+    /* crush: after the output filter, the resolution and the sample rate brought down (24 bits, 48 kHz = off) */
+    SYNTH_PARAM_CRUSH_BITS,      /* 2 .. 24 bits */
+    SYNTH_PARAM_CRUSH_RATE,      /* 200 .. 48000 Hz (sample and hold) */
     SYNTH_PARAM_GLOBAL_END
 };
 

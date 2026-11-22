@@ -1,6 +1,6 @@
 /* test_voicemod.c — per-voice modulation and what rides on it: comb filter (peaks at the multiples of f, hollow
  * version at the odd multiples of f/2, bounded at full feedback with a fast-moving tuning), just intonation
- * (exact 5/4 third), concert pitch (A4 = 432 Hz), the output filter (by hand and by a macro), the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
+ * (exact 5/4 third), concert pitch (A4 = 432 Hz), the output filter (by hand and by a macro), the crush, the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
  * only its own note), per-voice LFO (vibrato) and per-voice
  * MSEG (level envelope). */
 #include <math.h>
@@ -130,6 +130,29 @@ void suite_voicemod(void)
         CHECK(lvl[1] < 0.1f * lvl[0] && lvl[2] < 0.1f * a3 && lvl[3] < 0.1f * lvl[0],
               "output filter: A5 %.4f, low-passed %.4f, A3 %.4f high-passed %.4f, by a macro %.4f", (double)lvl[0],
               (double)lvl[1], (double)a3, (double)lvl[2], (double)lvl[3]);
+    }
+
+    /* crush: at 2 kHz an A5 (880 Hz) folds back to 1120 Hz; at 3 bits it gains odd harmonics (2640 Hz) */
+    {
+        float img[2], h3[2];
+        for (int k = 0; k < 2; k++) {
+            sine_sustain();
+            if (k) setg(SYNTH_PARAM_CRUSH_RATE, 2000.0f);
+            midi3(0x90, 81, 100);
+            render(N);
+            spectrum_db(L + 9600, NFFT, db);
+            img[k] = level_at(L, 1120.0f);
+        }
+        for (int k = 0; k < 2; k++) {
+            sine_sustain();
+            if (k) setg(SYNTH_PARAM_CRUSH_BITS, 3.0f);
+            midi3(0x90, 81, 100);
+            render(N);
+            spectrum_db(L + 9600, NFFT, db);
+            h3[k] = level_at(L, 2640.0f);
+        }
+        CHECK(img[1] > img[0] + 30.0f && h3[1] > h3[0] + 30.0f, "crush: image at 1120 Hz %.1f -> %.1f dB, 3rd harmonic %.1f -> %.1f dB",
+              (double)img[0], (double)img[1], (double)h3[0], (double)h3[1]);
     }
 
     /* MPE: the bend on channel 2 moves only the note on channel 2 (range 2 st: half bend = 1 st) */

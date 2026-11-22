@@ -68,7 +68,8 @@ typedef struct {
 
 const engine_stage_t synth_fx_stages[] = {
     {"outfilter", "Output filter", "fx", "out_", "engine", NULL, "out_filter", 0.0f, 1.0f},
-    {"chorus", "Chorus", "fx", "chorus_", "outfilter", NULL, "chorus_mode", 0.0f, 1.0f},
+    {"crush", "Crush", "fx", "crush_", "outfilter", NULL, "crush_bits", 24.0f, 8.0f},
+    {"chorus", "Chorus", "fx", "chorus_", "crush", NULL, "chorus_mode", 0.0f, 1.0f},
     {"delay", "Delay", "fx", "delay_", "chorus", NULL, "delay_mix", 0.0f, 0.25f},
     {"reverb", "Reverb", "fx", "reverb_", "delay", NULL, "reverb_mix", 0.0f, 0.3f},
     {"master", "Master", "fx", "master", "reverb", NULL, NULL, 0.0f, 0.0f},
@@ -131,6 +132,10 @@ static const param_desc_t out_desc[] = {
           "cutoff (or centre) of the output filter"),
     PARAM(SYNTH_PARAM_OUT_RESO, "out_resonance", "output.filter.resonance", 0.0f, 1.0f, 0.2f, PARAM_LIN, "", 1, NULL,
           "resonance of the output filter: 0 = smooth, 1 = sharp peak"),
+    PARAM(SYNTH_PARAM_CRUSH_BITS, "crush_bits", "output.crush.bits", 2.0f, 24.0f, 24.0f, PARAM_INT, "bit", 1, NULL,
+          "resolution of the instrument's output, its steps spanning the nominal level (-12 dBFS): 24 = clean, 8 = grainy, 2-4 = broken digital"),
+    PARAM(SYNTH_PARAM_CRUSH_RATE, "crush_rate", "output.crush.rate", 200.0f, 48000.0f, 48000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "sample rate of the instrument's output (sample and hold): 48 kHz = clean, lower = metallic aliasing, a few hundred Hz = data noise"),
 };
 _Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
@@ -189,6 +194,7 @@ typedef struct {
     svf_t out_f[2];  /* the output filter, left and right */
     float out_oct;   /* its cutoff (log2 Hz), smoothed per block */
     int out_mode;    /* the mode it was last set to (a change resets it) */
+    float crush_hold[2], crush_acc; /* crush: the samples held, the phase of the next one */
     float gain_prev;
     uint8_t sounding_note[128]; /* note sent to the engine for each received note (0xFF: none): transpose-safe note-offs */
     int16_t mpe_note[16];       /* MPE: note playing on each channel (-1: none) */
@@ -225,6 +231,8 @@ struct synth {
     uint8_t gheld[SYNTH_GLOBAL_COUNT];  /* 1 while a macro target holds them (master, effects, output filter) */
     int out_mode;                       /* output filter: 0 off, 1 lp, 2 hp, 3 bp */
     float out_cutoff, out_q, out_glide; /* Hz, Q, per-block glide of the cutoff */
+    int crush_bits;                     /* 24 = off */
+    float crush_rate;                   /* Hz, the sample rate itself = off */
     smooth_t master;
     float master_prev;
     dcblock_t dc[2];
@@ -303,6 +311,8 @@ static void part_init(synth_t *s, int k)
         svf_init(&pt->out_f[c], s->sr);
     pt->out_mode = 0;
     pt->out_oct = 11.0f;
+    pt->crush_hold[0] = pt->crush_hold[1] = 0.0f;
+    pt->crush_acc = 1.0f;
     pt->switching = 0;
     partmod_init(&pt->mod, s->sr, 0x5EED0u + (uint32_t)k);
     pt->kit = 0;
@@ -569,6 +579,10 @@ static void global_apply(synth_t *s, int id, float norm)
         s->out_mode = (int)param_from_norm(&out_desc[0], norm);
     else if (id == SYNTH_PARAM_OUT_CUTOFF)
         s->out_cutoff = param_from_norm(&out_desc[1], norm);
+    else if (id == SYNTH_PARAM_CRUSH_BITS)
+        s->crush_bits = (int)param_from_norm(&out_desc[3], norm);
+    else if (id == SYNTH_PARAM_CRUSH_RATE)
+        s->crush_rate = param_from_norm(&out_desc[4], norm);
     else if (id == SYNTH_PARAM_OUT_RESO)
         s->out_q = 0.5f * fm_exp2(4.3f * param_from_norm(&out_desc[2], norm)); /* 0.5 .. ~10 */
     else
@@ -726,6 +740,26 @@ static DSP_FAST_CODE int part_render(synth_t *s, synth_part_t *pt, float *busL, 
         svf_process(&pt->out_f[1], R, R, n);
     } else {
         pt->out_mode = 0;
+    }
+    /* crush: sample and hold at crush_rate, then the amplitude rounded to crush_bits (deliberately aliasing) */
+    const int crush_rate_on = s->crush_rate < 47900.0f; /* the top of its range is off, whatever the sample rate */
+    if (s->crush_bits < 24 || crush_rate_on) {
+        const float step = crush_rate_on ? dsp_minf(s->crush_rate / s->sr, 1.0f) : 1.0f;
+        /* the steps span the instruments' nominal level (-12 dBFS), not full scale: a few bits stay audible */
+        const float q = (float)(1 << (dsp_clampi(s->crush_bits, 2, 24) - 1)) * 4.0f, iq = 1.0f / q;
+        for (int i = 0; i < n; i++) {
+            pt->crush_acc += step;
+            if (pt->crush_acc >= 1.0f) {
+                pt->crush_acc -= 1.0f;
+                pt->crush_hold[0] = L[i], pt->crush_hold[1] = R[i];
+                if (s->crush_bits < 24)
+                    for (int c = 0; c < 2; c++) { /* round to the nearest step */
+                        const float v = pt->crush_hold[c] * q;
+                        pt->crush_hold[c] = (float)(int)(v + (v >= 0.0f ? 0.5f : -0.5f)) * iq;
+                    }
+            }
+            L[i] = pt->crush_hold[0], R[i] = pt->crush_hold[1];
+        }
     }
     /* level (smoothed, mute = silent) and balance: centre keeps both sides at gain 1 */
     const float target = part_p(pt, SYNTH_PART_MUTE) > 0.5f ? 0.0f : fm_db2lin(part_p(pt, SYNTH_PART_LEVEL));

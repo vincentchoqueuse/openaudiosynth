@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "engine": "wt",
+  "name": "wt_riddim_growl",
+  "description": "Riddim growl at 140, half time: an FM-warped growl table through a vowel filter and a hard clipper; every note loops its own quarter-beat curve on the table and the vowel, the drive bursts on each attack, a square LFO flips the FM depth every eighth and a saw LFO drags the sample rate down for digital tears.",
+  "params": {
+    "a_table": "growl",
+    "a_position": 0.4,
+    "a_warp_mode": "fm",
+    "a_warp": 0.3,
+    "a_level": 0.85,
+    "a_unison": 2,
+    "a_detune": 8,
+    "b_table": "basic",
+    "b_position": 0.0,
+    "b_level": 0.0,
+    "b_octave": 1,
+    "sub": 0.75,
+    "sub_route": "direct",
+    "filter_type": "formant",
+    "cutoff": 900,
+    "resonance": 0.6,
+    "drive": 0.5,
+    "keytrack": 0.2,
+    "dist_mode": "hard",
+    "dist_drive": 18,
+    "dist_tone": 7000,
+    "dist_mix": 0.9,
+    "dist_place": "post",
+    "amp_attack": 0.002,
+    "amp_decay": 0.2,
+    "amp_sustain": 1.0,
+    "amp_release": 0.06,
+    "voice_mode": "mono",
+    "env2_attack": 0.001,
+    "env2_decay": 0.15,
+    "env2_sustain": 0.0,
+    "env2_release": 0.05,
+    "mod1_source": "env2",
+    "mod1_destination": "dist",
+    "mod1_amount": 0.5,
+    "vmseg_mode": "loop_held",
+    "vmseg_sync": "beats",
+    "vmseg_points": 5,
+    "vmseg_sustain": "none",
+    "vmseg_loop_start": 1,
+    "vmseg_loop_end": 5,
+    "vmseg_t1": 0,
+    "vmseg_l1": 0.0,
+    "vmseg_t2": 0.25,
+    "vmseg_l2": 1.0,
+    "vmseg_c2": 0.5,
+    "vmseg_t3": 0.25,
+    "vmseg_l3": 0.3,
+    "vmseg_c3": -0.4,
+    "vmseg_t4": 0.25,
+    "vmseg_l4": 0.8,
+    "vmseg_c4": 0.3,
+    "vmseg_t5": 0.25,
+    "vmseg_l5": 0.0,
+    "vmseg_c5": -0.6,
+    "vroute1_source": "vmseg",
+    "vroute1_destination": "timbre",
+    "vroute1_amount": 0.35,
+    "vroute2_source": "vmseg",
+    "vroute2_destination": "brightness",
+    "vroute2_amount": 0.4,
+    "mlfo1_wave": "square",
+    "mlfo1_sync": "1/8",
+    "route1_source": "mlfo1",
+    "route1_destination": "a_warp",
+    "route1_amount": 0.2,
+    "mlfo2_wave": "saw",
+    "mlfo2_sync": "1/2",
+    "crush_rate": 48000,
+    "route2_source": "mlfo2",
+    "route2_destination": "crush_rate",
+    "route2_amount": -0.25,
+    "reverb_mix": 0.06,
+    "pan_spread": 0.0,
+    "volume": 9.3
+  },
+  "clip": {
+    "bpm": 140,
+    "length": 8,
+    "loop": true,
+    "grid": "1/16",
+    "key": "F minor",
+    "notes": [
+      {
+        "pitch": 29,
+        "start": 0,
+        "length": 0.5,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 0.75,
+        "length": 0.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 1.0,
+        "length": 0.75,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 2,
+        "length": 0.5,
+        "velocity": 110
+      },
+      {
+        "pitch": 32,
+        "start": 2.5,
+        "length": 0.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 3,
+        "length": 0.5,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 3.5,
+        "length": 0.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 4,
+        "length": 0.5,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 4.75,
+        "length": 0.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 5,
+        "length": 0.75,
+        "velocity": 110
+      },
+      {
+        "pitch": 27,
+        "start": 6,
+        "length": 1.0,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 7,
+        "length": 0.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 34,
+        "start": 7.5,
+        "length": 0.5,
+        "velocity": 110
+      }
+    ]
+  }
+}

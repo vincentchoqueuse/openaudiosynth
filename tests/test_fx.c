@@ -1,10 +1,13 @@
 /* test_fx.c — Dattorro plate reverb: bounded and finite, tail decays and gets longer with decay,
- * decorrelated stereo, deterministic, works at 44.1/48/96 kHz. */
+ * decorrelated stereo, deterministic, works at 44.1/48/96 kHz. Delay, chorus, freeze; the voice distortion:
+ * bounded, deterministic, level held across drives, no comb filtering at a partial mix, aliasing below a threshold. */
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "fx/chorus.h"
 #include "fx/delay.h"
+#include "fx/dist.h"
 #include "fx/reverb.h"
 #include "test.h"
 
@@ -169,8 +172,75 @@ static float impulse(float sr, float decay, float *L, float *R, int n)
     return t60;
 }
 
+
+/* Worst line (dB re the fundamental at bin k0) outside +/-4 bins of the harmonics, below bin kmax. */
+static float dist_alias_db(const float *db, int k0, int kmax)
+{
+    float worst = -300.0f;
+    for (int k = 5; k < kmax; k++) {
+        const int r = k % k0;
+        if (r <= 4 || r >= k0 - 4)
+            continue;
+        if (db[k] > worst)
+            worst = db[k];
+    }
+    return worst - db[k0];
+}
+
+static void test_dist(void)
+{
+    const float sr = 48000.0f;
+    const int n = 16384, k0 = 509; /* 1491 Hz on a bin (not a divisor of the rate: aliases fall between harmonics) */
+    float *x = malloc(sizeof(float) * (size_t)n), *y = malloc(sizeof(float) * (size_t)n), *y2 = malloc(sizeof(float) * (size_t)n);
+    float *db = malloc(sizeof(float) * (size_t)(n / 2 + 1));
+    static const char *const names[] = {"off", "soft", "tube", "hard", "fold"};
+    dist_t d;
+    for (int i = 0; i < n; i++)
+        x[i] = 0.7f * sinf(6.28318530717959f * (float)k0 * (float)i / (float)n);
+    for (int mode = DIST_SOFT; mode < DIST_MODE_COUNT; mode++) {
+        float lo = 1e9f, hi = 0.0f;
+        for (int k = 0; k <= 4; k++) {
+            const float drive = 9.0f * (float)k; /* 0, 9, 18, 27, 36 dB */
+            dist_init(&d, sr);
+            dist_set(&d, (dist_mode_t)mode, drive, 20000.0f, 1.0f);
+            for (int i = 0; i < n; i += 32)
+                dist_process(&d, x + i, y + i, 32);
+            CHECK(all_finite_bounded(y, n, 2.0f), "dist %s %.0f dB: NaN or |y| > 2", names[mode], (double)drive);
+            const float r = rms(y + 1024, n - 1024);
+            lo = fminf(lo, r), hi = fmaxf(hi, r);
+            /* determinism */
+            dist_init(&d, sr);
+            dist_set(&d, (dist_mode_t)mode, drive, 20000.0f, 1.0f);
+            for (int i = 0; i < n; i += 32)
+                dist_process(&d, x + i, y2 + i, 32);
+            CHECK(memcmp(y, y2, sizeof(float) * (size_t)n) == 0, "dist %s: not deterministic", names[mode]);
+            if (k == 2) { /* 18 dB: aliases below 10 kHz */
+                spectrum_db(y, n, db);
+                const float al = dist_alias_db(db, k0, (int)(10000.0f * (float)n / sr));
+                printf("  dist %-4s 18 dB on 1491 Hz: worst alias below 10 kHz %.1f dB\n", names[mode], (double)al);
+                CHECK(al < -50.0f, "dist %s: alias at %.1f dB", names[mode], (double)al);
+            }
+        }
+        const float spread = 20.0f * log10f(hi / lo);
+        printf("  dist %-4s level over 0..36 dB of drive: %.1f dB spread\n", names[mode], (double)spread);
+        CHECK(spread < 8.0f, "dist %s: level moves %.1f dB with the drive", names[mode], (double)spread);
+    }
+    /* a partial mix at a low drive is the dry signal (no comb notch): a 9 kHz sine keeps its level */
+    for (int i = 0; i < n; i++)
+        x[i] = 0.05f * sinf(6.28318530717959f * 9000.0f * (float)i / sr);
+    dist_init(&d, sr);
+    dist_set(&d, DIST_SOFT, 0.0f, 20000.0f, 0.5f);
+    for (int i = 0; i < n; i += 32)
+        dist_process(&d, x + i, y + i, 32);
+    const float ratio = 20.0f * log10f(rms(y + 1024, n - 1024) / rms(x + 1024, n - 1024));
+    printf("  dist mix 0.5 at 9 kHz: %.2f dB\n", (double)ratio);
+    CHECK(fabsf(ratio) < 1.5f, "dist: a partial mix notches 9 kHz (%.2f dB)", (double)ratio);
+    free(x), free(y), free(y2), free(db);
+}
+
 void suite_fx(void)
 {
+    test_dist();
     test_delay();
     test_chorus();
     test_freeze();

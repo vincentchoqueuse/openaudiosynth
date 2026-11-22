@@ -1,5 +1,6 @@
 <!-- ModMatrix.svelte — the modulation matrix as a table: every slot of the part (8 routes) or of the notes (4),
-     filled or empty, each row a source, a destination, an amount and (part) a "via" source that scales it. The
+     filled or empty, each row a source, a destination (a part route: the engine's parameters, or the master and
+     the effects), an amount and (part) a "via" source that scales it. The
      amount slider is bipolar and quadratic (amount = position x |position|): fine near zero, where most useful
      amounts are, and a long way to the extremes; its value reads in the destination's units. A new route starts
      at 0 (nothing moves until the slider does); double-click on the slider: 0. -->
@@ -13,6 +14,8 @@
   const srcLabels = $derived(s.byName[pre + '1_source']?.labels ?? []);
   const vdstLabels = $derived(s.byName['vroute1_destination']?.labels ?? []);
   const dests = $derived(s.macroTargets.engine);
+  const fxDests = $derived(s.macroTargets.fx); // part routes may move the master and the effects too
+  const engineName = $derived(s.engine?.name ?? 'engine');
   const srcOf = (r) => Math.round(get(`${pre}${r}_source`));
   const slots = $derived(Array.from({ length: N }, (_, k) => k + 1));
 
@@ -45,7 +48,7 @@
       if (dst === 3) return `${sign(a)}${(a * 4).toFixed(2)} oct`;
       return `${sign(a)}${(a * 100).toFixed(0)} %`;
     }
-    const d = s.engine.params[Math.round(get(`${pre}${r}_destination`)) - 1];
+    const d = s.paramById(Math.round(get(`${pre}${r}_destination`)) - 1);
     if (!d) return '';
     const v = d.curve === 'exp' ? a * Math.log2(d.max / d.min) : a * (d.max - d.min);
     const u = d.curve === 'exp' ? 'oct' : d.unit || '';
@@ -68,7 +71,8 @@
           {#if kind === 'part'}
             <select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(e) => set(`${pre}${r}_destination`, +e.target.value)} aria-label="Destination of slot {r}">
               {#if !s}<option value={0}>—</option>{/if}
-              {#each dests as d}<option value={d.id + 1}>{human(d.name)}</option>{/each}
+              <optgroup label={engineName}>{#each dests as d}<option value={d.id + 1}>{human(d.name)}</option>{/each}</optgroup>
+              <optgroup label="master and effects">{#each fxDests as d}<option value={d.id + 1}>{human(d.name)}</option>{/each}</optgroup>
             </select>
           {:else}
             <select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(e) => set(`${pre}${r}_destination`, +e.target.value)} aria-label="Destination of slot {r}">

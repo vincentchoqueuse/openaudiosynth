@@ -114,35 +114,35 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `mseg2_l1` | 0 .. 1 | 0 | yes | `mseg2.point1.level` | level of point 1 |
 | `mseg2_c1` | -1 .. 1 | 0 | yes | `mseg2.point1.curve` | curve of the segment ending at point 1 (0 straight, + fast start, - slow start) |
 | `route1_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route1.source` | route 1: modulation source |
-| `route1_destination` | 0 .. 256 | 0 |  | `route1.destination` | route 1: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route1_destination` | 0 .. 295 | 0 |  | `route1.destination` | route 1: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route1_amount` | -1 .. 1 | 0 | yes | `route1.amount` | route 1: amount, in fractions of the destination's whole range (its knob travel) |
 | `route1_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route1.via` | route 1: optional second source scaling the amount |
 | `route2_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route2.source` | route 2: modulation source |
-| `route2_destination` | 0 .. 256 | 0 |  | `route2.destination` | route 2: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route2_destination` | 0 .. 295 | 0 |  | `route2.destination` | route 2: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route2_amount` | -1 .. 1 | 0 | yes | `route2.amount` | route 2: amount, in fractions of the destination's whole range (its knob travel) |
 | `route2_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route2.via` | route 2: optional second source scaling the amount |
 | `route3_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route3.source` | route 3: modulation source |
-| `route3_destination` | 0 .. 256 | 0 |  | `route3.destination` | route 3: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route3_destination` | 0 .. 295 | 0 |  | `route3.destination` | route 3: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route3_amount` | -1 .. 1 | 0 | yes | `route3.amount` | route 3: amount, in fractions of the destination's whole range (its knob travel) |
 | `route3_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route3.via` | route 3: optional second source scaling the amount |
 | `route4_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route4.source` | route 4: modulation source |
-| `route4_destination` | 0 .. 256 | 0 |  | `route4.destination` | route 4: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route4_destination` | 0 .. 295 | 0 |  | `route4.destination` | route 4: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route4_amount` | -1 .. 1 | 0 | yes | `route4.amount` | route 4: amount, in fractions of the destination's whole range (its knob travel) |
 | `route4_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route4.via` | route 4: optional second source scaling the amount |
 | `route5_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route5.source` | route 5: modulation source |
-| `route5_destination` | 0 .. 256 | 0 |  | `route5.destination` | route 5: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route5_destination` | 0 .. 295 | 0 |  | `route5.destination` | route 5: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route5_amount` | -1 .. 1 | 0 | yes | `route5.amount` | route 5: amount, in fractions of the destination's whole range (its knob travel) |
 | `route5_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route5.via` | route 5: optional second source scaling the amount |
 | `route6_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route6.source` | route 6: modulation source |
-| `route6_destination` | 0 .. 256 | 0 |  | `route6.destination` | route 6: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route6_destination` | 0 .. 295 | 0 |  | `route6.destination` | route 6: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route6_amount` | -1 .. 1 | 0 | yes | `route6.amount` | route 6: amount, in fractions of the destination's whole range (its knob travel) |
 | `route6_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route6.via` | route 6: optional second source scaling the amount |
 | `route7_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route7.source` | route 7: modulation source |
-| `route7_destination` | 0 .. 256 | 0 |  | `route7.destination` | route 7: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route7_destination` | 0 .. 295 | 0 |  | `route7.destination` | route 7: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route7_amount` | -1 .. 1 | 0 | yes | `route7.amount` | route 7: amount, in fractions of the destination's whole range (its knob travel) |
 | `route7_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route7.via` | route 7: optional second source scaling the amount |
 | `route8_source` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route8.source` | route 8: modulation source |
-| `route8_destination` | 0 .. 256 | 0 |  | `route8.destination` | route 8: the engine parameter modulated (by name in patches; must be realtime), none = 0 |
+| `route8_destination` | 0 .. 295 | 0 |  | `route8.destination` | route 8: the parameter modulated, the engine's or an effect's (by name in patches; must be realtime), none = 0 |
 | `route8_amount` | -1 .. 1 | 0 | yes | `route8.amount` | route 8: amount, in fractions of the destination's whole range (its knob travel) |
 | `route8_via` | none, macro1, macro2, macro3, macro4, macro5, macro6, macro7, macro8, mlfo1, mlfo2, mseg1, mseg2, mod_wheel, aftertouch, pitch_bend, velocity, note, random | none |  | `route8.via` | route 8: optional second source scaling the amount |
 | `vmseg_mode` | oneshot, loop_held, loop_free | oneshot |  | `vmseg.mode` | per-voice MSEG (one per note, starts with the note): oneshot, loop_held, loop_free |
@@ -868,7 +868,7 @@ classic polysynth (late-70s 5-voice spirit): osc A saw/pulse with hard sync, osc
 
 ## Engine `wt` (8 voices)
 
-wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position morphing, unison and warps (sync, bend, mirror, FM, ring), sub, noise, SVF or ladder filter, 2 envelopes, 2 LFOs, 6-slot modulation matrix, mono/legato/glide (8 voices)
+wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position morphing, unison and warps (sync, bend, mirror, FM, ring), sub, noise, SVF or ladder filter, distortion, 2 envelopes, 2 LFOs, 6-slot modulation matrix, mono/legato/glide (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
@@ -914,27 +914,27 @@ wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position
 | `lfo2_wave` | sine, tri, saw, square, sh | sine |  | `lfo2.waveform` | LFO 2 shape (sh = random steps) |
 | `lfo2_retrig` | off, on | on |  | `lfo2.retrigger` | LFO 2 restarts on each note (off = free running, voices drift apart) |
 | `mod1_source` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot1.source` | modulation slot 1: source |
-| `mod1_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp | none |  | `mod.slot1.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1 |
+| `mod1_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp, dist | none |  | `mod.slot1.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1 |
 | `mod1_amount` | -1 .. 1 | 0 | yes | `mod.slot1.amount` | amount (negative = inverted) |
 | `mod1_via` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot1.via` | optional second source scaling the amount (e.g. mod wheel) |
 | `mod2_source` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot2.source` | modulation slot 2: source |
-| `mod2_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp | none |  | `mod.slot2.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1 |
+| `mod2_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp, dist | none |  | `mod.slot2.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1 |
 | `mod2_amount` | -1 .. 1 | 0 | yes | `mod.slot2.amount` | amount (negative = inverted) |
 | `mod2_via` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot2.via` | optional second source scaling the amount (e.g. mod wheel) |
 | `mod3_source` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot3.source` | modulation slot 3: source |
-| `mod3_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp | none |  | `mod.slot3.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1 |
+| `mod3_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp, dist | none |  | `mod.slot3.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1 |
 | `mod3_amount` | -1 .. 1 | 0 | yes | `mod.slot3.amount` | amount (negative = inverted) |
 | `mod3_via` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot3.via` | optional second source scaling the amount (e.g. mod wheel) |
 | `mod4_source` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot4.source` | modulation slot 4: source |
-| `mod4_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp | none |  | `mod.slot4.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1 |
+| `mod4_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp, dist | none |  | `mod.slot4.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1 |
 | `mod4_amount` | -1 .. 1 | 0 | yes | `mod.slot4.amount` | amount (negative = inverted) |
 | `mod4_via` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot4.via` | optional second source scaling the amount (e.g. mod wheel) |
 | `mod5_source` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot5.source` | modulation slot 5: source |
-| `mod5_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp | none |  | `mod.slot5.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1 |
+| `mod5_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp, dist | none |  | `mod.slot5.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1 |
 | `mod5_amount` | -1 .. 1 | 0 | yes | `mod.slot5.amount` | amount (negative = inverted) |
 | `mod5_via` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot5.via` | optional second source scaling the amount (e.g. mod wheel) |
 | `mod6_source` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot6.source` | modulation slot 6: source |
-| `mod6_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp | none |  | `mod.slot6.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1 |
+| `mod6_destination` | none, pitch, a_position, a_warp, a_level, b_position, b_warp, b_level, cutoff, resonance, sub, noise, detune, pan, amp, dist | none |  | `mod.slot6.destination` | destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1 |
 | `mod6_amount` | -1 .. 1 | 0 | yes | `mod.slot6.amount` | amount (negative = inverted) |
 | `mod6_via` | none, env2, amp_env, lfo1, lfo2, velocity, note, mod_wheel, random | none |  | `mod.slot6.via` | optional second source scaling the amount (e.g. mod wheel) |
 | `voice_mode` | poly, mono, legato | poly |  | `voice.mode` | poly; mono = last note, retriggers; legato = overlapping notes slide without retriggering |
@@ -944,6 +944,12 @@ wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position
 | `pan_spread` | 0 .. 1 | 0.4 |  | `voice.pan_spread` | random stereo position per note |
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 | `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the nonlinear filters (lp24 ladder, scream): 1x lightest, 2x default, 4x cleanest (about twice the filter cost of 2x) |
+| `dist_mode` | off, soft, tube, hard, fold | off |  | `fx.distortion.mode` | distortion per voice: soft (round, tanh), tube (warm, even harmonics), hard (flat tops, aggressive), fold (wavefolder: metallic, folds further as the drive rises; move the drive for growls) |
+| `dist_drive` | 0 .. 36 dB | 12 | yes | `fx.distortion.drive` | gain into the distortion: 6 warm, 18 dirty, 30+ destroyed (level kept even); a matrix destination |
+| `dist_tone` | 500 .. 20000 Hz | 8000 | yes | `fx.distortion.tone` | low-pass after the distortion: lower tames the fizz |
+| `dist_mix` | 0 .. 1 | 1 | yes | `fx.distortion.mix` | distorted signal against the clean one (parallel distortion keeps the body) |
+| `dist_place` | post, pre | post |  | `fx.distortion.place` | post: after the filter (the filter shapes, the distortion bites); pre: before it (the filter tames the distortion, classic for growling basses) |
+| `sub_route` | filter, direct | filter |  | `sub.route` | filter: the sub goes through the filter and the distortion with the oscillators; direct: it joins after them, clean and steady under a growling or vowel-filtered bass |
 
 ## Engine `coupled` (8 voices)
 

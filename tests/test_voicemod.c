@@ -1,6 +1,6 @@
 /* test_voicemod.c — per-voice modulation and what rides on it: comb filter (peaks at the multiples of f, hollow
  * version at the odd multiples of f/2, bounded at full feedback with a fast-moving tuning), just intonation
- * (exact 5/4 third), concert pitch (A4 = 432 Hz), the output filter (by hand and by a macro), the crush, the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
+ * (exact 5/4 third), concert pitch (A4 = 432 Hz), the output filter (by hand, by a macro and by an LFO route), the crush, the Fourier and Wiener LFO shapes, MPE (a channel's bend moves
  * only its own note), per-voice LFO (vibrato) and per-voice
  * MSEG (level envelope). */
 #include <math.h>
@@ -130,6 +130,30 @@ void suite_voicemod(void)
         CHECK(lvl[1] < 0.1f * lvl[0] && lvl[2] < 0.1f * a3 && lvl[3] < 0.1f * lvl[0],
               "output filter: A5 %.4f, low-passed %.4f, A3 %.4f high-passed %.4f, by a macro %.4f", (double)lvl[0],
               (double)lvl[1], (double)a3, (double)lvl[2], (double)lvl[3]);
+    }
+
+    /* a route moves an effect: a square part LFO at 2 Hz on the output filter's cutoff (low-pass at 200 Hz) makes
+     * an A5 pump between muffled and open, 4 times a second */
+    {
+        sine_sustain();
+        setg(SYNTH_PARAM_OUT_FILTER, 1.0f);
+        setg(SYNTH_PARAM_OUT_CUTOFF, 200.0f);
+        setmod(PM_LFO(0, PM_LFO_RATE), 2.0f);
+        setmod(PM_LFO(0, PM_LFO_WAVE), 3.0f); /* square */
+        setmod(PM_ROUTE(0, PM_R_SRC), (float)PM_SRC_LFO1);
+        setmod(PM_ROUTE(0, PM_R_DST), (float)(SYNTH_PARAM_OUT_CUTOFF + 1));
+        setmod(PM_ROUTE(0, PM_R_AMOUNT), 0.5f);
+        midi3(0x90, 81, 100);
+        render(N);
+        float lo = 1e9f, hi = 0.0f;
+        for (int w = 4800; w + 2400 <= N; w += 2400) {
+            const float r = rms(L + w, 2400);
+            lo = fminf(lo, r), hi = fmaxf(hi, r);
+        }
+        CHECK(hi > 10.0f * lo, "route on the output filter: level %.4f .. %.4f, no pumping", (double)lo, (double)hi);
+        setmod(PM_ROUTE(0, PM_R_SRC), 0.0f);
+        setmod(PM_ROUTE(0, PM_R_DST), 0.0f);
+        setmod(PM_ROUTE(0, PM_R_AMOUNT), 0.0f);
     }
 
     /* crush: at 2 kHz an A5 (880 Hz) folds back to 1120 Hz; at 3 bits it gains odd harmonics (2640 Hz) */

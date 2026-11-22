@@ -87,9 +87,10 @@ class Checker:
                 self.err(where, f"unknown {engine} parameter or role '{key}'")
                 continue
             if isinstance(value, str) and d.get("role", "").startswith("route") and d["role"].endswith(".destination"):
-                if value != "none":  # an engine parameter that moves in real time
+                if value != "none":  # an engine parameter, or an effect's (master and effect chain), that moves in real time
                     t = self.resolve(engine, value)
-                    if t is None or value in self.shared or t.get("role", "") in [x.get("role") for x in self.shared.values()]:
+                    fx = value in self.glob and value != "tempo"  # pm_global_target: not the tempo nor the tuning
+                    if t is None or (not fx and (value in self.shared or t.get("role", "") in [x.get("role") for x in self.shared.values()])):
                         self.err(where, f"'{key}': '{value}' is not a {engine} parameter")
                     elif not t.get("realtime"):
                         self.err(where, f"'{key}': {engine} parameter '{value}' is not realtime (cannot be modulated)")

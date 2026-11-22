@@ -288,7 +288,7 @@ parameter and modulation layer of a part, the same for every engine. Parameter c
 - `void partmod_engine(partmod_t *m, const engine_ops_t *ops)` — New engine: base values back to the engine's defaults, nothing modulated.
 - `void partmod_set(partmod_t *m, int index, float norm)` — Modulation parameter index (0..PM_COUNT-1), normalized value.
 - `int partmod_macro_cc(const partmod_t *m, int cc)` — The macro (0..7) a CC turns on this part, or -1.
-- `void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set)` — Adds this part's macro targets on synth-level parameters (master, effects) into val[id - SYNTH_PARAM_GLOBAL] (normalized; set[i] = 1 once a target is seen, the first target's `from` starting the sum).
+- `void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set, float *off, uint8_t *routed)` — Adds this part's macro targets on synth-level parameters (master, effects, output filter, crush) into val[id - SYNTH_PARAM_GLOBAL] (normalized; set[i] = 1 once a target is seen, the first target's `from` starting the ...
 - `int partmod_base(partmod_t *m, const engine_ops_t *ops, int id, float norm, int sounding)` — Base value of an engine parameter set by the user or MIDI. Returns 1 if the layer takes care of it (it glides because notes sound, or it is modulated), 0 if the caller must give it to the engine now.
 - `void partmod_note_on(partmod_t *m, int note, float velocity)`
 - `void partmod_note_off(partmod_t *m)`
@@ -397,6 +397,16 @@ stereo "tape" echo: fractional delay lines read with 4-point Hermite interpolati
 - `void delay_snap(delay_t *d)` — Jump to the target delay time without the tape glide (use when the effect starts from idle).
 - `void delay_process(delay_t *d, const float *inL, const float *inR, float *outL, float *outR, int n)` — Mono-compatible stereo input, wet stereo output (outL/outR overwritten; may alias inL/inR).
 
+## `dsp/fx/dist.h`
+a distortion for a synth voice: a drive into one of four shapers, 2x oversampled (half-band, as the ladder's), a one-pole tone low-pass after it and a dry/wet mix. The output is scaled back by the shaper's gain at a typical level, so the drive changes the colour more than the loudness. Drive and mix ramp over each block; the dry signal is delayed like the oversampled one, so a partial mix does not comb-filter. Shapers: soft (tanh), tube (biased tanh: even harmonics too; the acid engine's distortion), hard (cubic clip: flat tops, brighter), fold (sine wavefolder: the louder the input, the more the waveform folds back; metallic, vocal growls when moved). References: waveshaping and wavefolding as in J. Pakarinen & D. Yeh, "A Review of Digital Techniques for Modeling Vacuum-Tube Guitar Amplifiers" (CMJ, 2009); F. Esqueda et al., "Virtual Analog Buchla 259 Wavefolder" (DAFx 2017).
+- types: `dist_mode_t`, `dist_t`
+- constants: `DIST_DRY_N` = 16
+- `void dist_init(dist_t *d, float sample_rate)`
+- `void dist_reset(dist_t *d)`
+- `void dist_set(dist_t *d, dist_mode_t mode, float drive_db, float tone_hz, float mix)` — drive_db: gain into the shaper (0..36 dB); tone_hz: low-pass after it; mix: 0 dry .. 1 wet.
+- `void dist_set_bias(dist_t *d, float bias)` — the tube's asymmetry: an offset into the tanh (0 = symmetric; DIST_TUBE_BIAS by default)
+- `void dist_process(dist_t *d, const float *in, float *out, int n)` — in place allowed; does nothing (out = in) when the mode is off
+
 ## `dsp/fx/fxbus.h`
 the synth's effect bus: chorus (insert) -> tape delay -> plate reverb (both parallel, wet added to the dry signal), with its parameter descriptors. Delay and reverb memory comes from a caller-provided arena; if the arena is too small the reverb size and maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
 - types: `fxbus_t`
@@ -500,7 +510,7 @@ reference engine (M0): polyphonic sine with one ADSR. Used to validate the full 
 - data: `const param_desc_t va_params[VA_P_COUNT]`, `const engine_ops_t va_engine`
 
 ## `dsp/engines/wt.h`
-wavetable synthesizer in the spirit of modern wavetable instruments: two wavetable oscillators (9 generated tables, position morphing, unison up to 8, warps: sync, bend, mirror, FM from B, ring by B; osc B's FM/ring source is the sub), sine sub one octave down, noise, one filter (12 dB state-variable LP/BP/HP/notch or 24 dB ladder with drive), amp envelope, a modulation envelope, two per-voice LFOs and a 6-slot modulation matrix (dsp/mod/modmatrix.h). Mono, legato and glide. No code from any product.
+wavetable synthesizer in the spirit of modern wavetable instruments: two wavetable oscillators (9 generated tables, position morphing, unison up to 8, warps: sync, bend, mirror, FM from B, ring by B; osc B's FM/ring source is the sub), sine sub one octave down, noise, one filter (12 dB state-variable LP/BP/HP/notch or 24 dB ladder with drive), amp envelope, a modulation envelope, two per-voice LFOs and a 6-slot modulation matrix (dsp/mod/modmatrix.h), a distortion per voice before or after the filter (dsp/fx/dist.h: soft, tube, hard, fold; its drive a matrix destination, for growls). Mono, legato and glide. No code from any product.
 - types: `wt_voice_t`, `wt_t`
 - constants: `WT_VOICES` = 8, `WT_SLOTS` = 6
 - data: `const param_desc_t wt_params[WT_P_COUNT]`, `const engine_ops_t wt_engine`

@@ -2,7 +2,8 @@
  * (9 generated tables, position morphing, unison up to 8, warps: sync, bend, mirror, FM from B, ring by B;
  * osc B's FM/ring source is the sub), sine sub one octave down, noise, one filter (12 dB state-variable
  * LP/BP/HP/notch or 24 dB ladder with drive), amp envelope, a modulation envelope, two per-voice LFOs and a
- * 6-slot modulation matrix (dsp/mod/modmatrix.h). Mono, legato and glide. No code from any product. */
+ * 6-slot modulation matrix (dsp/mod/modmatrix.h), a distortion per voice before or after the filter (dsp/fx/dist.h:
+ * soft, tube, hard, fold; its drive a matrix destination, for growls). Mono, legato and glide. No code from any product. */
 #ifndef ENGINE_WT_H
 #define ENGINE_WT_H
 
@@ -11,6 +12,7 @@
 #include "../filter/ladder.h"
 #include "../filter/svf_tpt.h"
 #include "../filter/vfilter.h"
+#include "../fx/dist.h"
 #include "../mod/lfo.h"
 #include "../mod/modmatrix.h"
 #include "../osc/wavetable.h"
@@ -36,6 +38,8 @@ enum {
     WT_P_MOD,
     WT_P_VOICE_MODE = WT_P_MOD + WT_SLOTS * WT_M_COUNT, WT_P_GLIDE, WT_P_VELOCITY, WT_P_VOLUME, WT_P_SPREAD,
     WT_P_BEND_RANGE, WT_P_OVERSAMPLE,
+    WT_P_DIST_MODE, WT_P_DIST_DRIVE, WT_P_DIST_TONE, WT_P_DIST_MIX, WT_P_DIST_PLACE, /* appended: ids above unchanged */
+    WT_P_SUB_ROUTE,
     WT_P_COUNT
 };
 extern const param_desc_t wt_params[WT_P_COUNT];
@@ -46,7 +50,7 @@ enum { WT_SRC_NONE = 0, WT_SRC_ENV2, WT_SRC_AMP_ENV, WT_SRC_LFO1, WT_SRC_LFO2, W
        WT_SRC_MODWHEEL, WT_SRC_RANDOM, WT_SRC_COUNT };
 enum { WT_DST_NONE = 0, WT_DST_PITCH, WT_DST_A_POS, WT_DST_A_WARP, WT_DST_A_LEVEL, WT_DST_B_POS, WT_DST_B_WARP,
        WT_DST_B_LEVEL, WT_DST_CUTOFF, WT_DST_RESO, WT_DST_SUB, WT_DST_NOISE, WT_DST_DETUNE, WT_DST_PAN, WT_DST_AMP,
-       WT_DST_COUNT };
+       WT_DST_DIST, WT_DST_COUNT };
 
 typedef struct {
     wt_osc_t osc[2];
@@ -55,6 +59,7 @@ typedef struct {
     ladder_t ladder;
     comb_t comb;
     vfilter_t vf; /* formant and scream types */
+    dist_t dist;  /* the voice's distortion, before or after the filter */
     adsr_t amp, env2;
     lfo_t lfo[2];
     float pitch, vel, rnd, pan_pos, gain_prev;

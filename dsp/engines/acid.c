@@ -109,8 +109,7 @@ static void acid_init(void *st, float sr)
     smooth_init(&e->sm_res, 0.005f, ctrl, e->p[ACID_P_RESO]);
     osc_init(&e->osc, sr);
     ladder_init(&e->filter, sr);
-    hb2x_reset(&e->dist_os);
-    e->dist_lp = 0.0f;
+    dist_init(&e->dist, sr);
     ladder_set_mode(&e->filter, LADDER_LP18);
     ladder_set_oversampling(&e->filter, 2);
     e->pitch = 36.0f;
@@ -182,20 +181,9 @@ static DSP_FAST_CODE void acid_render(void *st, float *L, float *R)
     /* distortion: drive up to +36 dB into an asymmetric tanh (even harmonics too), 2x oversampled, then its tone
      * (one-pole low-pass); the output is scaled back so turning it up changes the color more than the level */
     const float dist = p[ACID_P_DIST];
-    if (dist > 0.0f) {
-        const float g = fm_db2lin(36.0f * dist), bias = 0.25f * dist, b0 = fm_tanh(bias);
-        const float mk = 0.7f / fm_tanh(0.7f * g);
-        const float a = 1.0f - fm_exp2(-FM_LOG2E * 6.2831853f * p[ACID_P_DIST_TONE] / e->sr);
-        for (int i = 0; i < n; i++) {
-            float u0, u1;
-            hb2x_up(&e->dist_os, x[i], &u0, &u1);
-            u0 = fm_tanh(g * u0 + bias) - b0;
-            u1 = fm_tanh(g * u1 + bias) - b0;
-            const float y = hb2x_down(&e->dist_os, u0, u1) * mk;
-            e->dist_lp += a * (y - e->dist_lp);
-            x[i] = e->dist_lp;
-        }
-    }
+    dist_set_bias(&e->dist, 0.25f * dist);
+    dist_set(&e->dist, dist > 0.0f ? DIST_TUBE : DIST_OFF, 36.0f * dist, p[ACID_P_DIST_TONE], 1.0f);
+    dist_process(&e->dist, x, x, n);
     const float g1 = ACID_GAIN * fm_db2lin(p[ACID_P_VOLUME]);
     dsp_ramp_mul(x, e->gain_prev, g1, n);
     e->gain_prev = g1;

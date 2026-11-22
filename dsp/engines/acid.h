@@ -8,7 +8,7 @@
 #define ENGINE_ACID_H
 
 #include "../core/smooth.h"
-#include "../filter/halfband.h"
+#include "../fx/dist.h"
 #include "../filter/ladder.h"
 #include "../osc/polyblep.h"
 #include "engine.h"
@@ -33,8 +33,7 @@ typedef struct {
     float amp, amp_target, amp_coef_up, amp_coef_down;
     float accented, acc_env, sweep;
     float gain_prev;
-    hb2x_t dist_os;  /* the distortion runs at twice the rate */
-    float dist_lp;   /* its tone filter's state */
+    dist_t dist;     /* the distortion after the amp (dsp/fx/dist.h: tube, its bias growing with the amount) */
     int gate;
     uint32_t nan_count;
     vpoly_t poly;

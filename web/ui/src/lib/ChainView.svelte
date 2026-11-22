@@ -61,7 +61,7 @@
     const out = new Map();
     for (let r = 1; r <= 8; r++) {
       const src = Math.round(getP(`route${r}_source`));
-      const dst = engine?.params?.[Math.round(getP(`route${r}_destination`)) - 1];
+      const dst = session.paramById(Math.round(getP(`route${r}_destination`)) - 1); // the engine's or an effect's
       if (src <= 0 || !dst || !getP(`route${r}_amount`)) continue;
       const name = byName[`route${r}_source`]?.labels?.[src] ?? 'route';
       const st = stageOf(dst.name);

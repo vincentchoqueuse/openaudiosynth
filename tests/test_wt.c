@@ -1,6 +1,7 @@
 /* test_wt.c — wavetable oscillator and engine: factory tables finite and normalized, sine frame pure and in
  * tune, aliasing of bright frames below a threshold (also with sync warp), position morph changes the
- * timbre, unison keeps the loudness, every table x warp bounded and deterministic, modulation matrix,
+ * timbre, unison keeps the loudness, every table x warp x distortion bounded and deterministic, the sub's direct
+ * route, modulation matrix,
  * graceful behaviour with less table memory. */
 #include <math.h>
 #include <stdlib.h>
@@ -167,6 +168,12 @@ void suite_wt(void)
                 setp(WT_P_NOISE, 1.0f);
                 setp(WT_P_FILTER_TYPE, (float)(t % 6));
                 setp(WT_P_RESO, 1.0f);
+                setp(WT_P_DIST_MODE, (float)(w % DIST_MODE_COUNT)); /* every shaper, at full drive, moved by LFO 2 */
+                setp(WT_P_DIST_DRIVE, 36.0f);
+                setp(WT_P_DIST_PLACE, (float)(t & 1));
+                setp(WT_MOD(2, WT_M_SRC), WT_SRC_LFO2);
+                setp(WT_MOD(2, WT_M_DST), WT_DST_DIST);
+                setp(WT_MOD(2, WT_M_AMOUNT), 1.0f);
                 setp(WT_MOD(0, WT_M_SRC), WT_SRC_LFO1);
                 setp(WT_MOD(0, WT_M_DST), WT_DST_A_POS);
                 setp(WT_MOD(0, WT_M_AMOUNT), 1.0f);
@@ -182,6 +189,25 @@ void suite_wt(void)
             CHECK(rms(L, 12000) > 1e-3f, "table %d warp %d: silent", t, w);
             CHECK(memcmp(L, L2, sizeof(float) * 12000) == 0, "table %d warp %d: not deterministic", t, w);
         }
+
+    /* the sub's route: through a vowel filter at 1 kHz it nearly vanishes; direct, it stays whole (A1, 55 Hz) */
+    {
+        float lvl[2];
+        for (int direct = 0; direct < 2; direct++) {
+            wt();
+            setp(WT_OSC(0, WT_O_LEVEL), 0.0f);
+            setp(WT_P_SUB, 1.0f);
+            setp(WT_P_FILTER_TYPE, 8.0f); /* formant */
+            setp(WT_P_CUTOFF, 1000.0f);
+            setp(WT_P_DIST_MODE, 3.0f); /* a hard clip after the filter: the direct sub skips it too */
+            setp(WT_P_SUB_ROUTE, (float)direct);
+            midi3(0x90, 45, 127);
+            render(L, R, 24000);
+            lvl[direct] = rms(L + 12000, 12000);
+        }
+        printf("  sub through a formant filter %.4f, direct %.4f\n", (double)lvl[0], (double)lvl[1]);
+        CHECK(lvl[1] > 4.0f * lvl[0], "sub route: direct %.4f not well above filtered %.4f", (double)lvl[1], (double)lvl[0]);
+    }
 
     /* modulation matrix: arithmetic, then LFO -> position makes the brightness move */
     {

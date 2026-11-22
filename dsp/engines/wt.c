@@ -10,13 +10,16 @@ static const char *const filter_labels[] = {"off", "lp12", "bp12", "hp12", "notc
                                             "scream", NULL};
 static const char *const lfo_labels[] = {"sine", "tri", "saw", "square", "sh", NULL};
 static const char *const voice_mode_labels[] = {"poly", "mono", "legato", NULL};
+static const char *const dist_labels[] = {"off", "soft", "tube", "hard", "fold", NULL};
+static const char *const place_labels[] = {"post", "pre", NULL};
+static const char *const sub_route_labels[] = {"filter", "direct", NULL};
 static const char *const src_labels[] = {"none", "env2", "amp_env", "lfo1", "lfo2", "velocity", "note", "mod_wheel",
                                          "random", NULL};
 static const char *const dst_labels[] = {"none", "pitch", "a_position", "a_warp", "a_level", "b_position", "b_warp",
-                                         "b_level", "cutoff", "resonance", "sub", "noise", "detune", "pan", "amp", NULL};
+                                         "b_level", "cutoff", "resonance", "sub", "noise", "detune", "pan", "amp", "dist", NULL};
 /* full-scale effect of amount 1 on each destination, in that destination's unit */
 static const float dst_scale[WT_DST_COUNT] = {0.0f, 24.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f,
-                                              8.0f, 1.0f, 1.0f, 1.0f, 50.0f, 1.0f, 1.0f};
+                                              8.0f, 1.0f, 1.0f, 1.0f, 50.0f, 1.0f, 1.0f, 24.0f};
 
 #define OSC(N, X, LEVEL, POS)                                                                                       \
     PARAM(WT_OSC(N - 1, WT_O_TABLE), X "_table", "osc" #N ".wavetable", 0.0f, (float)(WT_FACTORY_COUNT - 1), 0.0f,   \
@@ -49,7 +52,7 @@ static const float dst_scale[WT_DST_COUNT] = {0.0f, 24.0f, 1.0f, 1.0f, 1.0f, 1.0
           PARAM_INT, "", 0, src_labels, "modulation slot " #N ": source"),                                         \
     PARAM(WT_MOD(S, WT_M_DST), "mod" #N "_destination", "mod.slot" #N ".destination", 0.0f,                       \
           (float)(WT_DST_COUNT - 1), 0.0f, PARAM_INT, "", 0, dst_labels,                                           \
-          "destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1"),           \
+          "destination; full scale: pitch +/-24 st, cutoff +/-8 oct, detune +/-50 cents, dist +/-24 dB of drive, others +/-1"),           \
     PARAM(WT_MOD(S, WT_M_AMOUNT), "mod" #N "_amount", "mod.slot" #N ".amount", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", \
           1, NULL, "amount (negative = inverted)"),                                                                 \
     PARAM(WT_MOD(S, WT_M_VIA), "mod" #N "_via", "mod.slot" #N ".via", 0.0f, (float)(WT_SRC_COUNT - 1), 0.0f,     \
@@ -98,6 +101,21 @@ const param_desc_t wt_params[WT_P_COUNT] = {
     PARAM(WT_P_BEND_RANGE, "bend_range", "voice.bend_range", 0.0f, 24.0f, 2.0f, PARAM_INT, "st", 0, NULL, "pitch-bend range"),
     PARAM_OVERSAMPLE(WT_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filters (lp24 ladder, scream): 1x lightest, "
                      "2x default, 4x cleanest (about twice the filter cost of 2x)"),
+    PARAM(WT_P_DIST_MODE, "dist_mode", "fx.distortion.mode", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, dist_labels,
+          "distortion per voice: soft (round, tanh), tube (warm, even harmonics), hard (flat tops, aggressive), fold "
+          "(wavefolder: metallic, folds further as the drive rises; move the drive for growls)"),
+    PARAM(WT_P_DIST_DRIVE, "dist_drive", "fx.distortion.drive", 0.0f, 36.0f, 12.0f, PARAM_LIN, "dB", 1, NULL,
+          "gain into the distortion: 6 warm, 18 dirty, 30+ destroyed (level kept even); a matrix destination"),
+    PARAM(WT_P_DIST_TONE, "dist_tone", "fx.distortion.tone", 500.0f, 20000.0f, 8000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "low-pass after the distortion: lower tames the fizz"),
+    PARAM(WT_P_DIST_MIX, "dist_mix", "fx.distortion.mix", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
+          "distorted signal against the clean one (parallel distortion keeps the body)"),
+    PARAM(WT_P_DIST_PLACE, "dist_place", "fx.distortion.place", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, place_labels,
+          "post: after the filter (the filter shapes, the distortion bites); pre: before it (the filter tames the "
+          "distortion, classic for growling basses)"),
+    PARAM(WT_P_SUB_ROUTE, "sub_route", "sub.route", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, sub_route_labels,
+          "filter: the sub goes through the filter and the distortion with the oscillators; direct: it joins after "
+          "them, clean and steady under a growling or vowel-filtered bass"),
 };
 
 /* ---------------- voices ---------------- */
@@ -116,6 +134,7 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         ladder_reset(&v->ladder);
         comb_reset(&v->comb);
         vfilter_reset(&v->vf);
+        dist_reset(&v->dist);
         adsr_reset(&v->amp);
         adsr_reset(&v->env2);
         v->pitch = (e->p[WT_P_GLIDE] > 0.0f && e->has_last) ? e->last_note : (float)note;
@@ -199,6 +218,7 @@ static void wt_init(void *st, float sr)
         comb_init(&v->comb, sr);
         v->comb_on = 0;
         vfilter_init(&v->vf, sr);
+        dist_init(&v->dist, sr);
         ladder_set_oversampling(&v->ladder, 2);
         adsr_init(&v->amp, sr);
         adsr_init(&v->env2, sr);
@@ -314,6 +334,8 @@ static DSP_FAST_CODE void voice_render(wt_t *e, int vi, float *L, float *R)
     const int b_uses_sub = b_mode == WT_WARP_FM || b_mode == WT_WARP_RING;
     const int need_b = lvl[1] > 0.0f || v->lvl_prev[1] > 0.0f || a_uses_b;
     const int need_sub = lvl[2] > 0.0f || v->lvl_prev[2] > 0.0f || (need_b && b_uses_sub);
+    const int sub_direct = (int)p[WT_P_SUB_ROUTE]; /* the sub joins after the filter and the distortion */
+    const float sub_from = v->lvl_prev[2];
 
     for (int i = 0; i < n; i++)
         x[i] = 0.0f;
@@ -327,7 +349,8 @@ static DSP_FAST_CODE void voice_render(wt_t *e, int vi, float *L, float *R)
             sub[i] = fm_sin(ph);
         }
         v->sub_phase = ph;
-        dsp_ramp_mac(x, sub, v->lvl_prev[2], lvl[2], n);
+        if (!sub_direct)
+            dsp_ramp_mac(x, sub, v->lvl_prev[2], lvl[2], n);
     }
     if (need_b) {
         const wt_osc_set_t s = osc_settings(p, 1, pitch, dst, WT_DST_B_POS, vm[VM_TIMBRE]);
@@ -356,6 +379,14 @@ static DSP_FAST_CODE void voice_render(wt_t *e, int vi, float *L, float *R)
     for (int k = 0; k < 4; k++)
         v->lvl_prev[k] = lvl[k];
 
+    /* distortion: its settings for this block, then before the filter or after it */
+    const int dmode = (int)p[WT_P_DIST_MODE], dpre = (int)p[WT_P_DIST_PLACE];
+    if (dmode) {
+        dist_set(&v->dist, (dist_mode_t)dmode, p[WT_P_DIST_DRIVE] + dst[WT_DST_DIST], p[WT_P_DIST_TONE], p[WT_P_DIST_MIX]);
+        if (dpre)
+            dist_process(&v->dist, x, x, n);
+    }
+
     /* filter */
     const int ftype = (int)p[WT_P_FILTER_TYPE];
     const int combing = ftype == 6 || ftype == 7;
@@ -383,6 +414,10 @@ static DSP_FAST_CODE void voice_render(wt_t *e, int vi, float *L, float *R)
         }
     }
     v->comb_on = combing;
+    if (dmode && !dpre)
+        dist_process(&v->dist, x, x, n);
+    if (sub_direct && need_sub)
+        dsp_ramp_mac(x, sub, sub_from, lvl[2], n);
 
     /* amp and output */
     const float velgain = 1.0f - p[WT_P_VELOCITY] * (1.0f - v->vel);
@@ -417,10 +452,11 @@ static DSP_FAST_CODE void wt_render(void *st, float *L, float *R)
 static const engine_stage_t wt_stages[] = {
     {"osca", "Osc A", "source", "a_", "", NULL, "a_level", 0.0f, 1.0f},
     {"oscb", "Osc B", "source", "b_", "", NULL, "b_level", 0.0f, 0.5f},
-    {"sub", "Sub", "source", "sub", "", NULL, "sub", 0.0f, 0.3f},
+    {"sub", "Sub", "source", "sub sub_route", "", NULL, "sub", 0.0f, 0.3f},
     {"noise", "Noise", "source", "noise", "", NULL, "noise", 0.0f, 0.1f},
     {"filter", "Filter", "filter", "filter_type cutoff resonance drive keytrack oversample", "osca oscb sub noise", NULL, NULL, 0.0f, 0.0f},
-    {"amp", "Amp", "amp", "amp_ velocity volume pan_spread", "filter", NULL, NULL, 0.0f, 0.0f},
+    {"dist", "Distortion", "filter", "dist_", "filter", NULL, "dist_mode", 0.0f, 1.0f},
+    {"amp", "Amp", "amp", "amp_ velocity volume pan_spread", "dist", NULL, NULL, 0.0f, 0.0f},
     {"env2", "Env 2", "mod", "env2_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
     {"lfo1", "LFO 1", "mod", "lfo1_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
     {"lfo2", "LFO 2", "mod", "lfo2_", "", "osca oscb filter", NULL, 0.0f, 0.0f},
@@ -431,7 +467,7 @@ static const engine_stage_t wt_stages[] = {
 const engine_ops_t wt_engine = {
     .name = "wt",
     .description = "wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position morphing, "
-                   "unison and warps (sync, bend, mirror, FM, ring), sub, noise, SVF or ladder filter, 2 envelopes, "
+                   "unison and warps (sync, bend, mirror, FM, ring), sub, noise, SVF or ladder filter, distortion, 2 envelopes, "
                    "2 LFOs, 6-slot modulation matrix, mono/legato/glide (8 voices)",
     .params = wt_params,
     .param_count = WT_P_COUNT,

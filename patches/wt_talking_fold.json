@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "engine": "wt",
+  "name": "wt_talking_fold",
+  "description": "Talking bass at 140: a wavefolder before a vowel filter; one looping curve moves the vowel and the fold together (fast vowel opening, a dip, a longer cry), a triplet stutter on the fold only at its peaks, a slow harmonic LFO on the formant; legato glides make it speak.",
+  "params": {
+    "a_table": "basic",
+    "a_position": 0.45,
+    "a_level": 0.8,
+    "a_unison": 2,
+    "a_detune": 10,
+    "sub": 0.7,
+    "sub_route": "direct",
+    "filter_type": "formant",
+    "cutoff": 1000,
+    "resonance": 0.5,
+    "drive": 0.3,
+    "keytrack": 0.3,
+    "dist_mode": "fold",
+    "dist_drive": 10,
+    "dist_tone": 9000,
+    "dist_mix": 1.0,
+    "dist_place": "pre",
+    "amp_attack": 0.004,
+    "amp_decay": 0.3,
+    "amp_sustain": 1.0,
+    "amp_release": 0.1,
+    "voice_mode": "legato",
+    "glide": 0.06,
+    "mseg1_mode": "loop_free",
+    "mseg1_sync": "beats",
+    "mseg1_points": 5,
+    "mseg1_sustain": "none",
+    "mseg1_loop_start": 1,
+    "mseg1_loop_end": 5,
+    "mseg1_t1": 0,
+    "mseg1_l1": 0.1,
+    "mseg1_t2": 0.5,
+    "mseg1_l2": 0.9,
+    "mseg1_c2": 0.5,
+    "mseg1_t3": 0.25,
+    "mseg1_l3": 0.3,
+    "mseg1_c3": -0.5,
+    "mseg1_t4": 0.75,
+    "mseg1_l4": 1.0,
+    "mseg1_c4": 0.3,
+    "mseg1_t5": 0.5,
+    "mseg1_l5": 0.1,
+    "mseg1_c5": -0.6,
+    "route1_source": "mseg1",
+    "route1_destination": "drive",
+    "route1_amount": 0.6,
+    "route2_source": "mseg1",
+    "route2_destination": "dist_drive",
+    "route2_amount": 0.4,
+    "mlfo1_wave": "tri",
+    "mlfo1_sync": "1/8t",
+    "route3_source": "mlfo1",
+    "route3_destination": "dist_drive",
+    "route3_amount": 0.15,
+    "route3_via": "mseg1",
+    "mlfo2_wave": "fourier",
+    "mlfo2_sync": "2",
+    "route4_source": "mlfo2",
+    "route4_destination": "cutoff",
+    "route4_amount": 0.08,
+    "reverb_mix": 0.07,
+    "pan_spread": 0.0,
+    "volume": 10.4
+  },
+  "clip": {
+    "bpm": 140,
+    "length": 8,
+    "loop": true,
+    "grid": "1/16",
+    "key": "F minor",
+    "notes": [
+      {
+        "pitch": 29,
+        "start": 0,
+        "length": 1.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 31,
+        "start": 1,
+        "length": 0.75,
+        "velocity": 110
+      },
+      {
+        "pitch": 32,
+        "start": 1.75,
+        "length": 1.0,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 2.75,
+        "length": 1.5,
+        "velocity": 110
+      },
+      {
+        "pitch": 36,
+        "start": 4,
+        "length": 0.75,
+        "velocity": 110
+      },
+      {
+        "pitch": 34,
+        "start": 4.5,
+        "length": 1.0,
+        "velocity": 110
+      },
+      {
+        "pitch": 32,
+        "start": 5.5,
+        "length": 0.75,
+        "velocity": 110
+      },
+      {
+        "pitch": 29,
+        "start": 6.25,
+        "length": 1.75,
+        "velocity": 110
+      }
+    ]
+  }
+}

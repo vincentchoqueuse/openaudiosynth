@@ -323,7 +323,7 @@ class Session {
   currentPatch = () => {
     const engine = this.engine, getP = this.getP;
     const label = (d, v) => {
-      if (/^route\d+_destination$/.test(d.name)) return engine.params[Math.round(v) - 1]?.name ?? 0; // by name
+      if (/^route\d+_destination$/.test(d.name)) return this.#mapTarget(Math.round(v) - 1)?.name ?? 0; // by name (the engine's or an effect's)
       return d.labels ? d.labels[Math.round(v - d.min)] : +v.toPrecision(5);
     };
     // envelope points beyond the point count are leftovers of an earlier, longer shape: not part of the sound

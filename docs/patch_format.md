@@ -110,7 +110,8 @@ Every engine accepts, in `params`, the shared parameters of `docs/catalog.md`:
   beats), `mseg1_points`, `mseg1_sustain`, `mseg1_loop_start` / `_loop_end` (point numbers, "none"), and per
   point `mseg1_t<i>` (time from the previous point), `mseg1_l<i>` (level 0..1), `mseg1_c<i>` (curve -1..1);
   routes `route1_source` (macro1.., mlfo1, mseg1, mod_wheel, aftertouch, pitch_bend, velocity, note, random),
-  `route1_destination` (**an engine parameter name**, must be live), `route1_amount` (-1..1, fraction of the
+  `route1_destination` (**an engine parameter name**, must be live, or an effect's: `delay_mix`, `reverb_mix`,
+  `chorus_mix`, `out_cutoff`, `crush_rate`... so an LFO or an MSEG can move the effects), `route1_amount` (-1..1, fraction of the
   destination's whole range), `route1_via` (optional scaling source).
 - **tempo**: `tempo` (BPM), `clock` (internal, midi), `delay_sync` ("1/8d"...).
 - **part**: `part_level`, `part_pan`, `part_channel`, `part_key_lo` / `_hi`, `part_transpose`, `part_fx_send`.

@@ -597,19 +597,22 @@ static void global_set(synth_t *s, int id, float norm)
         global_apply(s, id, norm);
 }
 
-/* Macro targets on the master and the effects (several parts or macros add their travel): applied once per
- * block on top of the value last set, which comes back when no macro moves it any more. */
+/* Macro targets and routes on the master and the effects (several parts or macros add their travel; routes add
+ * their offset, an LFO or an MSEG moving an effect): applied once per block on top of the value last set, which
+ * comes back when nothing moves it any more. */
 static void global_targets(synth_t *s)
 {
     enum { G = SYNTH_GLOBAL_COUNT };
-    float val[G];
-    uint8_t set[G] = {0};
+    float val[G], off[G];
+    uint8_t set[G] = {0}, routed[G] = {0};
+    for (int g = 0; g < G; g++)
+        off[g] = 0.0f;
     for (int k = 0; k < SYNTH_PARTS; k++)
         if (s->part[k].ops)
-            partmod_global_targets(&s->part[k].mod, val, set);
+            partmod_global_targets(&s->part[k].mod, val, set, off, routed);
     for (int g = 0; g < G; g++) {
-        if (set[g]) {
-            const float want = dsp_clampf(val[g], 0.0f, 1.0f);
+        if (set[g] || routed[g]) {
+            const float want = dsp_clampf((set[g] ? val[g] : s->gbase[g]) + off[g], 0.0f, 1.0f);
             if (!s->gheld[g] || want != s->gapplied[g])
                 global_apply(s, SYNTH_PARAM_GLOBAL + g, want);
             s->gapplied[g] = want;

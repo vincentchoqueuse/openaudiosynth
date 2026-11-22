@@ -46,6 +46,7 @@ set(SYNTH_DSP_SOURCES
   dsp/fx/reverb.c
   dsp/fx/delay.c
   dsp/fx/chorus.c
+  dsp/fx/dist.c
   dsp/fx/fxbus.c
   dsp/synth.c
 )

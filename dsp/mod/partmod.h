@@ -99,9 +99,11 @@ void partmod_engine(partmod_t *m, const engine_ops_t *ops);
 void partmod_set(partmod_t *m, int index, float norm);
 /* The macro (0..7) a CC turns on this part, or -1. */
 int partmod_macro_cc(const partmod_t *m, int cc);
-/* Adds this part's macro targets on synth-level parameters (master, effects) into val[id - SYNTH_PARAM_GLOBAL]
- * (normalized; set[i] = 1 once a target is seen, the first target's `from` starting the sum). */
-void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set);
+/* Adds this part's macro targets on synth-level parameters (master, effects, output filter, crush) into
+ * val[id - SYNTH_PARAM_GLOBAL] (normalized; set[i] = 1 once a target is seen, the first target's `from` starting
+ * the sum), and its routes to them into off[] (normalized offsets; routed[i] = 1): an LFO or an MSEG can move the
+ * effects. The sources are those of the part's last block. */
+void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set, float *off, uint8_t *routed);
 /* Base value of an engine parameter set by the user or MIDI. Returns 1 if the layer takes care of it (it glides
  * because notes sound, or it is modulated), 0 if the caller must give it to the engine now. */
 int partmod_base(partmod_t *m, const engine_ops_t *ops, int id, float norm, int sounding);

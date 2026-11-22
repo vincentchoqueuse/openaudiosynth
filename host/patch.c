@@ -76,7 +76,7 @@ int patch_set_params(patch_t *p, const json_t *params, char *err, size_t errlen,
             if (!strcmp(m->str, "none")) {
                 v = 0.0f;
             } else if (catalog_lookup(p->engine, m->str, &dst) == 0 &&
-                       (dst.id < SYNTH_PARAM_GLOBAL || (!strncmp(d->name, "map", 3) && dst.id < PM_MAP_DST_MAX))) {
+                       (dst.id < SYNTH_PARAM_GLOBAL || pm_global_target(dst.id))) {
                 if (!dst.desc->realtime) {
                     snprintf(err, errlen, "\"%s\": %s is not a realtime parameter of %s (cannot be modulated)", m->key,
                              m->str, p->engine->name);

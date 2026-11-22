@@ -63,8 +63,9 @@ static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6",
     PARAM(PM_ROUTE(R - 1, PM_R_SRC), "route" #R "_source", "route" #R ".source", 0.0f, (float)(PM_SRC_COUNT - 1),    \
           0.0f, PARAM_INT, "", 0, src_labels, "route " #R ": modulation source"),                                   \
     PARAM(PM_ROUTE(R - 1, PM_R_DST), "route" #R "_destination", "route" #R ".destination", 0.0f,                    \
-          (float)PM_ENGINE_PARAMS, 0.0f, PARAM_INT, "", 0, NULL,                                                    \
-          "route " #R ": the engine parameter modulated (by name in patches; must be realtime), none = 0"),        \
+          (float)PM_MAP_DST_MAX, 0.0f, PARAM_INT, "", 0, NULL,                                                      \
+          "route " #R ": the parameter modulated, the engine's or an effect's (by name in patches; must be "      \
+          "realtime), none = 0"),                                                                                    \
     PARAM(PM_ROUTE(R - 1, PM_R_AMOUNT), "route" #R "_amount", "route" #R ".amount", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", \
           1, NULL, "route " #R ": amount, in fractions of the destination's whole range (its knob travel)"),       \
     PARAM(PM_ROUTE(R - 1, PM_R_VIA), "route" #R "_via", "route" #R ".via", 0.0f, (float)(PM_SRC_COUNT - 1), 0.0f,    \
@@ -461,7 +462,7 @@ int partmod_macro_cc(const partmod_t *m, int cc)
     return -1;
 }
 
-void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set)
+void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set, float *off, uint8_t *routed)
 {
     for (int k = 0; m->n_maps && k < PM_MAPS; k++) {
         const int mac = (int)m->p[PM_MAP(k, PM_M_MACRO)], id = (int)m->p[PM_MAP(k, PM_M_DST)] - 1;
@@ -472,5 +473,15 @@ void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set)
         if (!set[g])
             val[g] = from, set[g] = 1;
         val[g] += (to - from) * m->p[PM_MACRO(mac - 1)];
+    }
+    for (int r = 0; m->n_routes && r < PM_ROUTES; r++) {
+        const int src = (int)m->p[PM_ROUTE(r, PM_R_SRC)], id = (int)m->p[PM_ROUTE(r, PM_R_DST)] - 1;
+        const int via = (int)m->p[PM_ROUTE(r, PM_R_VIA)];
+        const float amount = m->p[PM_ROUTE(r, PM_R_AMOUNT)];
+        if (src <= 0 || src >= PM_SRC_COUNT || amount == 0.0f || !pm_global_target(id))
+            continue;
+        const int g = id - SYNTH_PARAM_GLOBAL;
+        off[g] += amount * m->src[src] * (via > 0 && via < PM_SRC_COUNT ? m->src[via] : 1.0f);
+        routed[g] = 1;
     }
 }

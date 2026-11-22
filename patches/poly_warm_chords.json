@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "poly",
   "name": "poly_warm_chords",
-  "description": "Warm analog poly chords: a saw and a triangle slightly detuned, a 24 dB filter with a slow envelope, a triangle LFO breathing on the cutoff, chorus; very slow 5/4 chords (one bar every ten seconds) in F# minor. Fitted by tools/resynth against a reference cut, structure after the original analog poly's panel.",
+  "description": "Warm analog poly chords: a triangle with a touch of saw, slightly detuned, a dark 24 dB filter that swells open over a second and a half, slow attack and long release, a triangle LFO breathing on the cutoff, chorus and a long hall; slow 5/4 chords in F# minor. Fitted against a reference cut, structure after the original analog poly's panel, then softened by ear.",
   "params": {
     "pan_spread": 0.5,
     "drift": 5,
@@ -15,27 +15,30 @@
     "lfo_rate": 0.07,
     "lfo_amount": 1,
     "chorus_mode": "I",
-    "chorus_mix": 0.2,
-    "mix_a": 0.0463,
+    "chorus_mix": 0.3,
+    "mix_a": 0.25,
     "mix_b": 0.5028,
     "oscb_fine": 13.3679,
     "cutoff": 340.3754,
     "resonance": 0.1474,
-    "fenv_amount": 2.8817,
-    "fenv_attack": 0.2924,
-    "fenv_decay": 0.1661,
-    "fenv_sustain": 0.3774,
+    "fenv_amount": 2.0,
+    "fenv_attack": 1.5,
+    "fenv_decay": 3.0,
+    "fenv_sustain": 0.5,
     "lfo_filter": 0.05,
-    "amp_attack": 0.7825,
-    "amp_sustain": 0.5573,
-    "amp_release": 0.8696,
-    "reverb_mix": 0.25,
-    "reverb_decay": 0.75,
-    "volume": 15.1
+    "amp_attack": 1.2,
+    "amp_sustain": 0.85,
+    "amp_release": 3.0,
+    "reverb_mix": 0.45,
+    "reverb_decay": 0.92,
+    "volume": 9.0,
+    "amp_decay": 2.5,
+    "reverb_predelay": 0.04,
+    "reverb_damping": 4500
   },
   "clip": {
-    "bpm": 28.7,
-    "length": 10,
+    "bpm": 84,
+    "length": 30,
     "loop": true,
     "grid": "1/8",
     "key": "F# minor",
@@ -43,157 +46,157 @@
       {
         "pitch": 57,
         "start": 0,
-        "length": 0.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 62,
         "start": 0,
-        "length": 0.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 66,
         "start": 0,
-        "length": 0.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 57,
-        "start": 0.5,
-        "length": 1.5,
+        "start": 1.5,
+        "length": 4.5,
         "velocity": 80
       },
       {
         "pitch": 61,
-        "start": 0.5,
+        "start": 1.5,
+        "length": 4.5,
+        "velocity": 80
+      },
+      {
+        "pitch": 54,
+        "start": 1.5,
+        "length": 6.0,
+        "velocity": 80
+      },
+      {
+        "pitch": 57,
+        "start": 6,
         "length": 1.5,
         "velocity": 80
       },
       {
-        "pitch": 54,
-        "start": 0.5,
-        "length": 2.0,
-        "velocity": 80
-      },
-      {
-        "pitch": 57,
-        "start": 2,
-        "length": 0.5,
-        "velocity": 80
-      },
-      {
         "pitch": 64,
-        "start": 2,
-        "length": 0.5,
+        "start": 6,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 59,
-        "start": 2.5,
-        "length": 0.5,
+        "start": 7.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 52,
-        "start": 2.5,
-        "length": 0.5,
+        "start": 7.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 50,
-        "start": 3,
-        "length": 2,
+        "start": 9,
+        "length": 6,
         "velocity": 80
       },
       {
         "pitch": 54,
-        "start": 3,
-        "length": 2,
+        "start": 9,
+        "length": 6,
         "velocity": 80
       },
       {
         "pitch": 57,
-        "start": 3,
-        "length": 2,
+        "start": 9,
+        "length": 6,
         "velocity": 80
       },
       {
         "pitch": 57,
-        "start": 5,
-        "length": 0.5,
+        "start": 15,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 62,
-        "start": 5,
-        "length": 0.5,
+        "start": 15,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 66,
-        "start": 5,
-        "length": 0.5,
+        "start": 15,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 57,
-        "start": 5.5,
-        "length": 1.5,
+        "start": 16.5,
+        "length": 4.5,
         "velocity": 80
       },
       {
         "pitch": 61,
-        "start": 5.5,
+        "start": 16.5,
+        "length": 4.5,
+        "velocity": 80
+      },
+      {
+        "pitch": 54,
+        "start": 16.5,
+        "length": 6.0,
+        "velocity": 80
+      },
+      {
+        "pitch": 57,
+        "start": 21,
         "length": 1.5,
         "velocity": 80
       },
       {
-        "pitch": 54,
-        "start": 5.5,
-        "length": 2.0,
-        "velocity": 80
-      },
-      {
-        "pitch": 57,
-        "start": 7,
-        "length": 0.5,
-        "velocity": 80
-      },
-      {
         "pitch": 64,
-        "start": 7,
-        "length": 0.5,
+        "start": 21,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 59,
-        "start": 7.5,
-        "length": 0.5,
+        "start": 22.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 52,
-        "start": 7.5,
-        "length": 0.5,
+        "start": 22.5,
+        "length": 1.5,
         "velocity": 80
       },
       {
         "pitch": 50,
-        "start": 8,
-        "length": 2,
+        "start": 24,
+        "length": 6,
         "velocity": 80
       },
       {
         "pitch": 54,
-        "start": 8,
-        "length": 2,
+        "start": 24,
+        "length": 6,
         "velocity": 80
       },
       {
         "pitch": 57,
-        "start": 8,
-        "length": 2,
+        "start": 24,
+        "length": 6,
         "velocity": 80
       }
     ]

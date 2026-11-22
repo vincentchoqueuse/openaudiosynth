@@ -2,25 +2,24 @@
   "version": 1,
   "engine": "poly",
   "name": "poly_soft_arp_chords",
-  "description": "Soft round chords and arpeggio: a thin pulse with a quiet triangle, a low filter slowly opened by a long envelope, slow attack and release. Fitted against a reference cut; pairs with va_high_chime.",
+  "description": "Soft round chords: a saw an octave down under a triangle a little flat, a dark 24 dB filter near 300 Hz opened by a long envelope, soft attack, long release, chorus and a hall; long notes in B minor. Started from a fit against a reference cut, then tuned by ear; pairs with va_high_chime.",
   "params": {
     "pan_spread": 0.4,
     "drift": 3,
-    "osca_saw": "off",
-    "osca_pulse": "on",
-    "osca_pw": 0.2883,
+    "osca_saw": "on",
+    "osca_pulse": "off",
     "oscb_saw": "off",
     "oscb_tri": "on",
     "oscb_pulse": "off",
-    "oscb_fine": 5.6256,
-    "mix_b": 0.1748,
-    "cutoff": 741.8574,
+    "oscb_fine": -19.1,
+    "mix_b": 0.7,
+    "cutoff": 300,
     "resonance": 0.1609,
     "fenv_amount": 4.0,
     "fenv_attack": 0.001,
     "fenv_decay": 3.0,
     "fenv_sustain": 0.1864,
-    "amp_attack": 0.2806,
+    "amp_attack": 0.0387,
     "amp_decay": 1.345,
     "amp_sustain": 0.9889,
     "amp_release": 1.3844,
@@ -28,10 +27,12 @@
     "chorus_mix": 0.35,
     "reverb_mix": 0.3,
     "reverb_decay": 0.8,
-    "volume": 6.3
+    "volume": 10.0,
+    "osca_semi": -12,
+    "mix_a": 0.8
   },
   "clip": {
-    "bpm": 105.7,
+    "bpm": 105,
     "length": 16,
     "loop": true,
     "grid": "1/16",
@@ -39,225 +40,27 @@
     "notes": [
       {
         "pitch": 55,
-        "start": 0.25,
-        "length": 3.25,
+        "start": 0,
+        "length": 4,
         "velocity": 96
       },
       {
         "pitch": 59,
-        "start": 0.5,
-        "length": 1.0,
-        "velocity": 111
+        "start": 4,
+        "length": 4,
+        "velocity": 96
       },
       {
-        "pitch": 77,
-        "start": 1.0,
-        "length": 0.25,
-        "velocity": 127
+        "pitch": 57,
+        "start": 8,
+        "length": 4,
+        "velocity": 96
       },
       {
-        "pitch": 74,
-        "start": 1.75,
-        "length": 0.5,
-        "velocity": 108
-      },
-      {
-        "pitch": 78,
-        "start": 2.25,
-        "length": 0.25,
-        "velocity": 108
-      },
-      {
-        "pitch": 71,
-        "start": 2.5,
-        "length": 0.5,
-        "velocity": 111
-      },
-      {
-        "pitch": 74,
-        "start": 2.5,
-        "length": 0.25,
-        "velocity": 111
-      },
-      {
-        "pitch": 59,
-        "start": 3.0,
-        "length": 0.5,
-        "velocity": 105
-      },
-      {
-        "pitch": 78,
-        "start": 3.0,
-        "length": 0.25,
-        "velocity": 105
-      },
-      {
-        "pitch": 71,
-        "start": 3.75,
-        "length": 0.25,
-        "velocity": 105
-      },
-      {
-        "pitch": 54,
-        "start": 4.0,
-        "length": 1.5,
-        "velocity": 119
-      },
-      {
-        "pitch": 59,
-        "start": 4.0,
-        "length": 0.25,
-        "velocity": 119
-      },
-      {
-        "pitch": 59,
-        "start": 4.75,
-        "length": 0.75,
-        "velocity": 108
-      },
-      {
-        "pitch": 74,
-        "start": 5.0,
-        "length": 0.25,
-        "velocity": 104
-      },
-      {
-        "pitch": 54,
-        "start": 5.75,
-        "length": 1.25,
-        "velocity": 112
-      },
-      {
-        "pitch": 74,
-        "start": 5.75,
-        "length": 1.0,
-        "velocity": 112
-      },
-      {
-        "pitch": 59,
-        "start": 6.0,
-        "length": 0.5,
-        "velocity": 125
-      },
-      {
-        "pitch": 71,
-        "start": 6.75,
-        "length": 0.25,
-        "velocity": 104
-      },
-      {
-        "pitch": 59,
-        "start": 7.0,
-        "length": 0.25,
-        "velocity": 104
-      },
-      {
-        "pitch": 78,
-        "start": 7.25,
-        "length": 0.25,
-        "velocity": 105
-      },
-      {
-        "pitch": 66,
-        "start": 7.5,
-        "length": 0.5,
-        "velocity": 106
-      },
-      {
-        "pitch": 59,
-        "start": 8.0,
-        "length": 0.75,
-        "velocity": 112
-      },
-      {
-        "pitch": 69,
-        "start": 8.25,
-        "length": 1.75,
-        "velocity": 111
-      },
-      {
-        "pitch": 59,
-        "start": 9.25,
-        "length": 1.75,
-        "velocity": 112
-      },
-      {
-        "pitch": 74,
-        "start": 9.75,
-        "length": 0.5,
-        "velocity": 109
-      },
-      {
-        "pitch": 62,
-        "start": 10.0,
-        "length": 0.25,
-        "velocity": 116
-      },
-      {
-        "pitch": 69,
-        "start": 11.0,
-        "length": 1.0,
-        "velocity": 102
-      },
-      {
-        "pitch": 59,
-        "start": 11.5,
-        "length": 0.5,
-        "velocity": 124
-      },
-      {
-        "pitch": 55,
-        "start": 12.0,
-        "length": 0.75,
-        "velocity": 112
-      },
-      {
-        "pitch": 59,
-        "start": 12.25,
-        "length": 1.25,
-        "velocity": 121
-      },
-      {
-        "pitch": 78,
-        "start": 13.25,
-        "length": 0.25,
-        "velocity": 100
-      },
-      {
-        "pitch": 55,
-        "start": 13.5,
-        "length": 1.5,
-        "velocity": 110
-      },
-      {
-        "pitch": 74,
-        "start": 13.75,
-        "length": 0.25,
-        "velocity": 108
-      },
-      {
-        "pitch": 75,
-        "start": 14.0,
-        "length": 0.25,
-        "velocity": 106
-      },
-      {
-        "pitch": 74,
-        "start": 14.5,
-        "length": 0.25,
-        "velocity": 111
-      },
-      {
-        "pitch": 54,
-        "start": 15.0,
-        "length": 0.5,
-        "velocity": 110
-      },
-      {
-        "pitch": 69,
-        "start": 15.25,
-        "length": 0.25,
-        "velocity": 113
+        "pitch": 52,
+        "start": 12,
+        "length": 3.75,
+        "velocity": 96
       }
     ]
   }

@@ -214,16 +214,6 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .tb-left { min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; margin-left: auto; } /* wraps under the left part when the bar is short */
 .topbar .btn { padding: 5px 12px; }
-.topbar .filemenu { position: relative; }
-.topbar .filemenu > button { display: inline-flex; align-items: center; gap: 7px; }
-.topbar .menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 6; min-width: 200px; display: grid; padding: 5px;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 8px 28px rgba(0, 0, 0, .25); }
-.topbar .menu button, .topbar .menu a { display: flex; align-items: center; gap: 12px; text-align: left; padding: 6px 10px; border-radius: 6px;
-  font-size: 12.5px; color: var(--text); text-decoration: none; }
-.topbar .menu button:hover:not(:disabled), .topbar .menu a:hover { background: var(--faint); }
-.topbar .menu button:disabled { color: var(--muted); opacity: .6; }
-.topbar .menu hr { border: 0; border-top: 1px solid var(--line); margin: 4px 2px; }
-.topbar .menu kbd { margin-left: auto; font: 11px var(--mono); color: var(--muted); }
 .topbar .namebox { display: flex; align-items: baseline; gap: 8px; min-width: 9em; }
 .topbar .namebox .tag { font-size: 11px; }
 .topbar .name { font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

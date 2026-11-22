@@ -1,24 +1,29 @@
 <!-- PianoRoll.svelte — the clip's notes on a piano roll: pitches high on top (the key's notes lighter, C named),
-     time over the clip's length, which is also the loop (the brace on the ruler; drag its end), and a velocity lane
+     every MIDI pitch in a box that scrolls (it goes to the clip's notes when a clip arrives, to the octave chosen
+     in the toolbar when that changes), time over the clip's length, which is also the loop (the brace on the ruler; drag its end), and a velocity lane
      below (drag on a note's bar). Two tools: Draw, where a click on an empty place draws a note and dragging
      stretches it, and Select, where dragging on an empty place selects with a rectangle (Cmd-drag in Draw) and a
      click sets the insertion point. In both, a click selects a note (Shift adds or removes), dragging moves the
      selected notes (time and pitch), their right edge stretches them, Alt-drag moves a copy; double-click or
      right-click deletes. A click on the ruler sets the insertion point, where Paste lands (then moves past what
      was pasted, so pastes follow each other); without one, a paste goes after the selection or at the start.
-     The clipboard is kept across sounds and clips. Keys, whenever the Sequence view is shown and no text field
+     The clipboard is kept across sounds and clips. The Edit menu: undo, the clipboard, selections; the Pitch, Time
+     and Velocity menus: note operations (noteOps.js) on the selection, or on every note. Keys, whenever the Sequence view is shown and no text field
      has the focus: Delete, Cmd+A, Cmd+C / X / V, Cmd+D (duplicate after the selection), Cmd+L (legato), Cmd+U
      (quantize), Esc; with a selection, the arrows move it (a grid step; up / down a semitone, Shift an octave),
      Shift + left / right shortens / lengthens it by a grid step, Alt + left / right nudges it finer than the grid
      (without a selection the arrows stay the computer keyboard's octave). Everything snaps to the grid (Shift
      while dragging: finer). A drawn or moved note sounds. -->
 <script>
+  import { untrack } from 'svelte';
   import Seg from './Seg.svelte';
   const TOOLS = [{ id: 'draw', label: 'Draw', title: 'Draw notes' }, { id: 'select', label: 'Select', title: 'Select with a rectangle (or Cmd-drag in Draw)' }];
   import { session } from './session.svelte.js';
   import { sequence as q } from './sequence.svelte.js';
   import { history } from './history.svelte.js';
   import { noteName, inScale } from './seqExport.js';
+  import * as op from './noteOps.js';
+  import Menu from './Menu.svelte';
   let { settings } = $props(); // the clip's settings, shown at the start of the roll's toolbar
 
   const ROW = 15, EDGE = 7, VEL_H = 56; // row height, grab width of a note's right edge, velocity lane (px)
@@ -35,15 +40,48 @@
     }
     return out;
   });
-  // pitches shown: two octaves from the key's octave, widened to every note, high first
-  const pitches = $derived.by(() => {
-    const base = 12 * (q.octave + 1) + q.root;
-    let lo = base, hi = base + 24;
-    for (const n of q.notes) { lo = Math.min(lo, n.pitch); hi = Math.max(hi, n.pitch); }
-    lo = Math.max(0, lo - 1); hi = Math.min(127, hi + 1);
-    return Array.from({ length: hi - lo + 1 }, (_, i) => hi - i);
+  // every MIDI pitch, high first, in a box that scrolls (wheel, trackpad, scrollbar); the view goes to the notes
+  // when a clip arrives, and to the octave chosen in the toolbar when it changes
+  const pitches = Array.from({ length: 128 }, (_, i) => 127 - i);
+  const top = 127;
+  let pending = null; // a pitch to centre once the roll is laid out (it may be hidden when a clip arrives)
+  function centre(p) {
+    if (!scroller || !scroller.clientHeight) { pending = p; return; }
+    pending = null;
+    scroller.scrollTop = Math.max(0, (top - p + 0.5) * ROW - scroller.clientHeight / 2);
+  }
+  const octaveMid = () => 12 * (q.octave + 1) + 6; // the middle of the chosen octave (C to the next C in view)
+  function centreNotes() {
+    const ps = q.notes.map((n) => n.pitch);
+    centre(ps.length ? (Math.min(...ps) + Math.max(...ps)) / 2 : octaveMid());
+  }
+  let seen = { loads: -1, octave: -1 };
+  $effect(() => {
+    const loads = q.loads, octave = q.octave;
+    untrack(() => {
+      if (loads !== seen.loads) centreNotes(); // a new clip: its notes (it also sets the octave)
+      else if (octave !== seen.octave) centre(octaveMid());
+      seen = { loads, octave };
+    });
   });
-  const top = $derived(pitches[0]);
+  // the roll's height: what the page shows below its top, less the velocity lane and the hint, so that only the
+  // roll scrolls (not the page and the roll); at least a few octaves
+  let boxH = $state(400);
+  function fit() {
+    const main = scroller?.closest('main');
+    if (!main || !scroller.offsetParent) return;
+    const m = main.getBoundingClientRect(), r = scroller.getBoundingClientRect();
+    boxH = Math.round(Math.max(240, m.bottom - (r.top + main.scrollTop) - VEL_H - 64));
+  }
+  $effect(() => {
+    if (!scroller) return;
+    const main = scroller.closest('main');
+    const ro = new ResizeObserver(() => { fit(); if (pending !== null && scroller.clientHeight) centre(pending); });
+    ro.observe(scroller);
+    if (main) ro.observe(main); // the window's height changes
+    fit();
+    return () => ro.disconnect();
+  });
   const black = (p) => [1, 3, 6, 8, 10].includes(p % 12);
   const bars = $derived(Array.from({ length: Math.ceil(q.length / 4) }, (_, i) => i));
 
@@ -196,19 +234,71 @@
     q.cursor = Math.min(q.length, at + c.span); // the next paste follows this one
   }
   const selEnd = () => Math.ceil(Math.max(...selected.map((n) => n.start + n.length)) / q.grid - 1e-9) * q.grid;
+  const all = () => new Set(q.notes.map((n) => n.id));
+  const target = () => (sel.size ? sel : all()); // the selection, else every note
+  const clipOf = () => ({ length: q.length, grid: q.grid });
   const cmd = {
     cut: () => { if (copy()) { q.deleteMany(sel); sel = new Set(); } },
     copy,
     paste: () => pasteAt(q.cursor >= 0 ? q.cursor : sel.size ? selEnd() : 0),
     duplicate: () => { if (copy()) pasteAt(selEnd()); },
-    legato: () => q.legato(sel.size ? sel : new Set(q.notes.map((n) => n.id))),
-    quantize: () => {
-      const ids = sel.size ? sel : new Set(q.notes.map((n) => n.id));
-      q.edit(ids, (n) => ({ start: Math.min(Math.round(n.start / q.grid) * q.grid, Math.max(0, q.length - q.grid)) }));
-    },
     remove: () => { q.deleteMany(sel); sel = new Set(); },
+    legato: () => q.apply(op.legato, target(), clipOf()),
+    quantize: () => q.apply(op.quantize, target(), clipOf(), 1),
   };
   const run = (name) => { history.step(); cmd[name](); };
+  const doOp = (fn, ...args) => () => { history.step(); q.apply(fn, target(), ...args); };
+  const has = $derived(q.notes.length > 0), any = $derived(sel.size > 0);
+  const editItems = $derived([
+    { label: 'Undo', kbd: '⌘Z', run: history.undo, disabled: !history.canUndo },
+    { label: 'Redo', kbd: '⇧⌘Z', run: history.redo, disabled: !history.canRedo },
+    '-',
+    { label: 'Cut', kbd: '⌘X', run: () => run('cut'), disabled: !any },
+    { label: 'Copy', kbd: '⌘C', run: () => run('copy'), disabled: !any },
+    { label: 'Paste', kbd: '⌘V', run: () => run('paste'), disabled: !q.clipboard?.notes.length },
+    { label: 'Duplicate', kbd: '⌘D', run: () => run('duplicate'), disabled: !any },
+    { label: 'Delete', kbd: '⌫', run: () => run('remove'), disabled: !any },
+    '-',
+    { label: 'Select all', kbd: '⌘A', run: () => (sel = all()), disabled: !has },
+    { label: 'Select none', kbd: 'Esc', run: () => (sel = new Set()), disabled: !any },
+    { label: 'Invert selection', run: () => (sel = op.invertSelection(q.notes, sel)), disabled: !has },
+    { label: 'Select the same pitches', run: () => (sel = op.samePitch(q.notes, sel)), disabled: !any },
+  ]);
+  const scope = $derived(any ? `${sel.size} selected` : 'every note'); // what the Pitch, Time and Velocity menus act on
+  const pitchItems = $derived([
+    { heading: scope },
+    { label: 'Up a semitone', kbd: '↑', run: doOp(op.transpose, 1), disabled: !has },
+    { label: 'Down a semitone', kbd: '↓', run: doOp(op.transpose, -1), disabled: !has },
+    { label: 'Up an octave', kbd: '⇧↑', run: doOp(op.transpose, 12), disabled: !has },
+    { label: 'Down an octave', kbd: '⇧↓', run: doOp(op.transpose, -12), disabled: !has },
+    '-',
+    { label: 'Upside down', run: doOp(op.invertPitch), disabled: !has },
+  ]);
+  const timeItems = $derived([
+    { heading: scope },
+    { label: 'Quantize starts', kbd: '⌘U', run: () => run('quantize'), disabled: !has },
+    { label: 'Quantize starts, 50 %', run: doOp(op.quantize, clipOf(), 0.5), disabled: !has },
+    { label: 'Quantize ends', run: doOp(op.quantizeEnds, clipOf()), disabled: !has },
+    { label: 'Humanize', run: doOp(op.humanize, Math.random, q.grid / 8, 10), disabled: !has },
+    '-',
+    { label: 'Legato', kbd: '⌘L', run: () => run('legato'), disabled: !has },
+    { label: 'Staccato (half length)', run: doOp(op.staccato, 0.5), disabled: !has },
+    { label: 'Split at the grid', run: doOp(op.split, clipOf(), q.newId), disabled: !has },
+    { label: 'Glue (same pitch, touching)', run: doOp(op.glue), disabled: !has },
+    '-',
+    { label: 'Reverse', run: doOp(op.reverse), disabled: !has },
+    { label: 'Double speed', run: doOp(op.speed, 0.5, clipOf()), disabled: !has },
+    { label: 'Half speed', run: doOp(op.speed, 2, clipOf()), disabled: !has },
+  ]);
+  const velocityItems = $derived([
+    { heading: scope },
+    { label: 'Louder', run: doOp(op.scaleVelocity, 1.15), disabled: !has },
+    { label: 'Softer', run: doOp(op.scaleVelocity, 0.85), disabled: !has },
+    { label: 'All at 100', run: doOp(op.setVelocity, 100), disabled: !has },
+    '-',
+    { label: 'Crescendo', run: doOp(op.rampVelocity, 50, 120), disabled: !has },
+    { label: 'Decrescendo', run: doOp(op.rampVelocity, 120, 50), disabled: !has },
+  ]);
 
   // ---- keys: whenever this view is shown (the roll is laid out) and no field types; arrows need a selection ----
   const typing = (t) => t?.closest?.('.cm-editor') || t?.isContentEditable || t?.tagName === 'TEXTAREA' || t?.tagName === 'SELECT' ||
@@ -227,7 +317,7 @@
     else if (!mod && (k === 'ArrowUp' || k === 'ArrowDown')) {
       const d = (k === 'ArrowUp' ? 1 : -1) * (e.shiftKey ? 12 : 1);
       act = () => {
-        q.edit(sel, (n) => ({ pitch: Math.min(127, Math.max(0, n.pitch + d)) }));
+        q.apply(op.transpose, sel, d);
         sound(Math.min(127, Math.max(0, selected[0].pitch)));
       };
     } else if (!mod && (k === 'ArrowLeft' || k === 'ArrowRight')) {
@@ -273,15 +363,16 @@
 <div class="toolbar" role="toolbar" aria-label="Piano roll tools">
   <Seg items={TOOLS} value={tool} onpick={(t) => (tool = t)} label="Tool" />
   <span class="vsep" aria-hidden="true"></span>
+  <Menu label="Edit" items={editItems} title="Undo, clipboard, selection" />
+  <Menu label="Pitch" items={pitchItems} title="Transpose: the selection, or every note" />
+  <Menu label="Time" items={timeItems} title="Quantize, lengths, order and speed: the selection, or every note" />
+  <Menu label="Velocity" items={velocityItems} title="Loudness of the notes: the selection, or every note" />
+  <span class="vsep" aria-hidden="true"></span>
   <button class="ghost" onclick={() => run('cut')} disabled={!sel.size} title="Cut the selection (Cmd+X)">Cut</button>
   <button class="ghost" onclick={() => run('copy')} disabled={!sel.size} title="Copy the selection (Cmd+C)">Copy</button>
   <button class="ghost" onclick={() => run('paste')} disabled={!q.clipboard?.notes.length}
           title="Paste at the insertion point (click the ruler to set it), else after the selection (Cmd+V)">Paste</button>
   <button class="ghost" onclick={() => run('duplicate')} disabled={!sel.size} title="Duplicate after the selection (Cmd+D)">Duplicate</button>
-  <span class="vsep" aria-hidden="true"></span>
-  <button class="ghost" onclick={() => run('legato')} disabled={!q.notes.length} title="Each note lasts until the next one, the selection or every note (Cmd+L)">Legato</button>
-  <button class="ghost" onclick={() => run('quantize')} disabled={!q.notes.length} title="Starts to the grid, the selection or every note (Cmd+U)">Quantize</button>
-  <button class="ghost" onclick={() => run('remove')} disabled={!sel.size} title="Delete the selection (Delete)">Delete</button>
   <span class="spacer"></span>
   <span class="muted">{sel.size ? `${sel.size} selected` : ''}{sel.size && q.cursor >= 0 ? ' · ' : ''}{q.cursor >= 0 ? `insert at ${Math.floor(q.cursor / 4) + 1}.${Math.floor(q.cursor % 4) + 1}` : ''}</span>
 </div>
@@ -299,7 +390,7 @@
             onkeydown={(e) => { if (e.key === 'ArrowRight') q.length = Math.min(64, q.length + 1); if (e.key === 'ArrowLeft') q.length = Math.max(1, q.length - 1); }}></span>
     </div>
   </div>
-  <div class="scroll" bind:this={scroller}>
+  <div class="scroll" bind:this={scroller} style="height:{boxH}px">
     <div class="pkeys">
       {#each pitches as p (p)}
         <button class="key" class:black={black(p)} class:c={p % 12 === 0} onpointerdown={() => sound(p)} tabindex="-1">
@@ -343,7 +434,7 @@
   .brace { position: absolute; left: 0; bottom: 0; height: 6px; background: var(--accent); border-radius: 0 3px 3px 0; }
   .ruler.off .brace { background: var(--muted); opacity: .5; }
   .handle { position: absolute; right: -5px; bottom: -3px; width: 10px; height: 14px; border-radius: 3px; background: var(--text); cursor: ew-resize; touch-action: none; }
-  .scroll { grid-column: 1 / 3; display: grid; grid-template-columns: 44px 1fr; max-height: 420px; overflow-y: auto; scrollbar-gutter: stable; }
+  .scroll { grid-column: 1 / 3; display: grid; grid-template-columns: 44px 1fr; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
   .pkeys { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
   .key { flex: none; box-sizing: border-box; height: var(--row); min-height: 0; line-height: var(--row); font: 9.5px/var(--row) var(--mono); color: var(--muted);
     text-align: right; padding: 0 5px; margin: 0; border: 0; border-radius: 0; background: transparent; }

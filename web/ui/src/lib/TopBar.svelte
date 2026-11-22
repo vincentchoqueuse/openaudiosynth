@@ -9,37 +9,28 @@
   import { sequence as q } from './sequence.svelte.js';
   import { REPO_URL } from './links.js';
   import Pills from './Pills.svelte';
-  import Icon from './Icon.svelte';
+  import Menu from './Menu.svelte';
   import Meter from './Meter.svelte';
   let { view = $bindable(), views } = $props();
-  let menu = $state(false);
-  const act = (f) => { menu = false; f(); };
+  const items = $derived([
+    ...(s.canSave ? [{ label: 'Save to library…', run: s.openSave }] : []),
+    { label: 'Export sound (JSON)', run: s.exportPatch },
+    { label: 'Export song', run: q.exportSong },
+    { label: s.info ? 'Revert to saved' : 'Back to defaults', run: s.revert, disabled: !s.changedCount },
+    { label: 'Instrument defaults', run: s.resetEngine },
+    { label: 'Share (QR code)…', run: () => (s.shareOpen = true) },
+    '-',
+    { label: 'Undo', kbd: '⌘Z', run: h.undo, disabled: !h.canUndo },
+    { label: 'Redo', kbd: '⇧⌘Z', run: h.redo, disabled: !h.canRedo },
+    '-',
+    ...(s.phone ? [] : [{ label: 'Shortcuts', kbd: '?', run: () => (s.shortcutsOpen = true) }]),
+    { label: 'Report a bug', kbd: '↗', href: `${REPO_URL}/issues/new?template=web_bug.md&title=%5Bweb%5D%20&labels=bug,web` },
+  ]);
 </script>
-
-<svelte:window onpointerdown={(e) => { if (menu && !e.target.closest?.('.filemenu')) menu = false; }}
-               onkeydown={(e) => { if (e.key === 'Escape') menu = false; }} />
 
 <header class="topbar">
   <div class="tb-left">
-  <div class="filemenu">
-    <button class="btn ghost" onclick={() => (menu = !menu)} aria-haspopup="menu" aria-expanded={menu}><Icon name="menu" size={14} />Menu</button>
-    {#if menu}
-      <div class="menu" role="menu">
-        {#if s.canSave}<button role="menuitem" onclick={() => act(s.openSave)}>Save to library…</button>{/if}
-        <button role="menuitem" onclick={() => act(s.exportPatch)}>Export sound (JSON)</button>
-        <button role="menuitem" onclick={() => act(q.exportSong)}>Export song</button>
-        <button role="menuitem" disabled={!s.changedCount} onclick={() => act(s.revert)}>{s.info ? 'Revert to saved' : 'Back to defaults'}</button>
-        <button role="menuitem" onclick={() => act(s.resetEngine)}>Instrument defaults</button>
-        <button role="menuitem" onclick={() => act(() => (s.shareOpen = true))}>Share (QR code)…</button>
-        <hr />
-        <button role="menuitem" disabled={!h.canUndo} onclick={() => act(h.undo)}>Undo <kbd>⌘Z</kbd></button>
-        <button role="menuitem" disabled={!h.canRedo} onclick={() => act(h.redo)}>Redo <kbd>⇧⌘Z</kbd></button>
-        <hr />
-        {#if !s.phone}<button role="menuitem" onclick={() => act(() => (s.shortcutsOpen = true))}>Shortcuts <kbd>?</kbd></button>{/if}
-        <a role="menuitem" href="{REPO_URL}/issues/new?template=web_bug.md&title=%5Bweb%5D%20&labels=bug,web" target="_blank" rel="noopener noreferrer" onclick={() => (menu = false)}>Report a bug <kbd>↗</kbd></a>
-      </div>
-    {/if}
-  </div>
+  <Menu label="Menu" icon="menu" {items} />
   <span class="vsep" aria-hidden="true"></span>
   {#if views.length > 1}<Pills items={views.map(({ id, label }) => ({ id, label }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
   <span class="vsep" aria-hidden="true"></span>

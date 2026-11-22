@@ -11,7 +11,7 @@
       ['Delete', 'delete the selection'], ['⌘A ⌘C ⌘X ⌘V', 'select all, copy, cut, paste (the clipboard stays across sounds)'],
       ['⌘D', 'duplicate after the selection'], ['⌘L', 'legato: each note until the next'], ['⌘U', 'quantize'],
       ['↑ ↓ (Shift)', 'the selection a semitone (an octave)'], ['← → (Alt)', 'the selection a grid step (finer)'],
-      ['Shift ← →', 'shorten / lengthen the selection'], ['Shift while dragging', 'finer than the grid'], ['velocity lane', 'drag on a bar']]],
+      ['Shift ← →', 'shorten / lengthen the selection'], ['Edit, Pitch, Time, Velocity', 'the menus above the roll: on the selection, or every note'], ['Shift while dragging', 'finer than the grid'], ['velocity lane', 'drag on a bar']]],
     ['Controls', [['double-click a label or slider', 'back to the sound\'s value'], ['click a block of Structure', 'open its settings']]],
   ];
 </script>

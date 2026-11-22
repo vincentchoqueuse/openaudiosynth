@@ -249,10 +249,12 @@ class Session {
       this.say('Could not load the patch: ' + e.message);
       return false;
     }
-    const r = await this.applyPatch(text, seq);
-    if (!r?.ok) return false;
+    // its name first, with its values (the history records them as one state); back to the previous one if refused
+    const prev = [this.current, this.info];
     this.current = p.file;
     this.info = p;
+    const r = await this.applyPatch(text, seq);
+    if (!r?.ok) { if (seq === this.#loadSeq) [this.current, this.info] = prev; return false; }
     this.baseline = { ...this.values };
     this.picks++;
     this.editorTab = 'macros';

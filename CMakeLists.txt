@@ -164,6 +164,9 @@ if(Python3_FOUND)
              COMMAND ${NODE_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/web/test_seq_export.mjs $<TARGET_FILE:synth_render>
                      $<TARGET_FILE:synth_catalog> ${Python3_EXECUTABLE}
              WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+    # the piano roll's note operations (pure functions)
+    add_test(NAME note_ops COMMAND ${NODE_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/web/test_note_ops.mjs
+             WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
   endif()
   add_test(NAME golden
            COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/golden.py

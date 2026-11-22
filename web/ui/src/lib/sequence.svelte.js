@@ -30,6 +30,7 @@ class Sequence {
   // and its insertion point (beats, -1: none), where a paste lands
   clipboard = $state(null);
   cursor = $state(-1);
+  loads = $state(0); // counts the clips loaded (a sound's, a saved one, the JSON tab's): the roll then shows their notes
 
   tempo = $derived(Math.min(300, Math.max(20, +this.bpm || 120))); // the field may be empty or absurd
   playing = $derived(session.seqPlaying);
@@ -61,7 +62,7 @@ class Sequence {
 
   // ---- persistence: the current clip autosaved, named ones on Save; stored data goes through fromDoc ----
   #load(doc) {
-    try { this.take(fromDoc(doc)); this.name = typeof doc.name === 'string' && doc.name !== 'untitled' ? doc.name : ''; return true; }
+    try { this.take(fromDoc(doc)); this.name = typeof doc.name === 'string' && doc.name !== 'untitled' ? doc.name : ''; this.loads++; return true; }
     catch { return false; }
   }
   // an earlier grid sequence ({cells, stepLen, steps, …}) as a clip
@@ -186,15 +187,9 @@ class Sequence {
   };
   addMany = (list) => { const added = withIds(list); this.notes = [...this.notes, ...added]; return added.map((n) => n.id); };
   deleteMany = (ids) => { this.notes = this.notes.filter((n) => !ids.has(n.id)); };
-  // legato: each note of ids lasts until the next note starts (of any pitch, after it), the last one until the
-  // clip's end
-  legato = (ids) => {
-    const starts = [...new Set(this.notes.map((n) => n.start))].sort((a, b) => a - b);
-    this.edit(ids, (n) => {
-      const next = starts.find((t) => t > n.start + 1e-9);
-      return { length: (next ?? this.length) - n.start };
-    });
-  };
+  // a note operation (noteOps.js) on the clip: op(notes, ...args) -> the new notes
+  apply = (op, ...args) => { this.notes = op(this.notes, ...args); };
+  newId = () => nid++;
   clear = () => { this.notes = []; };
   random = () => {
     if (session.engine?.name === 'acid') { // an acid line: sixteenths, rests, octave jumps, accents and slides
@@ -219,6 +214,7 @@ class Sequence {
       const doc = JSON.parse(text), s = fromDoc(doc);
       this.take(s);
       this.name = s.name;
+      this.loads++;
       this.message = 'Applied';
       return '';
     } catch (e) {

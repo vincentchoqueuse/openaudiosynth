@@ -230,3 +230,24 @@ sharpens loud notes (Duffing); `entrain` locks the oscillator on the note; low e
 it slip against the note: an irregular, LFO-free shimmer (`selfosc_beating`). Recipes: `selfosc_reed`
 (formant filter on "o"), `selfosc_bass` (scream). Free (entrain 0) the pitch is within ~5 cents at full drive.
 
+
+## Precision sines (`micro`)
+
+Everything that shapes a hit runs per sample: envelope lengths are exact to the sample (a 0.2 s decay ends on
+sample 9600), notes start on the sample the sequencer asked for, curves go from linear (0) to analog (> 0: fast
+then slow) or gate-like (< 0). For exact rhythms built from pure tones.
+
+- **Kick**: `pitch_mode` fixed (40–55 Hz), `pitch_amount` +30..+40 st, `pitch_time` 30–60 ms, `pitch_curve`
+  0.6–0.8, `phase` 90 (the transient), a short `amp_hold`, `amp_decay` 0.3–0.6 s, `env_mode` one_shot, an
+  impulse click at 2–4 kHz, a little `drive` (`micro_deep_kick`). Note: the drive's oversampling delays the
+  sound by 0.24 ms.
+- **Sub**: keyed, legato with a 50–100 ms `glide`, `sub_level` −6 dB, a few dB of drive so small speakers hear
+  it (`micro_sub_pressure`).
+- **Beating between the ears**: `osc2_mode` hz, `osc2_offset` 0.5–3 Hz, `osc2_split` on (`micro_beating_pair`).
+- **Ticks**: `burst` 1–4 cycles of a fixed 2–5 kHz sine plus a noise click of 1–3 ms (`micro_click_grid`);
+  `sine_level` at the bottom leaves the click alone.
+- **Rolls**: `ratchet` 4–8 on 1/32 with `ratchet_decay` −2 dB (`micro_data_ratchet`).
+- **Carved tones**: a held sine cut by `gate_mode` sync, a 16-bit `gate_pattern` (step 1 = lowest bit) and
+  sub-millisecond `gate_edge` (`micro_gated_tone`); `gate_mode` free at 20–2000 Hz stutters a note or, fast,
+  becomes a rhythmic ring modulation (`micro_high_tone`).
+See `songs/grille_fine.json`.

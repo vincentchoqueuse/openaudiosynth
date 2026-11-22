@@ -1195,3 +1195,59 @@ drone machine: each note an endless drone of wandering harmonic partials, a warm
 | `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 | `air_tone` | -3 .. 1 oct | 0 | yes | `drone.air_tone` | height of the air's bands: lower = a muffled rumble of wind and waves, higher = a hiss |
 | `air_reso` | 0 .. 1 | 1 | yes | `drone.air_reso` | resonance of the air's bands: 1 = as the temperature sets it (whistling when cold), 0 = wide and soft |
+
+## Engine `micro` (8 voices)
+
+precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, tone bursts, ratchets, gate patterns (8 voices)
+
+| name | range / choices | default | live | role | what it does |
+|---|---|---|---|---|---|
+| `voice_mode` | poly, mono, legato | poly |  | `voice.mode` | poly, mono (every note retriggers) or legato (overlapping notes glide without retriggering) |
+| `pitch_mode` | key, fixed | key |  | `micro.pitch_mode` | key: the note sets the pitch; fixed: every note plays `freq` (the note only triggers) |
+| `freq` | 10 .. 20000 Hz | 440 | yes | `micro.freq` | frequency of the fixed mode |
+| `transpose` | -48 .. 48 st | 0 |  | `voice.transpose` | transposition, in both modes |
+| `fine` | -100 .. 100 cent | 0 | yes | `micro.fine` | fine tuning |
+| `glide` | 0.0005 .. 5 s | 0.0005 | yes | `voice.glide` | glide time in the mono and legato modes (arrives within 1 % after this time; the bottom = off) |
+| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
+| `phase` | 0 .. 360 deg | 0 |  | `micro.phase` | start phase of every hit: 0 = soft start from silence, 90 = a deliberate click |
+| `phase_reset` | off, on | on |  | `micro.phase_reset` | on: every hit restarts the sines at `phase` (exact, repeatable); off: free running |
+| `sine_level` | -60 .. 6 dB | 0 | yes | `osc1.level` | level of the main sine (the bottom = off: the click or the second sine alone) |
+| `pitch_amount` | -48 .. 96 st | 0 | yes | `pitch_env.amount` | start of the pitch envelope above the note (a kick: +24 .. +48), falling to the note |
+| `pitch_time` | 0.0002 .. 4 s | 0.04 | yes | `pitch_env.decay` | time of the pitch envelope's fall, exact |
+| `pitch_curve` | -1 .. 1 | 0.6 | yes | `micro.pitch_curve` | shape of the pitch fall: 0 linear (in semitones), > 0 fast then slow (a kick), < 0 slow then fast |
+| `env_mode` | gate, one_shot | gate |  | `micro.env_mode` | gate: the note-off starts the release; one_shot: attack, hold and decay always run to the end (drums) |
+| `amp_attack` | 2e-05 .. 10 s | 0.0005 | yes | `amp.attack` | attack time, exact (the bottom = one sample) |
+| `amp_hold` | 2e-05 .. 10 s | 2e-05 | yes | `micro.hold` | time held at full level after the attack (the bottom = none) |
+| `amp_decay` | 2e-05 .. 30 s | 0.3 | yes | `amp.decay` | decay time to the sustain level, exact |
+| `amp_sustain` | 0 .. 1 | 0 | yes | `amp.sustain` | sustain level (0: a percussive hit) |
+| `amp_release` | 2e-05 .. 30 s | 0.05 | yes | `amp.release` | release time, exact |
+| `attack_curve` | -1 .. 1 | 0 | yes | `micro.attack_curve` | shape of the attack: 0 linear, > 0 fast then slow, < 0 slow then fast |
+| `decay_curve` | -1 .. 1 | 0.5 | yes | `micro.decay_curve` | shape of the decay and the release: 0 linear, > 0 fast then slow (analog), < 0 slow then fast (a gate) |
+| `velocity` | 0 .. 1 | 0.5 | yes | `amp.velocity` | velocity to level: 0 = every hit equal, 1 = full range |
+| `osc2_level` | -60 .. 6 dB | -60 | yes | `osc2.level` | level of the second sine (the bottom = off) |
+| `osc2_mode` | ratio, hz | ratio |  | `micro.osc2_mode` | ratio: a frequency ratio to the main sine; hz: an offset in Hz (exact beating) |
+| `osc2_ratio` | 0.0625 .. 16 | 2 | yes | `micro.osc2_ratio` | frequency ratio of the second sine (ratio mode) |
+| `osc2_offset` | -100 .. 100 Hz | 1 | yes | `micro.osc2_offset` | frequency offset of the second sine (hz mode): the two sines beat this many times a second |
+| `osc2_split` | off, on | off |  | `micro.osc2_split` | on: the main sine (and sub, click) on the left, the second on the right (beating heard between the ears) |
+| `osc2_pitch_env` | off, on | on |  | `micro.osc2_pitch_env` | the pitch envelope moves the second sine too |
+| `sub_level` | -60 .. 6 dB | -60 | yes | `sub.level` | level of the sub sine (the bottom = off) |
+| `sub_octave` | 1 .. 2 oct | 1 |  | `micro.sub_octave` | the sub one or two octaves below the main sine |
+| `drive` | 0 .. 24 dB | 0 | yes | `micro.drive` | saturation of the main sine, sub and click (2x oversampled tanh): harmonics a small speaker can play |
+| `click_mode` | off, impulse, noise | off |  | `micro.click_mode` | a click on every hit: an impulse through a low-pass, or a noise burst through a band-pass |
+| `click_level` | -60 .. 6 dB | -12 | yes | `micro.click_level` | level of the click |
+| `click_tone` | 100 .. 20000 Hz | 4000 | yes | `micro.click_tone` | frequency of the click's filter |
+| `click_decay` | 0.0001 .. 0.1 s | 0.003 | yes | `micro.click_decay` | length of the noise burst (time to -60 dB) |
+| `burst` | 0 .. 256 cycles | 0 |  | `micro.burst` | tone burst: every hit plays exactly this many cycles of the main sine, then the sines stop (0 = off) |
+| `ratchet` | 1 .. 16 | 1 |  | `micro.ratchet` | hits per note: the note repeats this many times (1 = off) |
+| `ratchet_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/32 |  | `micro.ratchet_div` | interval between the repeats on the tempo (off: `ratchet_hz`) |
+| `ratchet_hz` | 0.5 .. 500 Hz | 16 | yes | `micro.ratchet_hz` | repeat rate when not on the tempo |
+| `ratchet_decay` | -24 .. 6 dB | -3 | yes | `micro.ratchet_decay` | level change at each repeat (< 0: dying away, > 0: growing toward full level) |
+| `gate_mode` | off, sync, free | off |  | `micro.gate_mode` | 16-step gate pattern: on the song's beat (sync) or from the note at `gate_hz` (free, up to audio rates) |
+| `gate_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.gate_div` | length of a step in sync mode |
+| `gate_hz` | 0.5 .. 2000 Hz | 32 | yes | `micro.gate_hz` | steps per second in free mode |
+| `gate_steps` | 1 .. 16 | 16 |  | `micro.gate_steps` | length of the pattern |
+| `gate_pattern` | 0 .. 65535 | 43690 |  | `micro.gate_pattern` | the pattern as 16 bits, step 1 = the lowest bit (43690 = every other step, from step 2) |
+| `gate_depth` | 0 .. 1 | 1 | yes | `micro.gate_depth` | how far a closed step cuts the sound (1 = silence) |
+| `gate_edge` | 2e-05 .. 0.02 s | 0.001 | yes | `micro.gate_edge` | time of each gate edge (the bottom = one sample: hard, digital) |
+| `pan` | -1 .. 1 | 0 | yes | `micro.pan` | position in the stereo field |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |

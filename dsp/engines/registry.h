@@ -8,6 +8,7 @@
 #include "drone.h"
 #include "drums.h"
 #include "fm6.h"
+#include "micro.h"
 #include "modal.h"
 #include "mono.h"
 #include "poly.h"
@@ -31,6 +32,7 @@ typedef union {
     selfosc_engine_t selfosc;
     sampler_t sampler;
     drone_t drone;
+    micro_t micro;
 } engine_state_t;
 
 #endif /* ENGINE_REGISTRY_H */

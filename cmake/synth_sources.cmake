@@ -35,6 +35,7 @@ set(SYNTH_DSP_SOURCES
   dsp/engines/coupled.c
   dsp/engines/selfosc.c
   dsp/engines/drone.c
+  dsp/engines/micro.c
   dsp/engines/sampler.c
   dsp/osc/splay.c
   dsp/osc/splay_table.c

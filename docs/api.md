@@ -464,6 +464,12 @@ the interface every synthesis engine implements, and the engine registry. synth.
 - constants: `FM6_VOICES` = 16, `FM6_OPS` = 6
 - data: `const param_desc_t fm6_params[FM6_P_COUNT]`, `const engine_ops_t fm6_engine`, `const fm6_algorithm_t fm6_algorithms[32]`
 
+## `dsp/engines/micro.h`
+precision sine engine, for exact electronic rhythms: every envelope runs per sample with exact durations and adjustable curves, notes start on their sample inside the block, the pitch follows the key or stays on a fixed frequency. One voice = a main sine (start phase, pitch envelope, glide), a second sine (a ratio, or an offset in Hz for exact beating, optionally split left / right), a sub one or two octaves down, a drive, a click (lowpassed impulse or band-passed noise burst), tone bursts of an exact number of cycles, ratchets (repeats at a tempo division or a rate in Hz, each one quieter) and a 16-step gate pattern (on the tempo or free, up to audio rates). References: exponential envelope segments as in analog contour generators (an RC charge toward a target past the end level); binaural beating of two pure tones (H. W. Dove, 1839).
+- types: `micro_seg_t`, `micro_voice_t`, `micro_t`
+- constants: `MICRO_VOICES` = 8
+- data: `const param_desc_t micro_params[MICRO_P_COUNT]`, `const engine_ops_t micro_engine`
+
 ## `dsp/engines/modal.h`
 modal synthesis engine: each voice is a bank of up to 32 damped resonators (modes) excited by a mallet strike (raised-cosine pulse + noise burst) and/or a continuous "bow" (filtered noise). Mode frequency ratios come from physical models (ideal string, stiff string, free bar, tuned marimba bar, church bell, circular membrane, bowl, closed tube); decay, damping of high modes, brightness and strike position shape the timbre. References: J.-M. Adrien, "The missing link: modal synthesis" (1991); P. Cook, "Real Sound Synthesis for Interactive Applications" (2002); N. Fletcher & T. Rossing, "The Physics of Musical Instruments" (mode ratios, stiff-string inharmonicity f_k = k f0 sqrt(1 + B k^2)); G. Weinreich, "Coupled piano strings" (JASA 1977) for the unison beating and double decay.
 - types: `modal_voice_t`, `modal_t`

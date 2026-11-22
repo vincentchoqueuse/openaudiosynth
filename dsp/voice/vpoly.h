@@ -53,6 +53,9 @@ typedef struct {
     int sustain, release_pending;
     int overlap;                  /* the last note change happened while another key was held */
     float last_vel;
+    /* where the event being handled lands in the block about to be rendered (0 .. SYNTH_BLOCK-1), set by synth.c
+     * around each MIDI event and 0 otherwise: engines that start notes on their sample read it in start/release */
+    int onset;
     /* per-voice modulation (MSEG, LFO, MPE, microtuning), configured by the part */
     voicemod_t vm[VALLOC_MAX];
     uint8_t vm_done[VALLOC_MAX];  /* out[] computed for this block */

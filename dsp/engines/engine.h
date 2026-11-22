@@ -71,6 +71,10 @@ typedef struct {
     /* Optional description of the signal chain (see engine_stage_t), for UIs; stages in signal order. */
     const engine_stage_t *stages;
     int stage_count;
+
+    /* Optional: the tempo (BPM) and the beat position at the end of the block about to be rendered, called by
+     * synth.c once per block before render, for engines with tempo-synced parts of their own. */
+    void (*tempo)(void *state, float bpm, float beat);
 } engine_ops_t;
 
 /* Registry, indexed by synth_engine_t. */

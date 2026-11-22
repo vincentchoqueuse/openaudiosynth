@@ -1,10 +1,11 @@
 // engines.js — how the engines are presented: the order of the families and one color each, the same as on
 // the board's screen (target/h745/app/m4/app_m4.c), so an instrument looks the same everywhere.
-export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'sine'];
+export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'micro', 'sine'];
 
 const COLORS = {
   va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5', poly: '#f2777a', acid: '#b8e05a',
   drums: '#e5534b', coupled: '#7fa7ff', selfosc: '#d98cff', wt: '#56d39a', sine: '#9aa5b1', sampler: '#f08fb8', drone: '#8fc9e8',
+  micro: '#e8e2d0',
 };
 
 export const engineColor = (name) => COLORS[name] ?? '#9aa5b1';
@@ -31,5 +32,6 @@ export const DEFAULT_MACROS = {
   selfosc: ['drive', 'stiffness', 'entrain', 'cutoff', 'resonance', 'amp_release'],
   sampler: ['tune', 'resonance', 'release', 'pad1_decay', 'pad2_decay', 'pad3_decay'],
   drone: ['temperature', 'density', 'motion', 'depth', 'brightness', 'sparkle'],
+  micro: ['freq', 'pitch_amount', 'pitch_time', 'amp_decay', 'drive', 'click_level'],
 };
 export const DEFAULT_MACRO_SENDS = ['delay_mix', 'reverb_mix'];

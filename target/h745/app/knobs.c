@@ -52,6 +52,7 @@ static const struct {
     {"selfosc", {"drive", "stiffness", "entrain", "cutoff", "resonance", "amp_release"}},
     {"sampler", {"tune", "resonance", "release", "pad1_decay", "pad2_decay", "pad3_decay"}},
     {"drone", {"temperature", "density", "motion", "depth", "brightness", "sparkle"}},
+    {"micro", {"freq", "pitch_amount", "pitch_time", "amp_decay", "drive", "click_level"}},
 };
 /* macros 7 and 8 on every engine: the effect sends */
 static const int knob_globals[2] = {SYNTH_PARAM_DELAY_MIX, SYNTH_PARAM_REVERB_MIX};

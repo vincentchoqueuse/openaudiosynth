@@ -5,6 +5,7 @@
 
 #include "engines/sine.h"
 #include "engines/va.h"
+#include "engines/micro.h"
 #include "engines/modal.h"
 #include "engines/drums.h"
 #include "engines/wt.h"
@@ -50,6 +51,13 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
             synth_set_param(synth_default(), WT_P_SUB, 1.0f);
             synth_set_param(synth_default(), WT_P_FILTER_TYPE, 1.0f);
         }
+    } else if (eng == SYNTH_ENGINE_MICRO) { /* worst case: held, both sines, sub, drive, free gate, pitch envelope */
+        const struct { int id; float v; } set[] = {
+            {MICRO_P_SUSTAIN, 1.0f}, {MICRO_P_OSC2_LEVEL, 0.0f}, {MICRO_P_SUB_LEVEL, 0.0f}, {MICRO_P_DRIVE, 12.0f},
+            {MICRO_P_GATE_MODE, 2.0f}, {MICRO_P_PITCH_AMOUNT, 24.0f}, {MICRO_P_PITCH_TIME, 4.0f},
+            {MICRO_P_CLICK_MODE, 2.0f}};
+        for (unsigned k = 0; k < sizeof set / sizeof set[0]; k++)
+            synth_set_param(synth_default(), set[k].id, param_to_norm(&micro_params[set[k].id], set[k].v));
     } else {
         synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
     }
@@ -106,6 +114,7 @@ void run_bench(void)
     bench_engine("coupled", SYNTH_ENGINE_COUPLED, 8, 0, 0);
     bench_engine("selfosc", SYNTH_ENGINE_SELFOSC, 8, 0, 0);
     bench_engine("drone", SYNTH_ENGINE_DRONE, 8, 0, 0);
+    bench_engine("micro", SYNTH_ENGINE_MICRO, 8, 0, 0);
     /* the oversample setting of the nonlinear filters */
     bench_engine_os("mono-1x", SYNTH_ENGINE_MONO, 1, 0, 0, 0);
     bench_engine_os("mono-4x", SYNTH_ENGINE_MONO, 1, 0, 0, 2);

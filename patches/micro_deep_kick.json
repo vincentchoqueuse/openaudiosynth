@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_deep_kick",
+  "description": "A deep, exact kick: a 45 Hz sine starting three octaves up and falling in 40 ms, a 90-degree start for the transient, a lowpassed impulse on top, a short hold then a curved 450 ms decay; one shot, any key.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 45,
+    "phase": 90,
+    "pitch_amount": 36,
+    "pitch_time": 0.04,
+    "pitch_curve": 0.7,
+    "env_mode": "one_shot",
+    "amp_attack": 2e-05,
+    "amp_hold": 0.012,
+    "amp_decay": 0.45,
+    "decay_curve": 0.55,
+    "amp_release": 0.05,
+    "click_mode": "impulse",
+    "click_tone": 2500,
+    "click_level": -8,
+    "drive": 5,
+    "velocity": 0.3,
+    "volume": 19,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/16",
+    "notes": [
+      {
+        "pitch": 36,
+        "start": 0,
+        "length": 0.1,
+        "velocity": 120
+      },
+      {
+        "pitch": 36,
+        "start": 1,
+        "length": 0.1,
+        "velocity": 105
+      },
+      {
+        "pitch": 36,
+        "start": 2,
+        "length": 0.1,
+        "velocity": 105
+      },
+      {
+        "pitch": 36,
+        "start": 3,
+        "length": 0.1,
+        "velocity": 105
+      },
+      {
+        "pitch": 36,
+        "start": 4,
+        "length": 0.1,
+        "velocity": 120
+      },
+      {
+        "pitch": 36,
+        "start": 5,
+        "length": 0.1,
+        "velocity": 105
+      },
+      {
+        "pitch": 36,
+        "start": 6,
+        "length": 0.1,
+        "velocity": 105
+      },
+      {
+        "pitch": 36,
+        "start": 7,
+        "length": 0.1,
+        "velocity": 105
+      }
+    ]
+  }
+}

@@ -625,6 +625,13 @@ static void global_targets(synth_t *s)
 }
 
 /* Applies, in arrival order, the events due before the end of the block starting at t0. */
+static void set_onset(synth_t *s, int at)
+{
+    for (int k = 0; k < SYNTH_PARTS; k++)
+        if (s->part[k].ops && s->part[k].ops->poly)
+            s->part[k].ops->poly(&s->part[k].eng)->onset = at;
+}
+
 static void ev_process(synth_t *s, uint32_t t0)
 {
     while (s->ev_count > 0 && !any_switching(s)) {
@@ -633,9 +640,14 @@ static void ev_process(synth_t *s, uint32_t t0)
             break; /* not due yet: keep the order */
         synth_part_t *pt = &s->part[ev->part];
         switch (ev->type) {
-        case EV_MIDI:
+        case EV_MIDI: {
+            /* the event's sample in this block, for the engines that start notes on it (vpoly_t.onset) */
+            const int32_t at = (int32_t)(ev->time - t0);
+            set_onset(s, at > 0 ? (int)at : 0);
             handle_midi(s, ev->data, ev->len, ev->time);
+            set_onset(s, 0);
             break;
+        }
         case EV_PARAM:
             if (pm_global_target(ev->id))
                 global_set(s, ev->id, ev->value);
@@ -711,6 +723,8 @@ static DSP_FAST_CODE int part_render(synth_t *s, synth_part_t *pt, float *busL, 
     for (int i = 0; i < n; i++)
         L[i] = R[i] = 0.0f;
     partmod_block(&pt->mod, &s->tempo, n, pt->ops, &pt->eng);
+    if (pt->ops->tempo)
+        pt->ops->tempo(&pt->eng, s->tempo.bpm, s->tempo.beat);
     pt->ops->render(&pt->eng, L, R);
     if (!block_finite(L, R, n)) { /* every build: one bad voice must not silence the synth for good */
         for (int i = 0; i < n; i++)

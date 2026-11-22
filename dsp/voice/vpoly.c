@@ -10,6 +10,7 @@ void vpoly_init(vpoly_t *p, int n_voices, float sr, const vpoly_ops_t *ops, void
     p->fade_step = 1.0f / (VPOLY_FADE_S * sr);
     p->ops = ops;
     p->eng = eng;
+    p->onset = 0;
     p->mode = VPOLY_POLY;
     p->priority = VPOLY_PRIO_LAST;
     p->nheld = 0;

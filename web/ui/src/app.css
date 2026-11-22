@@ -308,9 +308,13 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .chain .led { fill: var(--track); }
 .chain .led.on { fill: var(--ok); }
 
-/* ---- a narrow window: the meters go first ---- */
-@media (max-width: 1250px) {
-  .topbar .meter, .topbar .meter + .vsep { display: none; }
+/* ---- a narrow top bar (a 13-inch laptop): the meters go first, then the Sequencer label, so it stays on one line ---- */
+.topbar { container: topbar / inline-size; }
+@container topbar (max-width: 1440px) {
+  .topbar .tb-right .meter, .topbar .tb-right .meter + .vsep { display: none; }
+}
+@container topbar (max-width: 900px) {
+  .topbar .tb-right .seqlabel { display: none; }
 }
 
 /* ---- phone ---- */

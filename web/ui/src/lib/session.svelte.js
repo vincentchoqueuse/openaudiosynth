@@ -205,9 +205,10 @@ class Session {
   };
 
   // The instrument's default macros for a sound that has none (as on the board's knobs): macros 1..6 on its main
-  // parameters, around their present value (a third of the travel either way; only a little towards a closed
-  // filter or a long attack), 7 and 8 on the delay and reverb sends over their whole travel. Each macro is set
-  // where the parameter is, so assigning them changes nothing in the sound.
+  // parameters, around their present value (a third of the travel either way; a cutoff or any frequency from about
+  // four octaves below to three above, as on the board's knobs, so the macro sweeps from dark to bright; only a little towards a long
+  // attack), 7 and 8 on the delay and reverb sends over their whole travel. Each macro is set where the parameter
+  // is, so assigning them changes nothing in the sound. All in normalized units: along each parameter's own curve.
   defaultMacros = () => {
     const names = [...(DEFAULT_MACROS[this.engine?.name] ?? []).slice(0, 6), ...Array(6).fill('')].slice(0, 6).concat(DEFAULT_MACRO_SENDS);
     for (let s = 1; s <= 32; s++) if (this.getP(`map${s}_macro`)) this.setP(`map${s}_macro`, 0); // no leftovers
@@ -217,8 +218,8 @@ class Session {
       const d = this.byName[n];
       if (!d || !this.byName[`map${slot}_macro`]) return;
       const v = toNorm(d, this.values[d.id] ?? d.def), send = k >= 6;
-      const closes = d.unit === 'Hz' || /cutoff/.test(n), opens = /attack/.test(n);
-      const from = send ? 0 : Math.max(0, v - (closes ? 0.12 : 0.35)), to = send ? 1 : Math.min(1, v + (opens ? 0.12 : 0.35));
+      const freq = d.unit === 'Hz' || /cutoff/.test(n), opens = /attack/.test(n);
+      const from = send ? 0 : Math.max(0, v - (freq ? 0.4 : 0.35)), to = send ? 1 : Math.min(1, v + (freq ? 0.3 : opens ? 0.12 : 0.35));
       this.setP(`map${slot}_macro`, k + 1);
       this.setP(`map${slot}_destination`, d.id + 1);
       this.setP(`map${slot}_from`, from);

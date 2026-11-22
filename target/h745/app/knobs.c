@@ -1,6 +1,6 @@
 /* knobs.c — the board's knobs on the macros (knobs.h). A default target moves its parameter around the preset's own
- * value (KNOB_SPAN either way, normalized, within 0..1; less towards a closed filter or a long attack), so that no
- * knob can silence the sound; the effect sends cover their whole range. The macro starts where the preset's value is: the preset
+ * value (KNOB_SPAN either way, normalized, within 0..1; a cutoff mostly downwards, so it sweeps from dark to bright;
+ * little towards a long attack), so that no knob can silence the sound; the effect sends cover their whole range. The macro starts where the preset's value is: the preset
  * sounds as written until a knob is turned, then the knob sets the parameter. Targets use the modulation layer's macro
  * targets (dsp/mod/partmod.h, maps 1..8) and must be realtime parameters (others are skipped). */
 #include "knobs.h"
@@ -28,7 +28,10 @@ static float knob_last[SHARED_KNOBS];  /* the knob's position at its previous CC
 #define KNOB_SPAN 0.35f /* a default target's reach either side of the preset's value (normalized) */
 #endif
 #ifndef KNOB_EDGE
-#define KNOB_EDGE 0.12f /* the short reach: a cutoff's downwards, an attack's upwards */
+#define KNOB_EDGE 0.12f /* the short reach: an attack's upwards */
+#endif
+#ifndef KNOB_FREQ_DOWN
+#define KNOB_FREQ_DOWN 0.4f /* a cutoff's reach downwards (about 4 octaves); upwards, the rest of 2 x KNOB_SPAN */
 #endif
 
 /* The six main parameters of each engine, by name, for macros 1..6 ("" = none). */
@@ -101,14 +104,15 @@ static void knob_target(synth_t *s, int k, int id, float value, const param_desc
     mod_set(s, PM_MACRO(k), pos);
 }
 
-/* around the preset's value, within 0..1: KNOB_SPAN either way, but a frequency (a cutoff) goes down only by
- * KNOB_EDGE and up by the rest (lower, the filter closes on the sound), and an attack goes up only by KNOB_EDGE
- * (longer, short notes end before they are heard) */
+/* around the preset's value, within 0..1 (normalized: along the parameter's own curve, octaves for a cutoff):
+ * KNOB_SPAN either way, but a frequency (a cutoff) goes down by KNOB_FREQ_DOWN and up by the rest (a sweep from dark
+ * to bright, not two octaves at the top), and an attack goes up only by KNOB_EDGE (longer, short notes end before
+ * they are heard) */
 static void around(const param_desc_t *d, float v, float *from, float *to)
 {
     const int freq = strstr(d->name, "cutoff") || (d->unit && !strcmp(d->unit, "Hz"));
     const int attack = strstr(d->name, "attack") != NULL;
-    const float down = freq ? KNOB_EDGE : attack ? 2.0f * KNOB_SPAN - KNOB_EDGE : KNOB_SPAN;
+    const float down = freq ? KNOB_FREQ_DOWN : attack ? 2.0f * KNOB_SPAN - KNOB_EDGE : KNOB_SPAN;
     const float up = 2.0f * KNOB_SPAN - down;
     *from = v - down < 0.0f ? 0.0f : v - down;
     *to = v + up > 1.0f ? 1.0f : v + up;

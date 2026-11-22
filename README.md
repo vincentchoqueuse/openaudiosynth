@@ -12,6 +12,35 @@ dsp/ + midi/ ───┼── web/      browser: wasm + AudioWorklet + Svelte 
                 └── target/   STM32H745 / STM32F746 firmware (in progress)
 ```
 
+## Screenshots
+
+The web version, dark theme. Each link opens the same sound in your browser.
+
+![Sequence view: a slow drone in D Dorian over 32 bars](docs/screenshots/02-sequence-drone.png)
+*Sequence: [drone_pt_saint_mathieu](https://vincentchoqueuse.github.io/openaudiosynth/?sound=drone_pt_saint_mathieu), the live display above its piano roll, the
+macros above the keyboard.*
+
+![Synth view: signal chain and the oscillator cards of a poly pad](docs/screenshots/03-synth-engine-poly.png)
+*Synth: the signal chain of [poly_hazy_tape](https://vincentchoqueuse.github.io/openaudiosynth/?sound=poly_hazy_tape&view=synth) (a click on a block opens its
+settings), then the instrument's cards in the order the signal flows.*
+
+![The envelope editor with its drawn starting shapes](docs/screenshots/04-modulation-envelope.png)
+*Modulation: a multi-segment envelope, dragged point by point, with a playhead while it runs.*
+
+![A trap kit: bass drum line with slides and hi-hat rolls](docs/screenshots/08-sequence-trap.png)
+*[kit_trap](https://vincentchoqueuse.github.io/openaudiosynth/?sound=kit_trap): a melodic bass drum that slides between held notes, triplet hi-hat rolls.*
+
+<details>
+<summary>More: the opening screen, LFO, macros, the VA engine, the code editor</summary>
+
+![Opening screen](docs/screenshots/01-splash.png)
+![LFO with drawn wave shapes](docs/screenshots/05-modulation-lfo.png)
+![Macro assignments](docs/screenshots/06-macro-assignments.png)
+![The VA engine's cards](docs/screenshots/07-synth-engine-va.png)
+![The sound as JSON in the code editor](docs/screenshots/09-code.png)
+
+</details>
+
 ## Engines
 
 | Engine | In the spirit of |
@@ -23,10 +52,11 @@ dsp/ + midi/ ───┼── web/      browser: wasm + AudioWorklet + Svelte 
 | `fm6` | six-operator phase modulation: 32 algorithms, rate/level envelopes, keyboard scaling, feedback, sysex bank import |
 | `wt` | a modern wavetable synth: morphing tables, unison, warps, SVF / ladder / comb / formant filters |
 | `modal` | banks of damped resonators (strings, bars, bells, membranes, tubes) and a physical piano |
-| `drums` | a synthesized drum machine, analog and hybrid kits |
+| `drums` | a synthesized drum machine: analog, hybrid, glitch and trap kits, plus a melodic bass drum that slides between held notes |
 | `sampler` | a drum sampler: kits of your own samples, 16 pads with speed, start/end points, reverse, loop, filter, choke groups; band-limited playback |
 | `coupled` | networks of coupled Stuart-Landau oscillators |
 | `selfosc` | self-oscillating Van der Pol / Duffing oscillators driven by the note |
+| `drone` | a drone machine: wandering partials, a body, breath and sparkles, from glacial to warm |
 
 Every part has 8 macros, 2 tempo-syncable LFOs, 2 looping multi-segment envelopes (MSEG) and 8 modulation routes;
 per-note MSEG and LFO, MPE, microtuning (Scala), 8 multitimbral parts, MIDI clock, and an effect bus (chorus,

@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "engine": "wt",
+  "name": "wt_workstation_riff",
+  "description": "Bright early-nineties workstation riff: a unison basic wave at its square end over an additive harmonics wave an octave up, lp12 wide open, quick decay to a held body. Fitted by tools/resynth against a reference cut (spectrum, envelope, brightness).",
+  "params": {
+    "pan_spread": 0.4,
+    "filter_type": "lp12",
+    "a_table": "basic",
+    "a_position": 1.0,
+    "a_unison": 3,
+    "a_detune": 17.6872,
+    "b_table": "harmonics",
+    "b_position": 0.5775,
+    "b_octave": 1,
+    "b_level": 0.6672,
+    "cutoff": 9785.4972,
+    "resonance": 0.4792,
+    "amp_attack": 0.0011,
+    "amp_decay": 0.1697,
+    "amp_sustain": 0.5841,
+    "amp_release": 1.1929,
+    "reverb_mix": 0.15,
+    "reverb_decay": 0.6,
+    "volume": 7.0
+  },
+  "clip": {
+    "bpm": 132.7,
+    "length": 16,
+    "loop": true,
+    "grid": "1/16",
+    "key": "A minor",
+    "notes": [
+      {
+        "pitch": 57,
+        "start": 0.25,
+        "length": 0.5,
+        "velocity": 105
+      },
+      {
+        "pitch": 64,
+        "start": 0.5,
+        "length": 0.5,
+        "velocity": 106
+      },
+      {
+        "pitch": 57,
+        "start": 1.25,
+        "length": 0.25,
+        "velocity": 104
+      },
+      {
+        "pitch": 64,
+        "start": 1.25,
+        "length": 0.25,
+        "velocity": 104
+      },
+      {
+        "pitch": 62,
+        "start": 1.5,
+        "length": 0.5,
+        "velocity": 99
+      },
+      {
+        "pitch": 65,
+        "start": 1.75,
+        "length": 0.25,
+        "velocity": 114
+      },
+      {
+        "pitch": 53,
+        "start": 2.25,
+        "length": 0.25,
+        "velocity": 113
+      },
+      {
+        "pitch": 65,
+        "start": 2.25,
+        "length": 1.5,
+        "velocity": 113
+      },
+      {
+        "pitch": 60,
+        "start": 2.5,
+        "length": 0.5,
+        "velocity": 112
+      },
+      {
+        "pitch": 59,
+        "start": 3.0,
+        "length": 0.25,
+        "velocity": 101
+      },
+      {
+        "pitch": 72,
+        "start": 3.25,
+        "length": 0.25,
+        "velocity": 120
+      },
+      {
+        "pitch": 60,
+        "start": 3.75,
+        "length": 0.25,
+        "velocity": 119
+      },
+      {
+        "pitch": 62,
+        "start": 4.5,
+        "length": 0.5,
+        "velocity": 109
+      },
+      {
+        "pitch": 55,
+        "start": 5.25,
+        "length": 0.25,
+        "velocity": 114
+      },
+      {
+        "pitch": 62,
+        "start": 5.25,
+        "length": 0.75,
+        "velocity": 114
+      },
+      {
+        "pitch": 57,
+        "start": 5.75,
+        "length": 1.0,
+        "velocity": 105
+      },
+      {
+        "pitch": 64,
+        "start": 6.5,
+        "length": 0.5,
+        "velocity": 127
+      },
+      {
+        "pitch": 57,
+        "start": 7.0,
+        "length": 0.75,
+        "velocity": 100
+      },
+      {
+        "pitch": 64,
+        "start": 7.25,
+        "length": 0.25,
+        "velocity": 127
+      },
+      {
+        "pitch": 64,
+        "start": 7.75,
+        "length": 0.25,
+        "velocity": 110
+      },
+      {
+        "pitch": 57,
+        "start": 8.0,
+        "length": 0.75,
+        "velocity": 105
+      },
+      {
+        "pitch": 64,
+        "start": 8.5,
+        "length": 0.5,
+        "velocity": 127
+      },
+      {
+        "pitch": 69,
+        "start": 9.0,
+        "length": 0.25,
+        "velocity": 99
+      },
+      {
+        "pitch": 57,
+        "start": 9.25,
+        "length": 0.5,
+        "velocity": 118
+      },
+      {
+        "pitch": 64,
+        "start": 9.25,
+        "length": 0.25,
+        "velocity": 118
+      },
+      {
+        "pitch": 62,
+        "start": 9.75,
+        "length": 0.25,
+        "velocity": 97
+      },
+      {
+        "pitch": 53,
+        "start": 10.0,
+        "length": 0.75,
+        "velocity": 98
+      },
+      {
+        "pitch": 65,
+        "start": 10.25,
+        "length": 1.0,
+        "velocity": 116
+      },
+      {
+        "pitch": 60,
+        "start": 10.5,
+        "length": 0.5,
+        "velocity": 112
+      },
+      {
+        "pitch": 53,
+        "start": 11.25,
+        "length": 0.25,
+        "velocity": 109
+      },
+      {
+        "pitch": 60,
+        "start": 11.75,
+        "length": 0.25,
+        "velocity": 118
+      },
+      {
+        "pitch": 62,
+        "start": 12.5,
+        "length": 0.5,
+        "velocity": 98
+      },
+      {
+        "pitch": 55,
+        "start": 13.25,
+        "length": 0.5,
+        "velocity": 111
+      },
+      {
+        "pitch": 57,
+        "start": 13.75,
+        "length": 1.0,
+        "velocity": 108
+      },
+      {
+        "pitch": 64,
+        "start": 14.5,
+        "length": 0.5,
+        "velocity": 127
+      },
+      {
+        "pitch": 57,
+        "start": 15.0,
+        "length": 0.75,
+        "velocity": 113
+      },
+      {
+        "pitch": 64,
+        "start": 15.25,
+        "length": 0.5,
+        "velocity": 127
+      }
+    ]
+  }
+}

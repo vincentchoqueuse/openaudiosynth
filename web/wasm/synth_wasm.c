@@ -372,6 +372,10 @@ static float player_start(seq_t *q, float len, int loop, int keep_pos)
     g_ev_next = 0;
     while (g_ev_next < g_ev_n && (long)(g_ev[g_ev_next].t * g_sr) < pos)
         g_ev_next++;
+    if (pos == 0) { /* a clip from its start: the synth's beat too, so tempo-synced LFOs fall on the clip's beats */
+        const uint8_t start = 0xFA;
+        synth_midi(synth_default(), &start, 1, 0);
+    }
     g_pos = pos;
     g_len = new_len;
     g_loop = loop;

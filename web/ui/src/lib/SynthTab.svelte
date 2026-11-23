@@ -1,8 +1,8 @@
-<!-- SynthTab.svelte — the Synth view: shaping the sound. Its Structure always on top (the signal chain; a click on a
-     block opens the tab and the card that hold its settings), then pills, each with its own tabs under it: Engine (the instrument, named after it: its
-     parameters, or the sampler's kit), Effects (the bus and the master), Modulation (modulators and their
-     assignments), Macros (names, CC and targets) and Info (its description, instrument, file). The tab open lives in
-     the session; a sound picked in the library opens on Engine. -->
+<!-- SynthTab.svelte — the Synth view: shaping the sound. Pills, each with its own tabs under it: Summary (the
+     signal chain drawn: the instrument, the effect bus, the modulators; display only), Engine (the instrument, named
+     after it: its parameters, or the sampler's kit), Effects (the bus and the master), Modulation (modulators and
+     their assignments), Macros (names, CC and targets) and Info (its description, instrument, file). The tab open
+     lives in the session; a sound picked in the library opens on Summary. -->
 <script>
   import { cap } from './naming.js';
   import ChainView from './ChainView.svelte';
@@ -17,6 +17,7 @@
 
   // the pills, each with its editors under it as tabs (even a single one); the tab open is session.editorTab
   const GROUPS = $derived([
+    { id: 'summary', label: 'Summary', icon: 'summary', tabs: [{ id: 'summary', label: 'Signal chain' }] },
     { id: 'engine', label: 'Engine', icon: 'engine',
       tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) || 'Engine' }] },
     { id: 'fx', label: 'Effects', icon: 'effects', tabs: [{ id: 'fx', label: 'Bus' }] },
@@ -27,20 +28,14 @@
     { id: 'info', label: 'Info', icon: 'info', tabs: [{ id: 'info', label: 'Description' }] },
   ]);
   const group = $derived(GROUPS.find((g) => g.tabs.some((t) => t.id === s.editorTab)) ?? GROUPS[0]);
-  // a block of the diagram -> the tab and the card that hold its settings
-  function pick(st, kind) {
-    if (kind === 'route') return s.goTo('mod-assign');
-    const bus = (s.catalog.fx ?? []).some((f) => f.id === st.id);
-    s.goTo(bus ? 'fx' : 'engine', st.id);
-  }
 </script>
-
-<ChainView onpick={pick} />
 
 <Pills items={GROUPS} value={group.id} onpick={(id) => s.goTo(id)} tabs label="Synth" />
 <Tabs items={group.tabs} value={s.editorTab} onpick={s.goTo} label={group.label} />
 
-{#if s.editorTab === 'info'}
+{#if s.editorTab === 'summary'}
+  <ChainView />
+{:else if s.editorTab === 'info'}
   <InfoPanel />
 {:else if group.id === 'macros'}
   <MacroMatrix view={s.editorTab === 'macros' ? 'names' : 'assign'} />

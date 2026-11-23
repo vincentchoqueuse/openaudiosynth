@@ -30,9 +30,9 @@ class Session {
   clipHook = null;
   #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
-  picks = $state(0); // sounds picked in the library (the editor opens on Engine)
+  picks = $state(0); // sounds picked in the library (the editor opens on Summary)
   // the Synth tab's editor: which tab is open, and the stage the diagram asked to show (scrolled to, lit)
-  editorTab = $state('engine');
+  editorTab = $state('summary');
   focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
   constructor() {
     if (typeof matchMedia === 'function') matchMedia('(max-width: 760px)').addEventListener('change', (e) => (this.phone = e.matches));
@@ -265,7 +265,7 @@ class Session {
     if (!r?.ok) { if (seq === this.#loadSeq) [this.current, this.info] = prev; return false; }
     this.baseline = { ...this.values };
     this.picks++;
-    this.editorTab = 'engine';
+    this.editorTab = 'summary';
     return true;
   };
 

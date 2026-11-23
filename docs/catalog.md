@@ -1216,7 +1216,7 @@ drone machine: each note an endless drone of wandering harmonic partials, a warm
 
 ## Engine `micro` (8 voices)
 
-precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, tone bursts, ratchets, gate patterns (8 voices)
+precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, noise layer with its own gate, tone bursts, ratchets, gate patterns (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
@@ -1269,6 +1269,17 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `gate_edge` | 2e-05 .. 0.02 s | 0.001 | yes | `micro.gate_edge` | time of each gate edge (the bottom = one sample: hard, digital) |
 | `pan` | -1 .. 1 | 0 | yes | `micro.pan` | position in the stereo field |
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
+| `noise_level` | -60 .. 12 dB | -60 | yes | `noise.level` | level of the noise layer (the bottom = off); it bypasses the drive |
+| `noise_type` | white, stepped, periodic | white |  | `micro.noise_type` | white; stepped: a new random value `noise_rate` times a second (digital grain); periodic: a 7-bit shift register clocked at `noise_rate`, a metallic buzz at noise_rate / 127 |
+| `noise_rate` | 50 .. 48000 Hz | 4000 | yes | `micro.noise_rate` | clock of the stepped and periodic noises (no band limiting: the aliasing is the sound) |
+| `noise_filter` | off, lp, bp, hp | hp |  | `micro.noise_filter` | filter of the noise: off, low-pass, band-pass or high-pass |
+| `noise_cutoff` | 20 .. 20000 Hz | 6000 | yes | `micro.noise_cutoff` | frequency of the noise filter |
+| `noise_q` | 0.5 .. 20 | 0.7071 | yes | `micro.noise_q` | resonance of the noise filter (high = a narrow, whistling band) |
+| `noise_env` | amp, hit, step | amp |  | `micro.noise_env` | amp: the noise follows the amplitude envelope; hit: its own decay from every hit; step: its own decay, restarted on every step where its gate opens (a tick per step) |
+| `noise_decay` | 0.0005 .. 4 s | 0.05 | yes | `micro.noise_decay` | length of the noise's own decay (hit and step modes; time to -60 dB) |
+| `noise_gate` | off, same, inverse, pattern | off |  | `micro.noise_gate` | the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode` |
+| `noise_pattern` | 0 .. 65535 | 21845 |  | `micro.noise_pattern` | the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
+| `noise_pan` | -1 .. 1 | 0 | yes | `micro.noise_pan` | position of the noise, relative to `pan` |
 
 ## Engine `fm4` (16 voices)
 

@@ -258,6 +258,13 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
 - **Carved tones**: a held sine cut by `gate_mode` sync, a 16-bit `gate_pattern` (step 1 = lowest bit) and
   sub-millisecond `gate_edge` (`micro_gated_tone`); `gate_mode` free at 20–2000 Hz stutters a note or, fast,
   becomes a rhythmic ring modulation (`micro_high_tone`).
+- **Tone against noise**: the noise layer has its own gate on the same steps. `noise_gate` inverse puts it in
+  the tone's holes, `noise_env` step gives each opening step its own tick (`noise_decay` 10–80 ms). `stepped`
+  noise at 8–16 kHz through a high-pass at 4–6 kHz sounds like digital grain (`micro_noise_interlock`). A
+  `periodic` noise (a 7-bit register: a buzz at `noise_rate` / 127) through a band-pass, on its own
+  `noise_pattern` and panned away from the tone, sounds like a data stream (`micro_data_burst`). The stepped
+  and periodic kinds are not band-limited on purpose; their high-passed steps make sharp peaks, so start low
+  with `noise_level`.
 See `songs/grille_fine.json`.
 
 ## Four-operator FM on a matrix (`fm4`)

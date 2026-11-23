@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_data_burst",
+  "description": "A 1 kHz test tone cut on 1/32 notes, answered by a metallic periodic noise (a 7-bit register at 24 kHz, band-passed at 3 kHz) on its own pattern, left against right: a stream of data rather than a melody.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 1000,
+    "amp_attack": 2e-05,
+    "amp_sustain": 1,
+    "amp_release": 0.01,
+    "gate_mode": "sync",
+    "gate_div": "1/32",
+    "gate_steps": 16,
+    "gate_pattern": 4369,
+    "gate_edge": 2e-05,
+    "sine_level": -8,
+    "pan": -0.3,
+    "noise_level": 0,
+    "noise_type": "periodic",
+    "noise_rate": 24000,
+    "noise_filter": "bp",
+    "noise_cutoff": 3000,
+    "noise_q": 2,
+    "noise_env": "step",
+    "noise_decay": 0.012,
+    "noise_gate": "pattern",
+    "noise_pattern": 52428,
+    "noise_pan": 0.7,
+    "velocity": 0,
+    "volume": 16,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/4",
+    "notes": [
+      {"pitch": 60, "start": 0, "length": 3.9, "velocity": 100},
+      {"pitch": 60, "start": 4, "length": 1.9, "velocity": 100},
+      {"pitch": 60, "start": 6.5, "length": 1.4, "velocity": 100}
+    ]
+  }
+}

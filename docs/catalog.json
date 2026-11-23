@@ -1279,7 +1279,7 @@
       }
     },
     "micro": {
-      "description": "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, tone bursts, ratchets, gate patterns (8 voices)",
+      "description": "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, noise layer with its own gate, tone bursts, ratchets, gate patterns (8 voices)",
       "voices": 8,
       "params": {
         "voice_mode": {"type": "enum", "choices": ["poly", "mono", "legato"], "default": "poly", "realtime": false, "role": "voice.mode", "help": "poly, mono (every note retriggers) or legato (overlapping notes glide without retriggering)"},
@@ -1330,7 +1330,18 @@
         "gate_depth": {"type": "float", "range": [0, 1], "default": 1, "realtime": true, "role": "micro.gate_depth", "help": "how far a closed step cuts the sound (1 = silence)"},
         "gate_edge": {"type": "float", "range": [2e-05, 0.02], "default": 0.001, "unit": "s", "scale": "log", "realtime": true, "role": "micro.gate_edge", "help": "time of each gate edge (the bottom = one sample: hard, digital)"},
         "pan": {"type": "float", "range": [-1, 1], "default": 0, "realtime": true, "role": "micro.pan", "help": "position in the stereo field"},
-        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume"}
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume"},
+        "noise_level": {"type": "float", "range": [-60, 12], "default": -60, "unit": "dB", "realtime": true, "role": "noise.level", "help": "level of the noise layer (the bottom = off); it bypasses the drive"},
+        "noise_type": {"type": "enum", "choices": ["white", "stepped", "periodic"], "default": "white", "realtime": false, "role": "micro.noise_type", "help": "white; stepped: a new random value `noise_rate` times a second (digital grain); periodic: a 7-bit shift register clocked at `noise_rate`, a metallic buzz at noise_rate / 127"},
+        "noise_rate": {"type": "float", "range": [50, 48000], "default": 4000, "unit": "Hz", "scale": "log", "realtime": true, "role": "micro.noise_rate", "help": "clock of the stepped and periodic noises (no band limiting: the aliasing is the sound)"},
+        "noise_filter": {"type": "enum", "choices": ["off", "lp", "bp", "hp"], "default": "hp", "realtime": false, "role": "micro.noise_filter", "help": "filter of the noise: off, low-pass, band-pass or high-pass"},
+        "noise_cutoff": {"type": "float", "range": [20, 20000], "default": 6000, "unit": "Hz", "scale": "log", "realtime": true, "role": "micro.noise_cutoff", "help": "frequency of the noise filter"},
+        "noise_q": {"type": "float", "range": [0.5, 20], "default": 0.7071, "scale": "log", "realtime": true, "role": "micro.noise_q", "help": "resonance of the noise filter (high = a narrow, whistling band)"},
+        "noise_env": {"type": "enum", "choices": ["amp", "hit", "step"], "default": "amp", "realtime": false, "role": "micro.noise_env", "help": "amp: the noise follows the amplitude envelope; hit: its own decay from every hit; step: its own decay, restarted on every step where its gate opens (a tick per step)"},
+        "noise_decay": {"type": "float", "range": [0.0005, 4], "default": 0.05, "unit": "s", "scale": "log", "realtime": true, "role": "micro.noise_decay", "help": "length of the noise's own decay (hit and step modes; time to -60 dB)"},
+        "noise_gate": {"type": "enum", "choices": ["off", "same", "inverse", "pattern"], "default": "off", "realtime": false, "role": "micro.noise_gate", "help": "the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode`"},
+        "noise_pattern": {"type": "int", "range": [0, 65535], "default": 21845, "realtime": false, "role": "micro.noise_pattern", "help": "the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1)"},
+        "noise_pan": {"type": "float", "range": [-1, 1], "default": 0, "realtime": true, "role": "micro.noise_pan", "help": "position of the noise, relative to `pan`"}
       }
     },
     "fm4": {

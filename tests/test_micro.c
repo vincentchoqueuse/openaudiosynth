@@ -1,7 +1,8 @@
 /* test_micro.c — precision sine engine: a note starts on the sample asked for, envelope lengths exact to the sample
  * (and a 20 s segment that does not drift), curves on the right side of linear, fixed and keyed pitch, a pitch
  * envelope that lands on the note, tone bursts of an exact number of cycles, exact beating in Hz split left/right,
- * ratchets on their interval and dying away, a gate pattern on the beat, a glide that arrives, and every
+ * ratchets on their interval and dying away, a gate pattern on the beat, the noise layer (inverse gate, a tick per
+ * step, the periodic and stepped kinds), a glide that arrives, and every
  * parameter at its extremes bounded and deterministic. Engine-level renders (no master stage) unless noted. */
 #include <math.h>
 #include <string.h>
@@ -248,6 +249,81 @@ void suite_micro(void)
         const float open = rms(L + 6000 * 2 + 500, 5000), shut = rms(L + 6000 * 3 + 500, 5000);
         CHECK(open > 0.03f && shut < 1e-6f, "micro gate pattern: open step %g, closed step %g", (double)open,
               (double)shut);
+    }
+
+    /* noise layer on the inverse gate: silent on the tone's open steps, loud in its holes; with the tone on too,
+     * no step is silent (tone and noise interlock) */
+    for (int with_tone = 0; with_tone < 2; with_tone++) {
+        fresh();
+        beat_pos = 0.0f;
+        setp(MICRO_P_SUSTAIN, 1.0f);
+        setp(MICRO_P_GATE_MODE, 1.0f);
+        setp(MICRO_P_GATE_DIV, 3.0f);
+        setp(MICRO_P_GATE_PATTERN, 21845.0f);
+        setp(MICRO_P_SINE_LEVEL, with_tone ? 0.0f : -60.0f);
+        setp(MICRO_P_NOISE_LEVEL, 0.0f);
+        setp(MICRO_P_NOISE_GATE, 2.0f);
+        note_at(81, 0);
+        run(L, R, 48000, 120.0f);
+        const float tone_step = rms(L + 6000 * 2 + 500, 5000), hole = rms(L + 6000 * 3 + 500, 5000);
+        if (!with_tone)
+            CHECK(tone_step < 1e-6f && hole > 0.01f, "micro noise inverse gate: tone step %g, hole %g",
+                  (double)tone_step, (double)hole);
+        else
+            CHECK(tone_step > 0.03f && hole > 0.01f, "micro tone + noise interlock: tone step %g, hole %g",
+                  (double)tone_step, (double)hole);
+    }
+
+    /* step envelope: every step opens a 10 ms tick of noise; loud at its start, gone well before the next one */
+    fresh();
+    beat_pos = 0.0f;
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    setp(MICRO_P_SINE_LEVEL, -60.0f);
+    setp(MICRO_P_GATE_MODE, 1.0f);
+    setp(MICRO_P_GATE_DIV, 3.0f);
+    setp(MICRO_P_GATE_PATTERN, 65535.0f);
+    setp(MICRO_P_NOISE_LEVEL, 0.0f);
+    setp(MICRO_P_NOISE_ENV, 2.0f);
+    setp(MICRO_P_NOISE_DECAY, 0.01f);
+    note_at(81, 0);
+    run(L, R, 48000, 120.0f);
+    {
+        float head = 1.0f, tail = 0.0f;
+        for (int k = 1; k < 7; k++) {
+            head = fminf(head, rms(L + 6000 * k, 100));
+            tail = fmaxf(tail, rms(L + 6000 * k + 3000, 2000));
+        }
+        CHECK(head > 0.02f && tail < 1e-4f, "micro noise step ticks: head %g, tail %g", (double)head, (double)tail);
+    }
+
+    /* periodic noise: a 127-tick sequence clocked at 12.7 kHz repeats every 480 samples (100 Hz); stepped noise
+     * at 1 kHz changes value 1000 times a second */
+    for (int kind = 2; kind >= 1; kind--) {
+        fresh();
+        setp(MICRO_P_SUSTAIN, 1.0f);
+        setp(MICRO_P_SINE_LEVEL, -60.0f);
+        setp(MICRO_P_NOISE_LEVEL, 0.0f);
+        setp(MICRO_P_NOISE_TYPE, (float)kind);
+        setp(MICRO_P_NOISE_FILTER, 0.0f);
+        setp(MICRO_P_NOISE_RATE, kind == 2 ? 12700.0f : 1000.0f);
+        note_at(60, 0);
+        run(L, R, 48000, 120.0f);
+        const float *x = L + 24000;
+        if (kind == 2) {
+            double c480 = 0.0, c240 = 0.0, e0 = 0.0;
+            for (int i = 0; i < 12000; i++) {
+                c480 += (double)x[i] * (double)x[i + 480];
+                c240 += (double)x[i] * (double)x[i + 240];
+                e0 += (double)x[i] * (double)x[i];
+            }
+            CHECK(c480 / e0 > 0.9 && fabs(c240 / e0) < 0.3, "micro periodic noise: correlation %.3f at 480, %.3f at 240",
+                  c480 / e0, c240 / e0);
+        } else {
+            int changes = 0;
+            for (int i = 1; i < 24000; i++)
+                changes += fabsf(x[i] - x[i - 1]) > 1e-3f * fabsf(x[i]) + 1e-7f;
+            CHECK(changes >= 495 && changes <= 501, "micro stepped noise: %d changes in 0.5 s, expected 500", changes);
+        }
     }
 
     /* glide in mono: from A3 to A4 in 0.1 s, arrived after 0.2 s */

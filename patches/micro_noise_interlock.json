@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_noise_interlock",
+  "description": "The gated 49 Hz tone with its contrast: a high-passed digital noise (stepped at 14 kHz) on the inverse steps, a 40 ms tick on each, slightly to the right. Tone and noise interlock with sample-exact edges.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 49,
+    "amp_attack": 0.002,
+    "amp_sustain": 1,
+    "amp_release": 0.05,
+    "osc2_level": -26,
+    "osc2_mode": "ratio",
+    "osc2_ratio": 16,
+    "osc2_pitch_env": "off",
+    "gate_mode": "sync",
+    "gate_div": "1/16",
+    "gate_steps": 16,
+    "gate_pattern": 46261,
+    "gate_edge": 0.0003,
+    "noise_level": 2,
+    "noise_type": "stepped",
+    "noise_rate": 14000,
+    "noise_filter": "hp",
+    "noise_cutoff": 5000,
+    "noise_env": "step",
+    "noise_decay": 0.07,
+    "noise_gate": "inverse",
+    "noise_pan": 0.35,
+    "velocity": 0,
+    "volume": 10,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/4",
+    "notes": [
+      {
+        "pitch": 60,
+        "start": 0,
+        "length": 7.9,
+        "velocity": 100
+      }
+    ]
+  }
+}

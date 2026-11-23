@@ -3,8 +3,9 @@
  * stays on a fixed frequency. One voice = a main sine (start phase, pitch envelope, glide), a second sine (a ratio,
  * or an offset in Hz for exact beating, optionally split left / right), a sub one or two octaves down, a drive,
  * a click (lowpassed impulse or band-passed noise burst), tone bursts of an exact number of cycles, ratchets
- * (repeats at a tempo division or a rate in Hz, each one quieter) and a 16-step gate pattern (on the tempo or free,
- * up to audio rates). References: exponential envelope segments as in analog contour generators (an RC charge
+ * (repeats at a tempo division or a rate in Hz, each one quieter), a 16-step gate pattern (on the tempo or free,
+ * up to audio rates) and a noise layer (white, stepped or periodic, filtered) with its own gate: the same steps,
+ * the inverse ones (noise in the tone's holes) or its own pattern, retriggered on every step it opens. References: exponential envelope segments as in analog contour generators (an RC charge
  * toward a target past the end level); binaural beating of two pure tones (H. W. Dove, 1839). */
 #ifndef ENGINE_MICRO_H
 #define ENGINE_MICRO_H
@@ -31,6 +32,9 @@ enum {
     MICRO_P_GATE_MODE, MICRO_P_GATE_DIV, MICRO_P_GATE_HZ, MICRO_P_GATE_STEPS, MICRO_P_GATE_PATTERN,
     MICRO_P_GATE_DEPTH, MICRO_P_GATE_EDGE,
     MICRO_P_PAN, MICRO_P_VOLUME,
+    MICRO_P_NOISE_LEVEL, MICRO_P_NOISE_TYPE, MICRO_P_NOISE_RATE, MICRO_P_NOISE_FILTER, MICRO_P_NOISE_CUTOFF,
+    MICRO_P_NOISE_Q, MICRO_P_NOISE_ENV, MICRO_P_NOISE_DECAY, MICRO_P_NOISE_GATE, MICRO_P_NOISE_PATTERN,
+    MICRO_P_NOISE_PAN,
     MICRO_P_COUNT
 };
 extern const param_desc_t micro_params[MICRO_P_COUNT];
@@ -63,6 +67,11 @@ typedef struct {
     int click_live;
     uint32_t noise;
     dist_t dist;
+    svf_t noise_f;                  /* the noise layer's filter */
+    float noise_amp, noise_ph;      /* its own envelope (hit, step modes), the clock of the stepped kinds */
+    float noise_hold, ngate_g;      /* held value, gate gain of the noise */
+    uint32_t noise_rng, lfsr;       /* its generator, the periodic kind's 7-bit shift register */
+    int nstep;                      /* the step the noise gate was on at the last sample (-1: none yet) */
     float vm_gain;
     int vm_fresh;
 } micro_voice_t;
@@ -73,7 +82,7 @@ typedef struct {
     float bend;
     float bpm, beat0, beat1; /* tempo, beat position at the start and the end of the current block */
     int have_beat;
-    int click_mode_set;
+    int click_mode_set, noise_filter_set;
     smooth_t vol;
     float vol_prev;
     uint32_t nan_count;

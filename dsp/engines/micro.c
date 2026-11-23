@@ -16,6 +16,10 @@ static const char *const env_mode_labels[] = {"gate", "one_shot", NULL};
 static const char *const osc2_mode_labels[] = {"ratio", "hz", NULL};
 static const char *const click_mode_labels[] = {"off", "impulse", "noise", NULL};
 static const char *const gate_mode_labels[] = {"off", "sync", "free", NULL};
+static const char *const noise_type_labels[] = {"white", "stepped", "periodic", NULL};
+static const char *const noise_filter_labels[] = {"off", "lp", "bp", "hp", NULL};
+static const char *const noise_env_labels[] = {"amp", "hit", "step", NULL};
+static const char *const noise_gate_labels[] = {"off", "same", "inverse", "pattern", NULL};
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
@@ -113,6 +117,31 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           "time of each gate edge (the bottom = one sample: hard, digital)"),
     PARAM(MICRO_P_PAN, "pan", "micro.pan", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, "position in the stereo field"),
     PARAM(MICRO_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume"),
+    PARAM(MICRO_P_NOISE_LEVEL, "noise_level", "noise.level", -60.0f, 12.0f, -60.0f, PARAM_DB, "dB", 1, NULL,
+          "level of the noise layer (the bottom = off); it bypasses the drive"),
+    PARAM(MICRO_P_NOISE_TYPE, "noise_type", "micro.noise_type", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, noise_type_labels,
+          "white; stepped: a new random value `noise_rate` times a second (digital grain); periodic: a 7-bit shift "
+          "register clocked at `noise_rate`, a metallic buzz at noise_rate / 127"),
+    PARAM(MICRO_P_NOISE_RATE, "noise_rate", "micro.noise_rate", 50.0f, 48000.0f, 4000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "clock of the stepped and periodic noises (no band limiting: the aliasing is the sound)"),
+    PARAM(MICRO_P_NOISE_FILTER, "noise_filter", "micro.noise_filter", 0.0f, 3.0f, 3.0f, PARAM_INT, "", 0,
+          noise_filter_labels, "filter of the noise: off, low-pass, band-pass or high-pass"),
+    PARAM(MICRO_P_NOISE_CUTOFF, "noise_cutoff", "micro.noise_cutoff", 20.0f, 20000.0f, 6000.0f, PARAM_EXP, "Hz", 1,
+          NULL, "frequency of the noise filter"),
+    PARAM(MICRO_P_NOISE_Q, "noise_q", "micro.noise_q", 0.5f, 20.0f, 0.7071f, PARAM_EXP, "", 1, NULL,
+          "resonance of the noise filter (high = a narrow, whistling band)"),
+    PARAM(MICRO_P_NOISE_ENV, "noise_env", "micro.noise_env", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, noise_env_labels,
+          "amp: the noise follows the amplitude envelope; hit: its own decay from every hit; step: its own decay, "
+          "restarted on every step where its gate opens (a tick per step)"),
+    PARAM(MICRO_P_NOISE_DECAY, "noise_decay", "micro.noise_decay", 0.0005f, 4.0f, 0.05f, PARAM_EXP, "s", 1, NULL,
+          "length of the noise's own decay (hit and step modes; time to -60 dB)"),
+    PARAM(MICRO_P_NOISE_GATE, "noise_gate", "micro.noise_gate", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0,
+          noise_gate_labels, "the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the "
+          "noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode`"),
+    PARAM(MICRO_P_NOISE_PATTERN, "noise_pattern", "micro.noise_pattern", 0.0f, 65535.0f, 21845.0f, PARAM_INT, "", 0,
+          NULL, "the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1)"),
+    PARAM(MICRO_P_NOISE_PAN, "noise_pan", "micro.noise_pan", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "position of the noise, relative to `pan`"),
 };
 
 /* ---------------- envelope segments ---------------- */
@@ -282,6 +311,8 @@ static void hit(micro_t *e, micro_voice_t *v)
             v->click_amp = 1.0f;
         v->click_live = (int)(MICRO_CLICK_LIVE * e->sr);
     }
+    if ((int)e->p[MICRO_P_NOISE_ENV] > 0)
+        v->noise_amp = 1.0f;
     if ((int)e->p[MICRO_P_GATE_MODE] == 2 && v->hit_index == 0)
         v->gate_phase = 0.0f;
     v->hit_index++;
@@ -320,6 +351,10 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         v->click_live = 0;
         svf_reset(&v->click_f);
         dist_reset(&v->dist);
+        svf_reset(&v->noise_f);
+        v->noise_amp = 0.0f;
+        v->ngate_g = -1.0f;
+        v->nstep = -1;
         v->vm_fresh = 1;
         v->gate_g = -1.0f; /* set on the first sample */
     }
@@ -369,6 +404,7 @@ static void voice_silence(void *eng, int vi)
     v->hits_left = 0;
     v->click_live = 0;
     v->click_amp = v->click_imp = 0.0f;
+    v->noise_amp = 0.0f;
 }
 
 static const vpoly_ops_t micro_poly_ops = {voice_start, voice_release, voice_level, voice_silence, voice_legato};
@@ -385,7 +421,7 @@ static void micro_init(void *st, float sample_rate)
     e->bpm = 120.0f;
     e->beat0 = e->beat1 = 0.0f;
     e->have_beat = 0;
-    e->click_mode_set = -1;
+    e->click_mode_set = e->noise_filter_set = -1;
     e->nan_count = 0;
     smooth_init(&e->vol, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(e->p[MICRO_P_VOLUME]));
     e->vol_prev = e->vol.y;
@@ -398,6 +434,11 @@ static void micro_init(void *st, float sample_rate)
         v->noise = 0x9E3779B9u * (uint32_t)(i + 1);
         svf_init(&v->click_f, sample_rate);
         dist_init(&v->dist, sample_rate);
+        svf_init(&v->noise_f, sample_rate);
+        v->noise_rng = 0x2545F491u * (uint32_t)(i + 1);
+        v->lfsr = 0x7Fu;
+        v->ngate_g = -1.0f;
+        v->nstep = -1;
     }
 }
 
@@ -483,6 +524,20 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     const float db = (e->beat1 - e->beat0) / (float)n;
     float pan_l, pan_r;
     voice_pan(p[MICRO_P_PAN], &pan_l, &pan_r);
+    /* the noise layer */
+    const float ln = p[MICRO_P_NOISE_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_NOISE_LEVEL]);
+    const int ntype = (int)p[MICRO_P_NOISE_TYPE], nfilt = (int)p[MICRO_P_NOISE_FILTER];
+    const int nenv = (int)p[MICRO_P_NOISE_ENV], ngate = gmode > 0 ? (int)p[MICRO_P_NOISE_GATE] : 0;
+    const float nrate = dsp_minf(p[MICRO_P_NOISE_RATE] * inv_sr, 1.0f);
+    const float nmul = fm_exp2(-9.966f / (p[MICRO_P_NOISE_DECAY] * e->sr)); /* -60 dB after noise_decay */
+    const uint32_t npat = ngate == 1 ? gpat : ngate == 2 ? ~gpat : (uint32_t)p[MICRO_P_NOISE_PATTERN];
+    if (nfilt != e->noise_filter_set) {
+        for (int i = 0; i < MICRO_VOICES; i++) {
+            svf_set_mode(&e->v[i].noise_f, (svf_mode_t)(nfilt > 0 ? nfilt - 1 : 0));
+            svf_reset(&e->v[i].noise_f);
+        }
+        e->noise_filter_set = nfilt;
+    }
 
     if (cm != e->click_mode_set) {
         for (int i = 0; i < MICRO_VOICES; i++)
@@ -496,7 +551,7 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         micro_voice_t *v = &e->v[vi];
         const float *vm = vpoly_vmod(&e->poly, vi);
         const float shift = e->bend + vm[VM_PITCH];
-        float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK];
+        float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK];
         int any_click = 0, refresh = 0;
 
         seg_sync(&v->amp);
@@ -566,8 +621,8 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
 
             /* gate pattern */
             float gg = 1.0f;
+            int step = -1;
             if (gmode > 0) {
-                int step;
                 if (gmode == 1) {
                     const float beat = e->beat0 + db * (float)i;
                     step = (int)(beat * ginv) % gsteps;
@@ -590,6 +645,55 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
             const float g = env * gg;
             xa[i] = a * g;
             xb[i] = b * g;
+
+            /* noise layer: generator, its gate (its own slew), its envelope */
+            if (ln > 0.0f) {
+                float x;
+                if (ntype == 0) {
+                    x = dsp_rand_bipolar(&v->noise_rng);
+                } else {
+                    v->noise_ph += nrate;
+                    if (v->noise_ph >= 1.0f) {
+                        v->noise_ph -= 1.0f;
+                        if (ntype == 1) {
+                            v->noise_hold = dsp_rand_bipolar(&v->noise_rng);
+                        } else { /* x^7 + x^6 + 1: a maximal sequence of 127 */
+                            const uint32_t bit = ((v->lfsr >> 6) ^ (v->lfsr >> 5)) & 1u;
+                            v->lfsr = ((v->lfsr << 1) | bit) & 0x7Fu;
+                            v->noise_hold = (v->lfsr & 1u) ? 1.0f : -1.0f;
+                        }
+                    }
+                    x = v->noise_hold;
+                }
+                float ng = 1.0f;
+                int open = 1;
+                if (step >= 0) {
+                    if (ngate > 0) {
+                        open = (int)((npat >> step) & 1u);
+                        const float target = open ? 1.0f : gfloor;
+                        if (v->ngate_g < 0.0f)
+                            v->ngate_g = target;
+                        else if (v->ngate_g < target)
+                            v->ngate_g = dsp_minf(v->ngate_g + gslew, target);
+                        else if (v->ngate_g > target)
+                            v->ngate_g = dsp_maxf(v->ngate_g - gslew, target);
+                        ng = v->ngate_g;
+                    }
+                    if (step != v->nstep) { /* a new step: a tick if the noise opens on it and the note is held */
+                        if (nenv == 2 && open && v->gate)
+                            v->noise_amp = 1.0f;
+                        v->nstep = step;
+                    }
+                }
+                float ne;
+                if (nenv == 0) {
+                    ne = env;
+                } else {
+                    ne = v->noise_amp;
+                    v->noise_amp *= nmul;
+                }
+                xn[i] = x * ne * ng;
+            }
 
             /* click input: an impulse or a decaying noise */
             float c = 0.0f;
@@ -621,27 +725,44 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
             dist_set(&v->dist, DIST_SOFT, p[MICRO_P_DRIVE], 0.45f * e->sr, 1.0f);
             dist_process(&v->dist, xa, xa, n);
         }
+        if (ln > 0.0f && nfilt > 0) {
+            svf_set(&v->noise_f, p[MICRO_P_NOISE_CUTOFF], p[MICRO_P_NOISE_Q]);
+            svf_process(&v->noise_f, xn, xn, n);
+        }
 
         /* level: velocity, ratchet hit, volume; the steal fade; per-voice level and pan */
         const float g0 = MICRO_GAIN * v->vel * v->hit_gain * vol0, g1 = MICRO_GAIN * v->vel * v->hit_gain * vol1;
         dsp_ramp_mul(xa, g0, g1, n);
         dsp_ramp_mul(xb, g0, g1, n);
+        if (ln > 0.0f)
+            dsp_ramp_mul(xn, g0 * ln, g1 * ln, n);
         float fade[SYNTH_BLOCK];
         if (vpoly_fade(&e->poly, vi, fade, n))
             for (int i = 0; i < n; i++)
-                xa[i] *= fade[i], xb[i] *= fade[i];
+                xa[i] *= fade[i], xb[i] *= fade[i], xn[i] *= ln > 0.0f ? fade[i] : 0.0f;
         float d = 0.0f;
         if (voicemod_cfg_active(e->poly.vm_cfg)) {
             const float vg1 = vm[VM_LEVEL] != 0.0f ? fm_db2lin(dsp_clampf(vm[VM_LEVEL], -96.0f, 24.0f)) : 1.0f;
             const float vg0 = v->vm_fresh ? vg1 : v->vm_gain;
             dsp_ramp_mul(xa, vg0, vg1, n);
             dsp_ramp_mul(xb, vg0, vg1, n);
+            if (ln > 0.0f)
+                dsp_ramp_mul(xn, vg0, vg1, n);
             v->vm_gain = vg1;
             d = dsp_clampf(vm[VM_PAN], -1.0f, 1.0f);
         }
         v->vm_fresh = 0;
         dsp_guard_block(xa, n, &e->nan_count);
         dsp_guard_block(xb, n, &e->nan_count);
+        if (ln > 0.0f) { /* the noise at its own place */
+            dsp_guard_block(xn, n, &e->nan_count);
+            float nl, nr;
+            voice_pan(dsp_clampf(p[MICRO_P_PAN] + d + p[MICRO_P_NOISE_PAN], -1.0f, 1.0f), &nl, &nr);
+            for (int i = 0; i < n; i++) {
+                L[i] += xn[i] * nl;
+                R[i] += xn[i] * nr;
+            }
+        }
         if (split) { /* main sine on the left, second on the right, around the pan */
             float al, ar, bl, br;
             voice_pan(dsp_clampf(p[MICRO_P_PAN] + d - 1.0f, -1.0f, 1.0f), &al, &ar);
@@ -659,7 +780,8 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
                 R[i] += x * pr;
             }
         }
-        const int sounding = v->stage != MICRO_ENV_IDLE || v->hit_in >= 0 || v->click_live > 0;
+        const int sounding = v->stage != MICRO_ENV_IDLE || v->hit_in >= 0 || v->click_live > 0 ||
+                             (ln > 0.0f && nenv > 0 && v->noise_amp > 1e-4f);
         vpoly_end_block(&e->poly, vi, sounding);
     }
 }
@@ -669,9 +791,10 @@ static const engine_stage_t micro_stages[] = {
     {"osc2", "Sine 2", "source", "osc2_", "", NULL, "osc2_level", -60.0f, -12.0f},
     {"sub", "Sub", "source", "sub_", "", NULL, "sub_level", -60.0f, -6.0f},
     {"click", "Click", "source", "click_", "", NULL, "click_mode", 0.0f, 1.0f},
+    {"noise", "Noise", "source", "noise_", "", NULL, "noise_level", -60.0f, -18.0f},
     {"drive", "Drive", "filter", "drive", "sine sub click", NULL, "drive", 0.0f, 6.0f},
     {"amp", "Amp", "amp", "env_mode amp_attack amp_hold amp_decay amp_sustain amp_release attack_curve decay_curve "
-                          "velocity pan volume", "drive osc2", NULL, NULL, 0.0f, 0.0f},
+                          "velocity pan volume", "drive osc2 noise", NULL, NULL, 0.0f, 0.0f},
     {"pitch_env", "Pitch env", "mod", "pitch_amount pitch_time pitch_curve", "", "sine osc2 sub", NULL, 0.0f, 0.0f},
     {"ratchet", "Ratchet", "mod", "ratchet ratchet_div ratchet_hz ratchet_decay", "", "amp", "ratchet", 1.0f, 4.0f},
     {"gate", "Gate", "mod", "gate_", "", "amp", "gate_mode", 0.0f, 1.0f},
@@ -681,7 +804,7 @@ static const engine_stage_t micro_stages[] = {
 const engine_ops_t micro_engine = {
     .name = "micro",
     .description = "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, "
-                   "click, tone bursts, ratchets, gate patterns (8 voices)",
+                   "click, noise layer with its own gate, tone bursts, ratchets, gate patterns (8 voices)",
     .params = micro_params,
     .param_count = MICRO_P_COUNT,
     .voices = MICRO_VOICES,

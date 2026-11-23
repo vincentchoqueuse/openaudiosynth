@@ -159,3 +159,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the Synth view opens on Engine (pills in the order Engine, Modulation, Macros, Info); the start engine id follows the removal of `sine` (`va` is 0).
 - Web: Effects is a pill of its own in the Synth view (Engine, Effects, Modulation, Macros, Info) instead of a tab under Engine.
 - Web: a parameter moved by a macro carries a small orange pill with the macro's number before its label (tooltip: the macro's name; a click opens the assignments).
+- Web sequencer: one toolbar row less. What is set once (the clip's length, key and scale, octave, loops of an exported song) moves to a Clip settings dialog opened by a Settings button; loop, position, grid, Random and Clear stay on the bar.

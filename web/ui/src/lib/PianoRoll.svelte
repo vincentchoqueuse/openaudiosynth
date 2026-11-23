@@ -24,7 +24,6 @@
   import { noteName, inScale } from './seqExport.js';
   import * as op from './noteOps.js';
   import Menu from './Menu.svelte';
-  let { settings } = $props(); // the clip's settings, shown at the start of the roll's toolbar
 
   const ROW = 15, EDGE = 7, VEL_H = 56; // row height, grab width of a note's right edge, velocity lane (px)
   let width = $state(600); // of the time area
@@ -41,7 +40,7 @@
     return out;
   });
   // every MIDI pitch, high first, in a box that scrolls (wheel, trackpad, scrollbar); the view goes to the notes
-  // when a clip arrives, and to the octave chosen in the toolbar when it changes
+  // when a clip arrives, and to the octave chosen in the clip settings when it changes
   const pitches = Array.from({ length: 128 }, (_, i) => 127 - i);
   const top = 127;
   let pending = null; // a pitch to centre once the roll is laid out (it may be hidden when a clip arrives)
@@ -304,7 +303,7 @@
   const typing = (t) => t?.closest?.('.cm-editor') || t?.isContentEditable || t?.tagName === 'TEXTAREA' || t?.tagName === 'SELECT' ||
     (t?.tagName === 'INPUT' && !['range', 'checkbox', 'radio', 'button'].includes(t.type));
   function key(e) {
-    if (!area?.offsetParent || typing(e.target) || session.saving || session.shortcutsOpen || session.settingsOpen || session.shareOpen) return;
+    if (!area?.offsetParent || typing(e.target) || session.saving || session.shortcutsOpen || session.settingsOpen || session.clipSettingsOpen || session.shareOpen) return;
     const mod = e.metaKey || e.ctrlKey, k = e.key, arrow = k.startsWith('Arrow');
     if (arrow && !sel.size) return; // the computer keyboard's octave
     const C = { KeyA: () => (sel = new Set(q.notes.map((n) => n.id))), KeyC: cmd.copy, KeyX: cmd.cut, KeyV: cmd.paste,
@@ -359,7 +358,6 @@
 
 <svelte:window onkeydowncapture={key} />
 
-{#if settings}<div class="toolbar">{@render settings()}</div>{/if}
 <div class="toolbar" role="toolbar" aria-label="Piano roll tools">
   <Seg items={TOOLS} value={tool} onpick={(t) => (tool = t)} label="Tool" />
   <span class="vsep" aria-hidden="true"></span>

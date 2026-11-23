@@ -46,7 +46,7 @@
   $effect(() => { if (s.started && !attached) { attached = true; sequence.attach(); history.attach(); } });
 
   function onKey(e) {
-    if (e.key === 'Escape' && (s.saving || s.settingsOpen || s.shortcutsOpen || s.shareOpen)) { s.saving = null; s.settingsOpen = s.shortcutsOpen = s.shareOpen = false; return; }
+    if (e.key === 'Escape' && (s.saving || s.settingsOpen || s.clipSettingsOpen || s.shortcutsOpen || s.shareOpen)) { s.saving = null; s.settingsOpen = s.clipSettingsOpen = s.shortcutsOpen = s.shareOpen = false; return; }
     if (e.key === '?' && s.started && !keyIsForControl(e)) { e.preventDefault(); s.shortcutsOpen = !s.shortcutsOpen; return; }
     // undo / redo: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z or Ctrl+Y; text fields and the code editor keep their own
     const mod = e.metaKey || e.ctrlKey;
@@ -57,7 +57,7 @@
       if (e.code === 'KeyY' || e.shiftKey) history.redo(); else history.undo();
       return;
     }
-    if (!s.started || s.saving || s.settingsOpen || s.shortcutsOpen || e.code !== 'Space') return;
+    if (!s.started || s.saving || s.settingsOpen || s.clipSettingsOpen || s.shortcutsOpen || e.code !== 'Space') return;
     if (e.target?.closest?.('.library nav')) { // in the library too, Space plays the clip
       e.preventDefault();
       sequence.toggle();

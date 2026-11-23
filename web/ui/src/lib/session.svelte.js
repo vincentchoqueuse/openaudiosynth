@@ -44,6 +44,7 @@ class Session {
   // a phone: the page leaves out what is for a desk (the Code view, MIDI CC settings)
   phone = $state(typeof matchMedia === 'function' && matchMedia('(max-width: 760px)').matches);
   shareOpen = $state(false); // the QR code that opens this page on another device
+  clipSettingsOpen = $state(false); // the sequencer's clip settings (length, key, octave, song loops)
   settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)

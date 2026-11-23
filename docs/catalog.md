@@ -1251,27 +1251,3 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `gate_edge` | 2e-05 .. 0.02 s | 0.001 | yes | `micro.gate_edge` | time of each gate edge (the bottom = one sample: hard, digital) |
 | `pan` | -1 .. 1 | 0 | yes | `micro.pan` | position in the stereo field |
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
-
-## Engine `drone2` (8 voices)
-
-drone field: one field of sine partials that behave; the held notes dig wells (their harmonics), each partial owns one and travels to it, so chords make the partials migrate; temperature, travel, restlessness, flock, ecology, renewal, bloom; envelopes up to 3 minutes (8 notes)
-
-| name | range / choices | default | live | role | what it does |
-|---|---|---|---|---|---|
-| `partials` | 4 .. 32 | 20 |  | `drone2.partials` | how many partials live in the field (each owns one well: fewer than the wells leaves the weakest empty) |
-| `harmonics` | 4 .. 24 | 16 |  | `drone2.harmonics` | wells per note: its first harmonics |
-| `brightness` | 0 .. 1 | 0.5 | yes | `drone2.brightness` | tilt of the wells' weights: dark (high harmonics weak, often left empty) .. bright |
-| `stretch` | -0.02 .. 0.06 | 0 | yes | `drone2.stretch` | inharmonicity of the wells: harmonic k at k^(1 + stretch) (negative: compressed, positive: bell-like) |
-| `odd` | 0 .. 1 | 0 | yes | `drone2.odd` | weakens the even harmonics: 1 = odd harmonics only, a hollow field |
-| `travel` | 0.5 .. 60 s | 8 | yes | `drone2.travel` | how long a partial takes to travel an octave toward its well: the speed of every migration |
-| `temperature` | 0 .. 1 | 0.2 | yes | `drone2.temperature` | cold (0: exact, still partials) .. hot (1: each wobbles and sits off its well by up to 10 cents) |
-| `restless` | 0 .. 1 | 0.1 | yes | `drone2.restless` | how often a partial leaves its well for another free one on its own (0 = never, 1 = every few seconds) |
-| `flock` | 0 .. 1 | 0 | yes | `drone2.flock` | partials moving in schools: each takes on the speed of its neighbours |
-| `ecology` | 0 .. 1 | 0 | yes | `drone2.ecology` | competition between neighbouring partials: their levels rise and fall as one wins room over another |
-| `renewal` | 0 .. 1 | 0 | yes | `drone2.renewal` | partials die and are reborn near another (0 = they live for ever, 1 = a life of about 8 s) |
-| `bloom` | 0 .. 1 | 0.6 | yes | `drone2.bloom` | from silence, the partials start in a tight cluster and unfold to their wells (0 = they start in place) |
-| `width` | 0 .. 1 | 0.7 | yes | `drone2.width` | stereo spread of the partials |
-| `amp_attack` | 0.05 .. 180 s | 6 | yes | `amp.attack` | fade in of a note's wells (up to 3 minutes) |
-| `amp_release` | 0.05 .. 180 s | 10 | yes | `amp.release` | fade out of a note's wells (up to 3 minutes) |
-| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
-| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |

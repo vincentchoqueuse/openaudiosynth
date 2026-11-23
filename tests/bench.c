@@ -6,7 +6,6 @@
 #include "engines/sine.h"
 #include "engines/va.h"
 #include "engines/micro.h"
-#include "engines/drone2.h"
 #include "engines/modal.h"
 #include "engines/drums.h"
 #include "engines/wt.h"
@@ -59,11 +58,6 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
             {MICRO_P_CLICK_MODE, 2.0f}};
         for (unsigned k = 0; k < sizeof set / sizeof set[0]; k++)
             synth_set_param(synth_default(), set[k].id, param_to_norm(&micro_params[set[k].id], set[k].v));
-    } else if (eng == SYNTH_ENGINE_DRONE2) { /* worst case: 32 partials, every behaviour on */
-        const int ids[] = {D2_P_PARTIALS, D2_P_HARMONICS, D2_P_FLOCK, D2_P_ECOLOGY, D2_P_RENEWAL, D2_P_RESTLESS};
-        for (unsigned k = 0; k < sizeof ids / sizeof ids[0]; k++)
-            synth_set_param(synth_default(), ids[k], 1.0f);
-        synth_set_param(synth_default(), D2_P_ATTACK, 0.0f);
     } else {
         synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
     }
@@ -121,7 +115,6 @@ void run_bench(void)
     bench_engine("selfosc", SYNTH_ENGINE_SELFOSC, 8, 0, 0);
     bench_engine("drone", SYNTH_ENGINE_DRONE, 8, 0, 0);
     bench_engine("micro", SYNTH_ENGINE_MICRO, 8, 0, 0);
-    bench_engine("drone2", SYNTH_ENGINE_DRONE2, 8, 0, 0);
     /* the oversample setting of the nonlinear filters */
     bench_engine_os("mono-1x", SYNTH_ENGINE_MONO, 1, 0, 0, 0);
     bench_engine_os("mono-4x", SYNTH_ENGINE_MONO, 1, 0, 0, 2);

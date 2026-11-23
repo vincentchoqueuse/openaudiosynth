@@ -1269,3 +1269,90 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `gate_edge` | 2e-05 .. 0.02 s | 0.001 | yes | `micro.gate_edge` | time of each gate edge (the bottom = one sample: hard, digital) |
 | `pan` | -1 .. 1 | 0 | yes | `micro.pan` | position in the stereo field |
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
+
+## Engine `fm4` (16 voices)
+
+4-operator FM on a free modulation matrix (every operator modulates any other and itself, outputs per operator; the classic algorithms are matrix presets): ratio/fixed frequencies, ADSR per operator, velocity and keyboard scaling, pitch envelope, filter (16 voices)
+
+| name | range / choices | default | live | role | what it does |
+|---|---|---|---|---|---|
+| `op1_coarse` | 0 .. 32 | 1 | yes | `fm.op1.coarse` | frequency ratio to the note (0 = 0.5, 1 = unison, 2 = octave, 3 = octave + fifth...) |
+| `op1_fine` | 0 .. 1 | 0 | yes | `fm.op1.fine` | fine ratio: ratio x (1 + fine); non-integer ratios give inharmonic, bell-like spectra |
+| `op1_detune` | -50 .. 50 cent | 0 | yes | `fm.op1.detune` | small detune: beating against the other operators |
+| `op1_mode` | ratio, fixed | ratio |  | `fm.op1.mode` | ratio = the frequency follows the note; fixed = the frequency set below, whatever the note |
+| `op1_freq` | 1 .. 20000 Hz | 440 | yes | `fm.op1.fixed_freq` | frequency in fixed mode |
+| `op1_attack` | 0.001 .. 10 s | 0.002 | yes | `fm.op1.attack` | envelope attack |
+| `op1_decay` | 0.005 .. 20 s | 1 | yes | `fm.op1.decay` | envelope decay |
+| `op1_sustain` | 0 .. 1 | 0.6 | yes | `fm.op1.sustain` | envelope sustain level |
+| `op1_release` | 0.005 .. 20 s | 0.3 | yes | `fm.op1.release` | envelope release |
+| `op1_velocity` | 0 .. 1 | 0 | yes | `fm.op1.velocity` | velocity sensitivity (up to 24 dB): on a modulator, harder = brighter |
+| `op1_key_scale` | -12 .. 12 dB/oct | 0 | yes | `fm.op1.key_scaling` | level change per octave from middle C: negative on a modulator keeps high notes from getting harsh |
+| `op2_coarse` | 0 .. 32 | 1 | yes | `fm.op2.coarse` | frequency ratio to the note (0 = 0.5, 1 = unison, 2 = octave, 3 = octave + fifth...) |
+| `op2_fine` | 0 .. 1 | 0 | yes | `fm.op2.fine` | fine ratio: ratio x (1 + fine); non-integer ratios give inharmonic, bell-like spectra |
+| `op2_detune` | -50 .. 50 cent | 0 | yes | `fm.op2.detune` | small detune: beating against the other operators |
+| `op2_mode` | ratio, fixed | ratio |  | `fm.op2.mode` | ratio = the frequency follows the note; fixed = the frequency set below, whatever the note |
+| `op2_freq` | 1 .. 20000 Hz | 440 | yes | `fm.op2.fixed_freq` | frequency in fixed mode |
+| `op2_attack` | 0.001 .. 10 s | 0.002 | yes | `fm.op2.attack` | envelope attack |
+| `op2_decay` | 0.005 .. 20 s | 1 | yes | `fm.op2.decay` | envelope decay |
+| `op2_sustain` | 0 .. 1 | 0.6 | yes | `fm.op2.sustain` | envelope sustain level |
+| `op2_release` | 0.005 .. 20 s | 0.3 | yes | `fm.op2.release` | envelope release |
+| `op2_velocity` | 0 .. 1 | 0.5 | yes | `fm.op2.velocity` | velocity sensitivity (up to 24 dB): on a modulator, harder = brighter |
+| `op2_key_scale` | -12 .. 12 dB/oct | 0 | yes | `fm.op2.key_scaling` | level change per octave from middle C: negative on a modulator keeps high notes from getting harsh |
+| `op3_coarse` | 0 .. 32 | 1 | yes | `fm.op3.coarse` | frequency ratio to the note (0 = 0.5, 1 = unison, 2 = octave, 3 = octave + fifth...) |
+| `op3_fine` | 0 .. 1 | 0 | yes | `fm.op3.fine` | fine ratio: ratio x (1 + fine); non-integer ratios give inharmonic, bell-like spectra |
+| `op3_detune` | -50 .. 50 cent | 0 | yes | `fm.op3.detune` | small detune: beating against the other operators |
+| `op3_mode` | ratio, fixed | ratio |  | `fm.op3.mode` | ratio = the frequency follows the note; fixed = the frequency set below, whatever the note |
+| `op3_freq` | 1 .. 20000 Hz | 440 | yes | `fm.op3.fixed_freq` | frequency in fixed mode |
+| `op3_attack` | 0.001 .. 10 s | 0.002 | yes | `fm.op3.attack` | envelope attack |
+| `op3_decay` | 0.005 .. 20 s | 1 | yes | `fm.op3.decay` | envelope decay |
+| `op3_sustain` | 0 .. 1 | 0.6 | yes | `fm.op3.sustain` | envelope sustain level |
+| `op3_release` | 0.005 .. 20 s | 0.3 | yes | `fm.op3.release` | envelope release |
+| `op3_velocity` | 0 .. 1 | 0.5 | yes | `fm.op3.velocity` | velocity sensitivity (up to 24 dB): on a modulator, harder = brighter |
+| `op3_key_scale` | -12 .. 12 dB/oct | 0 | yes | `fm.op3.key_scaling` | level change per octave from middle C: negative on a modulator keeps high notes from getting harsh |
+| `op4_coarse` | 0 .. 32 | 1 | yes | `fm.op4.coarse` | frequency ratio to the note (0 = 0.5, 1 = unison, 2 = octave, 3 = octave + fifth...) |
+| `op4_fine` | 0 .. 1 | 0 | yes | `fm.op4.fine` | fine ratio: ratio x (1 + fine); non-integer ratios give inharmonic, bell-like spectra |
+| `op4_detune` | -50 .. 50 cent | 0 | yes | `fm.op4.detune` | small detune: beating against the other operators |
+| `op4_mode` | ratio, fixed | ratio |  | `fm.op4.mode` | ratio = the frequency follows the note; fixed = the frequency set below, whatever the note |
+| `op4_freq` | 1 .. 20000 Hz | 440 | yes | `fm.op4.fixed_freq` | frequency in fixed mode |
+| `op4_attack` | 0.001 .. 10 s | 0.002 | yes | `fm.op4.attack` | envelope attack |
+| `op4_decay` | 0.005 .. 20 s | 1 | yes | `fm.op4.decay` | envelope decay |
+| `op4_sustain` | 0 .. 1 | 0.6 | yes | `fm.op4.sustain` | envelope sustain level |
+| `op4_release` | 0.005 .. 20 s | 0.3 | yes | `fm.op4.release` | envelope release |
+| `op4_velocity` | 0 .. 1 | 0.5 | yes | `fm.op4.velocity` | velocity sensitivity (up to 24 dB): on a modulator, harder = brighter |
+| `op4_key_scale` | -12 .. 12 dB/oct | 0 | yes | `fm.op4.key_scaling` | level change per octave from middle C: negative on a modulator keeps high notes from getting harsh |
+| `op1_feedback` | 0 .. 1 | 0 | yes | `fm.op1.feedback` | operator 1 modulates itself: towards a saw, then noise |
+| `op1_to_op2` | 0 .. 1 | 0 | yes | `fm.op1.mod2.amount` | how much operator 1 modulates operator 2 (squared: 1 = a deviation of 2 cycles) |
+| `op1_to_op3` | 0 .. 1 | 0 | yes | `fm.op1.mod3.amount` | how much operator 1 modulates operator 3 (squared: 1 = a deviation of 2 cycles) |
+| `op1_to_op4` | 0 .. 1 | 0 | yes | `fm.op1.mod4.amount` | how much operator 1 modulates operator 4 (squared: 1 = a deviation of 2 cycles) |
+| `op2_to_op1` | 0 .. 1 | 0.35 | yes | `fm.op2.mod1.amount` | how much operator 2 modulates operator 1 (squared: 1 = a deviation of 2 cycles) |
+| `op2_feedback` | 0 .. 1 | 0 | yes | `fm.op2.feedback` | operator 2 modulates itself: towards a saw, then noise |
+| `op2_to_op3` | 0 .. 1 | 0 | yes | `fm.op2.mod3.amount` | how much operator 2 modulates operator 3 (squared: 1 = a deviation of 2 cycles) |
+| `op2_to_op4` | 0 .. 1 | 0 | yes | `fm.op2.mod4.amount` | how much operator 2 modulates operator 4 (squared: 1 = a deviation of 2 cycles) |
+| `op3_to_op1` | 0 .. 1 | 0 | yes | `fm.op3.mod1.amount` | how much operator 3 modulates operator 1 (squared: 1 = a deviation of 2 cycles) |
+| `op3_to_op2` | 0 .. 1 | 0 | yes | `fm.op3.mod2.amount` | how much operator 3 modulates operator 2 (squared: 1 = a deviation of 2 cycles) |
+| `op3_feedback` | 0 .. 1 | 0 | yes | `fm.op3.feedback` | operator 3 modulates itself: towards a saw, then noise |
+| `op3_to_op4` | 0 .. 1 | 0 | yes | `fm.op3.mod4.amount` | how much operator 3 modulates operator 4 (squared: 1 = a deviation of 2 cycles) |
+| `op4_to_op1` | 0 .. 1 | 0 | yes | `fm.op4.mod1.amount` | how much operator 4 modulates operator 1 (squared: 1 = a deviation of 2 cycles) |
+| `op4_to_op2` | 0 .. 1 | 0 | yes | `fm.op4.mod2.amount` | how much operator 4 modulates operator 2 (squared: 1 = a deviation of 2 cycles) |
+| `op4_to_op3` | 0 .. 1 | 0 | yes | `fm.op4.mod3.amount` | how much operator 4 modulates operator 3 (squared: 1 = a deviation of 2 cycles) |
+| `op4_feedback` | 0 .. 1 | 0 | yes | `fm.op4.feedback` | operator 4 modulates itself: towards a saw, then noise |
+| `op1_out` | 0 .. 1 | 1 | yes | `fm.op1.output` | how loud operator 1 is heard (0 = a pure modulator) |
+| `op2_out` | 0 .. 1 | 0 | yes | `fm.op2.output` | how loud operator 2 is heard (0 = a pure modulator) |
+| `op3_out` | 0 .. 1 | 0 | yes | `fm.op3.output` | how loud operator 3 is heard (0 = a pure modulator) |
+| `op4_out` | 0 .. 1 | 0 | yes | `fm.op4.output` | how loud operator 4 is heard (0 = a pure modulator) |
+| `pitch_amount` | -48 .. 48 st | 0 | yes | `pitch_env.amount` | pitch envelope: the note starts this far off and glides back (all operators in ratio mode) |
+| `pitch_decay` | 0.005 .. 5 s | 0.1 | yes | `pitch_env.decay` | time for the pitch envelope to come back (to 1/1000 of its depth) |
+| `phase_reset` | off, on | on |  | `fm.osc_sync` | on = the operators' phases restart on each note (the same attack every time); off = free running |
+| `filter_type` | off, lp, bp, hp, notch, formant, scream | off |  | `filter.type` | off, 12 dB state-variable (lp/bp/hp/notch), formant (vowels) or scream (2-pole with saturating feedback) |
+| `cutoff` | 20 .. 20000 Hz | 8000 | yes | `filter.cutoff` | filter cutoff |
+| `resonance` | 0 .. 1 | 0.2 | yes | `filter.resonance` | filter resonance |
+| `keytrack` | 0 .. 1 | 0.5 | yes | `filter.keytrack` | cutoff follows the keyboard |
+| `fenv_amount` | -4 .. 6 oct | 0 | yes | `filter.envelope_amount` | filter envelope depth |
+| `fenv_attack` | 0.001 .. 10 s | 0.005 | yes | `filter_env.attack` | filter envelope attack |
+| `fenv_decay` | 0.005 .. 10 s | 0.5 | yes | `filter_env.decay` | filter envelope decay |
+| `fenv_sustain` | 0 .. 1 | 0.3 | yes | `filter_env.sustain` | filter envelope sustain |
+| `fenv_release` | 0.005 .. 10 s | 0.4 | yes | `filter_env.release` | filter envelope release |
+| `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the scream filter: 1x lightest, 2x default, 4x cleanest |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
+| `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per note |
+| `bend_range` | 0 .. 12 st | 2 |  | `voice.bend_range` | pitch-bend range |

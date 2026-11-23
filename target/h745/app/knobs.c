@@ -52,6 +52,7 @@ static const struct {
     {"selfosc", {"drive", "stiffness", "entrain", "cutoff", "resonance", "amp_release"}},
     {"sampler", {"tune", "resonance", "release", "pad1_decay", "pad2_decay", "pad3_decay"}},
     {"drone", {"temperature", "density", "motion", "depth", "brightness", "sparkle"}},
+    {"fm4", {"op2_to_op1", "op3_to_op1", "op4_feedback", "op2_decay", "cutoff", "pitch_amount"}},
     {"micro", {"freq", "pitch_amount", "pitch_time", "amp_decay", "drive", "click_level"}},
 };
 /* macros 7 and 8 on every engine: the effect sends */

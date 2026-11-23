@@ -1,0 +1,55 @@
+{
+  "version": 1,
+  "engine": "fm4",
+  "name": "fm4_cross_drone",
+  "description": "Only a matrix can do this: op 1 and op 2 modulate each other in a loop, op 2 a hair off unison so the loop slowly churns; op 3 an octave down holds the floor and a resonant low-pass keeps it dark.",
+  "params": {
+    "op1_attack": 1.5,
+    "op1_sustain": 1,
+    "op1_release": 3,
+    "op2_fine": 0.004,
+    "op2_attack": 2.5,
+    "op2_sustain": 1,
+    "op2_release": 3,
+    "op2_to_op1": 0.4,
+    "op1_to_op2": 0.35,
+    "op2_out": 0.3,
+    "op3_coarse": 0,
+    "op3_attack": 1,
+    "op3_sustain": 1,
+    "op3_release": 3,
+    "op3_out": 0.5,
+    "filter_type": "lp",
+    "cutoff": 2200,
+    "resonance": 0.35,
+    "keytrack": 0.3,
+    "pan_spread": 0.6,
+    "volume": -3
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 8,
+    "loop": true,
+    "grid": "1/16",
+    "notes": [
+      {
+        "pitch": 38,
+        "start": 0,
+        "length": 7.9,
+        "velocity": 90
+      },
+      {
+        "pitch": 45,
+        "start": 0,
+        "length": 7.9,
+        "velocity": 90
+      },
+      {
+        "pitch": 50,
+        "start": 0,
+        "length": 7.9,
+        "velocity": 90
+      }
+    ]
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "engine": "fm4",
+  "name": "fm4_punch_bass",
+  "description": "A modulator at unison with its own feedback over a short decay, a sub operator an octave down, a quick pitch drop and a low-pass with its envelope: a tight, punchy FM bass.",
+  "params": {
+    "op1_decay": 0.6,
+    "op1_sustain": 0.7,
+    "op1_release": 0.08,
+    "op2_decay": 0.25,
+    "op2_sustain": 0.15,
+    "op2_velocity": 0.6,
+    "op2_to_op1": 0.55,
+    "op2_feedback": 0.45,
+    "op3_coarse": 0,
+    "op3_decay": 0.8,
+    "op3_sustain": 0.8,
+    "op3_release": 0.08,
+    "op3_out": 0.45,
+    "pitch_amount": 7,
+    "pitch_decay": 0.04,
+    "filter_type": "lp",
+    "cutoff": 1800,
+    "resonance": 0.25,
+    "fenv_amount": 2.5,
+    "fenv_decay": 0.25,
+    "fenv_sustain": 0.2,
+    "pan_spread": 0,
+    "volume": 8
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "notes": [
+      {
+        "pitch": 36,
+        "start": 0,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 36,
+        "start": 0.75,
+        "length": 0.25,
+        "velocity": 80
+      },
+      {
+        "pitch": 48,
+        "start": 1,
+        "length": 0.25,
+        "velocity": 100
+      },
+      {
+        "pitch": 36,
+        "start": 1.5,
+        "length": 0.4,
+        "velocity": 90
+      },
+      {
+        "pitch": 39,
+        "start": 2,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 39,
+        "start": 2.75,
+        "length": 0.25,
+        "velocity": 80
+      },
+      {
+        "pitch": 41,
+        "start": 3,
+        "length": 0.5,
+        "velocity": 100
+      },
+      {
+        "pitch": 43,
+        "start": 3.5,
+        "length": 0.4,
+        "velocity": 90
+      }
+    ]
+  }
+}

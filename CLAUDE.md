@@ -162,7 +162,7 @@ Détail et historique : `docs/progress.md`.
 - [x] **M0** : squelette CMake, `fastmath`, tests, `synth_render`, `synth_play` (CoreAudio + CoreMIDI).
 - [x] **M1** : `va` (polyBLEP, SVF TPT, ADSR exponentielle, polyphonie, lissage, LFO, supersaw).
 - [x] **M2** : ladder ZDF avec drive suréchantillonné, glide, legato ; moteurs `acid`, `mono`, `poly`.
-- [ ] **M3** : `fm4` (4 opérateurs, 11 algorithmes, formes d'onde, enveloppe de hauteur).
+- [~] **M3** : `fm4` (4 opérateurs, 11 algorithmes, formes d'onde, enveloppe de hauteur) ; fait : matrice libre (algorithmes = préréglages de la matrice, vue matrice dans le navigateur), enveloppe de hauteur, filtre ; restent les formes d'onde.
 - [x] **M4** : `fm6` (32 algorithmes, enveloppes rate/level, keyboard scaling, import sysex).
 - [~] **M5** : MSEG (`dsp/env/mseg`), modulation par part pour tous les moteurs (8 macros, 2 LFO synchronisables, 2 MSEG, 8 routes, `dsp/mod/partmod`), matrice de `wt` ; restent les presets sur carte.
 - [x] Parts multitimbrales (`synth_part_engine`, `synth_part_param`), tempo et horloge MIDI (`dsp/mod/tempo`), delay synchronisé.

@@ -68,6 +68,14 @@ enum {
     /* crush: after the output filter, the resolution and the sample rate brought down (24 bits, 48 kHz = off) */
     SYNTH_PARAM_CRUSH_BITS,      /* 2 .. 24 bits */
     SYNTH_PARAM_CRUSH_RATE,      /* 200 .. 48000 Hz (sample and hold) */
+    /* master: after the master level, a saturation (2x oversampled) then a look-ahead limiter (both off by default) */
+    SYNTH_PARAM_SATURATION,      /* off, soft, tube, hard */
+    SYNTH_PARAM_SATURATION_DRIVE, /* 0 .. 24 dB */
+    SYNTH_PARAM_SATURATION_TONE, /* 1000 .. 20000 Hz (low-pass after the shaper) */
+    SYNTH_PARAM_LIMITER,         /* off, on */
+    SYNTH_PARAM_LIMITER_GAIN,    /* 0 .. 18 dB into the limiter */
+    SYNTH_PARAM_LIMITER_CEILING, /* -12 .. 0 dBFS, the highest peak out */
+    SYNTH_PARAM_LIMITER_RELEASE, /* 0.01 .. 1 s */
     SYNTH_PARAM_GLOBAL_END
 };
 

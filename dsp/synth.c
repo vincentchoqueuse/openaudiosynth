@@ -13,7 +13,9 @@
 #include "engines/registry.h"
 #include "filter/dcblock.h"
 #include "filter/svf_tpt.h"
+#include "fx/dist.h"
 #include "fx/fxbus.h"
+#include "fx/limiter.h"
 #include "mod/partmod.h"
 #include "mod/tempo.h"
 #include "global_params.h"
@@ -73,6 +75,8 @@ const engine_stage_t synth_fx_stages[] = {
     {"delay", "Delay", "fx", "delay_", "chorus", NULL, "delay_mix", 0.0f, 0.25f},
     {"reverb", "Reverb", "fx", "reverb_", "delay", NULL, "reverb_mix", 0.0f, 0.3f},
     {"master", "Master", "fx", "master", "reverb", NULL, NULL, 0.0f, 0.0f},
+    {"saturation", "Saturation", "fx", "saturation saturation_", "master", NULL, "saturation", 0.0f, 1.0f},
+    {"limiter", "Limiter", "fx", "limiter limiter_", "saturation", NULL, "limiter", 0.0f, 1.0f},
 };
 const int synth_fx_stage_count = (int)(sizeof synth_fx_stages / sizeof synth_fx_stages[0]);
 
@@ -123,8 +127,10 @@ static const param_desc_t tempo_desc[] = {
 };
 _Static_assert(SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_desc / sizeof tempo_desc[0]), "tempo ids");
 
-/* the output filter of every part (macros and routes can move it) */
+/* the output filter of every part (macros and routes can move it), then the master's saturation and limiter */
 static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
+static const char *const saturation_labels[] = {"off", "soft", "tube", "hard", NULL};
+static const char *const limiter_labels[] = {"off", "on", NULL};
 static const param_desc_t out_desc[] = {
     PARAM(SYNTH_PARAM_OUT_FILTER, "out_filter", "output.filter.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, out_filter_labels,
           "a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB)"),
@@ -136,6 +142,20 @@ static const param_desc_t out_desc[] = {
           "resolution of the instrument's output, its steps spanning the nominal level (-12 dBFS): 24 = clean, 8 = grainy, 2-4 = broken digital"),
     PARAM(SYNTH_PARAM_CRUSH_RATE, "crush_rate", "output.crush.rate", 200.0f, 48000.0f, 48000.0f, PARAM_EXP, "Hz", 1, NULL,
           "sample rate of the instrument's output (sample and hold): 48 kHz = clean, lower = metallic aliasing, a few hundred Hz = data noise"),
+    PARAM(SYNTH_PARAM_SATURATION, "saturation", "master.saturation.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, saturation_labels,
+          "a saturation on the whole mix, after the master level: soft (tanh, glue), tube (asymmetric: even harmonics, warmth), hard (cubic clip: brighter, flat tops)"),
+    PARAM(SYNTH_PARAM_SATURATION_DRIVE, "saturation_drive", "master.saturation.drive", 0.0f, 24.0f, 6.0f, PARAM_LIN, "dB", 1, NULL,
+          "gain into the saturation, the peaks kept at the same level (denser, so louder, as it squares them): 0-6 dB = glue, 12 dB and more = audibly driven"),
+    PARAM(SYNTH_PARAM_SATURATION_TONE, "saturation_tone", "master.saturation.tone", 1000.0f, 20000.0f, 20000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "a low-pass after the saturation: 20 kHz = open, lower = darker, tape-like"),
+    PARAM(SYNTH_PARAM_LIMITER, "limiter", "master.limiter.mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, limiter_labels,
+          "a look-ahead peak limiter, last on the mix (1.5 ms of latency): no peak goes past the ceiling, no clipping"),
+    PARAM(SYNTH_PARAM_LIMITER_GAIN, "limiter_gain", "master.limiter.gain", 0.0f, 18.0f, 0.0f, PARAM_LIN, "dB", 1, NULL,
+          "gain into the limiter: louder, the peaks held at the ceiling (beyond 6-8 dB the mix starts to pump)"),
+    PARAM(SYNTH_PARAM_LIMITER_CEILING, "limiter_ceiling", "master.limiter.ceiling", -12.0f, 0.0f, -1.0f, PARAM_LIN, "dB", 0, NULL,
+          "the highest peak out of the limiter, in dBFS"),
+    PARAM(SYNTH_PARAM_LIMITER_RELEASE, "limiter_release", "master.limiter.release", 0.01f, 1.0f, 0.15f, PARAM_EXP, "s", 0, NULL,
+          "time to come back after a peak: short = loud but grainy on bass, long = smooth but pumping"),
 };
 _Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
@@ -235,6 +255,14 @@ struct synth {
     float crush_rate;                   /* Hz, the sample rate itself = off */
     smooth_t master;
     float master_prev;
+    dist_t sat[2];                      /* master saturation, per channel */
+    int sat_mode, sat_run;              /* the mode chosen, and the one running (kept while fading out) */
+    float sat_drive, sat_tone;
+    float sat_mix, sat_mix_prev;        /* 1 while on: faded in and out over 8 blocks */
+    limiter_t lim;
+    int lim_on;
+    float lim_mix, lim_mix_prev;        /* 1 while on: the limited signal, faded in and out over 8 blocks */
+    float lim_gain, lim_ceiling, lim_release;
     dcblock_t dc[2];
     uint32_t nan_count;
 };
@@ -585,7 +613,33 @@ static void global_apply(synth_t *s, int id, float norm)
         s->crush_rate = param_from_norm(&out_desc[4], norm);
     else if (id == SYNTH_PARAM_OUT_RESO)
         s->out_q = 0.5f * fm_exp2(4.3f * param_from_norm(&out_desc[2], norm)); /* 0.5 .. ~10 */
-    else
+    else if (id >= SYNTH_PARAM_SATURATION && id <= SYNTH_PARAM_SATURATION_TONE) {
+        const float v = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        if (id == SYNTH_PARAM_SATURATION)
+            s->sat_mode = (int)v;
+        else if (id == SYNTH_PARAM_SATURATION_DRIVE)
+            s->sat_drive = v;
+        else
+            s->sat_tone = v;
+        static const dist_mode_t modes[4] = {DIST_OFF, DIST_SOFT, DIST_TUBE, DIST_HARD};
+        if (s->sat_mode > 0)
+            s->sat_run = dsp_clampi(s->sat_mode, 1, 3);
+        s->sat_mix = s->sat_mode > 0 ? 1.0f : 0.0f;
+        for (int c = 0; c < 2; c++)
+            dist_set(&s->sat[c], modes[s->sat_run], s->sat_drive, s->sat_tone, 1.0f);
+    } else if (id >= SYNTH_PARAM_LIMITER && id <= SYNTH_PARAM_LIMITER_RELEASE) {
+        const float v = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        if (id == SYNTH_PARAM_LIMITER)
+            s->lim_on = (int)v;
+        else if (id == SYNTH_PARAM_LIMITER_GAIN)
+            s->lim_gain = v;
+        else if (id == SYNTH_PARAM_LIMITER_CEILING)
+            s->lim_ceiling = v;
+        else
+            s->lim_release = v;
+        s->lim_mix = s->lim_on ? 1.0f : 0.0f;
+        limiter_set(&s->lim, s->lim_gain, s->lim_ceiling, s->lim_release);
+    } else
         fxbus_set_param(&s->fx, id - SYNTH_PARAM_CHORUS_MODE, norm);
 }
 
@@ -691,6 +745,59 @@ static inline float softclip(float x)
     return x < 0.0f ? -y : y;
 }
 
+/* The saturation of the mix (dist_t, made for a voice's typical peak of 0.7) at the master's nominal peak of
+ * 0.25 (-12 dBFS): scaled up into it and back down. Faded in and out over 8 blocks (its oversampling delays the
+ * signal); it runs only while on or fading. */
+#define SAT_SCALE 2.8f
+static void master_saturate(synth_t *s, float *L, float *R, int n)
+{
+    const float m0 = s->sat_mix_prev;
+    const float m1 = s->sat_mix > m0 ? dsp_minf(m0 + 0.125f, s->sat_mix) : dsp_maxf(m0 - 0.125f, s->sat_mix);
+    s->sat_mix_prev = m1;
+    if (m0 <= 0.0f && m1 <= 0.0f)
+        return;
+    if (m0 <= 0.0f)
+        dist_reset(&s->sat[0]), dist_reset(&s->sat[1]);
+    float yl[SYNTH_BLOCK], yr[SYNTH_BLOCK];
+    for (int i = 0; i < n; i++)
+        yl[i] = L[i] * SAT_SCALE, yr[i] = R[i] * SAT_SCALE;
+    dist_process(&s->sat[0], yl, yl, n);
+    dist_process(&s->sat[1], yr, yr, n);
+    const float dm = (m1 - m0) / (float)n;
+    for (int i = 0; i < n; i++) {
+        const float m = m0 + dm * (float)(i + 1);
+        L[i] += (yl[i] * (1.0f / SAT_SCALE) - L[i]) * m;
+        R[i] += (yr[i] * (1.0f / SAT_SCALE) - R[i]) * m;
+    }
+}
+
+/* The limiter, faded in and out over 8 blocks (about 5 ms) when switched, since it delays the signal by its
+ * look-ahead; it runs only while on or fading, and starts empty. */
+static void master_limit(synth_t *s, float *L, float *R, int n)
+{
+    const float m0 = s->lim_mix_prev;
+    const float m1 = s->lim_mix > m0 ? dsp_minf(m0 + 0.125f, s->lim_mix) : dsp_maxf(m0 - 0.125f, s->lim_mix);
+    s->lim_mix_prev = m1;
+    if (m0 <= 0.0f && m1 <= 0.0f)
+        return;
+    if (m0 <= 0.0f)
+        limiter_reset(&s->lim);
+    if (m0 >= 1.0f && m1 >= 1.0f) {
+        limiter_process(&s->lim, L, R, n);
+        return;
+    }
+    float yl[SYNTH_BLOCK], yr[SYNTH_BLOCK];
+    for (int i = 0; i < n; i++)
+        yl[i] = L[i], yr[i] = R[i];
+    limiter_process(&s->lim, yl, yr, n);
+    const float dm = (m1 - m0) / (float)n;
+    for (int i = 0; i < n; i++) {
+        const float m = m0 + dm * (float)(i + 1);
+        L[i] += (yl[i] - L[i]) * m;
+        R[i] += (yr[i] - R[i]) * m;
+    }
+}
+
 /* 1 if every sample of the stereo block is finite: x * 0 is 0 for any finite x, NaN for NaN and Inf */
 static inline int block_finite(const float *L, const float *R, int n)
 {
@@ -711,6 +818,9 @@ static void fx_recover(synth_t *s)
         fxbus_set_param(&s->fx, i, param_to_norm(&fxbus_params[i], p[i]));
     dcblock_reset(&s->dc[0]);
     dcblock_reset(&s->dc[1]);
+    dist_reset(&s->sat[0]);
+    dist_reset(&s->sat[1]);
+    limiter_reset(&s->lim);
     s->nan_count++;
 }
 
@@ -843,8 +953,10 @@ static DSP_FAST_CODE void render_block(synth_t *s)
     dsp_ramp_mul(L, g0, g1, n);
     dsp_ramp_mul(R, g0, g1, n);
 
+    master_saturate(s, L, R, n);
     dcblock_process(&s->dc[0], L, L, n);
     dcblock_process(&s->dc[1], R, R, n);
+    master_limit(s, L, R, n);
     for (int i = 0; i < n; i++) {
         L[i] = softclip(L[i]);
         R[i] = softclip(R[i]);
@@ -914,6 +1026,12 @@ void synth_init(synth_t *s, float sample_rate)
     s->a4_hz = 440.0f;
     tuning_apply(s);
     s->master_db = master_desc.def;
+    for (int c = 0; c < 2; c++)
+        dist_init(&s->sat[c], sample_rate);
+    limiter_init(&s->lim, sample_rate);
+    s->lim_mix = s->lim_mix_prev = 0.0f;
+    s->sat_run = 1;
+    s->sat_mix = s->sat_mix_prev = 0.0f;
     for (int g = 0; g < SYNTH_GLOBAL_COUNT; g++) {
         const param_desc_t *d = synth_global_param(g);
         s->gbase[g] = param_to_norm(d, d->def);

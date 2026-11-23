@@ -407,6 +407,14 @@ a distortion for a synth voice: a drive into one of four shapers, 2x oversampled
 - `void dist_set_bias(dist_t *d, float bias)` — the tube's asymmetry: an offset into the tanh (0 = symmetric; DIST_TUBE_BIAS by default)
 - `void dist_process(dist_t *d, const float *in, float *out, int n)` — in place allowed; does nothing (out = in) when the mode is off
 
+## `dsp/fx/flanger.h`
+stereo flanger: a short delay line (a fraction of a millisecond to 10 ms) swept by a sine LFO and mixed half and half with the dry signal, which digs a comb of notches that glide (the jet sound); feedback (or negative feedback: hollower) sharpens them into resonances. The right channel's LFO runs a quarter of a cycle ahead. Cubic (Hermite) interpolation keeps the swept delay bright. Reference: Zolzer (ed.), DAFX, "Flanger".
+- types: `flanger_t`
+- `void flanger_init(flanger_t *f, float sample_rate)`
+- `void flanger_reset(flanger_t *f)`
+- `void flanger_set(flanger_t *f, float mix, float rate_hz, float delay_ms, float depth, float feedback)` — mix 0..1 (0: off, 1: half dry, half delayed = the deepest notches); rate_hz LFO; delay_ms the longest delay (0.5..10); depth 0..1 (how far down the sweep goes, to a twentieth of it); feedback -0.9..0.9
+- `void flanger_process(flanger_t *f, float *L, float *R, int n)` — in place allowed; passes the signal through untouched while the mix is and was 0
+
 ## `dsp/fx/fxbus.h`
 the synth's effect bus: chorus (insert) -> tape delay -> plate reverb (both parallel, wet added to the dry signal), with its parameter descriptors. Delay and reverb memory comes from a caller-provided arena; if the arena is too small the reverb size and maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
 - types: `fxbus_t`
@@ -415,6 +423,24 @@ the synth's effect bus: chorus (insert) -> tape delay -> plate reverb (both para
 - `void fxbus_init(fxbus_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — mem/mem_floats: arena for delay + reverb (may be NULL/0: then only the chorus is available).
 - `void fxbus_set_param(fxbus_t *f, int id, float norm)`
 - `void fxbus_process(fxbus_t *f, float *L, float *R, int n)` — Processes one block in place (n <= SYNTH_BLOCK).
+
+## `dsp/fx/limiter.h`
+stereo look-ahead peak limiter for the master: an input gain, then a gain that never lets a sample past the ceiling. The gain each sample needs (ceiling / stereo peak) is held at its minimum over the look-ahead window, released exponentially, then averaged over the same window (a box filter): the averaged gain reaches the needed one exactly when the loud sample, delayed by the window, comes out, so the attack is smooth and the peak is never exceeded. Latency: LIMITER_LOOKAHEAD_S. Reference: the classic hold + moving-average look-ahead design (e.g. D. Giannoulis, M. Massberg, J. Reiss, "Digital Dynamic Range Compressor Design", JAES 2012).
+- types: `limiter_t`
+- constants: `LIMITER_LOOKAHEAD_S` = 0.0015f
+- `void limiter_init(limiter_t *l, float sample_rate)`
+- `void limiter_reset(limiter_t *l)`
+- `void limiter_set(limiter_t *l, float gain_db, float ceiling_db, float release_s)` — gain_db: into the limiter (0..+24); ceiling_db: the highest peak out (<= 0); release_s: back to unity gain
+- `void limiter_process(limiter_t *l, float *L, float *R, int n)` — in place allowed; n <= SYNTH_BLOCK
+
+## `dsp/fx/phaser.h`
+stereo phaser: a chain of first-order all-pass filters (TPT, Zavalishin) whose break frequency an LFO sweeps exponentially around a centre, with feedback from the end of the chain to its input; mixed half and half with the dry signal, the phase shifts dig moving notches (two per four stages). The right channel's LFO runs a quarter of a cycle ahead. The sweep is computed per block and interpolated per sample. Reference: Zolzer (ed.), DAFX, "Phaser"; V. Zavalishin, The Art of VA Filter Design (one-pole all-pass).
+- types: `phaser_t`
+- constants: `PHASER_MAX_STAGES` = 12
+- `void phaser_init(phaser_t *p, float sample_rate)`
+- `void phaser_reset(phaser_t *p)`
+- `void phaser_set(phaser_t *p, float mix, float rate_hz, float centre_hz, float depth, float feedback, int stages)` — mix 0..1 (0: off, 1: half dry, half phased = the deepest notches); rate_hz LFO; centre_hz of the sweep; depth 0..1 (0 to 4 octaves of sweep); feedback -0.9..0.9; stages 2..PHASER_MAX_STAGES (even)
+- `void phaser_process(phaser_t *p, float *L, float *R, int n)` — in place allowed; passes the signal through untouched while the mix is and was 0
 
 ## `dsp/fx/reverb.h`
 plate reverb after J. Dattorro, "Effect Design Part 1: Reverberator and Other Filters" (JAES 45(9), 1997): predelay, input bandwidth filter, 4 input diffusers, figure-of-eight tank with two modulated allpasses and damping. Mono in, stereo out (wet only). Delays scaled from the paper's 29761 Hz to the actual rate. Memory is provided by the caller (no allocation).

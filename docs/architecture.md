@@ -8,7 +8,8 @@ synth_midi / synth_set_param / synth_set_engine ──► event queue (time-stam
 synth_render(s, L, R, n) ── split into blocks of 32 ──► render_block():
     events → engine->render (voices summed into L/R) → engine-switch fade
     → fxbus: chorus (insert) → tape delay (send) → plate reverb (send, fed by dry + echoes)
-    → master gain → DC blocker → soft clipper
+    → master gain → saturation (2x oversampled, off by default) → DC blocker
+    → look-ahead limiter (1.5 ms, off by default) → soft clipper
 ```
 
 ## Layers

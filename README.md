@@ -60,7 +60,8 @@ settings), then the instrument's cards in the order the signal flows.*
 
 Every part has 8 macros, 2 tempo-syncable LFOs, 2 looping multi-segment envelopes (MSEG) and 8 modulation routes;
 per-note MSEG and LFO, MPE, microtuning (Scala), 8 multitimbral parts, MIDI clock, and an effect bus (chorus,
-tape delay, plate reverb, freeze) feeding a DC blocker and a soft clipper. The full parameter list is
+tape delay, plate reverb, freeze), then the master: level, saturation, DC blocker, look-ahead limiter and a soft
+clipper. The full parameter list is
 [docs/catalog.md](docs/catalog.md).
 
 ## Sound quality

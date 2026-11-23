@@ -144,8 +144,12 @@ Newest first. Each entry: what was decided, and why.
 - **ADSR** uses the "target ratio" one-pole: attack target 1.3, decay/release ratio 1e-4. Set times
   are exact segment durations (tested at ±2 %). The amp envelope runs per sample (0.5 ms attacks
   are shorter than a block); the filter envelope is sampled at block end.
-- **Master**: smoothed gain → DC blocker (10 Hz) → soft clipper, linear up to -6 dBFS then
-  tanh knee up to 0 dBFS. Voices at -18 dBFS.
+- **Master**: smoothed gain → saturation → DC blocker (10 Hz) → limiter → soft clipper, linear up to
+  -6 dBFS then tanh knee up to 0 dBFS. Voices at -18 dBFS. The saturation is the voices' distortion
+  (`dist_t`, 2x oversampled) scaled to the master's nominal peak of -12 dBFS; the limiter holds the
+  minimum needed gain over a 1.5 ms look-ahead, releases it exponentially and averages it over the
+  same window, so no peak passes the ceiling and the attack is smooth. Both are off by default (the
+  mix untouched, bit for bit) and fade over 8 blocks when switched, since both delay the signal.
 - **Voice stealing**: 3 ms linear fade, new note starts after the fade (≤ 3 ms latency on stolen voices).
 - **Aliasing target** for 2-point polyBLEP: aliases below 10 kHz under -50 dB (f0 ≤ 4 kHz) and at
   least 8 dB better than naive over the whole band. Near Nyquist 2-point polyBLEP only gains ~9 dB

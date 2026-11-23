@@ -91,7 +91,7 @@ Struck notes decay by themselves even when the key is held; bowed notes sustain 
 
 ## Effect bus (any engine, any patch)
 
-`chorus_*`, `delay_*`, `reverb_*` can be set in any patch (and per song track via `params`).
+`chorus_*`, `delay_*`, `reverb_*`, `saturation*` and `limiter*` can be set in any patch (and per song track via `params`).
 
 | Want | Set |
 |---|---|
@@ -102,6 +102,9 @@ Struck notes decay by themselves even when the key is held; bowed notes sustain 
 | tempo sync | `delay_time` = 60 / bpm × beats (0.75 = dotted eighth) |
 | space | `reverb_mix` 0.3–0.6, `reverb_decay` 0.85–0.95, `reverb_damping` 3–5 kHz |
 | infinite pad | play, then `reverb_freeze` on (CC 69): the tail holds, new notes play dry on top |
+| glue, warmth | `saturation` soft or tube, `saturation_drive` 3–6 dB; tape: `saturation_tone` 8–12 kHz |
+| driven mix | `saturation` tube or hard, `saturation_drive` 12–18 dB |
+| louder, no clipping | `limiter` on, `limiter_gain` 3–6 dB, `limiter_ceiling` -1 dB, `limiter_release` 0.1–0.2 s |
 
 Songs also have their own shared reverb (`"reverb"` block); the per-patch bus reverb is for the
 sound itself (and for live play).

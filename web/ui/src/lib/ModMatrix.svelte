@@ -7,6 +7,7 @@
 <script>
   import { session as s } from './session.svelte.js';
   import { human } from './naming.js';
+  import Select from './Select.svelte';
   let { kind = 'part' } = $props(); // the part's 8 routes, or each note's 4 ('voice')
   const get = s.getP, set = s.setP;
   const N = $derived(kind === 'part' ? 8 : 4);
@@ -26,6 +27,10 @@
   const LABEL = { mlfo1: 'LFO 1', mlfo2: 'LFO 2', mseg1: 'Env 1', mseg2: 'Env 2', vmseg: 'Note env', vlfo: 'Note LFO',
     mod_wheel: 'Mod wheel', pitch_bend: 'Pitch bend' };
   const srcName = (l) => LABEL[l] ?? l.replace(/^macro(\d)$/, 'Macro $1').replace(/^./, (c) => c.toUpperCase());
+
+  const srcOptions = $derived(srcLabels.map((l, i) => ({ value: i, label: i ? srcName(l) : '—' })));
+  const dstOptions = $derived([{ heading: engineName }, ...dests.map((d) => ({ value: d.id + 1, label: human(d.name) })),
+                               { heading: 'master and effects' }, ...fxDests.map((d) => ({ value: d.id + 1, label: human(d.name) }))]);
 
   function setSource(r, v) {
     set(`${pre}${r}_source`, v);
@@ -64,20 +69,14 @@
       {@const a = get(`${pre}${r}_amount`)}
       <tr class:empty={!s}>
         <td class="num mono">{r}</td>
-          <td><select value={s} onchange={(e) => setSource(r, +e.target.value)} aria-label="Source of slot {r}">
-            {#each srcLabels as l, i}<option value={i}>{i ? srcName(l) : '—'}</option>{/each}
-          </select></td>
+          <td><Select value={s} onchange={(v) => setSource(r, v)} label="Source of slot {r}" options={srcOptions} /></td>
         <td>
           {#if kind === 'part'}
-            <select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(e) => set(`${pre}${r}_destination`, +e.target.value)} aria-label="Destination of slot {r}">
-              {#if !s}<option value={0}>—</option>{/if}
-              <optgroup label={engineName}>{#each dests as d}<option value={d.id + 1}>{human(d.name)}</option>{/each}</optgroup>
-              <optgroup label="master and effects">{#each fxDests as d}<option value={d.id + 1}>{human(d.name)}</option>{/each}</optgroup>
-            </select>
+            <Select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(v) => set(`${pre}${r}_destination`, v)} label="Destination of slot {r}"
+                    options={s ? dstOptions : [{ value: 0, label: '—' }, ...dstOptions]} />
           {:else}
-            <select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(e) => set(`${pre}${r}_destination`, +e.target.value)} aria-label="Destination of slot {r}">
-              {#each vdstLabels as l, i}<option value={i}>{l}</option>{/each}
-            </select>
+            <Select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(v) => set(`${pre}${r}_destination`, v)} label="Destination of slot {r}"
+                    options={vdstLabels.map((l, i) => ({ value: i, label: l }))} />
           {/if}
         </td>
         <td class="amt">
@@ -88,10 +87,8 @@
         </td>
         <td class="val mono" title="amount {a.toFixed(3)} of the destination's range">{s ? effect(r) : ''}</td>
         {#if kind === 'part'}
-          <td><select class="via" value={Math.round(get(`${pre}${r}_via`))} disabled={!s} onchange={(e) => set(`${pre}${r}_via`, +e.target.value)} aria-label="Scaled by">
-            <option value={0}>—</option>
-            {#each srcLabels as l, i}{#if i}<option value={i}>× {srcName(l)}</option>{/if}{/each}
-          </select></td>
+          <td><Select class="via" value={Math.round(get(`${pre}${r}_via`))} disabled={!s} onchange={(v) => set(`${pre}${r}_via`, v)} label="Scaled by"
+                  options={srcLabels.map((l, i) => ({ value: i, label: i ? `× ${srcName(l)}` : '—' }))} /></td>
         {/if}
         <td>{#if s}<button class="x" onclick={() => clear(r)} aria-label="Clear slot {r}" title="clear">×</button>{/if}</td>
       </tr>

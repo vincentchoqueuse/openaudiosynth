@@ -10,6 +10,7 @@
   import Seg from './Seg.svelte';
   import Pills from './Pills.svelte';
   import Switch from './Switch.svelte';
+  import Select from './Select.svelte';
   import Param from './Param.svelte';
   import { session } from './session.svelte.js';
   let { prefix } = $props(); // "mlfo1_", "mlfo2_" or "vlfo_"
@@ -142,9 +143,8 @@
   <div class="mseg-bar lfo-settings">
     {#if sync}
       <label class="div">Division
-        <select value={sync} onchange={(e) => set(prefix + 'sync', +e.target.value)}>
-          {#each divs as l, i}{#if i}<option value={i}>{l}</option>{/if}{/each}
-        </select>
+        <Select value={sync} onchange={(v) => set(prefix + 'sync', v)} label="Division"
+                options={divs.map((l, i) => ({ value: i, label: l })).slice(1)} />
       </label>
     {:else if d('rate')}
       <div class="rate"><Param d={d('rate')} label="Rate" /></div>

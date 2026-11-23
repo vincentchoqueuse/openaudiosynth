@@ -7,6 +7,7 @@
   import { fromNorm, toNorm, format } from './synth.js';
   import { human } from './naming.js';
   import { session as s } from './session.svelte.js';
+  import Select from './Select.svelte';
   let { view } = $props(); // 'names' | 'assign'
   const ROWS = 16; // the table shows the first 16 of the part's 32 slots
   const table = $derived(s.macroMaps.slice(0, ROWS));
@@ -53,15 +54,11 @@
       {@const on = r.macro >= 0 && r.dst}
       <tr class:empty={!on}>
         <td class="num mono">{r.slot}</td>
-        <td><select value={r.macro + 1} onchange={(e) => setMacro(r, +e.target.value)} aria-label="Macro of row {r.slot}">
-          <option value={0}>none</option>
-          {#each s.macroNames as _, k}<option value={k + 1}>{k + 1} · {s.macroName(k)}</option>{/each}
-        </select></td>
-        <td><select value={on ? r.dst.id : -1} disabled={!on} onchange={(e) => retarget(r, +e.target.value)} aria-label="Parameter of row {r.slot}">
-          <option value={-1}>none</option>
-          <optgroup label={s.engine.name}>{#each s.macroTargets.engine as d}<option value={d.id}>{human(d.name)}</option>{/each}</optgroup>
-          <optgroup label="master and effects">{#each s.macroTargets.fx as d}<option value={d.id}>{human(d.name)}</option>{/each}</optgroup>
-        </select></td>
+        <td><Select value={r.macro + 1} onchange={(v) => setMacro(r, v)} label="Macro of row {r.slot}"
+          options={[{ value: 0, label: 'none' }, ...s.macroNames.map((_, k) => ({ value: k + 1, label: `${k + 1} · ${s.macroName(k)}` }))]} /></td>
+        <td><Select value={on ? r.dst.id : -1} disabled={!on} onchange={(v) => retarget(r, v)} label="Parameter of row {r.slot}"
+          options={[{ value: -1, label: 'none' }, { heading: s.engine.name }, ...s.macroTargets.engine.map((d) => ({ value: d.id, label: human(d.name) })),
+                    { heading: 'master and effects' }, ...s.macroTargets.fx.map((d) => ({ value: d.id, label: human(d.name) }))]} /></td>
         <td class="amt"><input type="range" min="0" max="1" step="0.001" value={r.from} style="--p:{r.from * 100}%" disabled={!on}
                    oninput={(e) => s.setP(`map${r.slot}_from`, +e.target.value)} aria-label="Value at macro 0" /></td>
         <td class="val mono">{on ? shown(r.dst, r.from) : ''}</td>

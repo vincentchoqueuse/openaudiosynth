@@ -9,6 +9,7 @@
   import Seg from './Seg.svelte';
   import Pills from './Pills.svelte';
   import Switch from './Switch.svelte';
+  import Select from './Select.svelte';
   import { session } from './session.svelte.js';
   // the value, the sound's value and the setter default to the session's: pass them only for something else
   let { d, label, value: given, base: givenBase, onchange: given_set } = $props();
@@ -32,9 +33,7 @@
   {:else if d.labels && d.labels.length <= 4}
     <div class="cell"><Seg items={d.labels.map((l, i) => ({ id: i, label: l }))} value={idx} onpick={(i) => onchange(d.min + i)} wide {label} /></div>
   {:else if d.labels}
-    <select aria-label={label} value={idx} onchange={(e) => onchange(d.min + +e.target.value)}>
-      {#each d.labels as l, i}<option value={i}>{l}</option>{/each}
-    </select>
+    <Select {label} value={idx} onchange={(i) => onchange(d.min + i)} options={d.labels.map((l, i) => ({ value: i, label: l }))} />
   {:else}
     <input type="range" aria-label={label} aria-valuetext={format(d, value)} min="0" max="1" step="0.001" value={norm} style="--p:{norm * 100}%"
            oninput={(e) => onchange(fromNorm(d, +e.target.value))} ondblclick={() => onchange(base)} />

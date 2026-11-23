@@ -4,6 +4,7 @@
 <script>
   import PianoRoll from './PianoRoll.svelte';
   import Switch from './Switch.svelte';
+  import Select from './Select.svelte';
   import { sequence as q, LOOPS } from './sequence.svelte.js';
   import { NAMES, SCALES, GRIDS } from './seqExport.js';
   const BARS = [1, 2, 4, 8, 16], OCTAVES = [1, 2, 3, 4, 5];
@@ -15,19 +16,18 @@
   <span class="spacer"></span>
   <button class="ghost" onclick={q.random}>Random</button>
   <button class="ghost" onclick={q.clear}>Clear</button>
-  <label>Song <select bind:value={q.loops} aria-label="Times the clip plays in the exported song (File, Export song)">{#each LOOPS as n}<option value={n}>× {n}</option>{/each}</select></label>
+  <label>Song <Select bind:value={q.loops} label="Times the clip plays in the exported song (File, Export song)" options={LOOPS.map((n) => ({ value: n, label: `× ${n}` }))} /></label>
 </div>
 {#if q.message}<p class="message">{q.message}</p>{/if}
 <PianoRoll>
   {#snippet settings()}
-    <label>Length <select value={q.length} onchange={(e) => (q.length = +e.target.value)}>
-      {#if !BARS.some((b) => b * 4 === q.length)}<option value={q.length}>{q.length} beats</option>{/if}
-      {#each BARS as b}<option value={b * 4}>{b} bar{b > 1 ? 's' : ''}</option>{/each}
-    </select></label>
-    <label>Grid <select bind:value={q.grid}>{#each GRIDS as [l, v]}<option value={v}>{l}</option>{/each}</select></label>
-    <label>Key <select bind:value={q.root}>{#each NAMES as n, i}<option value={i}>{n}</option>{/each}</select>
-      <select bind:value={q.scale}>{#each Object.keys(SCALES) as sc}<option value={sc}>{sc}</option>{/each}</select></label>
-    <label>Octave <select bind:value={q.octave}>{#each OCTAVES as o}<option value={o}>{o}</option>{/each}</select></label>
+    <label>Length <Select value={q.length} onchange={(v) => (q.length = v)} label="Length"
+      options={[...(BARS.some((b) => b * 4 === q.length) ? [] : [{ value: q.length, label: `${q.length} beats` }]),
+                ...BARS.map((b) => ({ value: b * 4, label: `${b} bar${b > 1 ? 's' : ''}` }))]} /></label>
+    <label>Grid <Select bind:value={q.grid} label="Grid" options={GRIDS.map(([l, v]) => ({ value: v, label: l }))} /></label>
+    <label>Key <Select bind:value={q.root} label="Key" options={NAMES.map((n, i) => ({ value: i, label: n }))} />
+      <Select bind:value={q.scale} label="Scale" options={Object.keys(SCALES).map((sc) => ({ value: sc, label: sc }))} /></label>
+    <label>Octave <Select bind:value={q.octave} label="Octave" options={OCTAVES.map((o) => ({ value: o, label: String(o) }))} /></label>
   {/snippet}
 </PianoRoll>
 <p class="hint">Select notes, then ⌘C / ⌘V (the insertion point: click the ruler), arrows to move, Shift + arrows to resize; every shortcut: press ?</p>

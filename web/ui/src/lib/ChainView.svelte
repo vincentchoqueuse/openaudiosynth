@@ -13,22 +13,24 @@
 
   let W = $state(800);
   let hover = $state(-1); // modulator under the pointer: only its links are drawn
-  const BW = 112, BH = 36, ROWH = 54, TOP = 12;
+  const BW = 112, BH = 36, ROWH = 54, TOP = 12, MINW = 84, GAP = 16; // a block narrower than MINW: the bus wraps
 
   // audio stages of the engine (or one block for engines without a description), then the effect bus
-  const audio = $derived.by(() => {
+  const parts = $derived.by(() => {
     const st = engine?.stages?.length ? engine.stages : [{ id: 'engine', label: engine?.name ?? 'engine', kind: 'source', params: '', inputs: '', targets: '', enable: null }];
     const eng = st.filter((s) => s.kind !== 'mod' && s.kind !== 'voice');
     const fed = new Set(eng.flatMap((s) => s.inputs.split(' ').filter(Boolean)));
     const sinks = eng.filter((s) => !fed.has(s.id)).map((s) => s.id);
     const bus = fx.map((s) => ({ ...s, inputs: s.inputs === 'engine' ? sinks.join(' ') : s.inputs }));
-    return [...eng, ...bus];
+    return { eng, bus };
   });
+  const audio = $derived([...parts.eng, ...parts.bus]);
   const mods = $derived((engine?.stages ?? []).filter((s) => s.kind === 'mod' || s.kind === 'voice'));
 
-  // columns by longest path from the sources
-  const layout = $derived.by(() => {
-    const byId = Object.fromEntries(audio.map((s) => [s.id, s]));
+  // columns by longest path from the sources: the engine's stages and the bus on one line when the blocks keep
+  // MINW; otherwise the engine on top and the bus below it, in rows read left to right
+  function columns(stages) {
+    const byId = Object.fromEntries(stages.map((s) => [s.id, s]));
     const col = {};
     const depth = (id, seen = new Set()) => {
       if (col[id] !== undefined) return col[id];
@@ -37,23 +39,32 @@
       const ins = (byId[id]?.inputs ?? '').split(' ').filter((x) => byId[x]);
       return (col[id] = ins.length ? 1 + Math.max(...ins.map((x) => depth(x, seen))) : 0);
     };
-    audio.forEach((s) => depth(s.id));
-    const ncol = Math.max(...Object.values(col)) + 1;
+    stages.forEach((s) => depth(s.id));
     const rows = {}, pos = {};
-    for (const s of audio) {
+    for (const s of stages) {
       const c = col[s.id], r = (rows[c] = (rows[c] ?? -1) + 1);
       pos[s.id] = { c, r };
     }
-    const nrow = Math.max(...Object.values(rows)) + 1;
-    const gap = Math.max(18, (W - ncol * BW) / Math.max(1, ncol - 1));
-    const scale = ncol * BW + (ncol - 1) * gap > W ? W / (ncol * BW + (ncol - 1) * 18) : 1;
-    const bw = BW * Math.min(1, scale), g = ncol > 1 ? (W - ncol * bw) / (ncol - 1) : 0;
+    return { pos, rows, ncol: Math.max(...Object.values(col)) + 1, nrow: Math.max(...Object.values(rows)) + 1 };
+  }
+  // places the columns of `cl` across the width, from y0
+  function place(cl, y0, xy) {
+    const bw = Math.min(BW, (W - (cl.ncol - 1) * GAP) / cl.ncol), g = cl.ncol > 1 ? (W - cl.ncol * bw) / (cl.ncol - 1) : 0;
+    for (const [id, { c, r }] of Object.entries(cl.pos))
+      xy[id] = { x: c * (bw + g), y: y0 + ((cl.nrow - (cl.rows[c] + 1)) * ROWH) / 2 + r * ROWH, w: bw };
+    return y0 + cl.nrow * ROWH;
+  }
+  const layout = $derived.by(() => {
     const xy = {};
-    for (const [id, { c, r }] of Object.entries(pos)) {
-      const inCol = rows[c] + 1;
-      xy[id] = { x: c * (bw + g), y: TOP + ((nrow - inCol) * ROWH) / 2 + r * ROWH, w: bw };
-    }
-    return { xy, height: TOP + nrow * ROWH, bw };
+    const all = columns(audio);
+    if ((W - (all.ncol - 1) * GAP) / all.ncol >= MINW || !parts.bus.length)
+      return { xy, height: place(all, TOP, xy) };
+    let y = place(columns(parts.eng), TOP, xy) + 14; // the engine, then the bus in rows of `per` blocks
+    const per = Math.max(1, Math.floor((W + GAP) / (MINW + GAP))), nrows = Math.ceil(parts.bus.length / per);
+    const each = Math.ceil(parts.bus.length / nrows), bw = Math.min(BW, (W - (each - 1) * GAP) / each);
+    const g = each > 1 ? (W - each * bw) / (each - 1) : 0;
+    parts.bus.forEach((s, i) => (xy[s.id] = { x: (i % each) * (bw + g), y: y + Math.floor(i / each) * ROWH, w: bw }));
+    return { xy, height: y + nrows * ROWH };
   });
 
   // modulators: the engine's own, plus the active part routes grouped by source
@@ -86,7 +97,10 @@
   function edge(a, b) { // from the right side of a to the left side of b
     const p = layout.xy[a], q = layout.xy[b];
     const x1 = p.x + p.w, y1 = p.y + BH / 2, x2 = q.x, y2 = q.y + BH / 2, mx = (x1 + x2) / 2;
-    return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+    if (x2 >= x1) return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
+    // to the next row: down from a's foot, back to the left, into b
+    const yb = p.y + BH, ym = q.y - 9, xm = p.x + p.w / 2, xl = Math.max(q.x - 8, 2);
+    return `M${xm},${yb} V${ym - 6} Q${xm},${ym} ${xm - 6},${ym} H${xl + 6} Q${xl},${ym} ${xl},${ym + 6} V${y2 - 6} Q${xl},${y2} ${x2},${y2}`;
   }
   function modEdge(i, target) {
     const q = layout.xy[target];

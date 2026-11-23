@@ -49,6 +49,8 @@ set(SYNTH_DSP_SOURCES
   dsp/fx/chorus.c
   dsp/fx/dist.c
   dsp/fx/limiter.c
+  dsp/fx/phaser.c
+  dsp/fx/flanger.c
   dsp/fx/fxbus.c
   dsp/synth.c
 )

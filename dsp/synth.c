@@ -15,7 +15,9 @@
 #include "filter/svf_tpt.h"
 #include "fx/dist.h"
 #include "fx/fxbus.h"
+#include "fx/flanger.h"
 #include "fx/limiter.h"
+#include "fx/phaser.h"
 #include "mod/partmod.h"
 #include "mod/tempo.h"
 #include "global_params.h"
@@ -71,7 +73,9 @@ typedef struct {
 const engine_stage_t synth_fx_stages[] = {
     {"outfilter", "Output filter", "fx", "out_", "engine", NULL, "out_filter", 0.0f, 1.0f},
     {"crush", "Crush", "fx", "crush_", "outfilter", NULL, "crush_bits", 24.0f, 8.0f},
-    {"chorus", "Chorus", "fx", "chorus_", "crush", NULL, "chorus_mode", 0.0f, 1.0f},
+    {"phaser", "Phaser", "fx", "phaser_", "crush", NULL, "phaser_mix", 0.0f, 0.6f},
+    {"flanger", "Flanger", "fx", "flanger_", "phaser", NULL, "flanger_mix", 0.0f, 0.6f},
+    {"chorus", "Chorus", "fx", "chorus_", "flanger", NULL, "chorus_mode", 0.0f, 1.0f},
     {"delay", "Delay", "fx", "delay_", "chorus", NULL, "delay_mix", 0.0f, 0.25f},
     {"reverb", "Reverb", "fx", "reverb_", "delay", NULL, "reverb_mix", 0.0f, 0.3f},
     {"master", "Master", "fx", "master", "reverb", NULL, NULL, 0.0f, 0.0f},
@@ -131,6 +135,7 @@ _Static_assert(SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_
 static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
 static const char *const saturation_labels[] = {"off", "soft", "tube", "hard", NULL};
 static const char *const limiter_labels[] = {"off", "on", NULL};
+static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
 static const param_desc_t out_desc[] = {
     PARAM(SYNTH_PARAM_OUT_FILTER, "out_filter", "output.filter.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, out_filter_labels,
           "a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB)"),
@@ -156,6 +161,28 @@ static const param_desc_t out_desc[] = {
           "the highest peak out of the limiter, in dBFS"),
     PARAM(SYNTH_PARAM_LIMITER_RELEASE, "limiter_release", "master.limiter.release", 0.01f, 1.0f, 0.15f, PARAM_EXP, "s", 0, NULL,
           "time to come back after a peak: short = loud but grainy on bass, long = smooth but pumping"),
+    PARAM(SYNTH_PARAM_PHASER_MIX, "phaser_mix", "fx.phaser.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "phaser amount: 0 = off, 1 = half dry, half phased (the deepest notches)"),
+    PARAM(SYNTH_PARAM_PHASER_RATE, "phaser_rate", "fx.phaser.rate", 0.02f, 10.0f, 0.3f, PARAM_EXP, "Hz", 1, NULL,
+          "speed of the sweep: 0.05-0.5 Hz = slow swirl, several Hz = a vibrato-like warble"),
+    PARAM(SYNTH_PARAM_PHASER_CENTER, "phaser_center", "fx.phaser.center", 100.0f, 5000.0f, 800.0f, PARAM_EXP, "Hz", 1, NULL,
+          "middle of the sweep: low = throaty, high = airy"),
+    PARAM(SYNTH_PARAM_PHASER_DEPTH, "phaser_depth", "fx.phaser.depth", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL,
+          "width of the sweep, up to 4 octaves (2 each side of the centre)"),
+    PARAM(SYNTH_PARAM_PHASER_FEEDBACK, "phaser_feedback", "fx.phaser.feedback", -0.9f, 0.9f, 0.5f, PARAM_LIN, "", 1, NULL,
+          "resonance of the notches: 0 = gentle, high = a sharp, singing sweep; negative = the peaks move between the notches"),
+    PARAM(SYNTH_PARAM_PHASER_STAGES, "phaser_stages", "fx.phaser.stages", 0.0f, 5.0f, 1.0f, PARAM_INT, "", 0, phaser_stage_labels,
+          "all-pass stages: 4 = the classic small phaser (2 notches), more = more notches, a denser swirl"),
+    PARAM(SYNTH_PARAM_FLANGER_MIX, "flanger_mix", "fx.flanger.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "flanger amount: 0 = off, 1 = half dry, half delayed (the deepest notches, the jet)"),
+    PARAM(SYNTH_PARAM_FLANGER_RATE, "flanger_rate", "fx.flanger.rate", 0.02f, 10.0f, 0.15f, PARAM_EXP, "Hz", 1, NULL,
+          "speed of the sweep: 0.05-0.3 Hz = the slow jet, faster = a wobble"),
+    PARAM(SYNTH_PARAM_FLANGER_DELAY, "flanger_delay", "fx.flanger.delay", 0.5f, 10.0f, 4.0f, PARAM_EXP, "ms", 1, NULL,
+          "the longest delay of the sweep: short = high, metallic notches, long = lower, towards a chorus"),
+    PARAM(SYNTH_PARAM_FLANGER_DEPTH, "flanger_depth", "fx.flanger.depth", 0.0f, 1.0f, 0.8f, PARAM_LIN, "", 1, NULL,
+          "how far the sweep goes, down to a twentieth of the delay"),
+    PARAM(SYNTH_PARAM_FLANGER_FEEDBACK, "flanger_feedback", "fx.flanger.feedback", -0.9f, 0.9f, 0.6f, PARAM_LIN, "", 1, NULL,
+          "resonance: high = metallic, ringing; negative = hollow (the resonances at the odd multiples of half the delay's frequency)"),
 };
 _Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
@@ -259,6 +286,9 @@ struct synth {
     int sat_mode, sat_run;              /* the mode chosen, and the one running (kept while fading out) */
     float sat_drive, sat_tone;
     float sat_mix, sat_mix_prev;        /* 1 while on: faded in and out over 8 blocks */
+    phaser_t phaser;
+    flanger_t flanger;
+    float ph[6], fl[5];                 /* phaser and flanger settings, physical values */
     limiter_t lim;
     int lim_on;
     float lim_mix, lim_mix_prev;        /* 1 while on: the limited signal, faded in and out over 8 blocks */
@@ -627,6 +657,12 @@ static void global_apply(synth_t *s, int id, float norm)
         s->sat_mix = s->sat_mode > 0 ? 1.0f : 0.0f;
         for (int c = 0; c < 2; c++)
             dist_set(&s->sat[c], modes[s->sat_run], s->sat_drive, s->sat_tone, 1.0f);
+    } else if (id >= SYNTH_PARAM_PHASER_MIX && id <= SYNTH_PARAM_PHASER_STAGES) {
+        s->ph[id - SYNTH_PARAM_PHASER_MIX] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        phaser_set(&s->phaser, s->ph[0], s->ph[1], s->ph[2], s->ph[3], s->ph[4], 2 * ((int)s->ph[5] + 1));
+    } else if (id >= SYNTH_PARAM_FLANGER_MIX && id <= SYNTH_PARAM_FLANGER_FEEDBACK) {
+        s->fl[id - SYNTH_PARAM_FLANGER_MIX] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        flanger_set(&s->flanger, s->fl[0], s->fl[1], s->fl[2], s->fl[3], s->fl[4]);
     } else if (id >= SYNTH_PARAM_LIMITER && id <= SYNTH_PARAM_LIMITER_RELEASE) {
         const float v = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
         if (id == SYNTH_PARAM_LIMITER)
@@ -821,6 +857,8 @@ static void fx_recover(synth_t *s)
     dist_reset(&s->sat[0]);
     dist_reset(&s->sat[1]);
     limiter_reset(&s->lim);
+    phaser_reset(&s->phaser);
+    flanger_reset(&s->flanger);
     s->nan_count++;
 }
 
@@ -937,6 +975,8 @@ static DSP_FAST_CODE void render_block(synth_t *s)
         if (s->part[k].ops)
             has_dry |= part_render(s, &s->part[k], L, R, dryL, dryR);
 
+    phaser_process(&s->phaser, L, R, n); /* untouched while their mix is 0 */
+    flanger_process(&s->flanger, L, R, n);
     fxbus_process(&s->fx, L, R, n);
     if (has_dry)
         for (int i = 0; i < n; i++)
@@ -1030,6 +1070,8 @@ void synth_init(synth_t *s, float sample_rate)
         dist_init(&s->sat[c], sample_rate);
     limiter_init(&s->lim, sample_rate);
     s->lim_mix = s->lim_mix_prev = 0.0f;
+    phaser_init(&s->phaser, sample_rate);
+    flanger_init(&s->flanger, sample_rate);
     s->sat_run = 1;
     s->sat_mix = s->sat_mix_prev = 0.0f;
     for (int g = 0; g < SYNTH_GLOBAL_COUNT; g++) {

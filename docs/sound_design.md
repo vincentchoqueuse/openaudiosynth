@@ -91,10 +91,15 @@ Struck notes decay by themselves even when the key is held; bowed notes sustain 
 
 ## Effect bus (any engine, any patch)
 
-`chorus_*`, `delay_*`, `reverb_*`, `saturation*` and `limiter*` can be set in any patch (and per song track via `params`).
+`phaser_*`, `flanger_*`, `chorus_*`, `delay_*`, `reverb_*`, `saturation*` and `limiter*` can be set in any patch (and per song track via `params`).
 
 | Want | Set |
 |---|---|
+| slow swirl (pads, keys) | `phaser_mix` 0.6–1, `phaser_rate` 0.1–0.3 Hz, `phaser_feedback` 0.3–0.6, 4 stages |
+| singing sweep | `phaser_feedback` 0.8, `phaser_stages` 8–12, `phaser_center` 1–2 kHz |
+| jet (pads, drums, guitars-like) | `flanger_mix` 0.8–1, `flanger_rate` 0.1–0.2 Hz, `flanger_delay` 3–6 ms, `flanger_feedback` 0.6–0.8 |
+| metallic, ringing | `flanger_delay` 1–2 ms, `flanger_feedback` 0.85 |
+| hollow | `flanger_feedback` -0.6 to -0.85 |
 | analog width on anything | `chorus_mode` I or I+II, `chorus_mix` 0.4–0.6 |
 | string-machine shimmer | `chorus_mode` ensemble |
 | ambient echoes | `delay_mix` 0.25–0.35, `delay_feedback` 0.4–0.6, `delay_tone` 2–4 kHz, `delay_wow` 0.2–0.4 |

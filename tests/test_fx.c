@@ -1,6 +1,9 @@
 /* test_fx.c — Dattorro plate reverb: bounded and finite, tail decays and gets longer with decay,
  * decorrelated stereo, deterministic, works at 44.1/48/96 kHz. Delay, chorus, freeze; the voice distortion:
- * bounded, deterministic, level held across drives, no comb filtering at a partial mix, aliasing below a threshold. */
+ * bounded, deterministic, level held across drives, no comb filtering at a partial mix, aliasing below a threshold.
+ * Phaser and flanger: untouched at mix 0, notches where the theory puts them (a static sweep), feedback moves the
+ * resonances (positive: multiples of the delay's frequency, negative: odd multiples of half of it), bounded at full
+ * feedback with a fast sweep, deterministic. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +11,8 @@
 #include "fx/chorus.h"
 #include "fx/delay.h"
 #include "fx/dist.h"
+#include "fx/flanger.h"
+#include "fx/phaser.h"
 #include "fx/reverb.h"
 #include "test.h"
 
@@ -238,8 +243,92 @@ static void test_dist(void)
     free(x), free(y), free(y2), free(db);
 }
 
+/* gain in dB of a sine at f through a phaser or a flanger (static settings), after 0.2 s */
+static float modfx_gain(int flanger, float f, float a, float b, float c, float d, float e, int stages)
+{
+    static phaser_t ph;
+    static flanger_t fl;
+    const float sr = 48000.0f;
+    float x[32], y[32];
+    double in = 0, out = 0;
+    if (flanger) {
+        flanger_init(&fl, sr);
+        flanger_set(&fl, a, b, c, d, e);
+    } else {
+        phaser_init(&ph, sr);
+        phaser_set(&ph, a, b, c, d, e, stages);
+    }
+    for (int i = 0; i < 48000; i += 32) {
+        for (int j = 0; j < 32; j++)
+            x[j] = y[j] = 0.1f * sinf(6.28318530717959f * f * (float)(i + j) / sr);
+        if (flanger)
+            flanger_process(&fl, y, x, 32);
+        else
+            phaser_process(&ph, y, x, 32);
+        for (int j = 0; j < 32 && i >= 9600; j++) {
+            const float s = 0.1f * sinf(6.28318530717959f * f * (float)(i + j) / sr);
+            in += (double)s * (double)s, out += (double)y[j] * (double)y[j];
+        }
+    }
+    return (float)(10.0 * log10(out / in));
+}
+
+static void test_modfx(void)
+{
+    const float sr = 48000.0f;
+    /* phaser, 4 stages at 1 kHz, no sweep, no feedback: notches at fc tan(22.5) and fc tan(67.5), full level at fc */
+    const float n1 = modfx_gain(0, 414.2f, 1.0f, 0.0f, 1000.0f, 0.0f, 0.0f, 4);
+    const float n2 = modfx_gain(0, 2414.2f, 1.0f, 0.0f, 1000.0f, 0.0f, 0.0f, 4);
+    const float pk = modfx_gain(0, 1000.0f, 1.0f, 0.0f, 1000.0f, 0.0f, 0.0f, 4);
+    printf("  phaser 4 stages at 1 kHz: %.1f dB at 414 Hz, %.1f dB at 2414 Hz, %.1f dB at 1 kHz\n", (double)n1, (double)n2, (double)pk);
+    CHECK(n1 < -30.0f && n2 < -30.0f && fabsf(pk) < 0.5f, "phaser notches: %.1f, %.1f dB; %.1f dB at fc", (double)n1, (double)n2, (double)pk);
+    /* flanger, 1 ms, no sweep, no feedback: a notch at 500 Hz, full level at 1 kHz */
+    const float fn = modfx_gain(1, 500.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0);
+    const float fp = modfx_gain(1, 1000.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0);
+    printf("  flanger 1 ms: %.1f dB at 500 Hz, %.1f dB at 1 kHz\n", (double)fn, (double)fp);
+    CHECK(fn < -30.0f && fabsf(fp) < 0.5f, "flanger notch %.1f dB, peak %.1f dB", (double)fn, (double)fp);
+    /* feedback: positive rings at 1 kHz, negative (hollow) at 500 Hz */
+    const float pos = modfx_gain(1, 1000.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.9f, 0) - modfx_gain(1, 500.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.9f, 0);
+    const float neg = modfx_gain(1, 500.0f, 1.0f, 0.0f, 1.0f, 0.0f, -0.9f, 0) - modfx_gain(1, 1000.0f, 1.0f, 0.0f, 1.0f, 0.0f, -0.9f, 0);
+    printf("  flanger feedback +0.9: 1 kHz over 500 Hz by %.1f dB; -0.9: 500 Hz over 1 kHz by %.1f dB\n", (double)pos, (double)neg);
+    CHECK(pos > 6.0f && neg > 6.0f, "flanger feedback: +0.9 favours 1 kHz by %.1f dB, -0.9 favours 500 Hz by %.1f dB", (double)pos, (double)neg);
+
+    /* off: untouched; full feedback and a fast sweep on loud noise: bounded, deterministic */
+    static phaser_t ph;
+    static flanger_t fl;
+    const int n = 48000 * 2;
+    float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n), *L2 = malloc(sizeof(float) * (size_t)n);
+    for (int run = 0; run < 3; run++) {
+        uint32_t s = dsp_seed(11u);
+        for (int i = 0; i < n; i++)
+            L[i] = R[i] = dsp_rand_bipolar(&s);
+        if (run == 0)
+            memcpy(L2, L, sizeof(float) * (size_t)n);
+        phaser_init(&ph, sr);
+        flanger_init(&fl, sr);
+        if (run) {
+            phaser_set(&ph, 1.0f, 8.0f, 2000.0f, 1.0f, 0.9f, 12);
+            flanger_set(&fl, 1.0f, 8.0f, 10.0f, 1.0f, -0.9f);
+        }
+        for (int i = 0; i < n; i += 32) {
+            phaser_process(&ph, L + i, R + i, 32);
+            flanger_process(&fl, L + i, R + i, 32);
+        }
+        if (run == 0)
+            CHECK(memcmp(L, L2, sizeof(float) * (size_t)n) == 0, "phaser and flanger at mix 0 change the signal");
+        else if (run == 1) {
+            CHECK(all_finite_bounded(L, n, 8.0f) && all_finite_bounded(R, n, 8.0f), "phaser + flanger at full feedback: max %g",
+                  (double)fmaxf(max_abs(L, n), max_abs(R, n)));
+            memcpy(L2, L, sizeof(float) * (size_t)n);
+        } else
+            CHECK(memcmp(L, L2, sizeof(float) * (size_t)n) == 0, "phaser + flanger not deterministic");
+    }
+    free(L), free(R), free(L2);
+}
+
 void suite_fx(void)
 {
+    test_modfx();
     test_dist();
     test_delay();
     test_chorus();

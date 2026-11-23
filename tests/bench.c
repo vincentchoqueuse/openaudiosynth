@@ -67,6 +67,13 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
         synth_set_param(synth_default(), SYNTH_PARAM_DELAY_MIX, 0.3f);
         synth_set_param(synth_default(), SYNTH_PARAM_REVERB_MIX, 0.4f);
     }
+    if (fx > 1) { /* and the phaser, the flanger, the master saturation (soft) and limiter */
+        synth_set_param(synth_default(), SYNTH_PARAM_PHASER_MIX, 1.0f);
+        synth_set_param(synth_default(), SYNTH_PARAM_PHASER_STAGES, 1.0f);
+        synth_set_param(synth_default(), SYNTH_PARAM_FLANGER_MIX, 1.0f);
+        synth_set_param(synth_default(), SYNTH_PARAM_SATURATION, 1.0f / 3.0f);
+        synth_set_param(synth_default(), SYNTH_PARAM_LIMITER, 1.0f);
+    }
     if (os >= 0) {
         const engine_ops_t *ops = engine_registry[eng];
         const int id = param_find(ops->params, ops->param_count, "oversample");
@@ -104,6 +111,7 @@ void run_bench(void)
     bench_engine("va-ss", SYNTH_ENGINE_VA, VA_VOICES, 1, 0);
     bench_engine("modal", SYNTH_ENGINE_MODAL, MODAL_VOICES, 0, 0);
     bench_engine("va+fx", SYNTH_ENGINE_VA, VA_VOICES, 0, 1);
+    bench_engine("va+all fx", SYNTH_ENGINE_VA, VA_VOICES, 0, 2);
     bench_engine("drums", SYNTH_ENGINE_DRUMS, DR_COUNT, 0, 0);
     bench_engine("acid", SYNTH_ENGINE_ACID, 1, 0, 0);
     bench_engine("mono", SYNTH_ENGINE_MONO, 1, 0, 0);

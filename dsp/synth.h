@@ -76,6 +76,18 @@ enum {
     SYNTH_PARAM_LIMITER_GAIN,    /* 0 .. 18 dB into the limiter */
     SYNTH_PARAM_LIMITER_CEILING, /* -12 .. 0 dBFS, the highest peak out */
     SYNTH_PARAM_LIMITER_RELEASE, /* 0.01 .. 1 s */
+    /* phaser then flanger, at the start of the effect bus, before the chorus (off at mix 0, the default) */
+    SYNTH_PARAM_PHASER_MIX,      /* 0 .. 1 (1: half dry, half phased) */
+    SYNTH_PARAM_PHASER_RATE,     /* 0.02 .. 10 Hz */
+    SYNTH_PARAM_PHASER_CENTER,   /* 100 .. 5000 Hz, the middle of the sweep */
+    SYNTH_PARAM_PHASER_DEPTH,    /* 0 .. 1 (up to 4 octaves of sweep) */
+    SYNTH_PARAM_PHASER_FEEDBACK, /* -0.9 .. 0.9 */
+    SYNTH_PARAM_PHASER_STAGES,   /* 2, 4, 6, 8, 10, 12 all-pass stages */
+    SYNTH_PARAM_FLANGER_MIX,     /* 0 .. 1 (1: half dry, half delayed) */
+    SYNTH_PARAM_FLANGER_RATE,    /* 0.02 .. 10 Hz */
+    SYNTH_PARAM_FLANGER_DELAY,   /* 0.5 .. 10 ms, the longest delay of the sweep */
+    SYNTH_PARAM_FLANGER_DEPTH,   /* 0 .. 1 */
+    SYNTH_PARAM_FLANGER_FEEDBACK, /* -0.9 .. 0.9 */
     SYNTH_PARAM_GLOBAL_END
 };
 

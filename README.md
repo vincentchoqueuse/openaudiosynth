@@ -59,8 +59,8 @@ settings), then the instrument's cards in the order the signal flows.*
 | `drone` | a drone machine: wandering partials, a body, breath and sparkles, from glacial to warm |
 
 Every part has 8 macros, 2 tempo-syncable LFOs, 2 looping multi-segment envelopes (MSEG) and 8 modulation routes;
-per-note MSEG and LFO, MPE, microtuning (Scala), 8 multitimbral parts, MIDI clock, and an effect bus (chorus,
-tape delay, plate reverb, freeze), then the master: level, saturation, DC blocker, look-ahead limiter and a soft
+per-note MSEG and LFO, MPE, microtuning (Scala), 8 multitimbral parts, MIDI clock, and an effect bus (phaser,
+flanger, chorus, tape delay, plate reverb, freeze), then the master: level, saturation, DC blocker, look-ahead limiter and a soft
 clipper. The full parameter list is
 [docs/catalog.md](docs/catalog.md).
 

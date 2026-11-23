@@ -408,7 +408,7 @@ a distortion for a synth voice: a drive into one of four shapers, 2x oversampled
 - `void dist_process(dist_t *d, const float *in, float *out, int n)` — in place allowed; does nothing (out = in) when the mode is off
 
 ## `dsp/fx/flanger.h`
-stereo flanger: a short delay line (a fraction of a millisecond to 10 ms) swept by a sine LFO and mixed half and half with the dry signal, which digs a comb of notches that glide (the jet sound); feedback (or negative feedback: hollower) sharpens them into resonances. The right channel's LFO runs a quarter of a cycle ahead. Cubic (Hermite) interpolation keeps the swept delay bright. Reference: Zolzer (ed.), DAFX, "Flanger".
+stereo flanger: a short delay line (a fraction of a millisecond to 10 ms) swept by a sine LFO and mixed half and half with the dry signal, which digs a comb of notches that glide (the jet sound); feedback sharpens them into resonances. With negative feedback the delayed signal is inverted (as in the classic negative flanging) so the resonances, at the odd multiples of half the delay's frequency, add up: hollower. The right channel's LFO runs a quarter of a cycle ahead. Cubic (Hermite) interpolation keeps the swept delay bright. Reference: Zolzer (ed.), DAFX, "Flanger".
 - types: `flanger_t`
 - `void flanger_init(flanger_t *f, float sample_rate)`
 - `void flanger_reset(flanger_t *f)`

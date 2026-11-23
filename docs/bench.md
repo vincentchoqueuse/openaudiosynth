@@ -29,6 +29,7 @@ with `DWT->CYCCNT` on the board (M7).
 | 2026-11-21 | Apple Silicon (host) | drone (12 partials + 2 beating twins, saw body, air, sparkles) | 6 | 38.4 | 1.10 % |
 | 2026-11-21 | Apple Silicon (host) | drone, 8 voices | 8 | 39.6 | 1.52 % |
 | 2026-11-22 | Apple Silicon (host) | micro worst case (held, two sines, sub, drive, free gate, pitch envelope, noise click) | 8 | 15.0 | 0.58 % |
+| 2026-11-23 | Apple Silicon (host) | va + whole chain: phaser (4 stages), flanger, chorus, delay, reverb, master saturation (soft) and limiter (va+fx: 13.1) | 8 | 28.4 | 1.09 % |
 
 Cross build (arm-none-eabi-gcc, cortex-m7, -O2, `libsynth_dsp.a`): text ~77 KB (help strings
 included; `-DDSP_PARAM_TEXT=0` removes them), state ~340 KB with 8 parts (~40 KB per part: lower `SYNTH_PARTS` on a board), plus the effect arena (default 1.3 MB,

@@ -162,3 +162,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web sequencer: one toolbar row less. What is set once (the clip's length, key and scale, octave, loops of an exported song) moves to a Clip settings dialog opened by a Settings button; loop, position, grid, Random and Clear stay on the bar.
 - Web: a Summary pill, first in the Synth view and the one a sound opens on, holds the signal chain diagram (display only, no click on the blocks); the other pills no longer carry it and get the full height.
 - Web: Info joins the Summary pill as its second tab (Signal path, Description); five pills.
+- Web: in Macros and Modulation the Assignments tab comes first; Modulation has one tab per modulator (Env 1, Env 2, Note env, LFO 1, LFO 2, Note LFO, a dot on those assigned) instead of a Modulators tab with a picker under it.

@@ -1,6 +1,6 @@
 <!-- SynthTab.svelte — the Synth view: shaping the sound. Its Structure always on top (the signal chain; a click on a
      block opens the tab and the card that hold its settings), then pills, each with its own tabs under it: Engine (the instrument, named after it: its
-     parameters, or the sampler's kit; and Effects, the bus), Modulation (modulators and their
+     parameters, or the sampler's kit), Effects (the bus and the master), Modulation (modulators and their
      assignments), Macros (names, CC and targets) and Info (its description, instrument, file). The tab open lives in
      the session; a sound picked in the library opens on Engine. -->
 <script>
@@ -18,7 +18,8 @@
   // the pills, each with its editors under it as tabs (even a single one); the tab open is session.editorTab
   const GROUPS = $derived([
     { id: 'engine', label: 'Engine', icon: 'engine',
-      tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) || 'Engine' }, { id: 'fx', label: 'Effects' }] },
+      tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) || 'Engine' }] },
+    { id: 'fx', label: 'Effects', icon: 'effects', tabs: [{ id: 'fx', label: 'Bus' }] },
     { id: 'mod', label: 'Modulation', icon: 'modulation',
       tabs: [{ id: 'mod', label: 'Modulators' }, { id: 'mod-assign', label: 'Assignments' }] },
     { id: 'macros', label: 'Macros', icon: 'macros',

@@ -13,7 +13,7 @@
 
   let W = $state(800);
   let hover = $state(-1); // modulator under the pointer: only its links are drawn
-  const BW = 112, BH = 36, ROWH = 54, TOP = 12, MINW = 84, GAP = 16; // a block narrower than MINW: the bus wraps
+  const BW = 112, BH = 36, ROWH = 54, TOP = 12, MINW = 92, GAP = 16; // blocks never narrower than MINW: the line scrolls
 
   // audio stages of the engine (or one block for engines without a description), then the effect bus
   const parts = $derived.by(() => {
@@ -27,8 +27,8 @@
   const audio = $derived([...parts.eng, ...parts.bus]);
   const mods = $derived((engine?.stages ?? []).filter((s) => s.kind === 'mod' || s.kind === 'voice'));
 
-  // columns by longest path from the sources: the engine's stages and the bus on one line when the blocks keep
-  // MINW; otherwise the engine on top and the bus below it, in rows read left to right
+  // columns by longest path from the sources: the engine's stages and the bus on one line, which scrolls sideways
+  // when the blocks would get narrower than MINW
   function columns(stages) {
     const byId = Object.fromEntries(stages.map((s) => [s.id, s]));
     const col = {};
@@ -47,24 +47,15 @@
     }
     return { pos, rows, ncol: Math.max(...Object.values(col)) + 1, nrow: Math.max(...Object.values(rows)) + 1 };
   }
-  // places the columns of `cl` across the width, from y0
-  function place(cl, y0, xy) {
-    const bw = Math.min(BW, (W - (cl.ncol - 1) * GAP) / cl.ncol), g = cl.ncol > 1 ? (W - cl.ncol * bw) / (cl.ncol - 1) : 0;
-    for (const [id, { c, r }] of Object.entries(cl.pos))
-      xy[id] = { x: c * (bw + g), y: y0 + ((cl.nrow - (cl.rows[c] + 1)) * ROWH) / 2 + r * ROWH, w: bw };
-    return y0 + cl.nrow * ROWH;
-  }
+  // the columns across the visible width, or wider (cw > W, the view scrolls) to keep each block at MINW
   const layout = $derived.by(() => {
-    const xy = {};
-    const all = columns(audio);
-    if ((W - (all.ncol - 1) * GAP) / all.ncol >= MINW || !parts.bus.length)
-      return { xy, height: place(all, TOP, xy) };
-    let y = place(columns(parts.eng), TOP, xy) + 14; // the engine, then the bus in rows of `per` blocks
-    const per = Math.max(1, Math.floor((W + GAP) / (MINW + GAP))), nrows = Math.ceil(parts.bus.length / per);
-    const each = Math.ceil(parts.bus.length / nrows), bw = Math.min(BW, (W - (each - 1) * GAP) / each);
-    const g = each > 1 ? (W - each * bw) / (each - 1) : 0;
-    parts.bus.forEach((s, i) => (xy[s.id] = { x: (i % each) * (bw + g), y: y + Math.floor(i / each) * ROWH, w: bw }));
-    return { xy, height: y + nrows * ROWH };
+    const cl = columns(audio), xy = {};
+    const bw = Math.min(BW, Math.max(MINW, (W - (cl.ncol - 1) * GAP) / cl.ncol));
+    const cw = Math.max(W, cl.ncol * bw + (cl.ncol - 1) * GAP);
+    const g = cl.ncol > 1 ? (cw - cl.ncol * bw) / (cl.ncol - 1) : 0;
+    for (const [id, { c, r }] of Object.entries(cl.pos))
+      xy[id] = { x: c * (bw + g), y: TOP + ((cl.nrow - (cl.rows[c] + 1)) * ROWH) / 2 + r * ROWH, w: bw };
+    return { xy, height: TOP + cl.nrow * ROWH, cw };
   });
 
   // modulators: the engine's own, plus the active part routes grouped by source
@@ -84,7 +75,7 @@
   });
   const chips = $derived([...mods, ...routeChips]);
   const chipY = $derived(layout.height + 34);
-  const chipX = (i) => (chips.length > 1 ? (i * (W - 96)) / (chips.length - 1) : (W - 96) / 2);
+  const chipX = (i) => (chips.length > 1 ? (i * (layout.cw - 96)) / (chips.length - 1) : (layout.cw - 96) / 2);
   const H = $derived(chips.length ? chipY + 30 : layout.height + 6);
 
   // parameters of a stage, by name tokens ("osc2_" = prefix)
@@ -97,10 +88,7 @@
   function edge(a, b) { // from the right side of a to the left side of b
     const p = layout.xy[a], q = layout.xy[b];
     const x1 = p.x + p.w, y1 = p.y + BH / 2, x2 = q.x, y2 = q.y + BH / 2, mx = (x1 + x2) / 2;
-    if (x2 >= x1) return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
-    // to the next row: down from a's foot, back to the left, into b
-    const yb = p.y + BH, ym = q.y - 9, xm = p.x + p.w / 2, xl = Math.max(q.x - 8, 2);
-    return `M${xm},${yb} V${ym - 6} Q${xm},${ym} ${xm - 6},${ym} H${xl + 6} Q${xl},${ym} ${xl},${ym + 6} V${y2 - 6} Q${xl},${y2} ${x2},${y2}`;
+    return `M${x1},${y1} C${mx},${y1} ${mx},${y2} ${x2},${y2}`;
   }
   function modEdge(i, target) {
     const q = layout.xy[target];
@@ -111,8 +99,8 @@
 </script>
 
 <div class="chain">
-  <div bind:clientWidth={W}>
-  <svg width={W} height={H}>
+  <div class="scroll" bind:clientWidth={W}>
+  <svg width={layout.cw} height={H}>
     {#each audio as s}
       {#each s.inputs.split(' ').filter((x) => layout.xy[x]) as from}
         <path class="wire" class:dim={!isOn(audio.find((t) => t.id === from))} d={edge(from, s.id)} />

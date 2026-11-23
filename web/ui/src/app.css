@@ -276,6 +276,7 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 
 /* ---- signal chain (ChainView): blocks along the signal, modulators as chips below ---- */
 .chain { margin: 4px 0 2px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; }
+.chain .scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
 .chain svg { display: block; overflow: visible; }
 .chain .wire { fill: none; stroke: var(--muted); stroke-width: 1.5; }
 .chain .wire.dim { stroke-dasharray: 3 4; opacity: .5; }

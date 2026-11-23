@@ -286,3 +286,32 @@ a modulation destination: an LFO on one cell moves one sideband family only.
 - **What only a matrix does**: two operators modulating each other (1 -> 2 and 2 -> 1), one a hair off unison, the
   loop churns slowly (`fm4_cross_drone`). A link from a lower to a higher number runs a sample late (drawn dashed).
 - **Organ**: all four as carriers at 1, 2, 3, 8, feedback on the top one for a reedy edge (`fm4_reed_organ`).
+
+## Feedback noise machine (`flux`)
+
+One note is a whole machine: eight channels, each an oscillator into a short feedback delay, which modulate each
+other. Every channel setting is a bar from 0 to 1 (`pitch_1`..`pitch_8`, `pulse_`, `cutoff_`, `time_`, `feedback_`,
+`flow_`, `level_`); the four master controls `map_pitch`, `map_cutoff`, `map_time` and `map_flow` reshape the eight
+bars at once (to the left only the highest stay high, to the right all are pushed up), so one knob changes the
+character of the whole machine. A second note played while the first is held slides it (`glide`).
+
+- **Where the sound comes from**: a slow pulse (`pitch_` near 0: a few hertz) is a train of clicks that strikes
+  the loop, which rings at 1 / delay time (`time_` 0.5 = 781 Hz, 1 = 24 Hz); a fast one is a tone coloured by the
+  loop's comb. `feedback_` near 1 and `normalize` up make the loops ring for ever on their own.
+- **Modes**: `loop` (filter inside the loop: the filter picks which resonance wins, the flow is frequency
+  modulation, the wildest), `pre` (filter before the loop, amplitude flow), `para` (parabolic sine, no filter, the
+  flow bends the delay time: the smoothest, for drones).
+- **Deep hums**: `para`, pitches low, long `time_`, `cross` 0.6, a little `fold` so small speakers hear it
+  (`flux_deep_station`). **Metal voices**: `loop`, band-pass, `resonance` 0.8, `normalize` 1, pitches on a chord
+  (bar 0.556 = the note, 1/108 per semitone) (`flux_metal_choir`). **Wind in glass**: `para`, short times,
+  `fold` 0.45, `cross` 0.7 (`flux_glass_wind`).
+- **Machines**: thin pulses (`pulse_` 0.02) at a few hertz, each channel at its own rate, into long tuned loops
+  (`flux_idle_engine`).
+- **Noise**: raise `map_flow` (every channel modulates its neighbour), `fold` (each pass folds the wave again) and
+  `crackle` (random impulses into the loops), with a high-pass (`flux_signal_lost`); high pitches and a fast
+  `motion` make a swarm (`flux_swarm`).
+- **Risers and falls**: route an envelope to `map_pitch`, `map_time`, `map_flow` and `fold` together
+  (`flux_event_horizon`: twenty seconds from a low calm to a wall of noise).
+- `motion` and `depth` set how fast and how far every channel drifts; `depth` 0 freezes the machine. The loops
+  cannot exceed full scale whatever the settings (a tanh closes each loop), but levels change a lot between
+  settings: keep an eye on `volume`.

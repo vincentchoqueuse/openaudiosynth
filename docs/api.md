@@ -484,6 +484,12 @@ the interface every synthesis engine implements, and the engine registry. synth.
 - `const engine_ops_t *engine_find(const char *name)` — Engine by name, or NULL.
 - `int engine_id(const engine_ops_t *e)` — Its synth_engine_t id, or -1.
 
+## `dsp/engines/flux.h`
+feedback noise machine: one note is eight parallel channels that blend into one complex signal, from slow breathing atmospheres to crackling harshness. A channel = an oscillator (a pulse, or a parabolic sine) feeding a short feedback delay (0.04 .. 42 ms: a comb, a resonator, a flutter) with, in the loop, a wavefolder, a level regulator (the loop holds its level instead of dying or exploding), a filter and a saturation. The channels are not independent: each one is modulated by its neighbour's output (the flow: frequency, amplitude or delay time, by mode) and can feed the next one's loop (cross: the eight delays become one network). Every setting of a channel is a value 0..1 (a bar); four master controls reshape the eight bars of pitch, cutoff, delay time and flow at once instead of offsetting them. Random impulses excite the loops (crackle), and every channel's pitch, time, cutoff, level and place wander on slow random walks, so a held note never repeats. References: feedback comb filters and their stability (J. O. Smith, Physical Audio Signal Processing); the Ornstein-Uhlenbeck process for the walks; TPT state-variable filter (V. Zavalishin).
+- types: `flux_walk_t`, `flux_chan_t`, `flux_voice_t`, `flux_t`
+- constants: `FLUX_CH` = 8
+- data: `const param_desc_t flux_params[FLUX_P_COUNT]`, `const engine_ops_t flux_engine`
+
 ## `dsp/engines/fm4.h`
 4-operator phase-modulation synthesizer built on a free modulation matrix: every operator can modulate every other one and itself (the diagonal is its feedback), and a column of output levels says which operators are heard. The usual algorithms (stacks, pairs, one modulator over three carriers...) are just matrices with some cells set, and every cell is a modulatable parameter, so an LFO or an MSEG can move one modulation index alone. Per operator: ratio or fixed frequency, detune, an exponential ADSR, velocity and keyboard level scaling; per voice: a decaying pitch envelope and a filter with its envelope. Reference: J. Chowning, "The Synthesis of Complex Audio Spectra by Means of Frequency Modulation" (JAES 1973); phase modulation as on the classic digital FM instruments.
 - types: `fm4_voice_t`, `fm4_t`

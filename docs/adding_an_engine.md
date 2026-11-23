@@ -31,3 +31,6 @@
 
 Real-time rules (CLAUDE.md): no allocation, no libm per sample (use `core/fastmath.h`), no division in
 inner loops, everything that touches gain/pitch/cutoff interpolated over the block.
+
+Stage ids share one namespace with the effect bus in the interfaces' chain diagram: do not name an engine stage
+`delay`, `reverb`, `chorus`, `phaser`, `flanger`, `crush`, `master`, `saturation` or `limiter` (`flux` calls its delay `comb`).

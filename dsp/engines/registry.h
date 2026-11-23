@@ -8,6 +8,7 @@
 #include "drone.h"
 #include "drums.h"
 #include "fm4.h"
+#include "flux.h"
 #include "fm6.h"
 #include "micro.h"
 #include "modal.h"
@@ -33,6 +34,7 @@ typedef union {
     drone_t drone;
     micro_t micro;
     fm4_t fm4;
+    flux_t flux;
 } engine_state_t;
 
 #endif /* ENGINE_REGISTRY_H */

@@ -1355,3 +1355,86 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
 | `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per note |
 | `bend_range` | 0 .. 12 st | 2 |  | `voice.bend_range` | pitch-bend range |
+
+## Engine `flux` (1 voices)
+
+feedback noise machine: eight channels (pulse or parabolic oscillator into a short feedback delay with wavefolder, level regulator and filter in the loop) that modulate each other (flow) and feed each other's loops (cross); four master controls reshape the eight bars of pitch, cutoff, delay time and flow; crackle, slow random drift; from deep atmospheres to harsh noise (1 voice, notes slide the machine)
+
+| name | range / choices | default | live | role | what it does |
+|---|---|---|---|---|---|
+| `mode` | loop, pre, para | loop |  | `flux.mode` | loop: pulse, filter inside the feedback loop, the flow modulates the frequency (the wildest); pre: pulse, filter before the loop, the flow modulates the amplitude; para: a parabolic sine, no filter, the flow modulates the delay time (the smoothest) |
+| `map_pitch` | -1 .. 1 | 0 | yes | `flux.map.pitch` | master pitch: reshapes the eight pitch bars (left: low and slow, right: high) |
+| `map_cutoff` | -1 .. 1 | 0 | yes | `flux.map.cutoff` | master cutoff: reshapes the eight cutoff bars (left: dark, right: open) |
+| `map_time` | -1 .. 1 | 0 | yes | `flux.map.time` | master delay time: reshapes the eight time bars (left: very short, comb-like and metallic; right: long, deep resonances and flutter) |
+| `map_flow` | -1 .. 1 | 0 | yes | `flux.map.flow` | master flow: reshapes the eight flow bars (left: inert, the channels ignore each other; right: every channel modulates its neighbour, chaos) |
+| `filter_type` | lp, bp, hp | lp |  | `filter.type` | the channels' filter: low-pass, band-pass or high-pass (none in para mode) |
+| `resonance` | 0 .. 1 | 0.3 | yes | `filter.resonance` | resonance of the channels' filter: inside a loop it turns into whistles |
+| `normalize` | 0 .. 1 | 0.5 | yes | `flux.normalize` | level regulator in every loop: 0 = plain feedback (it dies away), 1 = the loop is held at a constant level and rings forever, whatever its feedback |
+| `fold` | 0 .. 1 | 0 | yes | `flux.fold` | wavefolder in every loop: each pass folds the wave again, from a glassy edge to dense digital noise |
+| `cross` | 0 .. 1 | 0.2 | yes | `flux.cross` | how much of each loop comes from the next channel's: 0 = eight separate resonators, 1 = one ring of eight delays (a dense metallic network) |
+| `crackle` | 0 .. 1 | 0 | yes | `flux.crackle` | random impulses exciting the loops: 0 = none, low = rare sparks, 1 = a dense crackling (about 100 a second per channel) |
+| `motion` | 0 .. 1 | 0.4 | yes | `drone.motion` | speed of the random drift of every channel (a minute per swing .. several a second) |
+| `depth` | 0 .. 1 | 0.4 | yes | `drone.depth` | how far the channels' pitch, delay time, cutoff, level and place drift (0 = frozen) |
+| `width` | 0 .. 1 | 0.8 | yes | `drone.width` | spread of the eight channels in the stereo field |
+| `amp_attack` | 0.005 .. 60 s | 1 | yes | `amp.attack` | fade-in time |
+| `amp_release` | 0.005 .. 60 s | 3 | yes | `amp.release` | fade-out time |
+| `glide` | 0.001 .. 20 s | 0.2 | yes | `voice.glide` | time for the whole machine to slide to a new note played while another is held |
+| `velocity` | 0 .. 1 | 0.3 | yes | `amp.velocity` | velocity to level: 0 = every note equal, 1 = full range |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
+| `bend_range` | 0 .. 24 st | 12 |  | `voice.bend_range` | pitch-bend range |
+| `pitch_1` | 0 .. 1 | 0.3 | yes | `flux.ch1.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_2` | 0 .. 1 | 0.36 | yes | `flux.ch2.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_3` | 0 .. 1 | 0.42 | yes | `flux.ch3.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_4` | 0 .. 1 | 0.47 | yes | `flux.ch4.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_5` | 0 .. 1 | 0.52 | yes | `flux.ch5.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_6` | 0 .. 1 | 0.58 | yes | `flux.ch6.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_7` | 0 .. 1 | 0.63 | yes | `flux.ch7.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pitch_8` | 0 .. 1 | 0.2 | yes | `flux.ch8.pitch` | pitch of this channel's oscillator around the note: 0 = 5 octaves below (a slow pulse train, clicks), 0.56 = the note, 1 = 4 octaves above |
+| `pulse_1` | 0 .. 1 | 0.2 | yes | `flux.ch1.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_2` | 0 .. 1 | 0.5 | yes | `flux.ch2.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_3` | 0 .. 1 | 0.1 | yes | `flux.ch3.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_4` | 0 .. 1 | 0.8 | yes | `flux.ch4.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_5` | 0 .. 1 | 0.3 | yes | `flux.ch5.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_6` | 0 .. 1 | 0.6 | yes | `flux.ch6.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_7` | 0 .. 1 | 0.15 | yes | `flux.ch7.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `pulse_8` | 0 .. 1 | 0.05 | yes | `flux.ch8.pulse` | pulse width of this channel: 0 = a thin click, 1 = a square (unused in para mode) |
+| `cutoff_1` | 0 .. 1 | 0.45 | yes | `flux.ch1.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_2` | 0 .. 1 | 0.6 | yes | `flux.ch2.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_3` | 0 .. 1 | 0.5 | yes | `flux.ch3.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_4` | 0 .. 1 | 0.7 | yes | `flux.ch4.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_5` | 0 .. 1 | 0.55 | yes | `flux.ch5.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_6` | 0 .. 1 | 0.75 | yes | `flux.ch6.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_7` | 0 .. 1 | 0.65 | yes | `flux.ch7.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `cutoff_8` | 0 .. 1 | 0.4 | yes | `flux.ch8.cutoff` | cutoff of this channel's filter: 0 = 30 Hz, 1 = 17 kHz |
+| `time_1` | 0 .. 1 | 0.9 | yes | `flux.ch1.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_2` | 0 .. 1 | 0.75 | yes | `flux.ch2.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_3` | 0 .. 1 | 0.82 | yes | `flux.ch3.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_4` | 0 .. 1 | 0.6 | yes | `flux.ch4.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_5` | 0 .. 1 | 0.7 | yes | `flux.ch5.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_6` | 0 .. 1 | 0.5 | yes | `flux.ch6.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_7` | 0 .. 1 | 0.66 | yes | `flux.ch7.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `time_8` | 0 .. 1 | 0.95 | yes | `flux.ch8.time` | delay time of this channel's loop: 0 = 0.04 ms (a bright comb), 0.5 = 1.3 ms, 1 = 42 ms (a low resonance, a flutter) |
+| `feedback_1` | 0 .. 1 | 0.85 | yes | `flux.ch1.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_2` | 0 .. 1 | 0.8 | yes | `flux.ch2.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_3` | 0 .. 1 | 0.88 | yes | `flux.ch3.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_4` | 0 .. 1 | 0.75 | yes | `flux.ch4.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_5` | 0 .. 1 | 0.82 | yes | `flux.ch5.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_6` | 0 .. 1 | 0.7 | yes | `flux.ch6.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_7` | 0 .. 1 | 0.86 | yes | `flux.ch7.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `feedback_8` | 0 .. 1 | 0.9 | yes | `flux.ch8.feedback` | feedback of this channel's loop: 0 = the bare oscillator, 1 = it never decays |
+| `flow_1` | 0 .. 1 | 0.2 | yes | `flux.ch1.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_2` | 0 .. 1 | 0.1 | yes | `flux.ch2.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_3` | 0 .. 1 | 0.3 | yes | `flux.ch3.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_4` | 0 .. 1 | 0 | yes | `flux.ch4.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_5` | 0 .. 1 | 0.25 | yes | `flux.ch5.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_6` | 0 .. 1 | 0.15 | yes | `flux.ch6.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_7` | 0 .. 1 | 0 | yes | `flux.ch7.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `flow_8` | 0 .. 1 | 0.2 | yes | `flux.ch8.flow` | how much the previous channel's output modulates this one (its frequency, amplitude or delay time, by mode) |
+| `level_1` | 0 .. 1 | 0.7 | yes | `flux.ch1.level` | output level of this channel |
+| `level_2` | 0 .. 1 | 0.7 | yes | `flux.ch2.level` | output level of this channel |
+| `level_3` | 0 .. 1 | 0.7 | yes | `flux.ch3.level` | output level of this channel |
+| `level_4` | 0 .. 1 | 0.7 | yes | `flux.ch4.level` | output level of this channel |
+| `level_5` | 0 .. 1 | 0.7 | yes | `flux.ch5.level` | output level of this channel |
+| `level_6` | 0 .. 1 | 0.7 | yes | `flux.ch6.level` | output level of this channel |
+| `level_7` | 0 .. 1 | 0.7 | yes | `flux.ch7.level` | output level of this channel |
+| `level_8` | 0 .. 1 | 0.7 | yes | `flux.ch8.level` | output level of this channel |

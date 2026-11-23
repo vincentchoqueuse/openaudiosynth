@@ -125,6 +125,13 @@ class Session {
     fx: this.shared.filter((d) => this.#fxIds.has(d.id) && d.realtime),
   });
   macroName = (k) => this.macroNames[k] || `Macro ${k + 1}`;
+  // parameter id -> the macros (0..7) that move it, in order: the badge on a parameter's row
+  macrosOf = $derived.by(() => {
+    const out = {};
+    for (const m of this.macroMaps) if (m.macro >= 0 && m.dst && !(out[m.dst.id] ??= []).includes(m.macro)) out[m.dst.id].push(m.macro);
+    for (const id in out) out[id].sort((x, y) => x - y);
+    return out;
+  });
 
   // ---- notices: errors stay longer ----
   notify = (text, kind = 'info') => {

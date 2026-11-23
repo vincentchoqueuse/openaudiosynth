@@ -122,6 +122,10 @@ section.card.off .stage-head { margin-bottom: 0; }
 .param { display: grid; grid-template-columns: 8.5em 1fr 5.2em; gap: 10px; align-items: center; min-height: 27px; }
 .param .label { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
 .param.changed .label::after { content: ' •'; color: var(--accent); } /* moved since the sound was loaded */
+/* the macros that move this parameter */
+.param .macro-pill { display: inline-block; vertical-align: 1px; margin-right: 5px; padding: 0 5px; height: 15px; border: 0; border-radius: 8px; background: var(--warn); color: #fff;
+  font: inherit; font-size: 10px; line-height: 15px; font-weight: 600; cursor: pointer; }
+.param .macro-pill:hover { filter: brightness(1.15); }
 .param .cell, .param .select { grid-column: 2 / 4; }
 .param .cell .pills.icon button { flex: 1; width: auto; }
 .param .val { font-size: 11.5px; text-align: right; color: var(--muted); white-space: nowrap; }

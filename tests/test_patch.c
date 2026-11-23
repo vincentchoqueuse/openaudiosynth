@@ -20,7 +20,7 @@ void suite_patch(void)
     static patch_t p; /* large */
     char err[512], warn[512];
     const char *with_clip =
-        "{\"version\":1,\"engine\":\"sine\",\"params\":{},\"audition\":{\"notes\":\"C4 D4 E4\",\"bpm\":90},"
+        "{\"version\":1,\"engine\":\"micro\",\"params\":{},\"audition\":{\"notes\":\"C4 D4 E4\",\"bpm\":90},"
         "\"clip\":{\"bpm\":60,\"length\":8,\"loop\":true,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":2,\"velocity\":90},"
         "{\"pitch\":67,\"start\":4,\"length\":1},{\"pitch\":72,\"start\":9,\"length\":1}]}}";
     CHECK(patch_parse(with_clip, &p, err, sizeof err, warn, sizeof warn) == 0, "patch with a clip refused: %s", err);
@@ -39,16 +39,16 @@ void suite_patch(void)
     seq_free(&s);
 
     const char *bad[] = {
-        "{\"version\":1,\"engine\":\"sine\",\"params\":{},\"clip\":{\"notes\":[]}}",
-        "{\"version\":1,\"engine\":\"sine\",\"params\":{},\"clip\":{\"length\":4,\"notes\":[{\"pitch\":200,\"start\":0,\"length\":1}]}}",
-        "{\"version\":1,\"engine\":\"sine\",\"params\":{},\"clip\":{\"length\":4,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":0}]}}",
-        "{\"version\":1,\"engine\":\"sine\",\"params\":{},\"clip\":{\"length\":4,\"bpm\":5,\"notes\":[]}}",
+        "{\"version\":1,\"engine\":\"micro\",\"params\":{},\"clip\":{\"notes\":[]}}",
+        "{\"version\":1,\"engine\":\"micro\",\"params\":{},\"clip\":{\"length\":4,\"notes\":[{\"pitch\":200,\"start\":0,\"length\":1}]}}",
+        "{\"version\":1,\"engine\":\"micro\",\"params\":{},\"clip\":{\"length\":4,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":0}]}}",
+        "{\"version\":1,\"engine\":\"micro\",\"params\":{},\"clip\":{\"length\":4,\"bpm\":5,\"notes\":[]}}",
     };
     for (unsigned i = 0; i < sizeof bad / sizeof bad[0]; i++)
         CHECK(patch_parse(bad[i], &p, err, sizeof err, warn, sizeof warn) != 0 && strstr(err, "clip"),
               "bad clip %u accepted (or a message without \"clip\": %s)", i, err);
 
-    const char *no_clip = "{\"version\":1,\"engine\":\"sine\",\"params\":{},\"audition\":{\"notes\":\"C4 D4 E4\",\"bpm\":120,\"step\":0.5}}";
+    const char *no_clip = "{\"version\":1,\"engine\":\"micro\",\"params\":{},\"audition\":{\"notes\":\"C4 D4 E4\",\"bpm\":120,\"step\":0.5}}";
     CHECK(patch_parse(no_clip, &p, err, sizeof err, warn, sizeof warn) == 0 && p.clip_n == 0, "patch without a clip");
     seq_init(&s);
     const float l2 = patch_audition(&p, NULL, &s, err, sizeof err);

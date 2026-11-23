@@ -3,7 +3,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "engines/sine.h"
 #include "engines/va.h"
 #include "engines/micro.h"
 #include "engines/fm4.h"
@@ -69,8 +68,8 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
                 synth_set_param(synth_default(), FM4_P_OUT(k), 0.5f);
             synth_set_param(synth_default(), FM4_P_FILTER_TYPE, param_to_norm(&fm4_params[FM4_P_FILTER_TYPE], 1.0f));
         }
-    } else {
-        synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
+    } else { /* parameter 2 at its top, as the bench has always done for the other engines */
+        synth_set_param(synth_default(), 2, 1.0f);
     }
     if (fx) { /* whole effect bus on */
         synth_set_param(synth_default(), SYNTH_PARAM_CHORUS_MODE, 1.0f);
@@ -117,7 +116,6 @@ static void bench_engine(const char *name, synth_engine_t eng, int voices, int s
 void run_bench(void)
 {
     printf("bench (host, 48 kHz, block %d)\n", SYNTH_BLOCK);
-    bench_engine("sine", SYNTH_ENGINE_SINE, SINE_VOICES, 0, 0);
     bench_engine("va", SYNTH_ENGINE_VA, VA_VOICES, 0, 0);
     bench_engine("va-ss", SYNTH_ENGINE_VA, VA_VOICES, 1, 0);
     bench_engine("modal", SYNTH_ENGINE_MODAL, MODAL_VOICES, 0, 0);

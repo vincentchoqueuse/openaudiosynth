@@ -6,7 +6,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "engines/sine.h"
+#include "engines/micro.h"
 #include "filter/comb.h"
 #include "global_params.h"
 #include "mod/partmod.h"
@@ -47,8 +47,8 @@ static float level_at(const float *x, float f)
 static void sine_sustain(void)
 {
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
-    synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 1.0f);
 }
 
 void suite_voicemod(void)
@@ -254,7 +254,7 @@ void suite_voicemod(void)
     setmod(PM_VROUTE(0, PM_VR_DST), (float)VM_LEVEL);
     setmod(PM_VROUTE(0, PM_VR_AMOUNT), 1.0f);
     setmod(PM_VROUTE(1, PM_VR_SRC), (float)VM_SRC_NONE);
-    synth_set_param(synth_default(), SINE_P_VOLUME, param_to_norm(&sine_params[SINE_P_VOLUME], -24.0f));
+    synth_set_param(synth_default(), MICRO_P_VOLUME, param_to_norm(&micro_params[MICRO_P_VOLUME], -24.0f));
     midi3(0x90, 69, 100);
     render(N);
     const float early = rms(L + 2400, 2400), late = rms(L + N - 2400, 2400);

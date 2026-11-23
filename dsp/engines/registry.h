@@ -15,12 +15,10 @@
 #include "poly.h"
 #include "sampler.h"
 #include "selfosc.h"
-#include "sine.h"
 #include "va.h"
 #include "wt.h"
 
 typedef union {
-    sine_engine_t sine;
     va_t va;
     modal_t modal;
     drums_t drums;

@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "engines/sine.h"
+#include "engines/micro.h"
 #include "fx/limiter.h"
 #include "global_params.h"
 #include "synth.h"
@@ -31,8 +31,8 @@ static void render(float *l, float *r, int n)
 static void sine_note(int note)
 {
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
-    synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 1.0f);
     const uint8_t m[3] = {0x90, (uint8_t)note, 127};
     synth_midi(synth_default(), m, 3, 0);
 }

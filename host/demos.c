@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "engines/sine.h"
 #include "engines/va.h"
 #include "mod/params.h"
 
@@ -227,20 +226,7 @@ static void demo_pwm(seq_t *s)
         seq_midi(s, 7.0f + 0.5f * (float)k / 50.0f, 0xE0, 0, (uint8_t)(64 - 16 * k / 50));
 }
 
-/* Reference engine: C major scale, then a chord. */
-static void demo_sine(seq_t *s)
-{
-    seq_engine(s, 0.0f, SYNTH_ENGINE_SINE);
-    static const int scale[8] = {60, 62, 64, 65, 67, 69, 71, 72};
-    for (int i = 0; i < 8; i++)
-        seq_note(s, 0.25f * (float)i, scale[i], 100, 0.22f);
-    seq_note(s, 2.25f, 60, 90, 1.5f);
-    seq_note(s, 2.25f, 64, 90, 1.5f);
-    seq_note(s, 2.25f, 67, 90, 1.5f);
-}
-
 const demo_t demos[] = {
-    {"sine_scale", SYNTH_ENGINE_SINE, "reference sine engine: scale and chord", 4.5f, demo_sine},
     {"va_pad", SYNTH_ENGINE_VA, "warm detuned pad, slowly opening filter", 9.5f, demo_pad},
     {"va_bass", SYNTH_ENGINE_VA, "resonant bass line with filter envelope and accents", 8.5f, demo_bass},
     {"va_sweep", SYNTH_ENGINE_VA, "resonant low-pass sweep 40 Hz -> 12 kHz -> 40 Hz", 8.5f, demo_sweep},

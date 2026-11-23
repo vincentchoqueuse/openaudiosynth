@@ -12,8 +12,7 @@
 
 typedef enum {
     SYNTH_ENGINE_NONE = -1, /* a part with no engine (off) */
-    SYNTH_ENGINE_SINE = 0, /* reference: polyphonic sine */
-    SYNTH_ENGINE_VA,       /* subtractive: 2 oscillators (incl. supersaw) + noise, SVF, 2 ADSR, LFOs */
+    SYNTH_ENGINE_VA = 0,   /* subtractive: 2 oscillators (incl. supersaw) + noise, SVF, 2 ADSR, LFOs */
     SYNTH_ENGINE_MODAL,    /* physical modelling: struck/bowed resonator banks (bells, bars, glass, piano) */
     SYNTH_ENGINE_DRUMS,    /* drum machine: analog, hybrid and glitch kits, GM drum notes */
     SYNTH_ENGINE_ACID,     /* monophonic acid bass: resonant 18 dB ladder, accent, slide */

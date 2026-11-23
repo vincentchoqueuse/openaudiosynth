@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "engines/engine.h"
-#include "engines/sine.h"
+#include "engines/micro.h"
 #include "engines/va.h"
 #include "global_params.h"
 #include "mod/params.h"
@@ -129,11 +129,12 @@ static void queue_full_note_off(void)
 {
     static float qL[48000], qR[48000];
     synth_init(synth_default(), 48000.0f);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
     midi3(0x90, 60, 100);
     render(qL, qR, 4800, 256);
     for (int i = 0; i < 2000; i++) /* more than the queue holds */
-        synth_set_param(synth_default(), SINE_P_SUSTAIN, 0.7f);
+        synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f);
     midi3(0x80, 60, 0);
     render(qL, qR, 48000, 256);
     CHECK(rms(qL + 43200, 4800) < 1e-4f, "note-off dropped by a full queue (rms %g)", (double)rms(qL + 43200, 4800));
@@ -147,13 +148,14 @@ static void nan_recovery(void)
     static float qL[48000], qR[48000];
     synth_t *s = synth_default();
     synth_init(s, 48000.0f);
-    synth_set_engine(s, SYNTH_ENGINE_SINE);
+    synth_set_engine(s, SYNTH_ENGINE_MICRO);
+    synth_set_param(s, MICRO_P_SUSTAIN, 0.7f); /* held notes */
     synth_set_param(s, SYNTH_PARAM_REVERB_MIX, 0.5f); /* a feedback path a NaN would poison for good */
     midi3(0x90, 60, 100);
     render(qL, qR, 4800, 256);
-    sine_engine_t *e = synth_debug_engine_state(s, 0);
-    for (int i = 0; i < SINE_VOICES; i++)
-        e->v[i].osc.phase = NAN;
+    micro_t *e = synth_debug_engine_state(s, 0);
+    for (int i = 0; i < MICRO_VOICES; i++)
+        e->v[i].hit_gain = NAN; /* a voice's gain poisoned: every block it renders is NaN */
     render(qL, qR, 9600, 256);
     CHECK(all_finite_bounded(qL, 9600, 1.0f) && all_finite_bounded(qR, 9600, 1.0f), "NaN reached the output");
     CHECK(synth_debug_nan_count(s) >= 1, "NaN not detected");
@@ -187,7 +189,8 @@ void suite_synth(void)
 
     /* Pitch, sine engine: A4 = 440 Hz */
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
     midi3(0x90, 69, 100);
     render(L, R, n, 128);
     float f = estimate_freq(L + 4800, n - 4800, SR);
@@ -238,12 +241,12 @@ void suite_synth(void)
      * natural sample-to-sample step is < 0.01; a hard cut would jump by ~0.1. */
     {
         synth_init(synth_default(), SR);
-        synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
-        synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
-        for (int k = 0; k < SINE_VOICES; k++)
+        synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+        synth_set_param(synth_default(), MICRO_P_SUSTAIN, 1.0f);
+        for (int k = 0; k < MICRO_VOICES; k++)
             midi3(0x90, (uint8_t)(36 + k), 127); /* distinct notes: every voice is taken */
         render(L, R, 9600, 64);
-        midi3(0x90, (uint8_t)(36 + SINE_VOICES), 127); /* one more: a voice must be stolen */
+        midi3(0x90, (uint8_t)(36 + MICRO_VOICES), 127); /* one more: a voice must be stolen */
         render(L, R, n, 64);
         float maxd = 0.0f;
         for (int i = 1; i < n; i++)
@@ -258,7 +261,8 @@ void suite_synth(void)
         set_va(VA_P_OSC2_LEVEL, 0.0f);
         midi3(0x90, 36, 127);
         render(L, R, 4800, 64);
-        synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
+        synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+        synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
         midi3(0x90, 36, 127);
         render(L + 4800, R + 4800, n - 4800, 64);
         float maxd = 0.0f;
@@ -271,7 +275,8 @@ void suite_synth(void)
     /* Sustain pedal: note held after note-off, released when the pedal goes up */
     {
         synth_init(synth_default(), SR);
-        synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
+        synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+        synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
         midi3(0xB0, 64, 127);
         midi3(0x90, 69, 100);
         render(L, R, 4800, 64);
@@ -433,7 +438,8 @@ void suite_synth(void)
     /* the sample offset of an event is honoured (resolution: one block) */
     {
         synth_init(synth_default(), SR);
-        synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
+        synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+        synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
         const uint8_t on[3] = {0x90, 69, 127};
         synth_midi(synth_default(), on, 3, 4800);
         render(L, R, 9600, 256);

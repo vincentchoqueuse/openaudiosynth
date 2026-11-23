@@ -13,11 +13,9 @@
 #include "mono.h"
 #include "poly.h"
 #include "sampler.h"
-#include "sine.h"
 #include "va.h"
 
 const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
-    [SYNTH_ENGINE_SINE] = &sine_engine,
     [SYNTH_ENGINE_VA] = &va_engine,
     [SYNTH_ENGINE_MODAL] = &modal_engine,
     [SYNTH_ENGINE_DRUMS] = &drums_engine,

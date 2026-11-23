@@ -495,17 +495,6 @@
     }
   },
   "engines": {
-    "sine": {
-      "description": "reference polyphonic sine with one ADSR (8 voices)",
-      "voices": 8,
-      "params": {
-        "attack": {"type": "float", "range": [0.0005, 30], "default": 0.005, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "attack time"},
-        "decay": {"type": "float", "range": [0.0005, 30], "default": 0.3, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "decay time to the sustain level"},
-        "sustain": {"type": "float", "range": [0, 1], "default": 0.7, "realtime": true, "role": "amp.sustain", "help": "sustain level"},
-        "release": {"type": "float", "range": [0.0005, 30], "default": 0.4, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "release time"},
-        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume in dB"}
-      }
-    },
     "va": {
       "description": "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> 2-pole TPT SVF -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
       "voices": 8,

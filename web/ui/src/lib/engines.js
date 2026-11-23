@@ -1,10 +1,10 @@
 // engines.js — how the engines are presented: the order of the families and one color each, the same as on
 // the board's screen (target/h745/app/m4/app_m4.c), so an instrument looks the same everywhere.
-export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm4', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'micro', 'sine'];
+export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm4', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'micro'];
 
 const COLORS = {
   va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5', poly: '#f2777a', acid: '#b8e05a',
-  drums: '#e5534b', coupled: '#7fa7ff', selfosc: '#d98cff', wt: '#56d39a', sine: '#9aa5b1', sampler: '#f08fb8', drone: '#8fc9e8',
+  drums: '#e5534b', coupled: '#7fa7ff', selfosc: '#d98cff', wt: '#56d39a', sampler: '#f08fb8', drone: '#8fc9e8',
   micro: '#e8e2d0', fm4: '#c58cff',
 };
 
@@ -19,7 +19,6 @@ export const engineRank = (name) => {
 // Default macros of each instrument, as on the board's knobs (target/h745/app/knobs.c): six main parameters, then
 // the delay and reverb sends. A sound without macros of its own gets them (session.defaultMacros).
 export const DEFAULT_MACROS = {
-  sine: ['attack', 'decay', 'sustain', 'release', 'volume'],
   va: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_attack', 'amp_release'],
   acid: ['cutoff', 'resonance', 'env_mod', 'decay', 'accent', 'distortion'],
   mono: ['cutoff', 'emphasis', 'contour', 'fenv_decay', 'mixer_drive', 'glide'],

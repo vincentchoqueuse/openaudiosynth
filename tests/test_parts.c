@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "engines/sine.h"
+#include "engines/micro.h"
 #include "global_params.h"
 #include "synth.h"
 #include "test.h"
@@ -29,7 +29,7 @@ static void render(float *l, float *r)
 
 static void part_set(int part, int id, float physical)
 {
-    const param_desc_t *d = id >= SYNTH_PART_PARAM ? synth_part_param_info(id - SYNTH_PART_PARAM) : &sine_params[id];
+    const param_desc_t *d = id >= SYNTH_PART_PARAM ? synth_part_param_info(id - SYNTH_PART_PARAM) : &micro_params[id];
     synth_part_param(synth_default(), part, id, param_to_norm(d, physical));
 }
 
@@ -48,12 +48,12 @@ static float level_at(const float *x, float f)
 static void two_parts(void)
 {
     synth_init(synth_default(), SR);
-    synth_part_engine(synth_default(), 0, SYNTH_ENGINE_SINE);
-    synth_part_engine(synth_default(), 1, SYNTH_ENGINE_SINE);
+    synth_part_engine(synth_default(), 0, SYNTH_ENGINE_MICRO);
+    synth_part_engine(synth_default(), 1, SYNTH_ENGINE_MICRO);
     part_set(0, SYNTH_PART_CHANNEL, 1.0f);
     part_set(1, SYNTH_PART_CHANNEL, 2.0f);
-    part_set(0, SINE_P_SUSTAIN, 1.0f);
-    part_set(1, SINE_P_SUSTAIN, 1.0f);
+    part_set(0, MICRO_P_SUSTAIN, 1.0f);
+    part_set(1, MICRO_P_SUSTAIN, 1.0f);
 }
 
 void suite_parts(void)
@@ -82,9 +82,9 @@ void suite_parts(void)
 
     /* transposition changed while a key is held: the note-off still stops the right note */
     synth_init(synth_default(), SR);
-    synth_part_engine(synth_default(), 0, SYNTH_ENGINE_SINE);
-    part_set(0, SINE_P_SUSTAIN, 1.0f);
-    part_set(0, SINE_P_RELEASE, 0.05f);
+    synth_part_engine(synth_default(), 0, SYNTH_ENGINE_MICRO);
+    part_set(0, MICRO_P_SUSTAIN, 1.0f);
+    part_set(0, MICRO_P_RELEASE, 0.05f);
     midi3(0x90, 69, 100);
     render(L, R);
     part_set(0, SYNTH_PART_TRANSPOSE, 5.0f);
@@ -97,8 +97,8 @@ void suite_parts(void)
     float ref = 0.0f;
     for (int k = 0; k < 4; k++) {
         synth_init(synth_default(), SR);
-        synth_part_engine(synth_default(), 0, SYNTH_ENGINE_SINE);
-        part_set(0, SINE_P_SUSTAIN, 1.0f);
+        synth_part_engine(synth_default(), 0, SYNTH_ENGINE_MICRO);
+        part_set(0, MICRO_P_SUSTAIN, 1.0f);
         if (k == 1)
             part_set(0, SYNTH_PART_LEVEL, -6.0206f);
         if (k == 2)
@@ -118,8 +118,8 @@ void suite_parts(void)
 
     /* balance: full right leaves the left side silent, the right side untouched */
     synth_init(synth_default(), SR);
-    synth_part_engine(synth_default(), 0, SYNTH_ENGINE_SINE);
-    part_set(0, SINE_P_SUSTAIN, 1.0f);
+    synth_part_engine(synth_default(), 0, SYNTH_ENGINE_MICRO);
+    part_set(0, MICRO_P_SUSTAIN, 1.0f);
     part_set(0, SYNTH_PART_PAN, 1.0f);
     midi3(0x90, 69, 100);
     render(L, R);
@@ -129,8 +129,8 @@ void suite_parts(void)
     /* effect send 0: a part bypasses the reverb completely (same as no reverb) */
     for (int k = 0; k < 2; k++) {
         synth_init(synth_default(), SR);
-        synth_part_engine(synth_default(), 0, SYNTH_ENGINE_SINE);
-        part_set(0, SINE_P_SUSTAIN, 1.0f);
+        synth_part_engine(synth_default(), 0, SYNTH_ENGINE_MICRO);
+        part_set(0, MICRO_P_SUSTAIN, 1.0f);
         if (k) {
             synth_set_param(synth_default(), SYNTH_PARAM_REVERB_MIX, 0.8f);
             part_set(0, SYNTH_PART_FX_SEND, 0.0f);

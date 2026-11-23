@@ -23,7 +23,6 @@ set(SYNTH_DSP_SOURCES
   dsp/mod/params.c
   dsp/voice/voice_alloc.c
   dsp/voice/vpoly.c
-  dsp/engines/sine.c
   dsp/engines/va.c
   dsp/engines/modal.c
   dsp/engines/drums.c

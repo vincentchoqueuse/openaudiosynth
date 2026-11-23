@@ -417,18 +417,6 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `vlfo_a8` | -1 .. 1 | 0 | yes | `vlfo.harmonic8.a` | Fourier shape: cosine coefficient of harmonic 8 |
 | `vlfo_b8` | -1 .. 1 | 0 | yes | `vlfo.harmonic8.b` | Fourier shape: sine coefficient of harmonic 8 |
 
-## Engine `sine` (8 voices)
-
-reference polyphonic sine with one ADSR (8 voices)
-
-| name | range / choices | default | live | role | what it does |
-|---|---|---|---|---|---|
-| `attack` | 0.0005 .. 30 s | 0.005 | yes | `amp.attack` | attack time |
-| `decay` | 0.0005 .. 30 s | 0.3 | yes | `amp.decay` | decay time to the sustain level |
-| `sustain` | 0 .. 1 | 0.7 | yes | `amp.sustain` | sustain level |
-| `release` | 0.0005 .. 30 s | 0.4 | yes | `amp.release` | release time |
-| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume in dB |
-
 ## Engine `va` (8 voices)
 
 subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> 2-pole TPT SVF -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)

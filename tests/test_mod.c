@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 #include "engines/fm6.h"
-#include "engines/sine.h"
+#include "engines/micro.h"
 #include "engines/va.h"
 #include "env/mseg.h"
 #include "global_params.h"
@@ -58,8 +58,8 @@ static float run(mseg_t *m, const mseg_shape_t *s, float seconds)
 static void sine_part(void)
 {
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
-    synth_set_param(synth_default(), SINE_P_SUSTAIN, 1.0f);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 1.0f);
 }
 
 /* a route aimed at an engine parameter loses its destination when the part changes engine */
@@ -96,10 +96,11 @@ static float macro_level(float m1, float m2)
 static void macro_targets(void)
 {
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
-    const param_desc_t *vol = &sine_params[SINE_P_VOLUME];
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
+    const param_desc_t *vol = &micro_params[MICRO_P_VOLUME];
     mset(PM_MAP(0, PM_M_MACRO), 1.0f);                    /* macro1 -> volume, -30 dB .. 0 dB */
-    mset(PM_MAP(0, PM_M_DST), (float)(SINE_P_VOLUME + 1));
+    mset(PM_MAP(0, PM_M_DST), (float)(MICRO_P_VOLUME + 1));
     mset(PM_MAP(0, PM_M_FROM), param_to_norm(vol, -30.0f));
     mset(PM_MAP(0, PM_M_TO), param_to_norm(vol, 0.0f));
     const uint8_t on[3] = {0x90, 69, 100};
@@ -111,7 +112,7 @@ static void macro_targets(void)
     CHECK(fabsf(half - 15.0f) < 0.5f, "macro1 at 0.5: %.2f dB instead of 15 (along the dB curve)", (double)half);
     /* macro2 also on volume, +12 dB of travel: adds to macro1's */
     mset(PM_MAP(1, PM_M_MACRO), 2.0f);
-    mset(PM_MAP(1, PM_M_DST), (float)(SINE_P_VOLUME + 1));
+    mset(PM_MAP(1, PM_M_DST), (float)(MICRO_P_VOLUME + 1));
     mset(PM_MAP(1, PM_M_FROM), 0.0f);
     mset(PM_MAP(1, PM_M_TO), param_to_norm(vol, 6.0f) - param_to_norm(vol, -6.0f));
     const float both = macro_level(0.0f, 1.0f);
@@ -130,7 +131,8 @@ static void macro_targets(void)
 static void macro_global_and_cc(void)
 {
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_SUSTAIN, 0.7f); /* held notes */
     const param_desc_t *master = synth_global_param(0);
     mset(PM_MAP(0, PM_M_MACRO), 1.0f);                    /* macro1 -> master, -24 dB .. 0 dB */
     mset(PM_MAP(0, PM_M_DST), (float)(SYNTH_PARAM_MASTER_DB + 1));
@@ -284,7 +286,7 @@ void suite_mod(void)
     midi3(0x90, 69, 100);
     render(L, R, N / 4);
     const float ref = rms(L + N / 8, N / 8);
-    route(0, PM_SRC_MACRO1, SINE_P_VOLUME, -0.5f);
+    route(0, PM_SRC_MACRO1, MICRO_P_VOLUME, -0.5f);
     setmod(PM_MACRO(0), 1.0f);
     render(L, R, N / 4);
     const float down = rms(L + N / 8, N / 8);
@@ -311,7 +313,7 @@ void suite_mod(void)
     sine_part();
     synth_set_param(synth_default(), SYNTH_PARAM_TEMPO, param_to_norm(synth_global_param(SYNTH_PARAM_TEMPO - SYNTH_PARAM_GLOBAL), 120.0f));
     setmod(PM_LFO(0, PM_LFO_SYNC), 9.0f); /* 1/4 */
-    route(0, PM_SRC_LFO1, SINE_P_VOLUME, 0.3f);
+    route(0, PM_SRC_LFO1, MICRO_P_VOLUME, 0.3f);
     midi3(0x90, 69, 100);
     render(L, R, N);
     float env[100];
@@ -327,8 +329,8 @@ void suite_mod(void)
     setmod(PM_MSEG(0, PM_MSEG_SUSTAIN), 0.0f);
     setmod(PM_MSEG(0, PM_MSEG_POINTS), 2.0f);
     setmod(PM_MSEG_PT(0, 1, PM_PT_TIME), 1.0f);
-    route(0, PM_SRC_MSEG1, SINE_P_VOLUME, 0.5f);
-    synth_set_param(synth_default(), SINE_P_VOLUME, param_to_norm(&sine_params[SINE_P_VOLUME], -30.0f));
+    route(0, PM_SRC_MSEG1, MICRO_P_VOLUME, 0.5f);
+    synth_set_param(synth_default(), MICRO_P_VOLUME, param_to_norm(&micro_params[MICRO_P_VOLUME], -30.0f));
     midi3(0x90, 69, 100);
     render(L, R, N);
     CHECK(rms(L + N - 4800, 4800) > 3.0f * rms(L + 2400, 4800), "mseg -> volume: %.4f then %.4f",

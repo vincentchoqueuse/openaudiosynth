@@ -535,12 +535,6 @@ self-oscillating engine: each voice is a Van der Pol / Duffing oscillator forced
 - constants: `SO_VOICES` = 8
 - data: `const param_desc_t selfosc_params[SO_P_COUNT]`, `const engine_ops_t selfosc_engine`
 
-## `dsp/engines/sine.h`
-reference engine (M0): polyphonic sine with one ADSR. Used to validate the full chain (MIDI, voices, master) and tuning accuracy.
-- types: `sine_voice_t`, `sine_engine_t`
-- constants: `SINE_VOICES` = 8
-- data: `const param_desc_t sine_params[SINE_P_COUNT]`, `const engine_ops_t sine_engine`
-
 ## `dsp/engines/va.h`
 "va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators (or supersaws) + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
 - types: `va_voice_t`, `va_t`

@@ -6,7 +6,6 @@ with `DWT->CYCCNT` on the board (M7).
 
 | Date | Machine | Engine | Voices | ns / voice / sample | Load (real time) |
 |---|---|---|---|---|---|
-| 2026-11-17 | Apple Silicon (host) | sine | 8 | 4.1 | 0.16 % |
 | 2026-11-17 | Apple Silicon (host) | va (2 osc + noise, SVF, 2 ADSR, LFO 1 + per-voice LFO 2) | 8 | 11.2 | 0.43 % |
 | 2026-11-17 | Apple Silicon (host) | va, LFOs 2-4 (detune 0, skipped) | 8 | 11.5 | 0.44 % |
 | 2026-11-17 | Apple Silicon (host) | va, 2 x supersaw (14 saws/voice, motion on) | 8 | 36.2 | 1.39 % |

@@ -4,7 +4,7 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "engines/sine.h"
+#include "engines/micro.h"
 #include "fx/fxbus.h"
 #include "global_params.h"
 #include "mod/tempo.h"
@@ -67,8 +67,8 @@ void suite_tempo(void)
 
     /* tempo-synced delay: at 100 BPM a 1/4 echo comes 0.6 s after the dry note */
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_SINE);
-    synth_set_param(synth_default(), SINE_P_RELEASE, 0.0f);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_MICRO);
+    synth_set_param(synth_default(), MICRO_P_RELEASE, 0.0f);
     set_global(SYNTH_PARAM_TEMPO, 100.0f);
     set_global(SYNTH_PARAM_DELAY_SYNC, 9.0f); /* "1/4" */
     set_global(SYNTH_PARAM_DELAY_MIX, 1.0f);

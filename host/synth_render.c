@@ -1,7 +1,7 @@
 /* synth_render.c — offline renderer: plays a scripted demo through the public API and writes a
  * 32-bit float stereo WAV. Also reports peak / RMS levels so loudness regressions are visible.
  *
- *   synth_render --engine va --demo out.wav      first built-in demo of the engine (sine and va have some)
+ *   synth_render --engine va --demo out.wav      first built-in demo of the engine (va and others have some)
  *   synth_render --name va_bass --demo out.wav   a given demo
  *   synth_render --all build-host/renders        every demo, one WAV each
  *   synth_render --list

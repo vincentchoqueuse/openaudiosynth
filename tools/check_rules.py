@@ -16,7 +16,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PORTABLE = ("dsp", "midi")
 ALLOWED_SYS = {"stdint.h", "stddef.h"}
 MATH_OK = set()  # files allowed to include <math.h> (init-time table generators), relative paths
-NO_PATCH_OK = {"sine"}  # reference engine of the test suite
+NO_PATCH_OK = set()
 GLOBALS_OK = {("dsp/synth.c", "g_synth"), ("dsp/synth.c", "g_fx_mem"), ("dsp/synth.c", "g_engine_mem"),
               ("dsp/synth.c", "g_engine_mem_built")}
 FORBIDDEN = r"\b(malloc|calloc|realloc|free|printf|fprintf|sprintf|snprintf|puts|fopen|fread|fwrite|pthread_\w+|" \

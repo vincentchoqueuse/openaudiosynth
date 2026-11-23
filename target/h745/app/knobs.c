@@ -39,7 +39,6 @@ static const struct {
     const char *engine;
     const char *param[6];
 } knob_targets[] = {
-    {"sine", {"attack", "decay", "sustain", "release", "volume", ""}},
     {"va", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_attack", "amp_release"}},
     {"acid", {"cutoff", "resonance", "env_mod", "decay", "accent", "distortion"}},
     {"mono", {"cutoff", "emphasis", "contour", "fenv_decay", "mixer_drive", "glide"}},

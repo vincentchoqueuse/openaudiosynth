@@ -1,6 +1,6 @@
 # Adding an engine
 
-`dsp/engines/sine.c` is the smallest complete engine: copy it.
+`dsp/engines/selfosc.c` is the smallest complete engine: copy it.
 
 1. **Header `dsp/engines/<name>.h`**: parameter enum (`<NAME>_P_...`, `<NAME>_P_COUNT`), `extern const
    param_desc_t <name>_params[]`, `extern const engine_ops_t <name>_engine`, the per-voice struct and

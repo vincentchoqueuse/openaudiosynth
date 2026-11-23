@@ -64,7 +64,7 @@ function clip(loop) {
   play(2); // past the clip's end
   return { len, sounding: a.peak > 1e-4, pos: w.w_player_pos() };
 }
-w.w_patch(cstr('{"version":1,"engine":"sine","name":"t","params":{}}'));
+w.w_patch(cstr('{"version":1,"engine":"micro","name":"t","params":{}}'));
 const looped = clip(1), once = clip(0);
 if (Math.abs(looped.len - 2) > 1e-6 || !looped.sounding || looped.pos < 0 || once.pos !== -1) {
   console.log(`FAIL clip player: looped ${JSON.stringify(looped)}, once ${JSON.stringify(once)}`);

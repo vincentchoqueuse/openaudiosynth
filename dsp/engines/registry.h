@@ -6,6 +6,7 @@
 #include "acid.h"
 #include "coupled.h"
 #include "drone.h"
+#include "drone2.h"
 #include "drums.h"
 #include "fm6.h"
 #include "micro.h"
@@ -33,6 +34,7 @@ typedef union {
     sampler_t sampler;
     drone_t drone;
     micro_t micro;
+    drone2_t drone2;
 } engine_state_t;
 
 #endif /* ENGINE_REGISTRY_H */

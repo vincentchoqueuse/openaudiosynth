@@ -251,3 +251,22 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
   sub-millisecond `gate_edge` (`micro_gated_tone`); `gate_mode` free at 20–2000 Hz stutters a note or, fast,
   becomes a rhythmic ring modulation (`micro_high_tone`).
 See `songs/grille_fine.json`.
+
+## Drone field (`drone2`)
+
+One field of sine partials for all the notes. Each held note digs wells (its first `harmonics`, weighted by
+`brightness`, stretched by `stretch`, even ones weakened by `odd`); each partial owns one well and travels to it at
+`travel` seconds per octave. A new chord does not cross-fade: the partials leave the old harmonics for the new ones
+in long glissandi. From silence they `bloom` out of a tight cluster. Keep the behaviours low for a calm field.
+
+- **Unfolding**: `bloom` 1, `travel` 4–6 s, `temperature` < 0.1, `restless` < 0.05 (`drone2_unfold`).
+- **Chord changes as landscapes**: chords held 8–16 s, `travel` 2–4 s, `amp_release` a few seconds so the old
+  wells let go (`drone2_migration`).
+- **Living**: `ecology` 0.4–0.7 (neighbours compete for room, levels rise and fall), `renewal` 0.2–0.3 (partials
+  die and are reborn next to a neighbour) (`drone2_ecology`).
+- **Schools**: `flock` 0.4–0.6 with some `restless` and a bell `stretch` 0.03–0.04 (`drone2_bell_school`).
+- **Hollow**: `odd` 0.9, `brightness` 0.3, few partials, low notes (`drone2_hollow`).
+- **Alive**: `restless` 0.4–0.5 (partials hop to free wells within half an octave), `temperature` 0.3–0.4, a little
+  `renewal` (`drone2_restless`).
+- Fewer `partials` than wells leaves the weakest wells empty: the field then chooses the strongest harmonics of the
+  loudest notes.

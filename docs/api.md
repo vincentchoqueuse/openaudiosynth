@@ -444,6 +444,12 @@ drone engine: each note is a whole drone that never repeats. Four layers: partia
 - constants: `DRN_VOICES` = 8, `DRN_PARTIALS` = 12
 - data: `const param_desc_t drone_params[DRN_P_COUNT]`, `const engine_ops_t drone_engine`
 
+## `dsp/engines/drone2.h`
+drone field engine: one shared field of sine partials that behave. The held notes dig a landscape of wells (their harmonics, stretched or odd if asked); every partial owns one well and travels to it at a glide speed, so a new chord makes the partials migrate (long glissandi) instead of cross-fading. A partial leaves for a clearly better free well, now and then on its own (restlessness), dies and is reborn near another (renewal), moves with its neighbours (flock) and competes for room with them (an ecology: Lotka-Volterra competition whose niche overlap is the distance in frequency). From silence the partials bloom out of a tight cluster. References: the competitive Lotka-Volterra equations; flocking (C. Reynolds, 1987: alignment); the harmonic series as the attractor of a spectrum.
+- types: `drone2_partial_t`, `drone2_note_t`, `drone2_t`
+- constants: `D2_HARM` = 24, `D2_WELLS`, `D2_PARTIALS` = 32
+- data: `const param_desc_t drone2_params[D2_P_COUNT]`, `const engine_ops_t drone2_engine`
+
 ## `dsp/engines/drums.h`
 drum machine engine: 12 instruments on General-MIDI note numbers, two kits: "analog" (in the spirit of the classic early-80s analog machines: resonant sine kick with a long boom, two-tone + noise snare, 6 detuned square "metal" oscillators for hats/cymbal, multi-burst clap, cowbell from two squares), "hybrid" (mid-80s analog/sample hybrids: punchy waveshaped kick with a deep pitch sweep and click, brighter snappy snare, grittier 6-bit-quantized metal) and "glitch" (digital microsound: gated sub sine pulses, single-sample clicks, pure high beeps, white and sample-rate-reduced data noise, ring-modulated modem chirps, on precise grids). Behaviour reconstructed from published circuit analyses and listening; no code or samples reused. A fourth kit, "trap": short punchy kick, tight cracking snare, layered roomy clap, crisp bright hats. Under the drum map (notes 0..34) a melodic bass drum plays at the note's pitch: a long sine boom with drive, one at a time, sliding from the previous one when the notes overlap (glide). Velocity acts as accent. The closed hat chokes the open hat.
 - types: `drum_voice_t`, `drums_t`

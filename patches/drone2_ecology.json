@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "engine": "drone2",
+  "name": "drone2_ecology",
+  "description": "A living field: neighbouring partials compete for room, rise and fade, die and are reborn next to another, on D2 and A2.",
+  "params": {
+    "partials": 24,
+    "harmonics": 20,
+    "bloom": 0.5,
+    "travel": 6,
+    "temperature": 0.18,
+    "restless": 0.08,
+    "ecology": 0.6,
+    "renewal": 0.25,
+    "brightness": 0.45,
+    "amp_attack": 5,
+    "amp_release": 12,
+    "width": 0.85,
+    "reverb_mix": 0.5,
+    "reverb_decay": 0.92,
+    "reverb_damping": 6500,
+    "reverb_predelay": 0.05,
+    "volume": 0.5
+  },
+  "audition": {
+    "notes": "D2+A2 _ _ _ _ _ _ _",
+    "bpm": 60,
+    "step": 4
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 48,
+    "loop": true,
+    "grid": "1/4",
+    "key": "D dorian",
+    "notes": [
+      {
+        "pitch": 38,
+        "start": 0,
+        "length": 48,
+        "velocity": 92
+      },
+      {
+        "pitch": 45,
+        "start": 0,
+        "length": 48,
+        "velocity": 92
+      }
+    ]
+  }
+}

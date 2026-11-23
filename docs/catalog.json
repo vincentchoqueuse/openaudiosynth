@@ -1314,6 +1314,29 @@
         "pan": {"type": "float", "range": [-1, 1], "default": 0, "realtime": true, "role": "micro.pan", "help": "position in the stereo field"},
         "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "engine volume"}
       }
+    },
+    "drone2": {
+      "description": "drone field: one field of sine partials that behave; the held notes dig wells (their harmonics), each partial owns one and travels to it, so chords make the partials migrate; temperature, travel, restlessness, flock, ecology, renewal, bloom; envelopes up to 3 minutes (8 notes)",
+      "voices": 8,
+      "params": {
+        "partials": {"type": "int", "range": [4, 32], "default": 20, "realtime": false, "role": "drone2.partials", "help": "how many partials live in the field (each owns one well: fewer than the wells leaves the weakest empty)"},
+        "harmonics": {"type": "int", "range": [4, 24], "default": 16, "realtime": false, "role": "drone2.harmonics", "help": "wells per note: its first harmonics"},
+        "brightness": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "drone2.brightness", "help": "tilt of the wells' weights: dark (high harmonics weak, often left empty) .. bright"},
+        "stretch": {"type": "float", "range": [-0.02, 0.06], "default": 0, "realtime": true, "role": "drone2.stretch", "help": "inharmonicity of the wells: harmonic k at k^(1 + stretch) (negative: compressed, positive: bell-like)"},
+        "odd": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "drone2.odd", "help": "weakens the even harmonics: 1 = odd harmonics only, a hollow field"},
+        "travel": {"type": "float", "range": [0.5, 60], "default": 8, "unit": "s", "scale": "log", "realtime": true, "role": "drone2.travel", "help": "how long a partial takes to travel an octave toward its well: the speed of every migration"},
+        "temperature": {"type": "float", "range": [0, 1], "default": 0.2, "realtime": true, "role": "drone2.temperature", "help": "cold (0: exact, still partials) .. hot (1: each wobbles and sits off its well by up to 10 cents)"},
+        "restless": {"type": "float", "range": [0, 1], "default": 0.1, "realtime": true, "role": "drone2.restless", "help": "how often a partial leaves its well for another free one on its own (0 = never, 1 = every few seconds)"},
+        "flock": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "drone2.flock", "help": "partials moving in schools: each takes on the speed of its neighbours"},
+        "ecology": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "drone2.ecology", "help": "competition between neighbouring partials: their levels rise and fall as one wins room over another"},
+        "renewal": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "drone2.renewal", "help": "partials die and are reborn near another (0 = they live for ever, 1 = a life of about 8 s)"},
+        "bloom": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": true, "role": "drone2.bloom", "help": "from silence, the partials start in a tight cluster and unfold to their wells (0 = they start in place)"},
+        "width": {"type": "float", "range": [0, 1], "default": 0.7, "realtime": true, "role": "drone2.width", "help": "stereo spread of the partials"},
+        "amp_attack": {"type": "float", "range": [0.05, 180], "default": 6, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "fade in of a note's wells (up to 3 minutes)"},
+        "amp_release": {"type": "float", "range": [0.05, 180], "default": 10, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "fade out of a note's wells (up to 3 minutes)"},
+        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
+        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
+      }
     }
   }
 }

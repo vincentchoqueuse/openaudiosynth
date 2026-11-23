@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "engine": "drone2",
+  "name": "drone2_hollow",
+  "description": "A hollow low field: odd harmonics only, dark, on C2 and G2; the partials settle slowly and barely move.",
+  "params": {
+    "partials": 14,
+    "harmonics": 16,
+    "odd": 0.9,
+    "brightness": 0.3,
+    "travel": 8,
+    "temperature": 0.08,
+    "restless": 0.03,
+    "bloom": 0.8,
+    "amp_attack": 6,
+    "amp_release": 14,
+    "width": 0.6,
+    "reverb_mix": 0.5,
+    "reverb_decay": 0.92,
+    "reverb_damping": 6500,
+    "reverb_predelay": 0.05,
+    "volume": 0.8
+  },
+  "audition": {
+    "notes": "C2+G2 _ _ _ _ _ _ _",
+    "bpm": 60,
+    "step": 4
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 48,
+    "loop": true,
+    "grid": "1/4",
+    "key": "C minor",
+    "notes": [
+      {
+        "pitch": 36,
+        "start": 0,
+        "length": 48,
+        "velocity": 96
+      },
+      {
+        "pitch": 43,
+        "start": 0,
+        "length": 48,
+        "velocity": 96
+      }
+    ]
+  }
+}

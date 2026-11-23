@@ -1,7 +1,8 @@
 <!-- SynthTab.svelte — the Synth view: shaping the sound. Its Structure always on top (the signal chain; a click on a
-     block opens the tab and the card that hold its settings), then pills, each with its own tabs under it: Macros (names, CC and targets), Engine (the instrument, named after it: its
-     parameters, or the sampler's kit; and Effects, the bus) Modulation (modulators and their
-     assignments) and Info (its description, instrument, file). The tab open lives in the session; a sound picked in the library opens on Macros. -->
+     block opens the tab and the card that hold its settings), then pills, each with its own tabs under it: Engine (the instrument, named after it: its
+     parameters, or the sampler's kit; and Effects, the bus), Modulation (modulators and their
+     assignments), Macros (names, CC and targets) and Info (its description, instrument, file). The tab open lives in
+     the session; a sound picked in the library opens on Engine. -->
 <script>
   import { cap } from './naming.js';
   import ChainView from './ChainView.svelte';
@@ -16,12 +17,12 @@
 
   // the pills, each with its editors under it as tabs (even a single one); the tab open is session.editorTab
   const GROUPS = $derived([
-    { id: 'macros', label: 'Macros', icon: 'macros',
-      tabs: [{ id: 'macros', label: 'Names' }, { id: 'macros-assign', label: 'Assignments' }] },
     { id: 'engine', label: 'Engine', icon: 'engine',
       tabs: [{ id: 'engine', label: s.engine?.name === 'va' ? 'VA' : cap(s.engine?.name) || 'Engine' }, { id: 'fx', label: 'Effects' }] },
     { id: 'mod', label: 'Modulation', icon: 'modulation',
       tabs: [{ id: 'mod', label: 'Modulators' }, { id: 'mod-assign', label: 'Assignments' }] },
+    { id: 'macros', label: 'Macros', icon: 'macros',
+      tabs: [{ id: 'macros', label: 'Names' }, { id: 'macros-assign', label: 'Assignments' }] },
     { id: 'info', label: 'Info', icon: 'info', tabs: [{ id: 'info', label: 'Description' }] },
   ]);
   const group = $derived(GROUPS.find((g) => g.tabs.some((t) => t.id === s.editorTab)) ?? GROUPS[0]);

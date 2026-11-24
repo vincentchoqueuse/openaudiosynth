@@ -3,7 +3,6 @@
 #include "acid.h"
 #include "drums.h"
 #include "havoc.h"
-#include "fm4.h"
 #include "fm6.h"
 #include "micro.h"
 #include "wt.h"
@@ -30,7 +29,6 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_SAMPLER] = &sampler_engine,
     [SYNTH_ENGINE_DRONE] = &drone_engine,
     [SYNTH_ENGINE_MICRO] = &micro_engine,
-    [SYNTH_ENGINE_FM4] = &fm4_engine,
     [SYNTH_ENGINE_HAVOC] = &havoc_engine,
 };
 

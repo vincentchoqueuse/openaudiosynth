@@ -5,7 +5,6 @@
 
 #include "engines/va.h"
 #include "engines/micro.h"
-#include "engines/fm4.h"
 #include "engines/modal.h"
 #include "engines/drums.h"
 #include "engines/wt.h"
@@ -58,16 +57,6 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
             {MICRO_P_CLICK_MODE, 2.0f}};
         for (unsigned k = 0; k < sizeof set / sizeof set[0]; k++)
             synth_set_param(synth_default(), set[k].id, param_to_norm(&micro_params[set[k].id], set[k].v));
-    } else if (eng == SYNTH_ENGINE_FM4) { /* held; supersaw flag = worst case: every cell set, 4 carriers, filter */
-        for (int k = 0; k < FM4_OPS; k++)
-            synth_set_param(synth_default(), FM4_OP(k, FM4_SUSTAIN), 1.0f);
-        if (supersaw) {
-            for (int c = 0; c < FM4_OPS * FM4_OPS; c++)
-                synth_set_param(synth_default(), FM4_P_MATRIX + c, 0.3f);
-            for (int k = 0; k < FM4_OPS; k++)
-                synth_set_param(synth_default(), FM4_P_OUT(k), 0.5f);
-            synth_set_param(synth_default(), FM4_P_FILTER_TYPE, param_to_norm(&fm4_params[FM4_P_FILTER_TYPE], 1.0f));
-        }
     } else { /* parameter 2 at its top, as the bench has always done for the other engines */
         synth_set_param(synth_default(), 2, 1.0f);
     }
@@ -126,8 +115,6 @@ void run_bench(void)
     bench_engine("mono", SYNTH_ENGINE_MONO, 1, 0, 0);
     bench_engine("poly", SYNTH_ENGINE_POLY, 8, 0, 0);
     bench_engine("fm6", SYNTH_ENGINE_FM6, 16, 0, 0);
-    bench_engine("fm4", SYNTH_ENGINE_FM4, 16, 0, 0);
-    bench_engine("fm4-full", SYNTH_ENGINE_FM4, 16, 1, 0);
     bench_engine("havoc", SYNTH_ENGINE_HAVOC, 1, 0, 0);
     bench_engine("wt", SYNTH_ENGINE_WT, 8, 0, 0);
     bench_engine("wt-u8", SYNTH_ENGINE_WT, 8, 1, 0);

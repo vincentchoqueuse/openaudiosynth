@@ -7,7 +7,6 @@
 #include "coupled.h"
 #include "drone.h"
 #include "drums.h"
-#include "fm4.h"
 #include "havoc.h"
 #include "fm6.h"
 #include "micro.h"
@@ -33,7 +32,6 @@ typedef union {
     sampler_t sampler;
     drone_t drone;
     micro_t micro;
-    fm4_t fm4;
     havoc_t havoc;
 } engine_state_t;
 

@@ -10,7 +10,6 @@ Moteurs visés (on reproduit un comportement, on ne copie pas de code) :
 |-----------|----------------------|------------------------------------------------------------------------------------------------------|
 | `va`      | Ableton Analog       | 2 osc + bruit, 2 filtres (série/parallèle), 2 amplis, 2 enveloppes, 2 LFO                            |
 | `mono`    | Minimoog Model D     | 3 osc libres, bruit blanc/rose, mixeur qui sature et réinjection de la sortie, ladder 24 dB sans compensation, contours ADS, mix de modulation (osc 3 ou contour, bruit ou LFO), priorité de note, glide |
-| `fm4`     | Ableton Operator     | 4 opérateurs, 11 algorithmes, formes d'onde, filtre, enveloppe de hauteur                            |
 | `fm6`     | Yamaha DX7           | 6 opérateurs, 32 algorithmes, enveloppes rate/level, keyboard scaling, feedback                      |
 | `mseg`    | Absynth (enveloppes) | Enveloppes multi-segments (MSEG) bouclables, assignables à tout paramètre via la matrice de modulation |
 
@@ -162,7 +161,7 @@ Détail et historique : `docs/progress.md`.
 - [x] **M0** : squelette CMake, `fastmath`, tests, `synth_render`, `synth_play` (CoreAudio + CoreMIDI).
 - [x] **M1** : `va` (polyBLEP, SVF TPT, ADSR exponentielle, polyphonie, lissage, LFO, supersaw).
 - [x] **M2** : ladder ZDF avec drive suréchantillonné, glide, legato ; moteurs `acid`, `mono`, `poly`.
-- [~] **M3** : `fm4` (4 opérateurs, 11 algorithmes, formes d'onde, enveloppe de hauteur) ; fait : matrice libre (algorithmes = préréglages de la matrice, vue matrice dans le navigateur), enveloppe de hauteur, filtre ; restent les formes d'onde.
+- **M3** (FM à 4 opérateurs) : retiré, il faisait double emploi avec `fm6`.
 - [x] **M4** : `fm6` (32 algorithmes, enveloppes rate/level, keyboard scaling, import sysex).
 - [~] **M5** : MSEG (`dsp/env/mseg`), modulation par part pour tous les moteurs (8 macros, 2 LFO synchronisables, 2 MSEG, 8 routes, `dsp/mod/partmod`), matrice de `wt` ; restent les presets sur carte.
 - [x] Parts multitimbrales (`synth_part_engine`, `synth_part_param`), tempo et horloge MIDI (`dsp/mod/tempo`), delay synchronisé.

@@ -289,25 +289,6 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
 
 See `songs/grille_fine.json` and `songs/trame_blanche.json`.
 
-## Four-operator FM on a matrix (`fm4`)
-
-The matrix says who modulates whom: row = the modulator, column = what it modulates, the diagonal = feedback, the
-last column = how loud each operator is heard. A cell is squared (0.3 = a gentle index of about 1.1 radians, 0.5 =
-pi, 1 = 4 pi), so the low end is fine-grained. In the web editor the eleven algorithm buttons wire the classic layouts
-(links already set keep their amount, new ones start at 0.4) and the diagram shows the routing as it is. Every cell is
-a modulation destination: an LFO on one cell moves one sideband family only.
-
-- **Electric piano**: two pairs (algorithm 7): op 2 at unison into op 1 for the body, op 4 at 14 times the note
-  with a 0.15 s decay into op 3 for the tine, velocity on both modulators, negative `key_scale` on them so the top
-  stays sweet (`fm4_tine_piano`).
-- **Bells**: non-integer ratios (`coarse` 3, `fine` 0.167 = 3.5; 7.7), carriers decaying over 2-4 s (`fm4_glass_bell`).
-- **Bass**: a unison modulator with its own feedback (0.4-0.5) and a short decay, a sub operator at ratio 0.5, a
-  few semitones of `pitch_amount` over 40 ms, a low-pass with its envelope (`fm4_punch_bass`).
-- **Brass**: the modulator's attack slower than the carrier's (60 ms against 10 ms) so the tone brightens as it
-  swells, some feedback, a second detuned pair (`fm4_brass_stab`).
-- **What only a matrix does**: two operators modulating each other (1 -> 2 and 2 -> 1), one a hair off unison, the
-  loop churns slowly (`fm4_cross_drone`). A link from a lower to a higher number runs a sample late (drawn dashed).
-- **Organ**: all four as carriers at 1, 2, 3, 8, feedback on the top one for a reedy edge (`fm4_reed_organ`).
 
 ## Noise machine with a wide palette (`havoc`)
 

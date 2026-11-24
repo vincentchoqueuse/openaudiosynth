@@ -489,12 +489,6 @@ the interface every synthesis engine implements, and the engine registry. synth.
 - `const engine_ops_t *engine_find(const char *name)` — Engine by name, or NULL.
 - `int engine_id(const engine_ops_t *e)` — Its synth_engine_t id, or -1.
 
-## `dsp/engines/fm4.h`
-4-operator phase-modulation synthesizer built on a free modulation matrix: every operator can modulate every other one and itself (the diagonal is its feedback), and a column of output levels says which operators are heard. The usual algorithms (stacks, pairs, one modulator over three carriers...) are just matrices with some cells set, and every cell is a modulatable parameter, so an LFO or an MSEG can move one modulation index alone. Per operator: ratio or fixed frequency, detune, an exponential ADSR, velocity and keyboard level scaling; per voice: a decaying pitch envelope and a filter with its envelope. Reference: J. Chowning, "The Synthesis of Complex Audio Spectra by Means of Frequency Modulation" (JAES 1973); phase modulation as on the classic digital FM instruments.
-- types: `fm4_voice_t`, `fm4_t`
-- constants: `FM4_VOICES` = 16, `FM4_OPS` = 4, `FM4_P_MATRIX`, `FM4_P_OUTS`, `FM4_MOD_MAX` = 2.0f
-- data: `const param_desc_t fm4_params[FM4_P_COUNT]`, `const engine_ops_t fm4_engine`
-
 ## `dsp/engines/fm6.h`
 6-operator phase-modulation synthesizer in the spirit of the 1983 digital FM classic: 32 algorithms, 4-rate/4-level envelopes working in dB, output levels 0..99, ratio/fixed frequency with fine and detune, keyboard level and rate scaling, velocity sensitivity, self feedback averaged over 2 samples, pitch envelope, LFO (6 shapes, delay, pitch/amp modulation sensitivities), transpose, oscillator key sync. Parameters use the instrument's native 0..99 scales so voices imported from its documented sysex format map 1:1 (host/fm6_sysex.c). Behaviour reconstructed from public documentation (J. Chowning 1973 for FM; the instrument's published algorithm chart and data format).
 - types: `fm6_voice_t`, `fm6_t`, `fm6_algorithm_t`

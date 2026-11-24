@@ -9,13 +9,12 @@
      is loaded. The five effects of the bus form a rack: each shows its place and two arrows that move it earlier or
      later in the signal (session.setRack); one added from the row goes after those already in use. A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz); an engine may name its controls itself and keep only the main ones in view,
-     the others under a More button (engineui.js); an FM matrix (a stage of kind "matrix") is drawn as one (FmMatrix). The card the Structure diagram asks for is scrolled to and lit. -->
+     the others under a More button (engineui.js). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
   import Card from './Card.svelte';
   import Switch from './Switch.svelte';
   import Param from './Param.svelte';
   import StageViz from './StageViz.svelte';
-  import FmMatrix from './FmMatrix.svelte';
   import { session as s } from './session.svelte.js';
   import { MOD_PARAM, PART_PARAM } from './synth.js';
   import { grouped, byStage, unclaimed, human } from './naming.js';
@@ -76,7 +75,7 @@
   // the engine's cards in the order its signal flows: sources, filters, amp, modulators, voice, the rest
   const ordered = $derived.by(() => {
     if (tab !== 'engine' || !s.engine?.stages?.length) return groups;
-    const rank = { matrix: -1, source: 0, filter: 1, amp: 2, mod: 3, voice: 4 };
+    const rank = { source: 0, filter: 1, amp: 2, mod: 3, voice: 4 };
     return groups.map((g, i) => [g, i]).sort(([a, i], [b, j]) => (rank[a[2]?.kind] ?? 5) - (rank[b[2]?.kind] ?? 5) || i - j).map(([g]) => g);
   });
   // the stage the diagram asked for: scrolled into view, lit for a moment
@@ -95,7 +94,7 @@
 
 {#snippet card(g, ps, st)}
   {@const on = stageOn(st)}
-  <Card class="{on ? '' : 'off'} {st && lit === st.id ? 'lit' : ''} {st?.kind === 'matrix' ? 'wide' : ''}" data-stage={st?.id}>
+  <Card class="{on ? '' : 'off'} {st && lit === st.id ? 'lit' : ''}" data-stage={st?.id}>
     <div class="stage-head">
       <h2>{#if inRack(st)}<span class="place mono" title="place in the rack: the signal goes through the effects in this order">{shownRack().indexOf(st.id) + 1}</span>{/if}{g}</h2>
       {#if inRack(st)}
@@ -109,9 +108,7 @@
         <Switch {on} onchange={() => toggle(st)} name="{g} on/off" />
       {/if}
     </div>
-    {#if on && st?.kind === 'matrix'}
-      <FmMatrix params={ps.map((p) => p.d)} />
-    {:else if on}
+    {#if on}
       {#if st}<StageViz {st} params={ps.map((p) => p.d)} get={s.getP} />{/if}
       {@const more = ps.filter(({ d }) => place(d) === 'more')}
       {#each ps.filter(({ d }) => place(d) === 'main') as { d, label } (d.id)}

@@ -293,6 +293,395 @@ static inline uint32_t cell_step(uint32_t u, uint32_t rule)
     return out;
 }
 
+/* what the prelude of gen_render hands to the process of a generator */
+typedef struct {
+    float a, b;        /* the two shapes, after the mutation and the generator's own oscillator */
+    float inv_sr, dt;  /* dt = the length of a block in seconds */
+    float inv_n;       /* 1 / SYNTH_BLOCK */
+    const float *incs; /* phase increment of every sample of the block, modulated */
+} gen_ctx_t;
+
+/* sine with phase feedback (averaged over two samples), and a detuned second sine */
+static DSP_FAST_CODE void gen_tone(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const float fb = 0.9f * a * a, ratio = 1.0f + 1.5f * b, g2 = 0.45f * dsp_minf(8.0f * b, 1.0f);
+    const float g1 = 1.0f - g2;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f)
+            s->ph -= 1.0f;
+        s->ph2 += incs[i] * ratio;
+        s->ph2 -= (float)(int)s->ph2;
+        const float y = fm_sin(s->ph + fb * 0.5f * (s->s0 + s->s1));
+        s->s1 = s->s0;
+        s->s0 = y;
+        out[i] = g1 * y + g2 * fm_sin(s->ph2 + fb * y);
+    }
+}
+
+/* x <- r x (1 - x), one step per period: a buzz an octave below, then chaos */
+static DSP_FAST_CODE void gen_logistic(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const float r = 3.2f + 0.8f * a;
+    if (!(s->s0 > 0.001f && s->s0 < 0.999f))
+        s->s0 = 0.4f;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f) {
+            s->ph -= 1.0f;
+            s->s1 = s->s0;
+            s->s0 = dsp_clampf(r * s->s0 * (1.0f - s->s0), 0.002f, 0.998f);
+        }
+        out[i] = 2.0f * (s->s1 + b * s->ph * (s->s0 - s->s1)) - 1.0f;
+    }
+}
+
+/* the counter runs at 32 times the pitch */
+static DSP_FAST_CODE void gen_byte(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const int f = (int)(a * 7.99f);
+    const uint32_t c = 1u + (uint32_t)(b * 14.99f);
+    for (int i = 0; i < n; i++) {
+        s->ph += 32.0f * incs[i];
+        const int k = (int)s->ph;
+        s->ph -= (float)k;
+        s->u0 += (uint32_t)k;
+        out[i] = (float)(byte_formula(f, s->u0, c) & 255u) * (1.0f / 127.5f) - 1.0f;
+    }
+}
+
+/* impulses of random size, `pitch` a second on average, into a band-pass resonator */
+static DSP_FAST_CODE void gen_dust(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b, inv_sr = cx->inv_sr;
+    const float *incs = cx->incs;
+    const float gg = fm_tan_pi(dsp_minf(50.0f * fm_exp2(7.9f * a) * inv_sr, 0.45f)), k = 2.0f * fm_exp2(-11.0f * b); /* a click .. a ring of a second */
+    const float a1 = 1.0f / (1.0f + gg * (gg + k)), a2 = gg * a1, a3 = gg * a2;
+    const float hit = dsp_minf(0.7f / a2, 60.0f); /* an impulse rings at about the same level wherever it is tuned */
+    for (int i = 0; i < n; i++) {
+        const float x = dsp_rand_unipolar(&s->rng) < incs[i] ? hit * dsp_rand_bipolar(&s->rng) : 0.0f;
+        const float v3 = x - s->ic2, v1 = a1 * s->ic1 + a2 * v3, v2 = s->ic2 + a2 * s->ic1 + a3 * v3;
+        s->ic1 = v1 + v1 - s->ic1;
+        s->ic2 = v2 + v2 - s->ic2;
+        out[i] = fm_tanh(v1);
+    }
+}
+
+/* white noise through a band-pass at the pitch; the gusts move the band */
+static DSP_FAST_CODE void gen_wind(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b, dt = cx->dt;
+    const float *incs = cx->incs;
+    const float gust = b > 0.0f ? walk_step(&s->walk, &s->rng, dsp_minf(dt * 2.0f, 0.25f)) : 0.0f;
+    const float gg = fm_tan_pi(dsp_clampf(incs[n - 1] * fm_exp2(1.5f * b * gust), 0.0004f, 0.45f));
+    const float k = 2.0f * fm_exp2(-7.0f * a);
+    const float a1 = 1.0f / (1.0f + gg * (gg + k)), a2 = gg * a1, a3 = gg * a2;
+    const float lvl = dsp_minf(1.2f * bsqrt(k / gg), 60.0f) * (1.0f + b * 0.6f * gust); /* same loudness, any band */
+    for (int i = 0; i < n; i++) {
+        const float x = dsp_rand_bipolar(&s->rng);
+        const float v3 = x - s->ic2, v1 = a1 * s->ic1 + a2 * v3, v2 = s->ic2 + a2 * s->ic1 + a3 * v3;
+        s->ic1 = v1 + v1 - s->ic1;
+        s->ic2 = v2 + v2 - s->ic2;
+        out[i] = fm_tanh(lvl * v1);
+    }
+}
+
+/* every period, a sine burst at the formant under a parabolic window, then silence */
+static DSP_FAST_CODE void gen_pulsar(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b, inv_sr = cx->inv_sr;
+    const float *incs = cx->incs;
+    const float finc = dsp_minf(100.0f * fm_exp2(7.0f * a) * inv_sr, 0.45f);
+    const float duty = 0.04f + 0.96f * b, inv_duty = 1.0f / duty;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f) {
+            s->ph -= 1.0f;
+            s->ph2 = 0.0f;
+        }
+        float y = 0.0f;
+        if (s->ph < duty) {
+            const float w = s->ph * inv_duty;
+            y = 4.0f * w * (1.0f - w) * fm_sin_pos(s->ph2);
+            s->ph2 += finc;
+        }
+        out[i] = y;
+    }
+}
+
+/* the 32 cells are one period of the wave; a new generation every period */
+static DSP_FAST_CODE void gen_cell(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const uint32_t rule = (uint32_t)(a * 255.99f);
+    const float c = 1.0f - 0.97f * b;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f) {
+            s->ph -= 1.0f;
+            s->u0 = cell_step(s->u0, rule);
+            if (s->u0 == 0u || s->u0 == 0xFFFFFFFFu) /* a dead world: one cell is born at random */
+                s->u0 ^= 1u << (dsp_rand_u32(&s->rng) >> 27);
+        }
+        const float target = s->u0 >> ((uint32_t)(s->ph * 32.0f) & 31u) & 1u ? 1.0f : -1.0f;
+        s->s0 += c * (target - s->s0);
+        out[i] = s->s0;
+    }
+}
+
+/* each sine on its own walk around the pitch */
+static DSP_FAST_CODE void gen_swarm(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b, dt = cx->dt;
+    const float *incs = cx->incs;
+    const float wa = dsp_minf(dt * 0.2f * fm_exp2(7.0f * b), 0.25f); /* a swing in 5 s .. 40 ms */
+    float winc[HAVOC_SWARM];
+    for (int j = 0; j < HAVOC_SWARM; j++)
+        winc[j] = dsp_minf(incs[n - 1] * fm_exp2(2.0f * a * walk_step(&s->sw_x[j], &s->rng, wa)), 0.45f);
+    for (int i = 0; i < n; i++) {
+        float y = 0.0f;
+        for (int j = 0; j < HAVOC_SWARM; j++) {
+            s->sw_ph[j] += winc[j];
+            if (s->sw_ph[j] >= 1.0f)
+                s->sw_ph[j] -= 1.0f;
+            y += fm_sin_pos(s->sw_ph[j]);
+        }
+        out[i] = 0.3f * y;
+    }
+}
+
+/* the jumps are made above; here the tone, a little bright, and its rests */
+static DSP_FAST_CODE void gen_computer(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float inv_n = cx->inv_n;
+    const float *incs = cx->incs;
+    const float d = (s->s3 - s->s1) * inv_n;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f)
+            s->ph -= 1.0f;
+        s->s1 += d;
+        const float y = fm_sin(s->ph + 0.12f * s->s0);
+        s->s0 = y;
+        out[i] = s->s1 * y;
+    }
+    s->s1 = s->s3;
+}
+
+/* the note of the moment: a sine, a soft square, a bright sine or two sines multiplied */
+static DSP_FAST_CODE void gen_bleep(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float inv_n = cx->inv_n;
+    const float *incs = cx->incs;
+    const float d = (s->ev_gain - s->s1) * inv_n;
+    const int kind = s->ev_kind;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f)
+            s->ph -= 1.0f;
+        s->s1 += d;
+        float y = fm_sin(s->ph + (kind == 2 ? 0.2f * s->s0 : 0.0f));
+        s->s0 = y;
+        if (kind == 1)
+            y = fm_tanh(4.0f * y);
+        else if (kind == 3) {
+            s->ph2 += 2.76f * incs[i];
+            s->ph2 -= (float)(int)s->ph2;
+            y *= fm_sin_pos(s->ph2);
+        }
+        out[i] = s->s1 * y;
+    }
+    s->s1 = s->ev_gain;
+}
+
+/* the fault of the moment; its level changes at once: every fault starts with a click */
+static DSP_FAST_CODE void gen_glitch(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float *incs = cx->incs;
+    const int kind = s->ev_kind;
+    const float lv = s->ev_gain, cells = (float)s->ev_len;
+    const uint32_t mask = (uint32_t)s->ev_len - 1u;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f)
+            s->ph -= 1.0f;
+        float y = 0.0f;
+        if (kind == 0) { /* a few bits stuck in a loop: a buzz whose colour is the bits */
+            y = s->u0 >> ((uint32_t)(s->ph * cells) & mask) & 1u ? 1.0f : -1.0f;
+        } else if (kind == 1) { /* bit noise, clocked at 16 times the pitch */
+            s->ph2 += 16.0f * incs[i];
+            if (s->ph2 >= 1.0f) {
+                s->ph2 -= (float)(int)s->ph2;
+                dsp_rand_u32(&s->u0);
+            }
+            y = s->u0 & 1u ? 1.0f : -1.0f;
+        } else if (kind == 2) { /* a whine */
+            y = fm_sin_pos(s->ph);
+        }
+        out[i] = lv * y;
+    }
+}
+
+/* a saw (the voice) or noise (the breath) through three band-pass formants */
+static DSP_FAST_CODE void gen_talk(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float b = cx->b, inv_sr = cx->inv_sr, inv_n = cx->inv_n;
+    const float *incs = cx->incs;
+    float c1[3], c2[3], c3[3];
+    for (int k = 0; k < 3; k++) {
+        const float gg = fm_tan_pi(dsp_minf(s->tk_f[k] * inv_sr, 0.45f));
+        c1[k] = 1.0f / (1.0f + gg * (gg + 0.14f));
+        c2[k] = gg * c1[k];
+        c3[k] = gg * c2[k];
+    }
+    static const float weight[3] = {1.0f, 0.6f, 0.35f};
+    const float d = (s->ev_gain - s->s1) * inv_n, breath = s->tk_voiced ? b : 1.0f;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f)
+            s->ph -= 1.0f;
+        s->s1 += d;
+        const float x = s->s1 * ((1.0f - breath) * (s->ph + s->ph - 1.0f) + 0.7f * breath * dsp_rand_bipolar(&s->rng));
+        float y = 0.0f;
+        for (int k = 0; k < 3; k++) {
+            float *ic = &s->tk_ic[2 * k];
+            const float v3 = x - ic[1], v1 = c1[k] * ic[0] + c2[k] * v3, v2 = ic[1] + c2[k] * ic[0] + c3[k] * v3;
+            ic[0] = v1 + v1 - ic[0];
+            ic[1] = v2 + v2 - ic[1];
+            y += weight[k] * v1;
+        }
+        out[i] = fm_tanh(0.8f * y);
+    }
+    s->s1 = s->ev_gain;
+}
+
+/* the tone of the symbol, its phase unbroken from one symbol to the next */
+static DSP_FAST_CODE void gen_modem(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float inv_n = cx->inv_n;
+    const float *incs = cx->incs;
+    const float d = (s->ev_gain - s->s1) * inv_n;
+    for (int i = 0; i < n; i++) {
+        s->ph += incs[i];
+        if (s->ph >= 1.0f)
+            s->ph -= 1.0f;
+        s->s1 += d;
+        out[i] = s->s1 * fm_sin_pos(s->ph);
+    }
+    s->s1 = s->ev_gain;
+}
+
+/* v' = 0.04 v^2 + 5 v + 140 - u + I, u' = a (0.2 v - u); at 30 mV: v <- c, u <- u + d */
+static DSP_FAST_CODE void gen_neuron(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const float c = -65.0f + 15.0f * a, dd = 8.0f - 6.0f * a, cur = 5.0f + 14.0f * b, jit = 10.0f * b;
+    if (!(s->s0 < -20.0f && s->s0 > -110.0f)) /* (another process left its state here) */
+        s->s0 = -65.0f, s->s1 = -13.0f;
+    for (int i = 0; i < n; i++) {
+        const float h = dsp_minf(40.0f * incs[i], 0.5f); /* milliseconds of the model per sample */
+        const float vv = s->s0, I = cur + jit * dsp_rand_bipolar(&s->rng);
+        s->s0 = vv + h * (0.04f * vv * vv + 5.0f * vv + 140.0f - s->s1 + I);
+        s->s1 += h * 0.02f * (0.2f * vv - s->s1);
+        float y = s->s0;
+        if (s->s0 >= 30.0f) {
+            y = 30.0f;
+            s->s0 = c;
+            s->s1 += dd;
+        }
+        s->s0 = dsp_maxf(s->s0, -100.0f);
+        s->s1 = dsp_clampf(s->s1, -40.0f, 60.0f);
+        out[i] = dsp_clampf(0.02f * (y + 55.0f), -1.0f, 1.7f);
+    }
+}
+
+/* a saw with no band limit, far above its pitch, on a few steps: what is heard is the folding */
+static DSP_FAST_CODE void gen_alias(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const float times = fm_exp2(6.0f * a), steps = fm_exp2(8.0f - 7.0f * b), isteps = 2.0f / steps;
+    for (int i = 0; i < n; i++) {
+        s->ph += times * incs[i];
+        s->ph -= (float)(int)s->ph;
+        out[i] = (float)(int)(s->ph * steps) * isteps - 1.0f + 0.5f * isteps;
+    }
+}
+
+/* rumble: a leaky random walk whose speed is the pitch; only what passes the threshold, then a fold */
+static DSP_FAST_CODE void gen_rumble(havoc_gen_t *s, const gen_ctx_t *cx, float *out)
+{
+    const int n = SYNTH_BLOCK;
+    const float a = cx->a, b = cx->b;
+    const float *incs = cx->incs;
+    const float k = dsp_minf(8.0f * incs[n - 1], 1.0f), leak = 1.0f - 0.05f * k;
+    const float norm = 0.45f / bsqrt(k), thr = 1.2f * b, fold = a, drive = 0.2f + 1.2f * a;
+    for (int i = 0; i < n; i++) {
+        s->s0 = dsp_clampf(s->s0 * leak + k * dsp_rand_bipolar(&s->rng), -8.0f, 8.0f);
+        float y = norm * s->s0;
+        y = y > thr ? y - thr : y < -thr ? y + thr : 0.0f;
+        y = dsp_clampf(y, -1.5f, 1.5f);
+        out[i] = y + fold * (fm_sin(drive * y) - y);
+    }
+}
+
+/* life: the level generator s has for this block */
+static DSP_FAST_CODE float gen_life(havoc_gen_t *s, const float *gp, float dt)
+{
+    const float rate = gp[HAVOC_G_LIFE_RATE], shape = gp[HAVOC_G_LIFE_SHAPE];
+    float gain = 1.0f;
+    switch ((int)gp[HAVOC_G_LIFE]) {
+    case HAVOC_LIFE_BURSTS: { /* a random telegraph: `rate` cycles a second on average, on for `shape` of the time */
+        const float duty = dsp_clampf(shape, 0.03f, 0.97f);
+        const float flip = rate * dt / (s->life_on ? duty : 1.0f - duty);
+        if (dsp_rand_unipolar(&s->rng) < flip)
+            s->life_on = !s->life_on;
+        gain = s->life_on ? 1.0f : 0.0f;
+        break;
+    }
+    case HAVOC_LIFE_PULSE: /* a hit every period, falling in a share of it */
+        s->life_ph += rate * dt;
+        if (s->life_ph >= 1.0f) {
+            s->life_ph -= 1.0f;
+            s->life_env = 1.0f;
+        } else {
+            s->life_env *= fm_exp2(-8.0f * rate * dt / (4.0f * shape * shape + 0.02f));
+        }
+        gain = s->life_env;
+        break;
+    case HAVOC_LIFE_SWELL: /* a slow breath */
+        gain = dsp_clampf(1.0f - shape + shape * (0.5f + 0.9f * walk_step(&s->life_env, &s->rng, dsp_minf(rate * dt, 0.25f))),
+                          0.0f, 1.6f);
+        break;
+    default:
+        break;
+    }
+    return gain;
+}
+
 /* One block of generator g into out; m is its modulator's block. */
 static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float semi, const float *m, float *out)
 {
@@ -412,275 +801,24 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
     }
     s->inc = inc;
 
+    const gen_ctx_t cx = {a, b, inv_sr, dt, inv_n, incs};
     switch (type) {
-    case HAVOC_T_TONE: { /* sine with phase feedback (averaged over two samples), and a detuned second sine */
-        const float fb = 0.9f * a * a, ratio = 1.0f + 1.5f * b, g2 = 0.45f * dsp_minf(8.0f * b, 1.0f);
-        const float g1 = 1.0f - g2;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f)
-                s->ph -= 1.0f;
-            s->ph2 += incs[i] * ratio;
-            s->ph2 -= (float)(int)s->ph2;
-            const float y = fm_sin(s->ph + fb * 0.5f * (s->s0 + s->s1));
-            s->s1 = s->s0;
-            s->s0 = y;
-            out[i] = g1 * y + g2 * fm_sin(s->ph2 + fb * y);
-        }
-        break;
-    }
-    case HAVOC_T_LOGISTIC: { /* x <- r x (1 - x), one step per period: a buzz an octave below, then chaos */
-        const float r = 3.2f + 0.8f * a;
-        if (!(s->s0 > 0.001f && s->s0 < 0.999f))
-            s->s0 = 0.4f;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f) {
-                s->ph -= 1.0f;
-                s->s1 = s->s0;
-                s->s0 = dsp_clampf(r * s->s0 * (1.0f - s->s0), 0.002f, 0.998f);
-            }
-            out[i] = 2.0f * (s->s1 + b * s->ph * (s->s0 - s->s1)) - 1.0f;
-        }
-        break;
-    }
-    case HAVOC_T_BYTE: { /* the counter runs at 32 times the pitch */
-        const int f = (int)(a * 7.99f);
-        const uint32_t c = 1u + (uint32_t)(b * 14.99f);
-        for (int i = 0; i < n; i++) {
-            s->ph += 32.0f * incs[i];
-            const int k = (int)s->ph;
-            s->ph -= (float)k;
-            s->u0 += (uint32_t)k;
-            out[i] = (float)(byte_formula(f, s->u0, c) & 255u) * (1.0f / 127.5f) - 1.0f;
-        }
-        break;
-    }
-    case HAVOC_T_DUST: { /* impulses of random size, `pitch` a second on average, into a band-pass resonator */
-        const float gg = fm_tan_pi(dsp_minf(50.0f * fm_exp2(7.9f * a) * inv_sr, 0.45f)), k = 2.0f * fm_exp2(-11.0f * b); /* a click .. a ring of a second */
-        const float a1 = 1.0f / (1.0f + gg * (gg + k)), a2 = gg * a1, a3 = gg * a2;
-        const float hit = dsp_minf(0.7f / a2, 60.0f); /* an impulse rings at about the same level wherever it is tuned */
-        for (int i = 0; i < n; i++) {
-            const float x = dsp_rand_unipolar(&s->rng) < incs[i] ? hit * dsp_rand_bipolar(&s->rng) : 0.0f;
-            const float v3 = x - s->ic2, v1 = a1 * s->ic1 + a2 * v3, v2 = s->ic2 + a2 * s->ic1 + a3 * v3;
-            s->ic1 = v1 + v1 - s->ic1;
-            s->ic2 = v2 + v2 - s->ic2;
-            out[i] = fm_tanh(v1);
-        }
-        break;
-    }
-    case HAVOC_T_WIND: { /* white noise through a band-pass at the pitch; the gusts move the band */
-        const float gust = b > 0.0f ? walk_step(&s->walk, &s->rng, dsp_minf(dt * 2.0f, 0.25f)) : 0.0f;
-        const float gg = fm_tan_pi(dsp_clampf(incs[n - 1] * fm_exp2(1.5f * b * gust), 0.0004f, 0.45f));
-        const float k = 2.0f * fm_exp2(-7.0f * a);
-        const float a1 = 1.0f / (1.0f + gg * (gg + k)), a2 = gg * a1, a3 = gg * a2;
-        const float lvl = dsp_minf(1.2f * bsqrt(k / gg), 60.0f) * (1.0f + b * 0.6f * gust); /* same loudness, any band */
-        for (int i = 0; i < n; i++) {
-            const float x = dsp_rand_bipolar(&s->rng);
-            const float v3 = x - s->ic2, v1 = a1 * s->ic1 + a2 * v3, v2 = s->ic2 + a2 * s->ic1 + a3 * v3;
-            s->ic1 = v1 + v1 - s->ic1;
-            s->ic2 = v2 + v2 - s->ic2;
-            out[i] = fm_tanh(lvl * v1);
-        }
-        break;
-    }
-    case HAVOC_T_PULSAR: { /* every period, a sine burst at the formant under a parabolic window, then silence */
-        const float finc = dsp_minf(100.0f * fm_exp2(7.0f * a) * inv_sr, 0.45f);
-        const float duty = 0.04f + 0.96f * b, inv_duty = 1.0f / duty;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f) {
-                s->ph -= 1.0f;
-                s->ph2 = 0.0f;
-            }
-            float y = 0.0f;
-            if (s->ph < duty) {
-                const float w = s->ph * inv_duty;
-                y = 4.0f * w * (1.0f - w) * fm_sin_pos(s->ph2);
-                s->ph2 += finc;
-            }
-            out[i] = y;
-        }
-        break;
-    }
-    case HAVOC_T_CELL: { /* the 32 cells are one period of the wave; a new generation every period */
-        const uint32_t rule = (uint32_t)(a * 255.99f);
-        const float c = 1.0f - 0.97f * b;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f) {
-                s->ph -= 1.0f;
-                s->u0 = cell_step(s->u0, rule);
-                if (s->u0 == 0u || s->u0 == 0xFFFFFFFFu) /* a dead world: one cell is born at random */
-                    s->u0 ^= 1u << (dsp_rand_u32(&s->rng) >> 27);
-            }
-            const float target = s->u0 >> ((uint32_t)(s->ph * 32.0f) & 31u) & 1u ? 1.0f : -1.0f;
-            s->s0 += c * (target - s->s0);
-            out[i] = s->s0;
-        }
-        break;
-    }
-    case HAVOC_T_SWARM: { /* each sine on its own walk around the pitch */
-        const float wa = dsp_minf(dt * 0.2f * fm_exp2(7.0f * b), 0.25f); /* a swing in 5 s .. 40 ms */
-        float winc[HAVOC_SWARM];
-        for (int j = 0; j < HAVOC_SWARM; j++)
-            winc[j] = dsp_minf(incs[n - 1] * fm_exp2(2.0f * a * walk_step(&s->sw_x[j], &s->rng, wa)), 0.45f);
-        for (int i = 0; i < n; i++) {
-            float y = 0.0f;
-            for (int j = 0; j < HAVOC_SWARM; j++) {
-                s->sw_ph[j] += winc[j];
-                if (s->sw_ph[j] >= 1.0f)
-                    s->sw_ph[j] -= 1.0f;
-                y += fm_sin_pos(s->sw_ph[j]);
-            }
-            out[i] = 0.3f * y;
-        }
-        break;
-    }
-    case HAVOC_T_COMPUTER: { /* the jumps are made above; here the tone, a little bright, and its rests */
-        const float d = (s->s3 - s->s1) * inv_n;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f)
-                s->ph -= 1.0f;
-            s->s1 += d;
-            const float y = fm_sin(s->ph + 0.12f * s->s0);
-            s->s0 = y;
-            out[i] = s->s1 * y;
-        }
-        s->s1 = s->s3;
-        break;
-    }
-    case HAVOC_T_BLEEP: { /* the note of the moment: a sine, a soft square, a bright sine or two sines multiplied */
-        const float d = (s->ev_gain - s->s1) * inv_n;
-        const int kind = s->ev_kind;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f)
-                s->ph -= 1.0f;
-            s->s1 += d;
-            float y = fm_sin(s->ph + (kind == 2 ? 0.2f * s->s0 : 0.0f));
-            s->s0 = y;
-            if (kind == 1)
-                y = fm_tanh(4.0f * y);
-            else if (kind == 3) {
-                s->ph2 += 2.76f * incs[i];
-                s->ph2 -= (float)(int)s->ph2;
-                y *= fm_sin_pos(s->ph2);
-            }
-            out[i] = s->s1 * y;
-        }
-        s->s1 = s->ev_gain;
-        break;
-    }
-    case HAVOC_T_GLITCH: { /* the fault of the moment; its level changes at once: every fault starts with a click */
-        const int kind = s->ev_kind;
-        const float lv = s->ev_gain, cells = (float)s->ev_len;
-        const uint32_t mask = (uint32_t)s->ev_len - 1u;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f)
-                s->ph -= 1.0f;
-            float y = 0.0f;
-            if (kind == 0) { /* a few bits stuck in a loop: a buzz whose colour is the bits */
-                y = s->u0 >> ((uint32_t)(s->ph * cells) & mask) & 1u ? 1.0f : -1.0f;
-            } else if (kind == 1) { /* bit noise, clocked at 16 times the pitch */
-                s->ph2 += 16.0f * incs[i];
-                if (s->ph2 >= 1.0f) {
-                    s->ph2 -= (float)(int)s->ph2;
-                    dsp_rand_u32(&s->u0);
-                }
-                y = s->u0 & 1u ? 1.0f : -1.0f;
-            } else if (kind == 2) { /* a whine */
-                y = fm_sin_pos(s->ph);
-            }
-            out[i] = lv * y;
-        }
-        break;
-    }
-    case HAVOC_T_TALK: { /* a saw (the voice) or noise (the breath) through three band-pass formants */
-        float c1[3], c2[3], c3[3];
-        for (int k = 0; k < 3; k++) {
-            const float gg = fm_tan_pi(dsp_minf(s->tk_f[k] * inv_sr, 0.45f));
-            c1[k] = 1.0f / (1.0f + gg * (gg + 0.14f));
-            c2[k] = gg * c1[k];
-            c3[k] = gg * c2[k];
-        }
-        static const float weight[3] = {1.0f, 0.6f, 0.35f};
-        const float d = (s->ev_gain - s->s1) * inv_n, breath = s->tk_voiced ? b : 1.0f;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f)
-                s->ph -= 1.0f;
-            s->s1 += d;
-            const float x = s->s1 * ((1.0f - breath) * (s->ph + s->ph - 1.0f) + 0.7f * breath * dsp_rand_bipolar(&s->rng));
-            float y = 0.0f;
-            for (int k = 0; k < 3; k++) {
-                float *ic = &s->tk_ic[2 * k];
-                const float v3 = x - ic[1], v1 = c1[k] * ic[0] + c2[k] * v3, v2 = ic[1] + c2[k] * ic[0] + c3[k] * v3;
-                ic[0] = v1 + v1 - ic[0];
-                ic[1] = v2 + v2 - ic[1];
-                y += weight[k] * v1;
-            }
-            out[i] = fm_tanh(0.8f * y);
-        }
-        s->s1 = s->ev_gain;
-        break;
-    }
-    case HAVOC_T_MODEM: { /* the tone of the symbol, its phase unbroken from one symbol to the next */
-        const float d = (s->ev_gain - s->s1) * inv_n;
-        for (int i = 0; i < n; i++) {
-            s->ph += incs[i];
-            if (s->ph >= 1.0f)
-                s->ph -= 1.0f;
-            s->s1 += d;
-            out[i] = s->s1 * fm_sin_pos(s->ph);
-        }
-        s->s1 = s->ev_gain;
-        break;
-    }
-    case HAVOC_T_NEURON: { /* v' = 0.04 v^2 + 5 v + 140 - u + I, u' = a (0.2 v - u); at 30 mV: v <- c, u <- u + d */
-        const float c = -65.0f + 15.0f * a, dd = 8.0f - 6.0f * a, cur = 5.0f + 14.0f * b, jit = 10.0f * b;
-        if (!(s->s0 < -20.0f && s->s0 > -110.0f)) /* (another process left its state here) */
-            s->s0 = -65.0f, s->s1 = -13.0f;
-        for (int i = 0; i < n; i++) {
-            const float h = dsp_minf(40.0f * incs[i], 0.5f); /* milliseconds of the model per sample */
-            const float vv = s->s0, I = cur + jit * dsp_rand_bipolar(&s->rng);
-            s->s0 = vv + h * (0.04f * vv * vv + 5.0f * vv + 140.0f - s->s1 + I);
-            s->s1 += h * 0.02f * (0.2f * vv - s->s1);
-            float y = s->s0;
-            if (s->s0 >= 30.0f) {
-                y = 30.0f;
-                s->s0 = c;
-                s->s1 += dd;
-            }
-            s->s0 = dsp_maxf(s->s0, -100.0f);
-            s->s1 = dsp_clampf(s->s1, -40.0f, 60.0f);
-            out[i] = dsp_clampf(0.02f * (y + 55.0f), -1.0f, 1.7f);
-        }
-        break;
-    }
-    case HAVOC_T_ALIAS: { /* a saw with no band limit, far above its pitch, on a few steps: what is heard is the folding */
-        const float times = fm_exp2(6.0f * a), steps = fm_exp2(8.0f - 7.0f * b), isteps = 2.0f / steps;
-        for (int i = 0; i < n; i++) {
-            s->ph += times * incs[i];
-            s->ph -= (float)(int)s->ph;
-            out[i] = (float)(int)(s->ph * steps) * isteps - 1.0f + 0.5f * isteps;
-        }
-        break;
-    }
-    default: { /* rumble: a leaky random walk whose speed is the pitch; only what passes the threshold, then a fold */
-        const float k = dsp_minf(8.0f * incs[n - 1], 1.0f), leak = 1.0f - 0.05f * k;
-        const float norm = 0.45f / bsqrt(k), thr = 1.2f * b, fold = a, drive = 0.2f + 1.2f * a;
-        for (int i = 0; i < n; i++) {
-            s->s0 = dsp_clampf(s->s0 * leak + k * dsp_rand_bipolar(&s->rng), -8.0f, 8.0f);
-            float y = norm * s->s0;
-            y = y > thr ? y - thr : y < -thr ? y + thr : 0.0f;
-            y = dsp_clampf(y, -1.5f, 1.5f);
-            out[i] = y + fold * (fm_sin(drive * y) - y);
-        }
-        break;
-    }
+    case HAVOC_T_TONE: gen_tone(s, &cx, out); break;
+    case HAVOC_T_LOGISTIC: gen_logistic(s, &cx, out); break;
+    case HAVOC_T_BYTE: gen_byte(s, &cx, out); break;
+    case HAVOC_T_DUST: gen_dust(s, &cx, out); break;
+    case HAVOC_T_WIND: gen_wind(s, &cx, out); break;
+    case HAVOC_T_PULSAR: gen_pulsar(s, &cx, out); break;
+    case HAVOC_T_CELL: gen_cell(s, &cx, out); break;
+    case HAVOC_T_SWARM: gen_swarm(s, &cx, out); break;
+    case HAVOC_T_COMPUTER: gen_computer(s, &cx, out); break;
+    case HAVOC_T_BLEEP: gen_bleep(s, &cx, out); break;
+    case HAVOC_T_GLITCH: gen_glitch(s, &cx, out); break;
+    case HAVOC_T_TALK: gen_talk(s, &cx, out); break;
+    case HAVOC_T_MODEM: gen_modem(s, &cx, out); break;
+    case HAVOC_T_NEURON: gen_neuron(s, &cx, out); break;
+    case HAVOC_T_ALIAS: gen_alias(s, &cx, out); break;
+    default: gen_rumble(s, &cx, out); break;
     }
 
     /* rot: resampled and quantised with no filter, at a rate of its own */
@@ -706,34 +844,7 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
             out[i] *= 1.0f - ring + ring * m[i];
 
     /* life: the level this generator has for this block */
-    const float rate = gp[HAVOC_G_LIFE_RATE], shape = gp[HAVOC_G_LIFE_SHAPE];
-    float gain = 1.0f;
-    switch ((int)gp[HAVOC_G_LIFE]) {
-    case HAVOC_LIFE_BURSTS: { /* a random telegraph: `rate` cycles a second on average, on for `shape` of the time */
-        const float duty = dsp_clampf(shape, 0.03f, 0.97f);
-        const float flip = rate * dt / (s->life_on ? duty : 1.0f - duty);
-        if (dsp_rand_unipolar(&s->rng) < flip)
-            s->life_on = !s->life_on;
-        gain = s->life_on ? 1.0f : 0.0f;
-        break;
-    }
-    case HAVOC_LIFE_PULSE: /* a hit every period, falling in a share of it */
-        s->life_ph += rate * dt;
-        if (s->life_ph >= 1.0f) {
-            s->life_ph -= 1.0f;
-            s->life_env = 1.0f;
-        } else {
-            s->life_env *= fm_exp2(-8.0f * rate * dt / (4.0f * shape * shape + 0.02f));
-        }
-        gain = s->life_env;
-        break;
-    case HAVOC_LIFE_SWELL: /* a slow breath */
-        gain = dsp_clampf(1.0f - shape + shape * (0.5f + 0.9f * walk_step(&s->life_env, &s->rng, dsp_minf(rate * dt, 0.25f))),
-                          0.0f, 1.6f);
-        break;
-    default:
-        break;
-    }
+    const float gain = gen_life(s, gp, dt);
     if (v->fresh)
         s->gain = gain;
     const float dg = (gain - s->gain) * inv_n;
@@ -753,196 +864,264 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
     }
 }
 
+/* what a processor needs for a block: its type and settings, and the two sides it works on in place */
+typedef struct {
+    int type;
+    float p1, p2, mix;
+    float sr, inv_sr;
+    float *xl, *xr;
+} proc_ctx_t;
+
+/* lp, bp, hp: a state-variable filter, cutoff p1, resonance p2 */
+static DSP_FAST_CODE void proc_filter(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const int type = cx->type;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix, sr = cx->sr, inv_sr = cx->inv_sr;
+    float *const side[2] = {cx->xl, cx->xr};
+    const float gg = fm_tan_pi(dsp_clampf(30.0f * fm_exp2(9.2f * p1), 20.0f, 0.45f * sr) * inv_sr);
+    const float k = 2.0f - 1.94f * p2;
+    const float a1 = 1.0f / (1.0f + gg * (gg + k)), a2 = gg * a1, a3 = gg * a2;
+    const float m0 = type == HAVOC_X_HP ? 1.0f : 0.0f;
+    const float m1 = type == HAVOC_X_BP ? k : type == HAVOC_X_HP ? -k : 0.0f;
+    const float m2 = type == HAVOC_X_LP ? 1.0f : type == HAVOC_X_HP ? -1.0f : 0.0f;
+    for (int c = 0; c < 2; c++) {
+        float *x = side[c];
+        float ic1 = q->ic1[c], ic2 = q->ic2[c];
+        for (int i = 0; i < n; i++) {
+            const float v3 = x[i] - ic2, v1 = a1 * ic1 + a2 * v3, v2 = ic2 + a2 * ic1 + a3 * v3;
+            ic1 = v1 + v1 - ic1;
+            ic2 = v2 + v2 - ic2;
+            x[i] += mix * (m0 * x[i] + m1 * v1 + m2 * v2 - x[i]);
+        }
+        q->ic1[c] = ic1;
+        q->ic2[c] = ic2;
+    }
+}
+
+/* comb: a delay line tuned by p1, with feedback p2 (both signs) */
+static DSP_FAST_CODE void proc_comb(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix, sr = cx->sr;
+    float *const side[2] = {cx->xl, cx->xr};
+    const float dly = dsp_clampf(sr / (30.0f * fm_exp2(8.0f * p1)), 2.0f, (float)(HAVOC_DELAY - 4));
+    const float fb = 0.97f * (p2 + p2 - 1.0f), dd = (dly - q->dly) * (1.0f / (float)SYNTH_BLOCK);
+    for (int i = 0; i < n; i++) {
+        q->wr = (q->wr + 1) & HAVOC_MASK;
+        q->dly += dd;
+        const int di = (int)q->dly;
+        const float df = q->dly - (float)di;
+        for (int c = 0; c < 2; c++) {
+            const float s0 = (float)q->buf[c][(q->wr - di) & HAVOC_MASK];
+            const float s1 = (float)q->buf[c][(q->wr - di - 1) & HAVOC_MASK];
+            const float w = fm_tanh(side[c][i] + fb * (s0 + df * (s1 - s0)) * (1.0f / 32767.0f));
+            q->buf[c][q->wr] = (int16_t)(w * 32767.0f);
+            side[c][i] += mix * (w - side[c][i]);
+        }
+    }
+    q->dly = dly;
+}
+
+/* fold: a sine folder, drive p1, asymmetry p2 */
+static DSP_FAST_CODE void proc_fold(const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix;
+    float *const side[2] = {cx->xl, cx->xr};
+    const float drive = 0.15f * fm_exp2(4.5f * p1), off = 0.25f * p2, dc = fm_sin(off);
+    for (int c = 0; c < 2; c++)
+        for (int i = 0; i < n; i++)
+            side[c][i] += mix * (fm_sin(drive * side[c][i] + off) - dc - side[c][i]);
+}
+
+/* crush: sample rate p1, word length p2 */
+static DSP_FAST_CODE void proc_crush(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix;
+    float *const side[2] = {cx->xl, cx->xr};
+    const float rate = fm_exp2(-7.0f * p1), lv = fm_exp2(15.0f - 14.0f * p2), ilv = 1.0f / lv;
+    for (int i = 0; i < n; i++) {
+        q->cph += rate;
+        const int tick = q->cph >= 1.0f;
+        if (tick)
+            q->cph -= 1.0f;
+        for (int c = 0; c < 2; c++) {
+            if (tick) {
+                const float x = dsp_clampf(side[c][i], -4.0f, 4.0f);
+                q->hold[c] = (float)(int32_t)(x * lv + (x >= 0.0f ? 0.5f : -0.5f)) * ilv;
+            }
+            side[c][i] += mix * (q->hold[c] - side[c][i]);
+        }
+    }
+}
+
+/* ring: multiplied by a sine at p1, the right side p2 of a quarter turn ahead */
+static DSP_FAST_CODE void proc_ring(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix, inv_sr = cx->inv_sr;
+    float *xl = cx->xl, *xr = cx->xr;
+    const float inc = dsp_minf(fm_exp2(13.0f * p1) * inv_sr, 0.45f), spread = 0.25f * p2;
+    for (int i = 0; i < n; i++) {
+        q->ph += inc;
+        if (q->ph >= 1.0f)
+            q->ph -= 1.0f;
+        xl[i] += mix * (xl[i] * fm_sin_pos(q->ph) - xl[i]);
+        xr[i] += mix * (xr[i] * fm_sin_pos(q->ph + spread) - xr[i]);
+    }
+}
+
+/* every upward zero crossing flips a divider, every fall of that one flips the next */
+static DSP_FAST_CODE void proc_sub(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix;
+    float *const side[2] = {cx->xl, cx->xr};
+    const float low = p1, c = 0.02f + 0.6f * p2 * p2;
+    for (int k = 0; k < 2; k++) {
+        float *x = side[k];
+        for (int i = 0; i < n; i++) {
+            q->sub_env[k] += 0.004f * (dsp_absf(x[i]) - q->sub_env[k]);
+            const float hyst = 0.1f * q->sub_env[k];
+            if (q->sub_sgn[k] <= 0 && x[i] > hyst) {
+                q->sub_sgn[k] = 1;
+                q->sub_ff[k] = (q->sub_ff[k] + 1) & 3;
+            } else if (q->sub_sgn[k] > 0 && x[i] < -hyst) {
+                q->sub_sgn[k] = -1;
+            }
+            const float sq = (1.0f - low) * (q->sub_ff[k] & 1 ? 1.0f : -1.0f) + low * (q->sub_ff[k] & 2 ? 1.0f : -1.0f);
+            q->sub_lp[k] += c * (1.5f * q->sub_env[k] * sq - q->sub_lp[k]);
+            x[i] += mix * (q->sub_lp[k] - 0.5f * x[i]); /* at full mix, half of the sound stays above its sub */
+        }
+    }
+}
+
+/* a delay of 5 ms whose length a sine moves: vibrato, then frequency modulation */
+static DSP_FAST_CODE void proc_warp(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix, sr = cx->sr, inv_sr = cx->inv_sr;
+    float *const side[2] = {cx->xl, cx->xr};
+    const float inc = dsp_minf(0.5f * fm_exp2(11.0f * p1) * inv_sr, 0.45f), base = 0.005f * sr, depth = 0.95f * p2 * base;
+    for (int i = 0; i < n; i++) {
+        q->ph += inc;
+        if (q->ph >= 1.0f)
+            q->ph -= 1.0f;
+        q->wr = (q->wr + 1) & HAVOC_MASK;
+        const float dl = base + depth * fm_sin_pos(q->ph);
+        const int di = (int)dl;
+        const float df = dl - (float)di;
+        for (int c = 0; c < 2; c++) {
+            q->buf[c][q->wr] = (int16_t)(dsp_clampf(side[c][i], -4.0f, 4.0f) * 8191.0f);
+            const float s0 = (float)q->buf[c][(q->wr - di) & HAVOC_MASK], s1 = (float)q->buf[c][(q->wr - di - 1) & HAVOC_MASK];
+            side[c][i] += mix * ((s0 + df * (s1 - s0)) * (1.0f / 8191.0f) - side[c][i]);
+        }
+    }
+}
+
+/* the sample as a 12-bit word */
+static DSP_FAST_CODE void proc_mangle(const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix;
+    float *const side[2] = {cx->xl, cx->xr};
+    const int op = (int)(p1 * 3.99f);
+    const uint32_t amount = (uint32_t)(p2 * 4095.0f), turn = 1u + (uint32_t)(p2 * 10.99f);
+    for (int c = 0; c < 2; c++)
+        for (int i = 0; i < n; i++) {
+            uint32_t w = (uint32_t)(int32_t)(dsp_clampf(side[c][i], -1.0f, 1.0f) * 2047.0f + 2048.0f) & 4095u;
+            if (op == 0) {
+                w ^= amount;
+            } else if (op == 1) {
+                w = (w << turn | w >> (12u - turn)) & 4095u;
+            } else if (op == 2) {
+                w &= ~amount | 2048u; /* (the sign bit is kept: the sound thins out instead of vanishing) */
+            } else {
+                uint32_t r = 0;
+                for (uint32_t k = 0; k < 12u; k++)
+                    r |= (w >> k & 1u) << (11u - k);
+                w = (r & amount) | (w & ~amount);
+            }
+            side[c][i] += mix * (((float)w - 2048.0f) * (1.0f / 2047.0f) - side[c][i]);
+        }
+}
+
+/* records the sum; now and then replays its last instants in a loop instead */
+static DSP_FAST_CODE void proc_stutter(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix, sr = cx->sr, inv_sr = cx->inv_sr;
+    float *const side[2] = {cx->xl, cx->xr};
+    q->wait -= (float)n * inv_sr;
+    if (q->wait <= 0.0f) {
+        const float share = dsp_clampf(p2, 0.0f, 0.98f);
+        if (q->stuck || share <= 0.0f) { /* let go, for a time that keeps the share */
+            q->stuck = 0;
+            q->wait = share <= 0.0f ? 0.1f : (0.02f + 0.3f * dsp_rand_unipolar(&q->rng)) * (1.0f - share) / (share + 0.02f);
+        } else { /* stuck on a fragment around the length asked, for 2 to 12 turns */
+            q->len = (int)dsp_clampf(0.002f * sr * fm_exp2(4.4f * p1) * (0.6f + 0.8f * dsp_rand_unipolar(&q->rng)), 16.0f,
+                                     (float)(HAVOC_DELAY - 1));
+            q->pos = 0;
+            q->stuck = 1;
+            q->wait = (float)q->len * inv_sr * (2.0f + 10.0f * dsp_rand_unipolar(&q->rng));
+        }
+    }
+    for (int i = 0; i < n; i++) {
+        if (q->stuck) {
+            const int at = (q->wr - q->len + 1 + q->pos) & HAVOC_MASK;
+            if (++q->pos >= q->len)
+                q->pos = 0;
+            for (int c = 0; c < 2; c++)
+                side[c][i] += mix * ((float)q->buf[c][at] * (1.0f / 8191.0f) - side[c][i]);
+        } else {
+            q->wr = (q->wr + 1) & HAVOC_MASK;
+            for (int c = 0; c < 2; c++)
+                q->buf[c][q->wr] = (int16_t)(dsp_clampf(side[c][i], -4.0f, 4.0f) * 8191.0f);
+        }
+    }
+}
+
+/* chop: open for p2 of each period; the edges take about a millisecond */
+static DSP_FAST_CODE void proc_chop(havoc_proc_t *q, const proc_ctx_t *cx)
+{
+    const int n = SYNTH_BLOCK;
+    const float p1 = cx->p1, p2 = cx->p2, mix = cx->mix, inv_sr = cx->inv_sr;
+    float *xl = cx->xl, *xr = cx->xr;
+    const float inc = 0.5f * fm_exp2(6.0f * p1) * inv_sr, duty = 0.02f + 0.96f * p2;
+    for (int i = 0; i < n; i++) {
+        q->ph += inc;
+        if (q->ph >= 1.0f)
+            q->ph -= 1.0f;
+        q->gate += 0.05f * ((q->ph < duty ? 1.0f : 0.0f) - q->gate);
+        xl[i] += mix * (xl[i] * q->gate - xl[i]);
+        xr[i] += mix * (xr[i] * q->gate - xr[i]);
+    }
+}
+
 /* One block of a processor, in place on the two sides. */
 static DSP_FAST_CODE void proc_render(havoc_t *e, havoc_proc_t *q, const float *pp, float *xl, float *xr)
 {
-    const int n = SYNTH_BLOCK;
     const int type = (int)pp[HAVOC_X_TYPE];
     const float p1 = pp[HAVOC_X_P1], p2 = pp[HAVOC_X_P2], mix = pp[HAVOC_X_MIX];
     const float sr = e->sr, inv_sr = 1.0f / sr;
-    float *const side[2] = {xl, xr};
     if (type == HAVOC_X_OFF || mix <= 0.0f)
         return;
+    const proc_ctx_t cx = {type, p1, p2, mix, sr, inv_sr, xl, xr};
     switch (type) {
     case HAVOC_X_LP:
     case HAVOC_X_BP:
-    case HAVOC_X_HP: {
-        const float gg = fm_tan_pi(dsp_clampf(30.0f * fm_exp2(9.2f * p1), 20.0f, 0.45f * sr) * inv_sr);
-        const float k = 2.0f - 1.94f * p2;
-        const float a1 = 1.0f / (1.0f + gg * (gg + k)), a2 = gg * a1, a3 = gg * a2;
-        const float m0 = type == HAVOC_X_HP ? 1.0f : 0.0f;
-        const float m1 = type == HAVOC_X_BP ? k : type == HAVOC_X_HP ? -k : 0.0f;
-        const float m2 = type == HAVOC_X_LP ? 1.0f : type == HAVOC_X_HP ? -1.0f : 0.0f;
-        for (int c = 0; c < 2; c++) {
-            float *x = side[c];
-            float ic1 = q->ic1[c], ic2 = q->ic2[c];
-            for (int i = 0; i < n; i++) {
-                const float v3 = x[i] - ic2, v1 = a1 * ic1 + a2 * v3, v2 = ic2 + a2 * ic1 + a3 * v3;
-                ic1 = v1 + v1 - ic1;
-                ic2 = v2 + v2 - ic2;
-                x[i] += mix * (m0 * x[i] + m1 * v1 + m2 * v2 - x[i]);
-            }
-            q->ic1[c] = ic1;
-            q->ic2[c] = ic2;
-        }
-        break;
-    }
-    case HAVOC_X_COMB: {
-        const float dly = dsp_clampf(sr / (30.0f * fm_exp2(8.0f * p1)), 2.0f, (float)(HAVOC_DELAY - 4));
-        const float fb = 0.97f * (p2 + p2 - 1.0f), dd = (dly - q->dly) * (1.0f / (float)SYNTH_BLOCK);
-        for (int i = 0; i < n; i++) {
-            q->wr = (q->wr + 1) & HAVOC_MASK;
-            q->dly += dd;
-            const int di = (int)q->dly;
-            const float df = q->dly - (float)di;
-            for (int c = 0; c < 2; c++) {
-                const float s0 = (float)q->buf[c][(q->wr - di) & HAVOC_MASK];
-                const float s1 = (float)q->buf[c][(q->wr - di - 1) & HAVOC_MASK];
-                const float w = fm_tanh(side[c][i] + fb * (s0 + df * (s1 - s0)) * (1.0f / 32767.0f));
-                q->buf[c][q->wr] = (int16_t)(w * 32767.0f);
-                side[c][i] += mix * (w - side[c][i]);
-            }
-        }
-        q->dly = dly;
-        break;
-    }
-    case HAVOC_X_FOLD: {
-        const float drive = 0.15f * fm_exp2(4.5f * p1), off = 0.25f * p2, dc = fm_sin(off);
-        for (int c = 0; c < 2; c++)
-            for (int i = 0; i < n; i++)
-                side[c][i] += mix * (fm_sin(drive * side[c][i] + off) - dc - side[c][i]);
-        break;
-    }
-    case HAVOC_X_CRUSH: {
-        const float rate = fm_exp2(-7.0f * p1), lv = fm_exp2(15.0f - 14.0f * p2), ilv = 1.0f / lv;
-        for (int i = 0; i < n; i++) {
-            q->cph += rate;
-            const int tick = q->cph >= 1.0f;
-            if (tick)
-                q->cph -= 1.0f;
-            for (int c = 0; c < 2; c++) {
-                if (tick) {
-                    const float x = dsp_clampf(side[c][i], -4.0f, 4.0f);
-                    q->hold[c] = (float)(int32_t)(x * lv + (x >= 0.0f ? 0.5f : -0.5f)) * ilv;
-                }
-                side[c][i] += mix * (q->hold[c] - side[c][i]);
-            }
-        }
-        break;
-    }
-    case HAVOC_X_RING: {
-        const float inc = dsp_minf(fm_exp2(13.0f * p1) * inv_sr, 0.45f), spread = 0.25f * p2;
-        for (int i = 0; i < n; i++) {
-            q->ph += inc;
-            if (q->ph >= 1.0f)
-                q->ph -= 1.0f;
-            xl[i] += mix * (xl[i] * fm_sin_pos(q->ph) - xl[i]);
-            xr[i] += mix * (xr[i] * fm_sin_pos(q->ph + spread) - xr[i]);
-        }
-        break;
-    }
-    case HAVOC_X_SUB: { /* every upward zero crossing flips a divider, every fall of that one flips the next */
-        const float low = p1, c = 0.02f + 0.6f * p2 * p2;
-        for (int k = 0; k < 2; k++) {
-            float *x = side[k];
-            for (int i = 0; i < n; i++) {
-                q->sub_env[k] += 0.004f * (dsp_absf(x[i]) - q->sub_env[k]);
-                const float hyst = 0.1f * q->sub_env[k];
-                if (q->sub_sgn[k] <= 0 && x[i] > hyst) {
-                    q->sub_sgn[k] = 1;
-                    q->sub_ff[k] = (q->sub_ff[k] + 1) & 3;
-                } else if (q->sub_sgn[k] > 0 && x[i] < -hyst) {
-                    q->sub_sgn[k] = -1;
-                }
-                const float sq = (1.0f - low) * (q->sub_ff[k] & 1 ? 1.0f : -1.0f) + low * (q->sub_ff[k] & 2 ? 1.0f : -1.0f);
-                q->sub_lp[k] += c * (1.5f * q->sub_env[k] * sq - q->sub_lp[k]);
-                x[i] += mix * (q->sub_lp[k] - 0.5f * x[i]); /* at full mix, half of the sound stays above its sub */
-            }
-        }
-        break;
-    }
-    case HAVOC_X_WARP: { /* a delay of 5 ms whose length a sine moves: vibrato, then frequency modulation */
-        const float inc = dsp_minf(0.5f * fm_exp2(11.0f * p1) * inv_sr, 0.45f), base = 0.005f * sr, depth = 0.95f * p2 * base;
-        for (int i = 0; i < n; i++) {
-            q->ph += inc;
-            if (q->ph >= 1.0f)
-                q->ph -= 1.0f;
-            q->wr = (q->wr + 1) & HAVOC_MASK;
-            const float dl = base + depth * fm_sin_pos(q->ph);
-            const int di = (int)dl;
-            const float df = dl - (float)di;
-            for (int c = 0; c < 2; c++) {
-                q->buf[c][q->wr] = (int16_t)(dsp_clampf(side[c][i], -4.0f, 4.0f) * 8191.0f);
-                const float s0 = (float)q->buf[c][(q->wr - di) & HAVOC_MASK], s1 = (float)q->buf[c][(q->wr - di - 1) & HAVOC_MASK];
-                side[c][i] += mix * ((s0 + df * (s1 - s0)) * (1.0f / 8191.0f) - side[c][i]);
-            }
-        }
-        break;
-    }
-    case HAVOC_X_MANGLE: { /* the sample as a 12-bit word */
-        const int op = (int)(p1 * 3.99f);
-        const uint32_t amount = (uint32_t)(p2 * 4095.0f), turn = 1u + (uint32_t)(p2 * 10.99f);
-        for (int c = 0; c < 2; c++)
-            for (int i = 0; i < n; i++) {
-                uint32_t w = (uint32_t)(int32_t)(dsp_clampf(side[c][i], -1.0f, 1.0f) * 2047.0f + 2048.0f) & 4095u;
-                if (op == 0) {
-                    w ^= amount;
-                } else if (op == 1) {
-                    w = (w << turn | w >> (12u - turn)) & 4095u;
-                } else if (op == 2) {
-                    w &= ~amount | 2048u; /* (the sign bit is kept: the sound thins out instead of vanishing) */
-                } else {
-                    uint32_t r = 0;
-                    for (uint32_t k = 0; k < 12u; k++)
-                        r |= (w >> k & 1u) << (11u - k);
-                    w = (r & amount) | (w & ~amount);
-                }
-                side[c][i] += mix * (((float)w - 2048.0f) * (1.0f / 2047.0f) - side[c][i]);
-            }
-        break;
-    }
-    case HAVOC_X_STUTTER: { /* records the sum; now and then replays its last instants in a loop instead */
-        q->wait -= (float)n * inv_sr;
-        if (q->wait <= 0.0f) {
-            const float share = dsp_clampf(p2, 0.0f, 0.98f);
-            if (q->stuck || share <= 0.0f) { /* let go, for a time that keeps the share */
-                q->stuck = 0;
-                q->wait = share <= 0.0f ? 0.1f : (0.02f + 0.3f * dsp_rand_unipolar(&q->rng)) * (1.0f - share) / (share + 0.02f);
-            } else { /* stuck on a fragment around the length asked, for 2 to 12 turns */
-                q->len = (int)dsp_clampf(0.002f * sr * fm_exp2(4.4f * p1) * (0.6f + 0.8f * dsp_rand_unipolar(&q->rng)), 16.0f,
-                                         (float)(HAVOC_DELAY - 1));
-                q->pos = 0;
-                q->stuck = 1;
-                q->wait = (float)q->len * inv_sr * (2.0f + 10.0f * dsp_rand_unipolar(&q->rng));
-            }
-        }
-        for (int i = 0; i < n; i++) {
-            if (q->stuck) {
-                const int at = (q->wr - q->len + 1 + q->pos) & HAVOC_MASK;
-                if (++q->pos >= q->len)
-                    q->pos = 0;
-                for (int c = 0; c < 2; c++)
-                    side[c][i] += mix * ((float)q->buf[c][at] * (1.0f / 8191.0f) - side[c][i]);
-            } else {
-                q->wr = (q->wr + 1) & HAVOC_MASK;
-                for (int c = 0; c < 2; c++)
-                    q->buf[c][q->wr] = (int16_t)(dsp_clampf(side[c][i], -4.0f, 4.0f) * 8191.0f);
-            }
-        }
-        break;
-    }
-    default: { /* chop: open for p2 of each period; the edges take about a millisecond */
-        const float inc = 0.5f * fm_exp2(6.0f * p1) * inv_sr, duty = 0.02f + 0.96f * p2;
-        for (int i = 0; i < n; i++) {
-            q->ph += inc;
-            if (q->ph >= 1.0f)
-                q->ph -= 1.0f;
-            q->gate += 0.05f * ((q->ph < duty ? 1.0f : 0.0f) - q->gate);
-            xl[i] += mix * (xl[i] * q->gate - xl[i]);
-            xr[i] += mix * (xr[i] * q->gate - xr[i]);
-        }
-        break;
-    }
+    case HAVOC_X_HP: proc_filter(q, &cx); break;
+    case HAVOC_X_COMB: proc_comb(q, &cx); break;
+    case HAVOC_X_FOLD: proc_fold(&cx); break;
+    case HAVOC_X_CRUSH: proc_crush(q, &cx); break;
+    case HAVOC_X_RING: proc_ring(q, &cx); break;
+    case HAVOC_X_SUB: proc_sub(q, &cx); break;
+    case HAVOC_X_WARP: proc_warp(q, &cx); break;
+    case HAVOC_X_MANGLE: proc_mangle(&cx); break;
+    case HAVOC_X_STUTTER: proc_stutter(q, &cx); break;
+    default: proc_chop(q, &cx); break;
     }
 }
 

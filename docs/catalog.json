@@ -1268,7 +1268,7 @@
       }
     },
     "micro": {
-      "description": "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, noise layer with its own gate, tone bursts, ratchets, gate patterns (8 voices)",
+      "description": "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, noise layer with its own gate, low layer (a sub with its own sample-exact envelope, pitch drop and gate), tone bursts, ratchets, gate patterns (8 voices)",
       "voices": 8,
       "params": {
         "voice_mode": {"type": "enum", "choices": ["poly", "mono", "legato"], "default": "poly", "realtime": false, "role": "voice.mode", "help": "poly, mono (every note retriggers) or legato (overlapping notes glide without retriggering)"},
@@ -1330,7 +1330,20 @@
         "noise_decay": {"type": "float", "range": [0.0005, 4], "default": 0.05, "unit": "s", "scale": "log", "realtime": true, "role": "micro.noise_decay", "help": "length of the noise's own decay (hit and step modes; time to -60 dB)"},
         "noise_gate": {"type": "enum", "choices": ["off", "same", "inverse", "pattern"], "default": "off", "realtime": false, "role": "micro.noise_gate", "help": "the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode`"},
         "noise_pattern": {"type": "int", "range": [0, 65535], "default": 21845, "realtime": false, "role": "micro.noise_pattern", "help": "the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1)"},
-        "noise_pan": {"type": "float", "range": [-1, 1], "default": 0, "realtime": true, "role": "micro.noise_pan", "help": "position of the noise, relative to `pan`"}
+        "noise_pan": {"type": "float", "range": [-1, 1], "default": 0, "realtime": true, "role": "micro.noise_pan", "help": "position of the noise, relative to `pan`"},
+        "low_level": {"type": "float", "range": [-60, 12], "default": -60, "unit": "dB", "realtime": true, "role": "micro.low_level", "help": "level of the low layer, the weight (the bottom = off): a sine in the centre, out of the drive, with its own envelope counted in samples"},
+        "low_mode": {"type": "enum", "choices": ["fixed", "note"], "default": "fixed", "realtime": false, "role": "micro.low_mode", "help": "fixed: always at `low_freq`; note: the note played, brought into the octave that starts at `low_freq` (any key gives a low in the same range)"},
+        "low_freq": {"type": "float", "range": [20, 160], "default": 45, "unit": "Hz", "scale": "log", "realtime": true, "role": "micro.low_freq", "help": "frequency of the low layer (fixed), or the bottom of its octave (note)"},
+        "low_phase": {"type": "float", "range": [0, 360], "default": 0, "unit": "deg", "realtime": false, "role": "micro.low_phase", "help": "phase every hit starts at: 0 = from zero, soft; 90 = from the top, a click of its own"},
+        "low_drop": {"type": "float", "range": [0, 72], "default": 0, "unit": "st", "realtime": true, "role": "micro.low_drop", "help": "how far above its frequency every hit starts (the punch)"},
+        "low_drop_time": {"type": "float", "range": [0.001, 1], "default": 0.04, "unit": "s", "scale": "log", "realtime": true, "role": "micro.low_drop_time", "help": "time of the fall to its frequency"},
+        "low_attack": {"type": "float", "range": [2e-05, 0.5], "default": 0.001, "unit": "s", "scale": "log", "realtime": true, "role": "micro.low_attack", "help": "attack of the low layer (the bottom = one sample)"},
+        "low_hold": {"type": "float", "range": [0, 4], "default": 0.05, "unit": "s", "realtime": true, "role": "micro.low_hold", "help": "time at full level before the decay"},
+        "low_decay": {"type": "float", "range": [0.002, 10], "default": 0.4, "unit": "s", "scale": "log", "realtime": true, "role": "micro.low_decay", "help": "decay to silence, reached exactly at its end"},
+        "low_curve": {"type": "float", "range": [-1, 1], "default": 0.5, "realtime": false, "role": "micro.low_curve", "help": "curve of the decay: 0 = a straight line, towards 1 = a fast fall then a long tail, towards -1 = held then cut"},
+        "low_drive": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "micro.low_drive", "help": "saturation of the low sine: harmonics that carry it on small speakers, towards a square at the top"},
+        "low_gate": {"type": "enum", "choices": ["off", "same", "inverse", "pattern"], "default": "off", "realtime": false, "role": "micro.low_gate", "help": "off: one hit per note (and per ratchet); else a hit on every step that opens while the note is held: the same steps as the tone, the inverse ones, or its own `low_pattern`; needs `gate_mode`"},
+        "low_pattern": {"type": "int", "range": [0, 65535], "default": 4369, "realtime": false, "role": "micro.low_pattern", "help": "the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1)"}
       }
     },
     "fm4": {

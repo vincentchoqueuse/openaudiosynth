@@ -1,0 +1,103 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_low_line",
+  "description": "A bass line that is only weight: whatever key is played lands between 41 and 82 Hz, starts from the top of its sine (its own click), holds, and stops on the sample.",
+  "params": {
+    "sine_level": -60,
+    "amp_attack": 0.001,
+    "amp_sustain": 0,
+    "amp_decay": 0.05,
+    "click_mode": "impulse",
+    "click_level": -14,
+    "click_tone": 3500,
+    "low_level": 5,
+    "low_mode": "note",
+    "low_freq": 41.2,
+    "low_phase": 90,
+    "low_drop": 7,
+    "low_drop_time": 0.015,
+    "low_attack": 2e-05,
+    "low_hold": 0.16,
+    "low_decay": 0.12,
+    "low_curve": -0.4,
+    "low_drive": 0.55,
+    "velocity": 0.3,
+    "volume": 6,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/4",
+    "notes": [
+      {
+        "pitch": 40,
+        "start": 0,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 40,
+        "start": 0.75,
+        "length": 0.2,
+        "velocity": 90
+      },
+      {
+        "pitch": 43,
+        "start": 1.5,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 40,
+        "start": 2.5,
+        "length": 0.4,
+        "velocity": 100
+      },
+      {
+        "pitch": 47,
+        "start": 3.25,
+        "length": 0.2,
+        "velocity": 90
+      },
+      {
+        "pitch": 45,
+        "start": 3.5,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 40,
+        "start": 4,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 40,
+        "start": 4.75,
+        "length": 0.2,
+        "velocity": 90
+      },
+      {
+        "pitch": 43,
+        "start": 5.5,
+        "length": 0.4,
+        "velocity": 110
+      },
+      {
+        "pitch": 38,
+        "start": 6.5,
+        "length": 0.4,
+        "velocity": 105
+      },
+      {
+        "pitch": 35,
+        "start": 7.25,
+        "length": 0.5,
+        "velocity": 110
+      }
+    ]
+  }
+}

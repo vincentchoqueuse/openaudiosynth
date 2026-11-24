@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_low_pulse",
+  "description": "Weight alone: a 45 Hz sine hit on every beat, each hit the same samples: two octaves of fall in 30 ms, 80 ms held, a curved decay, a little drive so it exists on small speakers.",
+  "params": {
+    "sine_level": -60,
+    "amp_sustain": 1,
+    "gate_mode": "sync",
+    "gate_div": "1/16",
+    "gate_steps": 16,
+    "gate_pattern": 65535,
+    "low_level": 6,
+    "low_freq": 45,
+    "low_drop": 24,
+    "low_drop_time": 0.03,
+    "low_attack": 0.0005,
+    "low_hold": 0.08,
+    "low_decay": 0.32,
+    "low_curve": 0.5,
+    "low_drive": 0.3,
+    "low_gate": "pattern",
+    "low_pattern": 4369,
+    "velocity": 0,
+    "volume": 6,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/4",
+    "notes": [
+      {
+        "pitch": 60,
+        "start": 0,
+        "length": 7.9,
+        "velocity": 100
+      }
+    ]
+  }
+}

@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_low_pressure",
+  "description": "A room that fills: one very low hit that takes half a second to arrive, stays four seconds and leaves as slowly, with a second tone a fifth of a hertz away for the swell.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 62,
+    "sine_level": -12,
+    "amp_attack": 0.6,
+    "amp_hold": 4,
+    "amp_decay": 4,
+    "amp_sustain": 0,
+    "osc2_level": -12,
+    "osc2_mode": "hz",
+    "osc2_offset": 0.2,
+    "low_level": 8,
+    "low_freq": 31,
+    "low_attack": 0.5,
+    "low_hold": 4.0,
+    "low_decay": 4.5,
+    "low_curve": 0.2,
+    "low_drive": 0.2,
+    "velocity": 0,
+    "volume": 6,
+    "tempo": 60
+  },
+  "clip": {
+    "bpm": 60,
+    "length": 10,
+    "loop": false,
+    "grid": "1/4",
+    "notes": [
+      {
+        "pitch": 48,
+        "start": 0,
+        "length": 8,
+        "velocity": 100
+      }
+    ]
+  }
+}

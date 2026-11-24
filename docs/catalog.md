@@ -1204,7 +1204,7 @@ drone machine: each note an endless drone of wandering harmonic partials, a warm
 
 ## Engine `micro` (8 voices)
 
-precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, noise layer with its own gate, tone bursts, ratchets, gate patterns (8 voices)
+precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, noise layer with its own gate, low layer (a sub with its own sample-exact envelope, pitch drop and gate), tone bursts, ratchets, gate patterns (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
@@ -1268,6 +1268,19 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `noise_gate` | off, same, inverse, pattern | off |  | `micro.noise_gate` | the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode` |
 | `noise_pattern` | 0 .. 65535 | 21845 |  | `micro.noise_pattern` | the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
 | `noise_pan` | -1 .. 1 | 0 | yes | `micro.noise_pan` | position of the noise, relative to `pan` |
+| `low_level` | -60 .. 12 dB | -60 | yes | `micro.low_level` | level of the low layer, the weight (the bottom = off): a sine in the centre, out of the drive, with its own envelope counted in samples |
+| `low_mode` | fixed, note | fixed |  | `micro.low_mode` | fixed: always at `low_freq`; note: the note played, brought into the octave that starts at `low_freq` (any key gives a low in the same range) |
+| `low_freq` | 20 .. 160 Hz | 45 | yes | `micro.low_freq` | frequency of the low layer (fixed), or the bottom of its octave (note) |
+| `low_phase` | 0 .. 360 deg | 0 |  | `micro.low_phase` | phase every hit starts at: 0 = from zero, soft; 90 = from the top, a click of its own |
+| `low_drop` | 0 .. 72 st | 0 | yes | `micro.low_drop` | how far above its frequency every hit starts (the punch) |
+| `low_drop_time` | 0.001 .. 1 s | 0.04 | yes | `micro.low_drop_time` | time of the fall to its frequency |
+| `low_attack` | 2e-05 .. 0.5 s | 0.001 | yes | `micro.low_attack` | attack of the low layer (the bottom = one sample) |
+| `low_hold` | 0 .. 4 s | 0.05 | yes | `micro.low_hold` | time at full level before the decay |
+| `low_decay` | 0.002 .. 10 s | 0.4 | yes | `micro.low_decay` | decay to silence, reached exactly at its end |
+| `low_curve` | -1 .. 1 | 0.5 |  | `micro.low_curve` | curve of the decay: 0 = a straight line, towards 1 = a fast fall then a long tail, towards -1 = held then cut |
+| `low_drive` | 0 .. 1 | 0 | yes | `micro.low_drive` | saturation of the low sine: harmonics that carry it on small speakers, towards a square at the top |
+| `low_gate` | off, same, inverse, pattern | off |  | `micro.low_gate` | off: one hit per note (and per ratchet); else a hit on every step that opens while the note is held: the same steps as the tone, the inverse ones, or its own `low_pattern`; needs `gate_mode` |
+| `low_pattern` | 0 .. 65535 | 4369 |  | `micro.low_pattern` | the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1) |
 
 ## Engine `fm4` (16 voices)
 

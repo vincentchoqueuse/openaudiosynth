@@ -381,6 +381,15 @@ character of the whole machine. A second note played while the first is held sli
 - **Noise**: raise `map_flow` (every channel modulates its neighbour), `fold` (each pass folds the wave again) and
   `crackle` (random impulses into the loops), with a high-pass (`flux_signal_lost`); high pitches and a fast
   `motion` make a swarm (`flux_swarm`).
+- **Low layer** (`low_level` up from its bottom): the weight, a sine between 20 and 160 Hz apart from the rest
+  (in the centre, out of the drive). Every hit restarts it at `low_phase` (0 = soft, 90 = its own click) and
+  runs its own attack / hold / decay, counted in samples: two hits are the same samples, and the decay ends on
+  its last one. `low_drop` and `low_drop_time` are the punch (24 st in 30 ms = a kick, 7 st in 15 ms = a pluck);
+  `low_curve` towards 1 leaves a tail, towards -1 holds then cuts; `low_drive` adds the harmonics small speakers
+  need. `low_mode` note brings any key into the octave above `low_freq`: a bass line that stays between 41 and
+  82 Hz (`micro_low_line`). With the gate on, `low_gate` gives it a hit on every step that opens: the tone's
+  steps, its holes, or its own `low_pattern` (`micro_low_pulse`; with the tone and the noise,
+  `micro_low_interlock`). Long attack and hold make pressure instead of hits (`micro_low_pressure`).
 - **Dirt**: `crush` resamples every loop at a low rate and a few bits, each channel at its own wandering rate
   (0.4 = a grind, 0.7 = a few hundred hertz and 5 bits: the note is gone, `flux_bit_rot`); the aliases go round
   the loop again. `xor` mixes each loop bit by bit with its neighbour: harsh shards that follow both signals

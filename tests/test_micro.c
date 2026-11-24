@@ -2,7 +2,8 @@
  * (and a 20 s segment that does not drift), curves on the right side of linear, fixed and keyed pitch, a pitch
  * envelope that lands on the note, tone bursts of an exact number of cycles, exact beating in Hz split left/right,
  * ratchets on their interval and dying away, a gate pattern on the beat, the noise layer (inverse gate, a tick per
- * step, the periodic and stepped kinds), a glide that arrives, and every
+ * step, the periodic and stepped kinds), the low layer (on its sample, exact length, two hits identical, its
+ * pitch fixed or from the note, hits on its own gate), a glide that arrives, and every
  * parameter at its extremes bounded and deterministic. Engine-level renders (no master stage) unless noted. */
 #include <math.h>
 #include <string.h>
@@ -352,6 +353,71 @@ void suite_micro(void)
         printf("  micro impulse click: peak %.3f\n", (double)pk);
         CHECK(pk > 0.03f && pk < 0.2f && tail < 1e-4f, "micro impulse click: peak %g, tail %g", (double)pk,
               (double)tail);
+    }
+
+    /* the low layer alone, fixed at 50 Hz from its top (phase 90), attack 1 sample, hold 0.1 s, linear decay
+     * 0.2 s: it starts on the note's sample (19) and its last sound is 1 + 4800 + 9600 samples later */
+    fresh();
+    setp(MICRO_P_SINE_LEVEL, -60.0f);
+    setp(MICRO_P_LOW_LEVEL, 0.0f);
+    setp(MICRO_P_LOW_FREQ, 50.0f);
+    setp(MICRO_P_LOW_PHASE, 90.0f);
+    setp(MICRO_P_LOW_ATTACK, 0.00002f);
+    setp(MICRO_P_LOW_HOLD, 0.1f);
+    setp(MICRO_P_LOW_DECAY, 0.2f);
+    setp(MICRO_P_LOW_CURVE, 0.0f);
+    note_at(60, 19);
+    run(L, R, 19200, 120.0f);
+    {
+        const int first = first_nonzero(L, 19200), last = last_nonzero(L, 19200);
+        CHECK(first == 19 && last >= 19 + 14397 && last <= 19 + 14400, "micro low envelope: sound from %d to %d, expected 19 to %d",
+              first, last, 19 + 14399);
+        CHECK(fabsf(L[19 + 2500] - L[19 + 4420]) < 1e-3f * fabsf(L[19 + 2500]) && fabsf(L[19 + 2500]) > 0.01f,
+              "micro low hold: %g then %g two periods later", (double)L[19 + 2500], (double)L[19 + 4420]);
+    }
+    /* a second note once the first is over: the same samples, bit for bit (same phase, same envelope) */
+    off_at(60, 0);
+    run(L2, R, 4800, 120.0f);
+    note_at(60, 19);
+    run(L2, R, 19200, 120.0f);
+    CHECK(memcmp(L, L2, sizeof(float) * 19200) == 0, "micro low: two hits are not the same samples");
+
+    /* its pitch: 50 Hz held a second; in note mode C#4 is brought into the octave above E1 (41.2 Hz): C#2 */
+    for (int mode = 0; mode < 2; mode++) {
+        fresh();
+        setp(MICRO_P_SINE_LEVEL, -60.0f);
+        setp(MICRO_P_LOW_LEVEL, 0.0f);
+        setp(MICRO_P_LOW_MODE, (float)mode);
+        setp(MICRO_P_LOW_FREQ, mode ? 41.2034f : 50.0f);
+        setp(MICRO_P_LOW_HOLD, 2.0f);
+        note_at(61, 0);
+        run(L, R, 96000, 120.0f);
+        const float f = estimate_freq(L + 9600, 65536, SR), want = mode ? 69.2957f : 50.0f;
+        CHECK(fabsf(f - want) < 0.005f * want, "micro low pitch (mode %d): %.3f Hz, expected %.3f", mode, (double)f, (double)want);
+    }
+
+    /* on its own gate pattern (one step in four of sixteenths at 120 bpm): a hit every 0.5 s while the note is held */
+    fresh();
+    beat_pos = 0.0f;
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    setp(MICRO_P_SINE_LEVEL, -60.0f);
+    setp(MICRO_P_GATE_MODE, 1.0f);
+    setp(MICRO_P_GATE_DIV, 3.0f);
+    setp(MICRO_P_GATE_PATTERN, 65535.0f);
+    setp(MICRO_P_LOW_LEVEL, 0.0f);
+    setp(MICRO_P_LOW_GATE, 3.0f);
+    setp(MICRO_P_LOW_PATTERN, 4369.0f);
+    setp(MICRO_P_LOW_HOLD, 0.0f);
+    setp(MICRO_P_LOW_DECAY, 0.1f);
+    note_at(60, 0);
+    run(L, R, 96000, 120.0f);
+    {
+        float head = 1.0f, tail = 0.0f;
+        for (int k = 1; k < 4; k++) {
+            head = fminf(head, rms(L + 24000 * k, 2000));
+            tail = fmaxf(tail, rms(L + 24000 * k + 8000, 12000));
+        }
+        CHECK(head > 0.02f && tail < 1e-5f, "micro low gate: rms %g on its steps, %g between", (double)head, (double)tail);
     }
 
     /* every parameter at its top, then its bottom, a cluster through the synth: finite, bounded, deterministic */

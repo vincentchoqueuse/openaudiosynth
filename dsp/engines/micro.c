@@ -20,6 +20,7 @@ static const char *const noise_type_labels[] = {"white", "stepped", "periodic", 
 static const char *const noise_filter_labels[] = {"off", "lp", "bp", "hp", NULL};
 static const char *const noise_env_labels[] = {"amp", "hit", "step", NULL};
 static const char *const noise_gate_labels[] = {"off", "same", "inverse", "pattern", NULL};
+static const char *const low_mode_labels[] = {"fixed", "note", NULL};
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
@@ -142,6 +143,35 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           NULL, "the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1)"),
     PARAM(MICRO_P_NOISE_PAN, "noise_pan", "micro.noise_pan", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
           "position of the noise, relative to `pan`"),
+    PARAM(MICRO_P_LOW_LEVEL, "low_level", "micro.low_level", -60.0f, 12.0f, -60.0f, PARAM_DB, "dB", 1, NULL,
+          "level of the low layer, the weight (the bottom = off): a sine in the centre, out of the drive, with its "
+          "own envelope counted in samples"),
+    PARAM(MICRO_P_LOW_MODE, "low_mode", "micro.low_mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, low_mode_labels,
+          "fixed: always at `low_freq`; note: the note played, brought into the octave that starts at `low_freq` "
+          "(any key gives a low in the same range)"),
+    PARAM(MICRO_P_LOW_FREQ, "low_freq", "micro.low_freq", 20.0f, 160.0f, 45.0f, PARAM_EXP, "Hz", 1, NULL,
+          "frequency of the low layer (fixed), or the bottom of its octave (note)"),
+    PARAM(MICRO_P_LOW_PHASE, "low_phase", "micro.low_phase", 0.0f, 360.0f, 0.0f, PARAM_LIN, "deg", 0, NULL,
+          "phase every hit starts at: 0 = from zero, soft; 90 = from the top, a click of its own"),
+    PARAM(MICRO_P_LOW_DROP, "low_drop", "micro.low_drop", 0.0f, 72.0f, 0.0f, PARAM_LIN, "st", 1, NULL,
+          "how far above its frequency every hit starts (the punch)"),
+    PARAM(MICRO_P_LOW_DROP_TIME, "low_drop_time", "micro.low_drop_time", 0.001f, 1.0f, 0.04f, PARAM_EXP, "s", 1, NULL,
+          "time of the fall to its frequency"),
+    PARAM(MICRO_P_LOW_ATTACK, "low_attack", "micro.low_attack", 0.00002f, 0.5f, 0.001f, PARAM_EXP, "s", 1, NULL,
+          "attack of the low layer (the bottom = one sample)"),
+    PARAM(MICRO_P_LOW_HOLD, "low_hold", "micro.low_hold", 0.0f, 4.0f, 0.05f, PARAM_LIN, "s", 1, NULL,
+          "time at full level before the decay"),
+    PARAM(MICRO_P_LOW_DECAY, "low_decay", "micro.low_decay", 0.002f, 10.0f, 0.4f, PARAM_EXP, "s", 1, NULL,
+          "decay to silence, reached exactly at its end"),
+    PARAM(MICRO_P_LOW_CURVE, "low_curve", "micro.low_curve", -1.0f, 1.0f, 0.5f, PARAM_LIN, "", 0, NULL,
+          "curve of the decay: 0 = a straight line, towards 1 = a fast fall then a long tail, towards -1 = held then cut"),
+    PARAM(MICRO_P_LOW_DRIVE, "low_drive", "micro.low_drive", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "saturation of the low sine: harmonics that carry it on small speakers, towards a square at the top"),
+    PARAM(MICRO_P_LOW_GATE, "low_gate", "micro.low_gate", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, noise_gate_labels,
+          "off: one hit per note (and per ratchet); else a hit on every step that opens while the note is held: the "
+          "same steps as the tone, the inverse ones, or its own `low_pattern`; needs `gate_mode`"),
+    PARAM(MICRO_P_LOW_PATTERN, "low_pattern", "micro.low_pattern", 0.0f, 65535.0f, 4369.0f, PARAM_INT, "", 0, NULL,
+          "the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1)"),
 };
 
 /* ---------------- envelope segments ---------------- */
@@ -276,6 +306,50 @@ static float ratchet_interval(const micro_t *e)
     return s * e->sr;
 }
 
+/* a hit of the low layer: what it was playing fades in 2 ms, the sine restarts at its phase, the envelope at zero */
+static void low_hit(micro_t *e, micro_voice_t *v)
+{
+    const float *p = e->p;
+    const float base = 69.0f + 12.0f * fm_log2(p[MICRO_P_LOW_FREQ] * (1.0f / 440.0f));
+    v->low_semi = base;
+    if ((int)p[MICRO_P_LOW_MODE] == 1) { /* the note, brought into the octave above the base */
+        float up = v->semi_target - base;
+        up -= 12.0f * (float)(int)(up * (1.0f / 12.0f));
+        if (up < 0.0f)
+            up += 12.0f;
+        v->low_semi = base + up;
+    }
+    if (v->low_stage != MICRO_ENV_IDLE) {
+        const float dg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE];
+        v->low_tail = v->low_amp.y * fm_tanh(dg * fm_sin_pos(v->low_ph)) / fm_tanh(dg);
+        v->low_tail_d = v->low_tail / (0.002f * e->sr);
+    }
+    v->low_ph = p[MICRO_P_LOW_PHASE] * (1.0f / 360.0f);
+    v->low_ph -= (float)(int)v->low_ph;
+    v->low_amp.y = 0.0f;
+    v->low_stage = MICRO_ENV_ATTACK;
+    seg_start(&v->low_amp, 1.0f, samples_of(p[MICRO_P_LOW_ATTACK], e->sr), 0.0f);
+    v->low_pitch.y = 1.0f;
+    v->low_pitch_on = p[MICRO_P_LOW_DROP] > 0.0f;
+    if (v->low_pitch_on)
+        seg_start(&v->low_pitch, 0.0f, samples_of(p[MICRO_P_LOW_DROP_TIME], e->sr), 0.7f);
+}
+
+/* the end of a segment of the low layer's envelope */
+static void low_next(micro_t *e, micro_voice_t *v)
+{
+    if (v->low_stage == MICRO_ENV_ATTACK && e->p[MICRO_P_LOW_HOLD] >= 0.00003f) {
+        v->low_stage = MICRO_ENV_HOLD;
+        seg_start(&v->low_amp, 1.0f, samples_of(e->p[MICRO_P_LOW_HOLD], e->sr), 0.0f);
+    } else if (v->low_stage == MICRO_ENV_ATTACK || v->low_stage == MICRO_ENV_HOLD) {
+        v->low_stage = MICRO_ENV_DECAY;
+        seg_start(&v->low_amp, 0.0f, samples_of(e->p[MICRO_P_LOW_DECAY], e->sr), e->p[MICRO_P_LOW_CURVE]);
+    } else {
+        v->low_stage = MICRO_ENV_IDLE;
+        v->low_amp.y = 0.0f;
+    }
+}
+
 /* a hit: the note's first one or a ratchet repeat */
 static void hit(micro_t *e, micro_voice_t *v)
 {
@@ -313,6 +387,8 @@ static void hit(micro_t *e, micro_voice_t *v)
     }
     if ((int)e->p[MICRO_P_NOISE_ENV] > 0)
         v->noise_amp = 1.0f;
+    if (e->p[MICRO_P_LOW_LEVEL] > -59.9f && ((int)e->p[MICRO_P_GATE_MODE] == 0 || (int)e->p[MICRO_P_LOW_GATE] == 0))
+        low_hit(e, v);
     if ((int)e->p[MICRO_P_GATE_MODE] == 2 && v->hit_index == 0)
         v->gate_phase = 0.0f;
     v->hit_index++;
@@ -355,6 +431,10 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         v->noise_amp = 0.0f;
         v->ngate_g = -1.0f;
         v->nstep = -1;
+        v->lstep = -1;
+        v->low_stage = MICRO_ENV_IDLE;
+        v->low_amp.y = v->low_tail = 0.0f;
+        v->low_pitch_on = 0;
         v->vm_fresh = 1;
         v->gate_g = -1.0f; /* set on the first sample */
     }
@@ -405,6 +485,8 @@ static void voice_silence(void *eng, int vi)
     v->click_live = 0;
     v->click_amp = v->click_imp = 0.0f;
     v->noise_amp = 0.0f;
+    v->low_stage = MICRO_ENV_IDLE;
+    v->low_amp.y = v->low_tail = 0.0f;
 }
 
 static const vpoly_ops_t micro_poly_ops = {voice_start, voice_release, voice_level, voice_silence, voice_legato};
@@ -436,6 +518,11 @@ static void micro_init(void *st, float sample_rate)
         dist_init(&v->dist, sample_rate);
         svf_init(&v->noise_f, sample_rate);
         v->noise_rng = 0x2545F491u * (uint32_t)(i + 1);
+        v->low_stage = MICRO_ENV_IDLE;
+        v->low_amp.y = v->low_tail = v->low_tail_d = v->low_ph = 0.0f;
+        v->low_semi = 28.0f;
+        v->low_pitch_on = 0;
+        v->lstep = -1;
         v->lfsr = 0x7Fu;
         v->ngate_g = -1.0f;
         v->nstep = -1;
@@ -531,6 +618,11 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     const float nrate = dsp_minf(p[MICRO_P_NOISE_RATE] * inv_sr, 1.0f);
     const float nmul = fm_exp2(-9.966f / (p[MICRO_P_NOISE_DECAY] * e->sr)); /* -60 dB after noise_decay */
     const uint32_t npat = ngate == 1 ? gpat : ngate == 2 ? ~gpat : (uint32_t)p[MICRO_P_NOISE_PATTERN];
+    /* the low layer */
+    const float ll = p[MICRO_P_LOW_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_LOW_LEVEL]);
+    const int lgate = gmode > 0 ? (int)p[MICRO_P_LOW_GATE] : 0;
+    const uint32_t lpat = lgate == 1 ? gpat : lgate == 2 ? ~gpat : (uint32_t)p[MICRO_P_LOW_PATTERN];
+    const float ldg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE], lnorm = 1.0f / fm_tanh(ldg), ldrop = p[MICRO_P_LOW_DROP];
     if (nfilt != e->noise_filter_set) {
         for (int i = 0; i < MICRO_VOICES; i++) {
             svf_set_mode(&e->v[i].noise_f, (svf_mode_t)(nfilt > 0 ? nfilt - 1 : 0));
@@ -551,7 +643,15 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         micro_voice_t *v = &e->v[vi];
         const float *vm = vpoly_vmod(&e->poly, vi);
         const float shift = e->bend + vm[VM_PITCH];
-        float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK];
+        float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK], xw[SYNTH_BLOCK];
+        const int low_live = ll > 0.0f || v->low_stage != MICRO_ENV_IDLE || v->low_tail != 0.0f;
+        if (v->low_stage != MICRO_ENV_IDLE) {
+            seg_sync(&v->low_amp);
+            if (v->low_pitch_on)
+                seg_sync(&v->low_pitch);
+        }
+        float linc = inc_of(v->low_semi + (v->low_pitch_on ? ldrop * v->low_pitch.y : 0.0f), inv_sr);
+        float lseen = v->low_semi;
         int any_click = 0, refresh = 0;
 
         seg_sync(&v->amp);
@@ -695,6 +795,42 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
                 xn[i] = x * ne * ng;
             }
 
+            /* low layer: a hit on every step its gate opens, then its sine under its own envelope */
+            if (low_live) {
+                if (lgate > 0 && step >= 0 && step != v->lstep) {
+                    if (ll > 0.0f && v->gate && ((lpat >> step) & 1u)) {
+                        low_hit(e, v);
+                        linc = inc_of(v->low_semi + (v->low_pitch_on ? ldrop : 0.0f), inv_sr);
+                    }
+                    v->lstep = step;
+                }
+                if (v->low_semi != lseen) { /* a hit moved it (also the note's own, a few lines up) */
+                    lseen = v->low_semi;
+                    linc = inc_of(lseen + (v->low_pitch_on ? ldrop * v->low_pitch.y : 0.0f), inv_sr);
+                }
+                float w = 0.0f;
+                if (v->low_stage != MICRO_ENV_IDLE) {
+                    if (v->low_pitch_on) {
+                        linc = inc_of(v->low_semi + ldrop * v->low_pitch.y, inv_sr);
+                        if (seg_step(&v->low_pitch)) {
+                            v->low_pitch_on = 0;
+                            linc = inc_of(v->low_semi, inv_sr);
+                        }
+                    }
+                    const int ended = seg_step(&v->low_amp); /* (first, as the main envelope: a hit sounds on its sample) */
+                    w = v->low_amp.y * lnorm * fm_tanh(ldg * fm_sin_pos(v->low_ph));
+                    v->low_ph = wrap1(v->low_ph + linc);
+                    if (ended)
+                        low_next(e, v);
+                }
+                if (v->low_tail != 0.0f) { /* the hit this one cut */
+                    w += v->low_tail;
+                    const float t = v->low_tail - v->low_tail_d;
+                    v->low_tail = t * v->low_tail <= 0.0f ? 0.0f : t;
+                }
+                xw[i] = w;
+            }
+
             /* click input: an impulse or a decaying noise */
             float c = 0.0f;
             if (v->click_imp != 0.0f) {
@@ -736,10 +872,12 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         dsp_ramp_mul(xb, g0, g1, n);
         if (ln > 0.0f)
             dsp_ramp_mul(xn, g0 * ln, g1 * ln, n);
+        if (low_live)
+            dsp_ramp_mul(xw, g0 * ll, g1 * ll, n);
         float fade[SYNTH_BLOCK];
         if (vpoly_fade(&e->poly, vi, fade, n))
             for (int i = 0; i < n; i++)
-                xa[i] *= fade[i], xb[i] *= fade[i], xn[i] *= ln > 0.0f ? fade[i] : 0.0f;
+                xa[i] *= fade[i], xb[i] *= fade[i], xn[i] *= ln > 0.0f ? fade[i] : 0.0f, xw[i] *= low_live ? fade[i] : 0.0f;
         float d = 0.0f;
         if (voicemod_cfg_active(e->poly.vm_cfg)) {
             const float vg1 = vm[VM_LEVEL] != 0.0f ? fm_db2lin(dsp_clampf(vm[VM_LEVEL], -96.0f, 24.0f)) : 1.0f;
@@ -754,6 +892,13 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         v->vm_fresh = 0;
         dsp_guard_block(xa, n, &e->nan_count);
         dsp_guard_block(xb, n, &e->nan_count);
+        if (low_live) { /* the low layer in the centre, whatever the pan */
+            dsp_guard_block(xw, n, &e->nan_count);
+            for (int i = 0; i < n; i++) {
+                L[i] += 0.70710678f * xw[i];
+                R[i] += 0.70710678f * xw[i];
+            }
+        }
         if (ln > 0.0f) { /* the noise at its own place */
             dsp_guard_block(xn, n, &e->nan_count);
             float nl, nr;
@@ -781,7 +926,8 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
             }
         }
         const int sounding = v->stage != MICRO_ENV_IDLE || v->hit_in >= 0 || v->click_live > 0 ||
-                             (ln > 0.0f && nenv > 0 && v->noise_amp > 1e-4f);
+                             (ln > 0.0f && nenv > 0 && v->noise_amp > 1e-4f) || v->low_stage != MICRO_ENV_IDLE ||
+                             v->low_tail != 0.0f;
         vpoly_end_block(&e->poly, vi, sounding);
     }
 }
@@ -792,9 +938,10 @@ static const engine_stage_t micro_stages[] = {
     {"sub", "Sub", "source", "sub_", "", NULL, "sub_level", -60.0f, -6.0f},
     {"click", "Click", "source", "click_", "", NULL, "click_mode", 0.0f, 1.0f},
     {"noise", "Noise", "source", "noise_", "", NULL, "noise_level", -60.0f, -18.0f},
+    {"low", "Low", "source", "low_", "", NULL, "low_level", -60.0f, -6.0f},
     {"drive", "Drive", "filter", "drive", "sine sub click", NULL, "drive", 0.0f, 6.0f},
     {"amp", "Amp", "amp", "env_mode amp_attack amp_hold amp_decay amp_sustain amp_release attack_curve decay_curve "
-                          "velocity pan volume", "drive osc2 noise", NULL, NULL, 0.0f, 0.0f},
+                          "velocity pan volume", "drive osc2 noise low", NULL, NULL, 0.0f, 0.0f},
     {"pitch_env", "Pitch env", "mod", "pitch_amount pitch_time pitch_curve", "", "sine osc2 sub", NULL, 0.0f, 0.0f},
     {"ratchet", "Ratchet", "mod", "ratchet ratchet_div ratchet_hz ratchet_decay", "", "amp", "ratchet", 1.0f, 4.0f},
     {"gate", "Gate", "mod", "gate_", "", "amp", "gate_mode", 0.0f, 1.0f},
@@ -804,7 +951,8 @@ static const engine_stage_t micro_stages[] = {
 const engine_ops_t micro_engine = {
     .name = "micro",
     .description = "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, "
-                   "click, noise layer with its own gate, tone bursts, ratchets, gate patterns (8 voices)",
+                   "click, noise layer with its own gate, low layer (a sub with its own sample-exact envelope, pitch drop "
+                   "and gate), tone bursts, ratchets, gate patterns (8 voices)",
     .params = micro_params,
     .param_count = MICRO_P_COUNT,
     .voices = MICRO_VOICES,

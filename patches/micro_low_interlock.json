@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_low_interlock",
+  "description": "Three materials that never overlap by accident: a gated tone, noise in its holes, and under them a low hit on its own pattern.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 49,
+    "amp_attack": 0.002,
+    "amp_sustain": 1,
+    "amp_release": 0.05,
+    "osc2_level": -26,
+    "osc2_mode": "ratio",
+    "osc2_ratio": 16,
+    "osc2_pitch_env": "off",
+    "gate_mode": "sync",
+    "gate_div": "1/16",
+    "gate_steps": 16,
+    "gate_pattern": 46261,
+    "gate_edge": 0.0003,
+    "noise_level": 0,
+    "noise_type": "stepped",
+    "noise_rate": 14000,
+    "noise_filter": "hp",
+    "noise_cutoff": 5000,
+    "noise_env": "step",
+    "noise_decay": 0.07,
+    "noise_gate": "inverse",
+    "noise_pan": 0.35,
+    "low_level": 6,
+    "low_freq": 41,
+    "low_drop": 30,
+    "low_drop_time": 0.02,
+    "low_attack": 0.0002,
+    "low_hold": 0.05,
+    "low_decay": 0.22,
+    "low_curve": 0.6,
+    "low_drive": 0.45,
+    "low_gate": "pattern",
+    "low_pattern": 18705,
+    "velocity": 0,
+    "volume": 6,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/4",
+    "notes": [
+      {
+        "pitch": 60,
+        "start": 0,
+        "length": 7.9,
+        "velocity": 100
+      }
+    ]
+  }
+}

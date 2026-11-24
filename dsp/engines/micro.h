@@ -5,7 +5,10 @@
  * a click (lowpassed impulse or band-passed noise burst), tone bursts of an exact number of cycles, ratchets
  * (repeats at a tempo division or a rate in Hz, each one quieter), a 16-step gate pattern (on the tempo or free,
  * up to audio rates) and a noise layer (white, stepped or periodic, filtered) with its own gate: the same steps,
- * the inverse ones (noise in the tone's holes) or its own pattern, retriggered on every step it opens. References: exponential envelope segments as in analog contour generators (an RC charge
+ * the inverse ones (noise in the tone's holes) or its own pattern, retriggered on every step it opens; and a low
+ * layer, the weight: a sine between 20 and 160 Hz at a fixed frequency or on the note's pitch folded into that octave,
+ * restarted at a set phase on every hit (or every step of its own gate), with its own pitch drop and its own
+ * attack / hold / decay counted in samples, a drive for harmonics small speakers can play, always in the centre. References: exponential envelope segments as in analog contour generators (an RC charge
  * toward a target past the end level); binaural beating of two pure tones (H. W. Dove, 1839). */
 #ifndef ENGINE_MICRO_H
 #define ENGINE_MICRO_H
@@ -35,6 +38,9 @@ enum {
     MICRO_P_NOISE_LEVEL, MICRO_P_NOISE_TYPE, MICRO_P_NOISE_RATE, MICRO_P_NOISE_FILTER, MICRO_P_NOISE_CUTOFF,
     MICRO_P_NOISE_Q, MICRO_P_NOISE_ENV, MICRO_P_NOISE_DECAY, MICRO_P_NOISE_GATE, MICRO_P_NOISE_PATTERN,
     MICRO_P_NOISE_PAN,
+    MICRO_P_LOW_LEVEL, MICRO_P_LOW_MODE, MICRO_P_LOW_FREQ, MICRO_P_LOW_PHASE, MICRO_P_LOW_DROP, MICRO_P_LOW_DROP_TIME,
+    MICRO_P_LOW_ATTACK, MICRO_P_LOW_HOLD, MICRO_P_LOW_DECAY, MICRO_P_LOW_CURVE, MICRO_P_LOW_DRIVE, MICRO_P_LOW_GATE,
+    MICRO_P_LOW_PATTERN,
     MICRO_P_COUNT
 };
 extern const param_desc_t micro_params[MICRO_P_COUNT];
@@ -72,6 +78,11 @@ typedef struct {
     float noise_hold, ngate_g;      /* held value, gate gain of the noise */
     uint32_t noise_rng, lfsr;       /* its generator, the periodic kind's 7-bit shift register */
     int nstep;                      /* the step the noise gate was on at the last sample (-1: none yet) */
+    micro_seg_t low_amp, low_pitch; /* the low layer: its envelope (0..1), its pitch drop (1 -> 0) */
+    int low_stage, low_pitch_on;    /* MICRO_ENV_IDLE / ATTACK / HOLD / DECAY */
+    float low_ph, low_semi;         /* its phase (cycles), its pitch (MIDI note number) */
+    float low_tail, low_tail_d;     /* what the last hit was still playing when this one cut it: fades in 2 ms */
+    int lstep;                      /* the step its gate was on at the last sample */
     float vm_gain;
     int vm_fresh;
 } micro_voice_t;

@@ -1,5 +1,6 @@
 <!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
-     pills of one width, then the preset's name; the Menu holds (Save to the library in development, Export sound,
+     pills of one width, then the preset: Previous / Next through the library, its name, a dot when settings have
+     moved since it was loaded, and A/B to hear it as loaded, then the edit again; the Menu holds (Save to the library in development, Export sound,
      Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right, each set apart by a rule: the CPU load and the output level
      (Meter), the listening volume, the tempo and
      play / stop the sequence (Space). -->
@@ -12,6 +13,9 @@
   import Menu from './Menu.svelte';
   import Meter from './Meter.svelte';
   let { view = $bindable(), views } = $props();
+  // another sound, or a setting moved while the loaded sound is heard: the edit that waited is dropped
+  $effect(() => { s.patchGen; s.edited = null; });
+  $effect(() => { if (s.edited && s.changedCount) s.edited = null; });
   const items = $derived([
     ...(s.canSave ? [{ label: 'Save to library…', run: s.openSave }] : []),
     { label: 'Export sound (JSON)', run: s.exportPatch },
@@ -35,7 +39,13 @@
   {#if views.length > 1}<Pills items={views.map(({ id, label }) => ({ id, label }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
   <span class="vsep" aria-hidden="true"></span>
   <div class="namebox">
-    <span class="tag">Preset</span>{#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
+    <span class="tag">Preset</span>
+    <button class="step" onclick={() => s.step(-1)} disabled={!s.patches.length} aria-label="Previous sound" title="Previous sound of the library">‹</button>
+    <button class="step" onclick={() => s.step(1)} disabled={!s.patches.length} aria-label="Next sound" title="Next sound of the library">›</button>
+    {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
+    {#if s.changedCount}<span class="moved" title="{s.changedCount} setting{s.changedCount > 1 ? 's' : ''} moved since it was loaded (Menu: Revert)" aria-label="edited"></span>{/if}
+    <button class="ab" class:on={!!s.edited} disabled={!s.canCompare} onclick={s.compare} aria-pressed={!!s.edited}
+            title={s.edited ? 'Hearing the sound as loaded: click for your edit' : 'Hear the sound as loaded, then your edit again'}>{s.edited ? 'B · loaded' : 'A/B'}</button>
   </div>
   </div>
   <div class="tb-right">

@@ -3,7 +3,9 @@
      choice of waveforms, pills for a few choices, a menu for more. Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
      moved since the sound was loaded; double-click on the
      label or the slider puts that value back. A small coloured pill before the label, with their numbers: the macros
-     that move this parameter (a click opens their assignments). The descriptor's help text is the tooltip. -->
+     that move this parameter (a click opens their assignments). The descriptor's help text is the tooltip.
+     A slider is exact to set (slider.js): Shift while dragging is ten times finer, the arrows step it, and a
+     double-click on the value types it (Enter sets it, Escape leaves it). -->
 <script>
   import { fromNorm, toNorm, format } from './synth.js';
   import { isWave, waveIcon } from './waves.js';
@@ -12,6 +14,7 @@
   import Switch from './Switch.svelte';
   import Select from './Select.svelte';
   import { session } from './session.svelte.js';
+  import { precise, parseValue } from './slider.js';
   // the value, the sound's value and the setter default to the session's: pass them only for something else
   let { d, label, value: given, base: givenBase, onchange: given_set } = $props();
   const value = $derived(given ?? session.values[d.id] ?? d.def);
@@ -24,6 +27,15 @@
   const waves = $derived(!!d.labels && /(^|_)wave$/.test(d.name) && d.labels.every(isWave));
   const toggle = $derived(d.labels?.length === 2 && d.labels[0] === 'off' && d.labels[1] === 'on');
   const macros = $derived(session.macrosOf[d.id] ?? []); // the macros that move it
+  let typing = $state(false); // the value is being typed
+  function typed(e) {
+    if (e.key === 'Escape') { e.stopPropagation(); typing = false; return; }
+    if (e.key !== 'Enter') return;
+    const v = parseValue(d, e.target.value);
+    if (v !== null) onchange(v);
+    typing = false;
+  }
+  const focus = (node) => { node.focus(); node.select(); };
 </script>
 
 <div class="param" class:changed title={d.help ?? ''}>
@@ -39,7 +51,12 @@
     <Select {label} value={idx} onchange={(i) => onchange(d.min + i)} options={d.labels.map((l, i) => ({ value: i, label: l }))} />
   {:else}
     <input type="range" aria-label={label} aria-valuetext={format(d, value)} min="0" max="1" step="0.001" value={norm} style="--p:{norm * 100}%"
-           oninput={(e) => onchange(fromNorm(d, +e.target.value))} ondblclick={() => onchange(base)} />
-    <span class="val">{format(d, value)}</span>
+           use:precise={{ value: () => norm, set: (n) => onchange(fromNorm(d, n)), step: d.curve === 'int' ? 1 / (d.max - d.min || 1) : undefined }}
+           ondblclick={() => onchange(base)} />
+    {#if typing}
+      <input class="val mono" type="text" value={format(d, value)} aria-label="{label}: type a value" use:focus onkeydown={typed} onblur={() => (typing = false)} />
+    {:else}
+      <span class="val editable" role="button" tabindex="-1" title="double-click: type a value" ondblclick={() => (typing = true)}>{format(d, value)}</span>
+    {/if}
   {/if}
 </div>

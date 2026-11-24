@@ -5,7 +5,7 @@
 // physical units; the synth gets them normalized (synth.js).
 import { Synth, fromNorm, toNorm } from './synth.js';
 import { parseKit, filesToKit } from './kit.js';
-import { engineColor, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
+import { engineColor, engineRank, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
 import { human, unclaimed } from './naming.js';
 import { urlParams } from './urlparams.js';
 
@@ -74,6 +74,11 @@ class Session {
   changedCount = $derived(this.engine ? [...this.engine.params, ...this.shared]
     .filter((d) => Math.abs((this.values[d.id] ?? d.def) - (this.baseline[d.id] ?? d.def)) > 1e-6).length : 0);
   title = $derived(this.current ? this.current.replace('.json', '') : 'init');
+  // the library in the order it is listed (instruments, then their sounds): what Previous / Next walk through
+  ordered = $derived(this.patches.map((p, i) => [p, i]).sort(([a, i], [b, j]) => engineRank(a.engine) - engineRank(b.engine) || a.engine.localeCompare(b.engine) || i - j).map(([p]) => p));
+  // A/B: while the sound as loaded is heard (B), the edited values (A) wait here; null: the edit is heard
+  edited = $state(null);
+  canCompare = $derived(!!this.edited || this.changedCount > 0);
 
   #toastTimer = null;
   #loadSeq = 0; // the latest patch load wins
@@ -443,6 +448,27 @@ class Session {
     const first = e.params.find((d) => /(^|_)level(_|$)/.test(d.name));
     if (first) this.setValue(first, fromNorm(first, 0.6 + 0.4 * r()));
     this.notify(`Randomized ${moved} settings. Undo or Revert brings the sound back.`);
+  };
+  // the sound before or after the current one in the library (it goes round); from a new sound, the first or last
+  step = async (dir) => {
+    const list = this.ordered, n = list.length;
+    if (!n) return;
+    const i = list.findIndex((p) => p.file === this.current);
+    await this.loadPatch(list[i < 0 ? (dir > 0 ? 0 : n - 1) : (i + dir + n) % n]);
+  };
+  // A/B: hear the sound as it was loaded, then the edit again. The values go straight to the synth (no macro
+  // follows them: both states are whole). Moving a setting while the loaded sound is heard starts a new edit from
+  // it (TopBar drops the one waiting; Undo brings it back).
+  compare = () => {
+    const to = this.edited ?? this.baseline;
+    const waiting = this.edited ? null : { ...this.values };
+    for (const d of [...this.engine.params, ...this.shared]) {
+      const v = to[d.id] ?? d.def;
+      if (Math.abs((this.values[d.id] ?? d.def) - v) < 1e-9) continue;
+      this.values[d.id] = v;
+      this.synth.setParam(d.id, toNorm(d, v));
+    }
+    this.edited = waiting;
   };
   revert = async () => {
     if (this.info) await this.loadPatch(this.info);

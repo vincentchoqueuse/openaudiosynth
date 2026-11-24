@@ -106,7 +106,7 @@ input[type=range]::-moz-range-track { height: 3px; background: var(--track); }
 input[type=range]::-moz-range-progress { height: 3px; background: var(--accent); }
 input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--text); }
 
-/* ---- cards: one width, on one row that scrolls sideways (.groups) ---- */
+/* ---- cards: a grid of equal columns that fills the width and wraps (.groups) ---- */
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }
 section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; }
 section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
@@ -116,9 +116,16 @@ section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--acce
 section.card.off .stage-head { margin-bottom: 0; }
 button.more { display: block; width: 100%; margin: 8px 0 2px; padding: 4px 0; background: none; border: 0; border-top: 1px solid var(--line); color: var(--muted); font: inherit; font-size: 11px; letter-spacing: .04em; text-align: left; cursor: pointer; }
 button.more:hover { color: var(--text); }
-.groups { display: flex; gap: 14px; align-items: flex-start; overflow-x: auto; padding-bottom: 10px; margin-top: 14px; scroll-snap-type: x proximity; }
-.groups > section.card { flex: 0 0 300px; scroll-snap-align: start; }
-.groups > section.card.wide { flex-basis: 340px; }
+.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; margin-top: 14px; }
+.groups > section.card { min-width: 0; scroll-margin: 70px 0 20px; }
+.groups > section.card.wide { grid-column: span 2; }
+/* what is not in use, as a row of small buttons under the cards (effects switched off, an empty route) */
+.addrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; font-size: 11.5px; color: var(--muted); }
+.addrow .tag { margin-right: 4px; letter-spacing: .04em; }
+button.add { padding: 3px 10px; border: 1px dashed var(--line); border-radius: 999px; background: none; color: var(--muted); font: inherit; font-size: 11.5px; cursor: pointer; }
+button.add::before { content: '+ '; }
+button.add:hover:not(:disabled) { border-style: solid; border-color: var(--accent); color: var(--text); }
+button.add:disabled { opacity: .45; cursor: default; }
 
 /* ---- parameter row (Param.svelte): label, control, value ---- */
 .param { display: grid; grid-template-columns: 8.5em 1fr 5.2em; gap: 10px; align-items: center; min-height: 27px; }
@@ -131,6 +138,9 @@ button.more:hover { color: var(--text); }
 .param .cell, .param .select { grid-column: 2 / 4; }
 .param .cell .pills.icon button { flex: 1; width: auto; }
 .param .val { font-size: 11.5px; text-align: right; color: var(--muted); white-space: nowrap; }
+.param span.val.editable { cursor: text; }
+.param span.val.editable:hover { color: var(--text); }
+.param input.val { width: 100%; min-width: 0; padding: 1px 4px; border: 1px solid var(--accent); border-radius: 5px; background: var(--bg); color: var(--text); font: inherit; font-size: 11.5px; }
 
 /* ---- matrix tables (macro targets, modulation routes) ---- */
 .matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -221,7 +231,15 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .tb-left { min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; margin-left: auto; } /* wraps under the left part when the bar is short */
 .topbar .btn { padding: 5px 12px; }
-.topbar .namebox { display: flex; align-items: baseline; gap: 8px; min-width: 9em; }
+.topbar .namebox { display: flex; align-items: center; gap: 6px; min-width: 9em; }
+.topbar .step { width: 22px; height: 22px; border-radius: 6px; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 0 2px; }
+.topbar .step:hover:not(:disabled) { background: var(--faint); color: var(--text); }
+.topbar .name { margin-left: 2px; }
+.topbar .moved { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); } /* settings moved since the sound was loaded */
+.topbar .ab { margin-left: 4px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.topbar .ab:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
+.topbar .ab.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+.topbar .ab:disabled { opacity: .4; }
 .topbar .namebox .tag { font-size: 11px; }
 .topbar .name { font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .name.flash { animation: flash .9s ease-out; } /* a sound just loaded */
@@ -332,6 +350,6 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   .topbar .seqlabel { display: none; }
   .topbar { --bar-w: 72px; }
   .pills.lg button { width: auto; padding: 5px 12px; }
-  .groups > section.card { flex-basis: 84vw; }
+  .groups > section.card.wide { grid-column: auto; }
   footer { padding: 12px 16px 10px; }
 }

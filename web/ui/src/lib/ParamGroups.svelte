@@ -2,9 +2,11 @@
      or the part's settings ("settings": MIDI channel, keys, transposition, MPE, plus the global tempo and tuning no
      effect claims). One card per stage of the signal chain when the engine describes its stages, else by name
      prefix. The engine's cards all one width, in the order its signal flows (sources, filters, amp, then modulators
-     and voice); the effects in the order of the bus; every card one width, on one row that scrolls sideways; a
+     and voice); the effects in the order of the bus; the cards fill a grid of equal columns that wraps; a
      stage that can be switched off has a switch, and folds to its title while off (switched off, it
-     remembers its value to come back to). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
+     remembers its value to come back to). The effects show only those in use as cards: the others wait in a row
+     of small buttons under them (Add effect), and one switched off by hand stays a folded card until another sound
+     is loaded. A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz); an engine may name its controls itself and keep only the main ones in view,
      the others under a More button (engineui.js); an FM matrix (a stage of kind "matrix") is drawn as one (FmMatrix). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
@@ -49,8 +51,11 @@
   let lastOn = {}; // value of a stage's switch before it was turned off (this sound only)
   $effect(() => { s.patchGen; lastOn = {}; });
   const stageOn = (st) => !st?.enable || Math.abs(s.getP(st.enable) - st.off) > 1e-6;
+  let kept = $state({}); // effects switched off by hand: they stay folded cards (this sound only)
+  $effect(() => { s.patchGen; kept = {}; });
+  const idle = (st) => tab === 'fx' && !!st?.enable && !stageOn(st) && !kept[st.id]; // an effect not in use
   function toggle(st) {
-    if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); s.setP(st.enable, st.off); }
+    if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); kept[st.id] = true; s.setP(st.enable, st.off); }
     else s.setP(st.enable, lastOn[st.enable] ?? st.on);
   }
   // the engine with stages, laid out as its signal: one column per kind of audio stage (sources, filters, amps),
@@ -105,6 +110,11 @@
 
 <div bind:this={host}>
   <div class="groups">
-    {#each ordered as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}
+    {#each ordered.filter(([, , st]) => !idle(st)) as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}
   </div>
+  {#if ordered.some(([, , st]) => idle(st))}
+    <div class="addrow"><span class="tag">Add effect</span>
+      {#each ordered.filter(([, , st]) => idle(st)) as [g, , st] (g)}<button class="add" onclick={() => toggle(st)}>{g}</button>{/each}
+    </div>
+  {/if}
 </div>

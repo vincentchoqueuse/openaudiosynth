@@ -23,7 +23,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Save to library** (development server only): writes the current sound into `patches/` (name checked, no
   silent overwrite), from which the board's presets are generated: `just build`, then `just flash`.
 - Every engine parameter, grouped by name prefix (`osc1_` → *Osc 1*); tabs for effects, part and modulation.
-  Double-click a label or slider to reset it; changed parameters are highlighted; the help text is the tooltip.
+  Double-click a label or slider to reset it; changed parameters are highlighted; the help text is the tooltip. Sliders are exact to set (`lib/slider.js`): Shift while dragging is ten times finer, the arrows step 1 % (Shift 0.1 %, Page Up / Down 10 %), a double-click on the value types it. The top bar walks the library (previous / next), shows a dot when the sound is edited, and A/B switches between the sound as loaded and the edit.
 - **Signal chain** (always in view, above the editors): a display-only view of the engine's stages and the effect bus along the signal,
   modulators below with dashed links to what they act on (the active part routes too); a stage that is off is
   drawn dashed. Below it, the parameters are grouped by stage, and a stage that can be switched off has an on/off
@@ -84,7 +84,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
     text buttons, one height; a help line, when there is one, under the content in small muted text;
   - a choice of waveforms or shapes is a row of drawn buttons (`lib/waves.js`: oscillators, LFOs, envelope starting
     shapes); the envelope editor shows a playhead while the envelope runs (`synth_probe.h`, `w_mseg`);
-  - every card has the same width, all on one row that scrolls sideways (`.groups`);
+  - the cards fill a grid of equal columns that wraps (`.groups`); what is not in use (an effect off, an empty route or macro row) waits behind an Add button (`.addrow`);
   - parameters are cards of rows (label without the card's own words, control, value in its unit), one card per
     stage of the engine (every engine with stages gives each parameter to one, tested); a dot after a label: moved
     since the sound was loaded, double-click puts it back; on / off is always a switch; a stage switched off folds;

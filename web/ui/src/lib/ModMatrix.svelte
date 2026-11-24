@@ -1,5 +1,5 @@
-<!-- ModMatrix.svelte — the modulation matrix as a table: every slot of the part (8 routes) or of the notes (4),
-     filled or empty, each row a source, a destination (a part route: the engine's parameters, or the master and
+<!-- ModMatrix.svelte — the modulation matrix as a table: the routes in use among the slots of the part (8) or of
+     the notes (4), and Add route under them for an empty one; each row a source, a destination (a part route: the engine's parameters, or the master and
      the effects), an amount and (part) a "via" source that scales it. The
      amount slider is bipolar and quadratic (amount = position x |position|): fine near zero, where most useful
      amounts are, and a long way to the extremes; its value reads in the destination's units. A new route starts
@@ -18,7 +18,11 @@
   const fxDests = $derived(s.macroTargets.fx); // part routes may move the master and the effects too
   const engineName = $derived(s.engine?.name ?? 'engine');
   const srcOf = (r) => Math.round(get(`${pre}${r}_source`));
-  const slots = $derived(Array.from({ length: N }, (_, k) => k + 1));
+  let added = $state({}); // empty slots opened with Add route (this sound only)
+  $effect(() => { s.patchGen; added = {}; });
+  const all = $derived(Array.from({ length: N }, (_, k) => k + 1));
+  const slots = $derived(all.filter((r) => srcOf(r) || added[r]));
+  const free = $derived(all.find((r) => !srcOf(r) && !added[r]));
 
   // slider position <-> amount (quadratic)
   const toPos = (a) => Math.sign(a) * Math.sqrt(Math.abs(a));
@@ -34,16 +38,17 @@
 
   function setSource(r, v) {
     set(`${pre}${r}_source`, v);
-    if (!v) { clear(r); return; }
+    if (!v) { clear(r); added[r] = true; return; }
     if (kind === 'part' && !Math.round(get(`${pre}${r}_destination`)) && dests.length) set(`${pre}${r}_destination`, dests[0].id + 1);
   }
   function clear(r) {
+    delete added[r];
     set(`${pre}${r}_amount`, 0);
     set(`${pre}${r}_source`, 0);
     if (kind === 'part') { set(`${pre}${r}_destination`, 0); set(`${pre}${r}_via`, 0); }
   }
   // what the amount means in the destination's units
-  function effect(r) {
+  function inUnits(r) {
     const a = get(`${pre}${r}_amount`);
     const sign = (v) => (v >= 0 ? '+' : '');
     if (kind !== 'part') { // per-note destinations: pitch +/-12 st, level +/-24 dB, pan, brightness +/-4 oct, timbre
@@ -61,6 +66,7 @@
   }
 </script>
 
+{#if slots.length}
 <table class="matrix {kind}">
   <thead><tr><th>#</th><th>Source</th><th>Destination</th><th>Amount</th><th></th>{#if kind === 'part'}<th>Via</th>{/if}<th></th></tr></thead>
   <tbody>
@@ -85,13 +91,18 @@
                  oninput={(e) => set(`${pre}${r}_amount`, toAmount(+e.target.value))} ondblclick={() => set(`${pre}${r}_amount`, 0)}
                  aria-label="Amount of slot {r}" title="double-click: 0" />
         </td>
-        <td class="val mono" title="amount {a.toFixed(3)} of the destination's range">{s ? effect(r) : ''}</td>
+        <td class="val mono" title="amount {a.toFixed(3)} of the destination's range">{s ? inUnits(r) : ''}</td>
         {#if kind === 'part'}
           <td><Select class="via" value={Math.round(get(`${pre}${r}_via`))} disabled={!s} onchange={(v) => set(`${pre}${r}_via`, v)} label="Scaled by"
                   options={srcLabels.map((l, i) => ({ value: i, label: i ? `× ${srcName(l)}` : '—' }))} /></td>
         {/if}
-        <td>{#if s}<button class="x" onclick={() => clear(r)} aria-label="Clear slot {r}" title="clear">×</button>{/if}</td>
+        <td><button class="x" onclick={() => clear(r)} aria-label="Remove slot {r}" title="remove">×</button></td>
       </tr>
     {/each}
   </tbody>
 </table>
+{/if}
+<div class="addrow">
+  <button class="add" disabled={!free} onclick={() => (added[free] = true)}>Add route</button>
+  <span>{slots.length ? `${all.filter(srcOf).length} of ${N} in use` : `Nothing is modulated yet: a route sends a source (an LFO, an envelope, the velocity…) to a setting.`}</span>
+</div>

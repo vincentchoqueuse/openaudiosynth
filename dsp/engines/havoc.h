@@ -1,11 +1,11 @@
 /* havoc.h — noise machine with a wide palette: one note runs four generators, each one of ten very different
  * processes (a sine with phase feedback, the logistic map, an integer formula on a counter, random impulses into a
  * resonator, a whistling band of noise, a pulsar train, a cellular automaton read as a wave, a swarm of wandering
- * sines, a tone that jumps at random, a clipped random walk). Each generator has its own pitch (following the note
+ * sines, a tone that jumps at random, a clipped random walk, a chatter of bleeps, electronic faults). Each generator has its own pitch (following the note
  * or not), two shape controls whose meaning depends on the process, a life (steady, random bursts, a periodic
  * pulse, a slow swell) and a place; it can be frequency-modulated and ring-modulated by the generator before it
  * (the four form a ring). The sum goes through two processors in series, each one of: filter, comb, wavefolder,
- * resampler, ring modulator, chopper.
+ * resampler, ring modulator, chopper, stutter.
  * References: R. May, Simple mathematical models with very complicated dynamics (the logistic map); S. Wolfram,
  * Statistical mechanics of cellular automata (the 256 elementary rules); C. Roads, Microsound (pulsar synthesis,
  * dust); TPT state-variable filter (V. Zavalishin). */
@@ -22,12 +22,12 @@
 
 enum {
     HAVOC_T_TONE = 0, HAVOC_T_LOGISTIC, HAVOC_T_BYTE, HAVOC_T_DUST, HAVOC_T_WIND, HAVOC_T_PULSAR, HAVOC_T_CELL,
-    HAVOC_T_SWARM, HAVOC_T_COMPUTER, HAVOC_T_RUMBLE, HAVOC_T_COUNT
+    HAVOC_T_SWARM, HAVOC_T_COMPUTER, HAVOC_T_RUMBLE, HAVOC_T_BLEEP, HAVOC_T_GLITCH, HAVOC_T_COUNT
 };
 enum { HAVOC_LIFE_STEADY = 0, HAVOC_LIFE_BURSTS, HAVOC_LIFE_PULSE, HAVOC_LIFE_SWELL };
 enum {
     HAVOC_X_OFF = 0, HAVOC_X_LP, HAVOC_X_BP, HAVOC_X_HP, HAVOC_X_COMB, HAVOC_X_FOLD, HAVOC_X_CRUSH, HAVOC_X_RING,
-    HAVOC_X_CHOP, HAVOC_X_COUNT
+    HAVOC_X_CHOP, HAVOC_X_STUTTER, HAVOC_X_COUNT
 };
 
 /* Settings of a generator and of a processor. */
@@ -57,7 +57,9 @@ typedef struct {
     uint32_t rng;
     float sw_ph[HAVOC_SWARM], sw_x[HAVOC_SWARM]; /* swarm: phases and random walks */
     float life_ph, life_env, walk;               /* life: phase of the pulse, envelope; walk of the gusts */
-    float jump_ph;                               /* computer: phase of the jumps */
+    float jump_ph;                               /* computer: phase of the jumps; bleep, glitch: time left */
+    float ev_oct, ev_sweep, ev_gain;             /* bleep, glitch: pitch (octaves), its slope (per second), level */
+    int ev_kind, ev_len;                         /* bleep: waveform; glitch: fault, cells of the stuck loop */
     int life_on;
     float gain; /* life gain at the end of the last block */
 } havoc_gen_t;
@@ -66,6 +68,9 @@ typedef struct {
     float ic1[2], ic2[2], hold[2]; /* per side: filter state, held sample of the resampler */
     float cph, ph, gate, dly;      /* resampler clock, phase (ring, chopper), chopper gain, comb delay (samples) */
     int wr;
+    int stuck, pos, len; /* stutter: repeating, place in the fragment, its length (samples) */
+    float wait;          /* stutter: seconds to its next change */
+    uint32_t rng;
     int16_t buf[2][HAVOC_DELAY];
 } havoc_proc_t;
 

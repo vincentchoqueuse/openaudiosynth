@@ -1,7 +1,7 @@
 /* test_havoc.c — the noise machine with a wide palette. One generator alone: the feedback-free tone sits on the
  * note, the narrow band of noise sits at its pitch, every process sounds, stays bounded and repeats exactly; the
  * pulse life leaves silence between its hits; the frequency modulation by the generator before changes the sound.
- * The processors: a low-pass removes a high tone, every type changes the signal and keeps it bounded. Then the
+ * The bleeps leave rests. The processors: a low-pass removes a high tone, the stutter repeats fragments, every type changes the signal and keeps it bounded. Then the
  * whole machine at its extremes, and the release to silence. */
 #include <math.h>
 #include <string.h>
@@ -95,6 +95,16 @@ static void test_life_and_ring(void)
     }
     CHECK(hi > 0.02f && lo < 0.01f * hi, "havoc pulse life: rms %g at the hit, %g between", (double)hi, (double)lo);
 
+    /* the bleeps: notes and rests (silence between), eight a second */
+    solo(HAVOC_T_BLEEP, 0.5f, 0.6f);
+    play(69, L, N);
+    lo = 1.0f, hi = 0.0f;
+    for (int i = 0; i + 600 <= N; i += 600) {
+        lo = fminf(lo, rms(L + i, 600));
+        hi = fmaxf(hi, rms(L + i, 600));
+    }
+    CHECK(hi > 0.02f && lo < 0.01f * hi, "havoc bleeps: rms %g in a note, %g in a rest", (double)hi, (double)lo);
+
     /* generator 4, silent itself, modulates the frequency of generator 1 */
     solo(HAVOC_T_TONE, 0.0f, 0.0f);
     play(69, L2, N);
@@ -138,6 +148,37 @@ static void test_processors(void)
         CHECK(diff > 0.005f && all_finite_bounded(L, N, 1.0f), "havoc processor %s: changes the signal by %g, max %g",
               havoc_params[HAVOC_X_P(0, HAVOC_X_TYPE)].labels[type], (double)diff, (double)max_abs(L, N));
     }
+}
+
+static void test_stutter(void)
+{
+    /* never stuck (p2 = 0): the signal passes untouched; stuck most of the time: a fragment repeats exactly */
+    solo(HAVOC_T_WIND, 0.2f, 0.0f);
+    play(60, L2, N);
+    solo(HAVOC_T_WIND, 0.2f, 0.0f);
+    setp(HAVOC_X_P(0, HAVOC_X_TYPE), (float)HAVOC_X_STUTTER);
+    setp(HAVOC_X_P(0, HAVOC_X_P2), 0.0f);
+    play(60, L, N);
+    CHECK(memcmp(L, L2, sizeof L) == 0, "havoc stutter at 0: changes the signal");
+
+    solo(HAVOC_T_WIND, 0.2f, 0.0f);
+    setp(HAVOC_X_P(0, HAVOC_X_TYPE), (float)HAVOC_X_STUTTER);
+    setp(HAVOC_X_P(0, HAVOC_X_P1), 0.5f);
+    setp(HAVOC_X_P(0, HAVOC_X_P2), 0.9f);
+    play(60, L, N);
+    /* noise never repeats; a stuck fragment does: the best match of a window with itself one fragment later */
+    float best = 1.0f;
+    for (int at = N / 4; at + 4096 < N; at += 1500)
+        for (int lag = 200; lag < 900; lag++) {
+            float d = 0.0f, e = 0.0f;
+            for (int i = 0; i < 128; i++) {
+                d += fabsf(L[at + i] - L[at + i + lag]);
+                e += fabsf(L[at + i]);
+            }
+            if (e > 0.1f)
+                best = fminf(best, d / e);
+        }
+    CHECK(best < 0.05f, "havoc stutter: no repeated fragment found (best mismatch %g)", (double)best);
 }
 
 static void test_machine(void)
@@ -184,5 +225,6 @@ void suite_havoc(void)
     test_generators();
     test_life_and_ring();
     test_processors();
+    test_stutter();
     test_machine();
 }

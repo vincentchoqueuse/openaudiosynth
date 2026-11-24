@@ -10,9 +10,9 @@
 #define HAVOC_MASK (HAVOC_DELAY - 1)
 
 static const char *const type_labels[] = {"tone", "logistic", "byte", "dust", "wind", "pulsar", "cell", "swarm",
-                                          "computer", "rumble", NULL};
+                                          "computer", "rumble", "bleep", "glitch", NULL};
 static const char *const life_labels[] = {"steady", "bursts", "pulse", "swell", NULL};
-static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", NULL};
+static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", NULL};
 static const char *const onoff_labels[] = {"off", "on", NULL};
 
 #define HAVOC_GEN_PARAMS(g, n, dtype, dpitch, dtrack, da, db, dlevel, dpan)                                         \
@@ -27,7 +27,9 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
           "cell: a cellular automaton of 32 cells read as a wave and stepped every period, a = the rule (0..255), "  \
           "b = smoothing. swarm: eight sines wandering around the pitch, a = how far, b = how fast. computer: a "    \
           "tone that jumps to random pitches, a = range, b = speed. rumble: a random walk, a = fold, b = only the "  \
-          "peaks pass (crackle)"),                                                                                   \
+          "peaks pass (crackle). bleep: a chatter of short notes, some gliding, some square, with rests, a = how far "    \
+          "they go and glide, b = notes per second. glitch: electronic faults, one after the other (a stuck loop "   \
+          "of bits, a burst of bit noise, a whine, a gap), a = from buzzing loops to noise, b = faults per second"),                                                                                   \
     PARAM(HAVOC_G_P(g, HAVOC_G_PITCH), "g" n "_pitch", "havoc.gen" n ".pitch", -96.0f, 60.0f, dpitch, PARAM_LIN,     \
           "st", 1, NULL,                                                                                             \
           "pitch of this generator, in semitones from the note (or from middle C when it does not track): "          \
@@ -63,7 +65,8 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
           "resonance. comb: p1 = its pitch (30 Hz .. 7.7 kHz), p2 = feedback (negative below the middle). fold: "    \
           "a wavefolder, p1 = drive, p2 = asymmetry. crush: p1 = lower sampling rate, p2 = fewer bits. ring: "       \
           "multiplied by a sine, p1 = its frequency (1 Hz .. 8 kHz), p2 = phase between left and right. chop: a "    \
-          "periodic gate, p1 = rate (0.5 .. 32 Hz), p2 = share of the time it is open"),                             \
+          "periodic gate, p1 = rate (0.5 .. 32 Hz), p2 = share of the time it is open. stutter: now and then the "   \
+          "last instants repeat as if stuck, p1 = length of the fragment (2 .. 42 ms), p2 = share of the time stuck"),                             \
     PARAM(HAVOC_X_P(x, HAVOC_X_P1), "x" n "_p1", "havoc.proc" n ".p1", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,      \
           "first control of this processor (see its type)"),                                                         \
     PARAM(HAVOC_X_P(x, HAVOC_X_P2), "x" n "_p2", "havoc.proc" n ".p2", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,      \
@@ -110,6 +113,9 @@ static void voice_clear(havoc_voice_t *v)
         }
         s->life_ph = 1.0f; /* the pulse hits at once */
         s->life_env = s->walk = s->jump_ph = 0.0f;
+        s->ev_oct = s->ev_sweep = s->ev_gain = 0.0f;
+        s->ev_kind = 0;
+        s->ev_len = 32;
         s->life_on = 1;
         s->gain = 0.0f;
     }
@@ -120,7 +126,10 @@ static void voice_clear(havoc_voice_t *v)
             for (int i = 0; i < HAVOC_DELAY; i++)
                 q->buf[c][i] = 0;
         }
-        q->cph = q->ph = 0.0f;
+        q->cph = q->ph = q->wait = 0.0f;
+        q->stuck = q->pos = 0;
+        q->len = 64;
+        q->rng = dsp_seed(0x57A7u + (uint32_t)x);
         q->gate = 1.0f;
         q->wr = 0;
     }
@@ -258,8 +267,35 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
         }
         mult = fm_exp2(2.0f * a * s->s2);
     }
+    int jumped = type == HAVOC_T_COMPUTER;
+    if (type == HAVOC_T_BLEEP || type == HAVOC_T_GLITCH) { /* one event after the other, each with its own pitch */
+        s->jump_ph -= dt;
+        if (s->jump_ph <= 0.0f) {
+            const float per_s = type == HAVOC_T_BLEEP ? fm_exp2(5.0f * b) : 2.0f * fm_exp2(5.0f * b); /* 1..32, 2..64 */
+            const float dur = (0.3f + 1.4f * dsp_rand_unipolar(&s->rng)) / per_s;
+            s->jump_ph = dur;
+            jumped = 1;
+            if (type == HAVOC_T_BLEEP) {
+                s->ev_gain = dsp_rand_unipolar(&s->rng) < 0.25f ? 0.0f : 1.0f;                 /* a rest, one in four */
+                s->ev_oct = (float)(int)(15.0f * a * dsp_rand_bipolar(&s->rng)) * (1.0f / 6.0f); /* whole tones */
+                s->ev_sweep = dsp_rand_unipolar(&s->rng) < 0.45f ? 3.0f * a * dsp_rand_bipolar(&s->rng) / dur : 0.0f;
+                s->ev_kind = (int)(dsp_rand_u32(&s->rng) >> 30);
+            } else {
+                const float r = dsp_rand_unipolar(&s->rng);
+                /* a gap less and less often as the faults come faster; then loops or noise by `a`; a whine now and then */
+                s->ev_kind = r < 0.3f - 0.25f * b ? 3 : r > 0.92f ? 2 : dsp_rand_unipolar(&s->rng) < a ? 1 : 0;
+                s->ev_gain = s->ev_kind == 3 ? 0.0f : 0.5f + 0.5f * dsp_rand_unipolar(&s->rng);
+                s->ev_oct = s->ev_kind == 2 ? 3.0f + dsp_rand_unipolar(&s->rng) : 2.0f * dsp_rand_bipolar(&s->rng);
+                s->ev_sweep = 0.0f;
+                s->ev_len = 4 << (dsp_rand_u32(&s->rng) >> 30); /* 4, 8, 16 or 32 cells */
+                s->u0 = dsp_rand_u32(&s->rng) | 1u;
+            }
+        }
+        s->ev_oct = dsp_clampf(s->ev_oct + s->ev_sweep * dt, -6.0f, 6.0f);
+        mult = fm_exp2(s->ev_oct);
+    }
     const float inc = dsp_minf(fm_mtof(note) * inv_sr * mult, 0.45f);
-    if (v->fresh || type == HAVOC_T_COMPUTER)
+    if (v->fresh || jumped)
         s->inc = inc;
     const float fmd = 8.0f * gp[HAVOC_G_FM] * gp[HAVOC_G_FM], d_inc = (inc - s->inc) * inv_n;
     float incs[SYNTH_BLOCK];
@@ -407,6 +443,53 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
             out[i] = s->s1 * y;
         }
         s->s1 = s->s3;
+        break;
+    }
+    case HAVOC_T_BLEEP: { /* the note of the moment: a sine, a soft square, a bright sine or two sines multiplied */
+        const float d = (s->ev_gain - s->s1) * inv_n;
+        const int kind = s->ev_kind;
+        for (int i = 0; i < n; i++) {
+            s->ph += incs[i];
+            if (s->ph >= 1.0f)
+                s->ph -= 1.0f;
+            s->s1 += d;
+            float y = fm_sin(s->ph + (kind == 2 ? 0.2f * s->s0 : 0.0f));
+            s->s0 = y;
+            if (kind == 1)
+                y = fm_tanh(4.0f * y);
+            else if (kind == 3) {
+                s->ph2 += 2.76f * incs[i];
+                s->ph2 -= (float)(int)s->ph2;
+                y *= fm_sin_pos(s->ph2);
+            }
+            out[i] = s->s1 * y;
+        }
+        s->s1 = s->ev_gain;
+        break;
+    }
+    case HAVOC_T_GLITCH: { /* the fault of the moment; its level changes at once: every fault starts with a click */
+        const int kind = s->ev_kind;
+        const float lv = s->ev_gain, cells = (float)s->ev_len;
+        const uint32_t mask = (uint32_t)s->ev_len - 1u;
+        for (int i = 0; i < n; i++) {
+            s->ph += incs[i];
+            if (s->ph >= 1.0f)
+                s->ph -= 1.0f;
+            float y = 0.0f;
+            if (kind == 0) { /* a few bits stuck in a loop: a buzz whose colour is the bits */
+                y = s->u0 >> ((uint32_t)(s->ph * cells) & mask) & 1u ? 1.0f : -1.0f;
+            } else if (kind == 1) { /* bit noise, clocked at 16 times the pitch */
+                s->ph2 += 16.0f * incs[i];
+                if (s->ph2 >= 1.0f) {
+                    s->ph2 -= (float)(int)s->ph2;
+                    dsp_rand_u32(&s->u0);
+                }
+                y = s->u0 & 1u ? 1.0f : -1.0f;
+            } else if (kind == 2) { /* a whine */
+                y = fm_sin_pos(s->ph);
+            }
+            out[i] = lv * y;
+        }
         break;
     }
     default: { /* rumble: a leaky random walk whose speed is the pitch; only what passes the threshold, then a fold */
@@ -565,6 +648,36 @@ static DSP_FAST_CODE void proc_render(havoc_t *e, havoc_proc_t *q, const float *
         }
         break;
     }
+    case HAVOC_X_STUTTER: { /* records the sum; now and then replays its last instants in a loop instead */
+        q->wait -= (float)n * inv_sr;
+        if (q->wait <= 0.0f) {
+            const float share = dsp_clampf(p2, 0.0f, 0.98f);
+            if (q->stuck || share <= 0.0f) { /* let go, for a time that keeps the share */
+                q->stuck = 0;
+                q->wait = share <= 0.0f ? 0.1f : (0.02f + 0.3f * dsp_rand_unipolar(&q->rng)) * (1.0f - share) / (share + 0.02f);
+            } else { /* stuck on a fragment around the length asked, for 2 to 12 turns */
+                q->len = (int)dsp_clampf(0.002f * sr * fm_exp2(4.4f * p1) * (0.6f + 0.8f * dsp_rand_unipolar(&q->rng)), 16.0f,
+                                         (float)(HAVOC_DELAY - 1));
+                q->pos = 0;
+                q->stuck = 1;
+                q->wait = (float)q->len * inv_sr * (2.0f + 10.0f * dsp_rand_unipolar(&q->rng));
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            if (q->stuck) {
+                const int at = (q->wr - q->len + 1 + q->pos) & HAVOC_MASK;
+                if (++q->pos >= q->len)
+                    q->pos = 0;
+                for (int c = 0; c < 2; c++)
+                    side[c][i] += mix * ((float)q->buf[c][at] * (1.0f / 8191.0f) - side[c][i]);
+            } else {
+                q->wr = (q->wr + 1) & HAVOC_MASK;
+                for (int c = 0; c < 2; c++)
+                    q->buf[c][q->wr] = (int16_t)(dsp_clampf(side[c][i], -4.0f, 4.0f) * 8191.0f);
+            }
+        }
+        break;
+    }
     default: { /* chop: open for p2 of each period; the edges take about a millisecond */
         const float inc = 0.5f * fm_exp2(6.0f * p1) * inv_sr, duty = 0.02f + 0.96f * p2;
         for (int i = 0; i < n; i++) {
@@ -700,11 +813,12 @@ static const engine_stage_t havoc_stages[] = {
 
 const engine_ops_t havoc_engine = {
     .name = "havoc",
-    .description = "noise machine with a wide palette: four generators, each one of ten processes (feedback sine, "
+    .description = "noise machine with a wide palette: four generators, each one of twelve processes (feedback sine, "
                    "logistic map, integer formula, dust into a resonator, band of noise, pulsar train, cellular "
-                   "automaton, swarm of sines, random jumping tone, clipped random walk) with its own pitch, life "
+                   "automaton, swarm of sines, random jumping tone, clipped random walk, chatter of bleeps, electronic "
+                   "faults) with its own pitch, life "
                    "(steady, bursts, pulse, swell) and place, modulating each other in a ring (FM, ring), then two "
-                   "processors (filter, comb, fold, crush, ring, chop) (1 voice, notes slide the machine)",
+                   "processors (filter, comb, fold, crush, ring, chop, stutter) (1 voice, notes slide the machine)",
     .params = havoc_params,
     .param_count = HAVOC_P_COUNT,
     .voices = HAVOC_VOICES,

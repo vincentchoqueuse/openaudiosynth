@@ -289,7 +289,7 @@ a modulation destination: an LFO on one cell moves one sideband family only.
 
 ## Noise machine with a wide palette (`havoc`)
 
-One note runs four generators (`g1_` .. `g4_`). Each picks one of ten processes with `g<n>_type`; `g<n>_a` and
+One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve processes with `g<n>_type`; `g<n>_a` and
 `g<n>_b` shape it, and mean something else for each process:
 
 | type | what it is | pitch | a | b |
@@ -304,6 +304,8 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of ten processes 
 | `swarm` | eight sines wandering | centre | how far they wander | how fast |
 | `computer` | a tone that jumps to random pitches | centre | range of the jumps | jumps per second |
 | `rumble` | a leaky random walk | its speed | fold | only the peaks pass (crackle) |
+| `bleep` | a chatter of short notes: sines, soft squares, glides, rests | centre | how far the notes go and glide | notes per second (1..32) |
+| `glitch` | electronic faults one after the other: a stuck loop of bits, bit noise, a whine, a gap | centre | buzzing loops .. noise | faults per second (2..64) |
 
 - **Pitch**: `g<n>_pitch` is in semitones from the note when `g<n>_track` is on, from middle C when it is off;
   it goes down to -96 (1 Hz), where a generator is a rhythm or a slow modulator rather than a sound.
@@ -315,12 +317,16 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of ten processes 
   `logistic` into the `fm` of a `tone` is a random melody (`havoc_alarm`); a slow saw (`tone`, a 0.33) is a
   repeated dive (`havoc_laser_tag`); a `byte` into the `ring` of anything is digital hash (`havoc_radio_drift`).
 - **Processors**: `x1_type` and `x2_type`, in series on the sum: `lp`, `bp`, `hp`, `comb` (a tuned pipe),
-  `fold`, `crush`, `ring` (a sine multiplies the sum), `chop` (a periodic gate).
+  `fold`, `crush`, `ring` (a sine multiplies the sum), `chop` (a periodic gate), `stutter` (now and then the last
+  2 to 42 ms repeat as if stuck: p1 = the length, p2 = the share of the time; it makes a fault of any sound).
 - **Where to start**: sparse events = `dust` at a very low pitch (`havoc_geiger`, `havoc_wind_chimes` with a long
   ring); weather = `wind` and dense `dust` (`havoc_solar_wind`, `havoc_rainfall`); fire = `rumble` with b high
   (`havoc_bonfire`); machines = `logistic` or `cell` with a `pulse` life into a `comb` (`havoc_pile_driver`,
   `havoc_automaton`); computers = `computer` and `byte` (`havoc_mainframe`, `havoc_data_stream`); creatures =
-  `swarm` and `pulsar` (`havoc_insects`, `havoc_whale`, `havoc_throat`); walls = `tone` with a near 1 and `fm`
+  `swarm` and `pulsar` (`havoc_insects`, `havoc_whale`, `havoc_throat`); science fiction = `bleep` for anything that talks or reports (`havoc_droid_talk`,
+  `havoc_telemetry`, `havoc_cockpit`, keyed by a `byte` through `ring` in `havoc_uplink`), `glitch` and `stutter`
+  for what breaks (`havoc_bit_error`, `havoc_system_failure`, `havoc_short_circuit`, `havoc_stuck_voice`), a
+  slow saw into `fm` for sweeps (`havoc_scanner`); walls = `tone` with a near 1 and `fm`
   (`havoc_scream`). `pulsar`, `tone`, `logistic` and `cell` with `track` on play in tune (`havoc_throat`,
   `havoc_sub_engine`).
 - The same note always gives the same sequence of random events. `byte` and `cell` alias on purpose.

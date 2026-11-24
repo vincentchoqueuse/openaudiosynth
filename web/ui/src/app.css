@@ -152,7 +152,9 @@ button.add:disabled { opacity: .45; cursor: default; }
 .matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
 .matrix th { text-align: left; font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; padding: 0 6px 6px; border-bottom: 1px solid var(--line); }
 .matrix td { padding: 4px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); vertical-align: middle; }
-.matrix tr.empty td { opacity: .55; }
+/* an empty row is dimmed control by control, never as a cell: an opacity on the cell would trap the open list of
+   its Select under the rows below, and dim it too */
+.matrix tr.empty .select, .matrix tr.empty input, .matrix tr.empty .num, .matrix tr.empty .muted { opacity: .55; }
 .matrix .num { width: 1.6em; color: var(--muted); }
 .matrix .select, .matrix input { width: 100%; }
 .matrix input.name { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; font-size: 12px; }

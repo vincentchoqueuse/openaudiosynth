@@ -32,7 +32,7 @@ with `DWT->CYCCNT` on the board (M7).
 | 2026-11-23 | Apple Silicon (host) | fm4 default (one pair: 2 operators, 1 link; idle operators and zero cells skipped) | 16 | 9.8 | 0.75 % |
 | 2026-11-23 | Apple Silicon (host) | fm4 worst case: all 16 cells set (every loop and feedback), 4 carriers, filter; latency-bound: each sample waits for the last | 16 | 60.4 | 4.64 % |
 | 2026-11-24 | Apple Silicon (host) | flux default (the whole machine: 8 channels of oscillator, interpolated delay, regulator, TPT filter, tanh; per sample for the 8; crush, xor and ruptures off) | 1 | 163 | 0.78 % |
-| 2026-11-24 | Apple Silicon (host) | havoc default (one generator sounding; up to four, plus two processors) | 1 | 18 | 0.09 % |
+| 2026-11-24 | Apple Silicon (host) | havoc default (one generator sounding; up to four, plus two processors) | 1 | 21 | 0.10 % |
 
 Cross build (arm-none-eabi-gcc, cortex-m7, -O2, `libsynth_dsp.a`): text ~77 KB (help strings
 included; `-DDSP_PARAM_TEXT=0` removes them), state ~340 KB with 8 parts (~40 KB per part: lower `SYNTH_PARTS` on a board), plus the effect arena (default 1.3 MB,

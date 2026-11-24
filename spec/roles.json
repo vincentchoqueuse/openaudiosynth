@@ -93,6 +93,7 @@
     "havoc.gen<n>.pan": "place of a generator",
     "havoc.gen<n>.pitch": "pitch of a generator, from the note or from middle C",
     "havoc.gen<n>.ring": "ring modulation of a generator by the one before it",
+    "havoc.gen<n>.rot": "resampling and bit reduction of a generator, unfiltered",
     "havoc.gen<n>.track": "whether a generator follows the note",
     "havoc.gen<n>.type": "process of a generator of the noise machine",
     "havoc.mutate": "how often the machine changes one of its generators while it plays",

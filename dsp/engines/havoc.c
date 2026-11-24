@@ -10,9 +10,9 @@
 #define HAVOC_MASK (HAVOC_DELAY - 1)
 
 static const char *const type_labels[] = {"tone", "logistic", "byte", "dust", "wind", "pulsar", "cell", "swarm",
-                                          "computer", "rumble", "bleep", "glitch", NULL};
+                                          "computer", "rumble", "bleep", "glitch", "talk", "modem", "neuron", "alias", NULL};
 static const char *const life_labels[] = {"steady", "bursts", "pulse", "swell", NULL};
-static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", "sub", NULL};
+static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", "sub", "warp", "mangle", NULL};
 static const char *const onoff_labels[] = {"off", "on", NULL};
 
 #define HAVOC_GEN_PARAMS(g, n, dtype, dpitch, dtrack, da, db, dlevel, dpan, drate)                                         \
@@ -29,7 +29,13 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
           "tone that jumps to random pitches, a = range, b = speed. rumble: a random walk, a = fold, b = only the "  \
           "peaks pass (crackle). bleep: a chatter of short notes, some gliding, some square, with rests, a = how far "    \
           "they go and glide, b = notes per second. glitch: electronic faults, one after the other (a stuck loop "   \
-          "of bits, a burst of bit noise, a whine, a gap), a = from buzzing loops to noise, b = faults per second"),                                                                                   \
+          "of bits, a burst of bit noise, a whine, a gap), a = from buzzing loops to noise, b = faults per second. "  \
+          "talk: a voice speaking no language (vowels, hisses, stops through three formants; the pitch is the "      \
+          "voice's), a = how fast it speaks, b = from voiced to whispered. modem: a data transmission (carrier, "     \
+          "preambles, bursts of random symbols, gaps), a = symbols per second (20 .. 640), b = 2, 4 or 8 tones. "    \
+          "neuron: a model neuron firing (the pitch is its speed), a = from regular spikes to chattering bursts, "   \
+          "b = input current and its noise. alias: a staircase saw pushed past the Nyquist frequency, a = how far "  \
+          "(1 .. 64 times the pitch), b = from 256 steps to 2"),                                                                                   \
     PARAM(HAVOC_G_P(g, HAVOC_G_PITCH), "g" n "_pitch", "havoc.gen" n ".pitch", -96.0f, 60.0f, dpitch, PARAM_LIN,     \
           "st", 1, NULL,                                                                                             \
           "pitch of this generator, in semitones from the note (or from middle C when it does not track): "          \
@@ -64,7 +70,10 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
     PARAM(HAVOC_G_P(g, HAVOC_G_LFO_A), "g" n "_lfo_a", "havoc.gen" n ".lfo_a", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1,   \
           NULL, "how far the oscillator moves a (0 = not at all)"),                                                  \
     PARAM(HAVOC_G_P(g, HAVOC_G_LFO_B), "g" n "_lfo_b", "havoc.gen" n ".lfo_b", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1,   \
-          NULL, "how far the oscillator moves b (0 = not at all)")
+          NULL, "how far the oscillator moves b (0 = not at all)"),                                                  \
+    PARAM(HAVOC_G_P(g, HAVOC_G_ROT), "g" n "_rot", "havoc.gen" n ".rot", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,    \
+          "this generator resampled at a lower and lower rate and on fewer and fewer bits (down to 270 Hz and "      \
+          "1 bit), with no filter: its aliases then go into whatever it modulates")
 
 #define HAVOC_PROC_PARAMS(x, n)                                                                                      \
     PARAM(HAVOC_X_P(x, HAVOC_X_TYPE), "x" n "_type", "havoc.proc" n ".type", 0.0f, (float)(HAVOC_X_COUNT - 1), 0.0f,  \
@@ -76,7 +85,9 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
           "periodic gate, p1 = rate (0.5 .. 32 Hz), p2 = share of the time it is open. stutter: now and then the "   \
           "last instants repeat as if stuck, p1 = length of the fragment (2 .. 42 ms), p2 = share of the time "      \
           "stuck. sub: a square one octave below whatever comes in (p1 towards 1: two octaves), at the level of "    \
-          "the input, p2 = from dull to buzzing; mix adds it under the sound"),                             \
+          "the input, p2 = from dull to buzzing; mix adds it under the sound. warp: frequency modulation of the "     \
+          "whole sound by a sine, p1 = its frequency (0.5 Hz .. 1 kHz), p2 = depth. mangle: operations on the bits "  \
+          "of every sample, p1 = which (exclusive or, rotation, bits killed, bits reversed), p2 = the mask or amount"),                             \
     PARAM(HAVOC_X_P(x, HAVOC_X_P1), "x" n "_p1", "havoc.proc" n ".p1", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,      \
           "first control of this processor (see its type)"),                                                         \
     PARAM(HAVOC_X_P(x, HAVOC_X_P2), "x" n "_p2", "havoc.proc" n ".p2", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,      \
@@ -138,6 +149,12 @@ static void voice_clear(havoc_voice_t *v)
         s->life_on = 1;
         s->gain = 0.0f;
         s->mut_a = s->mut_b = s->mut_pitch = 0.0f;
+        s->rot_ph = s->rot_hold = 0.0f;
+        s->tk_f[0] = s->tk_t[0] = 500.0f, s->tk_f[1] = s->tk_t[1] = 1500.0f, s->tk_f[2] = s->tk_t[2] = 2500.0f;
+        for (int k = 0; k < 6; k++)
+            s->tk_ic[k] = 0.0f;
+        s->tk_voiced = 1;
+        s->md_left = 0;
         s->mut_type = 0;
         s->lfo = 0.37f * (float)g; /* every generator starts elsewhere in its cycle */
         s->lfo2 = 0.25f + 0.61f * (float)g;
@@ -328,6 +345,55 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
             }
         }
         s->ev_oct = dsp_clampf(s->ev_oct + s->ev_sweep * dt, -6.0f, 6.0f);
+        mult = fm_exp2(s->ev_oct);
+    }
+    if (type == HAVOC_T_TALK) { /* one phoneme after the other: a vowel, a hiss or a stop; the pitch wanders as in speech */
+        static const float vowel[7][3] = {{730.0f, 1090.0f, 2440.0f}, {270.0f, 2290.0f, 3010.0f}, {300.0f, 870.0f, 2240.0f},
+                                          {530.0f, 1840.0f, 2480.0f}, {570.0f, 840.0f, 2410.0f},  {500.0f, 1500.0f, 2500.0f},
+                                          {660.0f, 1720.0f, 2410.0f}};
+        s->jump_ph -= dt;
+        if (s->jump_ph <= 0.0f) {
+            const float r = dsp_rand_unipolar(&s->rng);
+            float dur = (0.5f + dsp_rand_unipolar(&s->rng)) / (2.0f * fm_exp2(2.6f * a)); /* 2 .. 12 a second */
+            if (r < 0.62f) {
+                const float *f = vowel[(dsp_rand_u32(&s->rng) >> 8) % 7u];
+                s->tk_t[0] = f[0], s->tk_t[1] = f[1], s->tk_t[2] = f[2];
+                s->tk_voiced = 1;
+                s->ev_gain = 1.0f;
+            } else if (r < 0.82f) {
+                s->tk_t[0] = 2200.0f + 1800.0f * dsp_rand_unipolar(&s->rng);
+                s->tk_t[1] = 4200.0f + 1500.0f * dsp_rand_unipolar(&s->rng);
+                s->tk_t[2] = 7000.0f;
+                s->tk_voiced = 0;
+                s->ev_gain = 0.5f;
+                dur *= 0.5f;
+            } else {
+                s->ev_gain = 0.0f;
+                dur *= 0.6f;
+            }
+            s->ev_sweep = (0.3f * dsp_rand_bipolar(&s->rng) - s->ev_oct) / dur;
+            s->jump_ph = dur;
+        }
+        s->ev_oct = dsp_clampf(s->ev_oct + s->ev_sweep * dt, -1.0f, 1.0f);
+        mult = fm_exp2(s->ev_oct);
+        for (int k = 0; k < 3; k++)
+            s->tk_f[k] += 0.03f * (s->tk_t[k] - s->tk_f[k]); /* the mouth moves in about 20 ms */
+    }
+    if (type == HAVOC_T_MODEM) { /* one symbol after the other; sections: data, a preamble (alternating), a gap */
+        s->jump_ph -= dt;
+        if (s->jump_ph <= 0.0f) {
+            s->jump_ph = dsp_maxf(s->jump_ph, -0.05f) + 1.0f / (20.0f * fm_exp2(5.0f * a));
+            if (--s->md_left <= 0) {
+                const float r = dsp_rand_unipolar(&s->rng);
+                s->ev_kind = r < 0.2f ? 2 : r < 0.45f ? 1 : 0;
+                s->md_left = s->ev_kind == 0 ? 20 + (int)(dsp_rand_u32(&s->rng) >> 26) : s->ev_kind == 1 ? 16 : 2 + (int)(dsp_rand_u32(&s->rng) >> 29);
+            }
+            const uint32_t levels = 2u << (uint32_t)(b * 2.99f);
+            const uint32_t sym = s->ev_kind == 1 ? (uint32_t)(s->md_left & 1) * (levels - 1u) : (dsp_rand_u32(&s->rng) >> 8) % levels;
+            s->ev_gain = s->ev_kind == 2 ? 0.0f : 1.0f;
+            s->ev_oct = (float)sym / (float)levels; /* the tones share one octave */
+            jumped = 1;
+        }
         mult = fm_exp2(s->ev_oct);
     }
     const float inc = dsp_minf(fm_mtof(note) * inv_sr * mult, 0.45f);
@@ -529,6 +595,77 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
         }
         break;
     }
+    case HAVOC_T_TALK: { /* a saw (the voice) or noise (the breath) through three band-pass formants */
+        float c1[3], c2[3], c3[3];
+        for (int k = 0; k < 3; k++) {
+            const float gg = fm_tan_pi(dsp_minf(s->tk_f[k] * inv_sr, 0.45f));
+            c1[k] = 1.0f / (1.0f + gg * (gg + 0.14f));
+            c2[k] = gg * c1[k];
+            c3[k] = gg * c2[k];
+        }
+        static const float weight[3] = {1.0f, 0.6f, 0.35f};
+        const float d = (s->ev_gain - s->s1) * inv_n, breath = s->tk_voiced ? b : 1.0f;
+        for (int i = 0; i < n; i++) {
+            s->ph += incs[i];
+            if (s->ph >= 1.0f)
+                s->ph -= 1.0f;
+            s->s1 += d;
+            const float x = s->s1 * ((1.0f - breath) * (s->ph + s->ph - 1.0f) + 0.7f * breath * dsp_rand_bipolar(&s->rng));
+            float y = 0.0f;
+            for (int k = 0; k < 3; k++) {
+                float *ic = &s->tk_ic[2 * k];
+                const float v3 = x - ic[1], v1 = c1[k] * ic[0] + c2[k] * v3, v2 = ic[1] + c2[k] * ic[0] + c3[k] * v3;
+                ic[0] = v1 + v1 - ic[0];
+                ic[1] = v2 + v2 - ic[1];
+                y += weight[k] * v1;
+            }
+            out[i] = fm_tanh(0.8f * y);
+        }
+        s->s1 = s->ev_gain;
+        break;
+    }
+    case HAVOC_T_MODEM: { /* the tone of the symbol, its phase unbroken from one symbol to the next */
+        const float d = (s->ev_gain - s->s1) * inv_n;
+        for (int i = 0; i < n; i++) {
+            s->ph += incs[i];
+            if (s->ph >= 1.0f)
+                s->ph -= 1.0f;
+            s->s1 += d;
+            out[i] = s->s1 * fm_sin_pos(s->ph);
+        }
+        s->s1 = s->ev_gain;
+        break;
+    }
+    case HAVOC_T_NEURON: { /* v' = 0.04 v^2 + 5 v + 140 - u + I, u' = a (0.2 v - u); at 30 mV: v <- c, u <- u + d */
+        const float c = -65.0f + 15.0f * a, dd = 8.0f - 6.0f * a, cur = 5.0f + 14.0f * b, jit = 10.0f * b;
+        if (!(s->s0 < -20.0f && s->s0 > -110.0f)) /* (another process left its state here) */
+            s->s0 = -65.0f, s->s1 = -13.0f;
+        for (int i = 0; i < n; i++) {
+            const float h = dsp_minf(40.0f * incs[i], 0.5f); /* milliseconds of the model per sample */
+            const float vv = s->s0, I = cur + jit * dsp_rand_bipolar(&s->rng);
+            s->s0 = vv + h * (0.04f * vv * vv + 5.0f * vv + 140.0f - s->s1 + I);
+            s->s1 += h * 0.02f * (0.2f * vv - s->s1);
+            float y = s->s0;
+            if (s->s0 >= 30.0f) {
+                y = 30.0f;
+                s->s0 = c;
+                s->s1 += dd;
+            }
+            s->s0 = dsp_maxf(s->s0, -100.0f);
+            s->s1 = dsp_clampf(s->s1, -40.0f, 60.0f);
+            out[i] = dsp_clampf(0.02f * (y + 55.0f), -1.0f, 1.7f);
+        }
+        break;
+    }
+    case HAVOC_T_ALIAS: { /* a saw with no band limit, far above its pitch, on a few steps: what is heard is the folding */
+        const float times = fm_exp2(6.0f * a), steps = fm_exp2(8.0f - 7.0f * b), isteps = 2.0f / steps;
+        for (int i = 0; i < n; i++) {
+            s->ph += times * incs[i];
+            s->ph -= (float)(int)s->ph;
+            out[i] = (float)(int)(s->ph * steps) * isteps - 1.0f + 0.5f * isteps;
+        }
+        break;
+    }
     default: { /* rumble: a leaky random walk whose speed is the pitch; only what passes the threshold, then a fold */
         const float k = dsp_minf(8.0f * incs[n - 1], 1.0f), leak = 1.0f - 0.05f * k;
         const float norm = 0.45f / bsqrt(k), thr = 1.2f * b, fold = a, drive = 0.2f + 1.2f * a;
@@ -541,6 +678,22 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
         }
         break;
     }
+    }
+
+    /* rot: resampled and quantised with no filter, at a rate of its own */
+    const float rot = gp[HAVOC_G_ROT];
+    if (rot > 0.0f) {
+        const float rate = dsp_minf(fm_exp2(-7.5f * rot) * (1.0f + 0.07f * (float)g), 1.0f);
+        const float lv = fm_exp2(11.0f - 11.0f * rot), ilv = 1.0f / lv;
+        for (int i = 0; i < n; i++) {
+            s->rot_ph += rate;
+            if (s->rot_ph >= 1.0f) {
+                s->rot_ph -= 1.0f;
+                const float x = dsp_clampf(out[i], -2.0f, 2.0f);
+                s->rot_hold = ((float)(int32_t)(x * lv + (x >= 0.0f ? 0.0f : -1.0f)) + 0.5f) * ilv;
+            }
+            out[i] = s->rot_hold;
+        }
     }
 
     /* ring modulation by the other generator */
@@ -703,6 +856,46 @@ static DSP_FAST_CODE void proc_render(havoc_t *e, havoc_proc_t *q, const float *
                 x[i] += mix * (q->sub_lp[k] - 0.5f * x[i]); /* at full mix, half of the sound stays above its sub */
             }
         }
+        break;
+    }
+    case HAVOC_X_WARP: { /* a delay of 5 ms whose length a sine moves: vibrato, then frequency modulation */
+        const float inc = dsp_minf(0.5f * fm_exp2(11.0f * p1) * inv_sr, 0.45f), base = 0.005f * sr, depth = 0.95f * p2 * base;
+        for (int i = 0; i < n; i++) {
+            q->ph += inc;
+            if (q->ph >= 1.0f)
+                q->ph -= 1.0f;
+            q->wr = (q->wr + 1) & HAVOC_MASK;
+            const float dl = base + depth * fm_sin_pos(q->ph);
+            const int di = (int)dl;
+            const float df = dl - (float)di;
+            for (int c = 0; c < 2; c++) {
+                q->buf[c][q->wr] = (int16_t)(dsp_clampf(side[c][i], -4.0f, 4.0f) * 8191.0f);
+                const float s0 = (float)q->buf[c][(q->wr - di) & HAVOC_MASK], s1 = (float)q->buf[c][(q->wr - di - 1) & HAVOC_MASK];
+                side[c][i] += mix * ((s0 + df * (s1 - s0)) * (1.0f / 8191.0f) - side[c][i]);
+            }
+        }
+        break;
+    }
+    case HAVOC_X_MANGLE: { /* the sample as a 12-bit word */
+        const int op = (int)(p1 * 3.99f);
+        const uint32_t amount = (uint32_t)(p2 * 4095.0f), turn = 1u + (uint32_t)(p2 * 10.99f);
+        for (int c = 0; c < 2; c++)
+            for (int i = 0; i < n; i++) {
+                uint32_t w = (uint32_t)(int32_t)(dsp_clampf(side[c][i], -1.0f, 1.0f) * 2047.0f + 2048.0f) & 4095u;
+                if (op == 0) {
+                    w ^= amount;
+                } else if (op == 1) {
+                    w = (w << turn | w >> (12u - turn)) & 4095u;
+                } else if (op == 2) {
+                    w &= ~amount | 2048u; /* (the sign bit is kept: the sound thins out instead of vanishing) */
+                } else {
+                    uint32_t r = 0;
+                    for (uint32_t k = 0; k < 12u; k++)
+                        r |= (w >> k & 1u) << (11u - k);
+                    w = (r & amount) | (w & ~amount);
+                }
+                side[c][i] += mix * (((float)w - 2048.0f) * (1.0f / 2047.0f) - side[c][i]);
+            }
         break;
     }
     case HAVOC_X_STUTTER: { /* records the sum; now and then replays its last instants in a loop instead */
@@ -883,12 +1076,12 @@ static const engine_stage_t havoc_stages[] = {
 
 const engine_ops_t havoc_engine = {
     .name = "havoc",
-    .description = "noise machine with a wide palette: four generators, each one of twelve processes (feedback sine, "
+    .description = "noise machine with a wide palette: four generators, each one of sixteen processes (feedback sine, "
                    "logistic map, integer formula, dust into a resonator, band of noise, pulsar train, cellular "
                    "automaton, swarm of sines, random jumping tone, clipped random walk, chatter of bleeps, electronic "
-                   "faults) with its own pitch, life "
+                   "faults, formant voice, data transmission, model neuron, aliased saw) with its own pitch, rot, life "
                    "(steady, bursts, pulse, swell) and place, modulating each other in a ring (FM, ring), then two "
-                   "processors (filter, comb, fold, crush, ring, chop, stutter, octave divider); the output can feed back "
+                   "processors (filter, comb, fold, crush, ring, chop, stutter, octave divider, warp, bit mangle); the output can feed back "
                    "into every frequency and the machine can mutate while it plays (1 voice, notes slide the machine)",
     .params = havoc_params,
     .param_count = HAVOC_P_COUNT,

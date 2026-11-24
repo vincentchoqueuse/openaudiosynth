@@ -128,6 +128,21 @@ static void test_life_and_ring(void)
     CHECK(swing[0] < 1.2f && swing[1] > 4.0f, "havoc own oscillator: brightness swings by %g without, %g with",
           (double)swing[0], (double)swing[1]);
 
+    /* rot: a pure tone resampled near 1 kHz on a few bits is far brighter (same measure as above) */
+    float bright[2];
+    for (int on = 0; on < 2; on++) {
+        solo(HAVOC_T_TONE, 0.0f, 0.0f);
+        setp(HAVOC_G_P(0, HAVOC_G_ROT), on ? 0.75f : 0.0f);
+        play(57, L, N);
+        float d = 0.0f, e = 0.0f;
+        for (int i = N / 2; i < N; i++) {
+            d += (L[i] - L[i - 1]) * (L[i] - L[i - 1]);
+            e += L[i] * L[i];
+        }
+        bright[on] = d / e;
+    }
+    CHECK(bright[1] > 5.0f * bright[0], "havoc rot: brightness %g clean, %g rotten", (double)bright[0], (double)bright[1]);
+
     /* generator 4, silent itself, modulates the frequency of generator 1 */
     solo(HAVOC_T_TONE, 0.0f, 0.0f);
     play(69, L2, N);

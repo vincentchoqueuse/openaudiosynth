@@ -1,7 +1,8 @@
 /* havoc.h — noise machine with a wide palette: one note runs four generators, each one of ten very different
  * processes (a sine with phase feedback, the logistic map, an integer formula on a counter, random impulses into a
  * resonator, a whistling band of noise, a pulsar train, a cellular automaton read as a wave, a swarm of wandering
- * sines, a tone that jumps at random, a clipped random walk, a chatter of bleeps, electronic faults). Each generator has its own pitch (following the note
+ * sines, a tone that jumps at random, a clipped random walk, a chatter of bleeps, electronic faults, a formant voice speaking no language, a data
+ * transmission, a model neuron firing, an oscillator pushed past the Nyquist frequency). Each generator has its own pitch (following the note
  * or not), two shape controls whose meaning depends on the process and that its own slow oscillator can move (two
  * sines at rates without a common period, so the timbre never comes back the same way), a life (steady, random bursts, a periodic
  * pulse, a slow swell) and a place; it can be frequency-modulated and ring-modulated by the generator before it
@@ -9,7 +10,8 @@
  * resampler, ring modulator, chopper, stutter, octave divider. The output can come back into every generator's
  * frequency (feedback), and the machine can mutate while it plays: at random, a generator gets other shapes, another
  * pitch, another process.
- * References: R. May, Simple mathematical models with very complicated dynamics (the logistic map); S. Wolfram,
+ * References: G. Peterson and H. Barney, Control methods used in a study of the vowels (formant frequencies);
+ * E. Izhikevich, Simple model of spiking neurons; R. May, Simple mathematical models with very complicated dynamics (the logistic map); S. Wolfram,
  * Statistical mechanics of cellular automata (the 256 elementary rules); C. Roads, Microsound (pulsar synthesis,
  * dust); TPT state-variable filter (V. Zavalishin). */
 #ifndef ENGINE_HAVOC_H
@@ -25,18 +27,19 @@
 
 enum {
     HAVOC_T_TONE = 0, HAVOC_T_LOGISTIC, HAVOC_T_BYTE, HAVOC_T_DUST, HAVOC_T_WIND, HAVOC_T_PULSAR, HAVOC_T_CELL,
-    HAVOC_T_SWARM, HAVOC_T_COMPUTER, HAVOC_T_RUMBLE, HAVOC_T_BLEEP, HAVOC_T_GLITCH, HAVOC_T_COUNT
+    HAVOC_T_SWARM, HAVOC_T_COMPUTER, HAVOC_T_RUMBLE, HAVOC_T_BLEEP, HAVOC_T_GLITCH,
+    HAVOC_T_TALK, HAVOC_T_MODEM, HAVOC_T_NEURON, HAVOC_T_ALIAS, HAVOC_T_COUNT
 };
 enum { HAVOC_LIFE_STEADY = 0, HAVOC_LIFE_BURSTS, HAVOC_LIFE_PULSE, HAVOC_LIFE_SWELL };
 enum {
     HAVOC_X_OFF = 0, HAVOC_X_LP, HAVOC_X_BP, HAVOC_X_HP, HAVOC_X_COMB, HAVOC_X_FOLD, HAVOC_X_CRUSH, HAVOC_X_RING,
-    HAVOC_X_CHOP, HAVOC_X_STUTTER, HAVOC_X_SUB, HAVOC_X_COUNT
+    HAVOC_X_CHOP, HAVOC_X_STUTTER, HAVOC_X_SUB, HAVOC_X_WARP, HAVOC_X_MANGLE, HAVOC_X_COUNT
 };
 
 /* Settings of a generator and of a processor. */
 enum {
     HAVOC_G_TYPE = 0, HAVOC_G_PITCH, HAVOC_G_TRACK, HAVOC_G_A, HAVOC_G_B, HAVOC_G_FM, HAVOC_G_RING, HAVOC_G_LIFE,
-    HAVOC_G_LIFE_RATE, HAVOC_G_LIFE_SHAPE, HAVOC_G_LEVEL, HAVOC_G_PAN, HAVOC_G_LFO_RATE, HAVOC_G_LFO_A, HAVOC_G_LFO_B,
+    HAVOC_G_LIFE_RATE, HAVOC_G_LIFE_SHAPE, HAVOC_G_LEVEL, HAVOC_G_PAN, HAVOC_G_LFO_RATE, HAVOC_G_LFO_A, HAVOC_G_LFO_B, HAVOC_G_ROT,
     HAVOC_G_COUNT
 };
 enum { HAVOC_X_TYPE = 0, HAVOC_X_P1, HAVOC_X_P2, HAVOC_X_MIX, HAVOC_X_PCOUNT };
@@ -68,6 +71,9 @@ typedef struct {
     float gain; /* life gain at the end of the last block */
     float lfo, lfo2; /* phases of the two sines that move a and b (cycles) */
     float mut_a, mut_b, mut_pitch; /* what the last mutation left on a, b and the pitch (semitones) */
+    float rot_ph, rot_hold; /* rot: clock of the resampling, held sample */
+    float tk_f[3], tk_t[3], tk_ic[6]; /* talk: formant frequencies (Hz), their targets, the three filters' state */
+    int tk_voiced, md_left;           /* talk: voiced phoneme; modem: symbols left in the section */
     int mut_type;                  /* and on the process (added to the type, modulo their number) */
 } havoc_gen_t;
 

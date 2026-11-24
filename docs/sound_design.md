@@ -289,7 +289,7 @@ a modulation destination: an LFO on one cell moves one sideband family only.
 
 ## Noise machine with a wide palette (`havoc`)
 
-One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve processes with `g<n>_type`; `g<n>_a` and
+One note runs four generators (`g1_` .. `g4_`). Each picks one of sixteen processes with `g<n>_type`; `g<n>_a` and
 `g<n>_b` shape it, and mean something else for each process:
 
 | type | what it is | pitch | a | b |
@@ -306,9 +306,16 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve process
 | `rumble` | a leaky random walk | its speed | fold | only the peaks pass (crackle) |
 | `bleep` | a chatter of short notes: sines, soft squares, glides, rests | centre | how far the notes go and glide | notes per second (1..32) |
 | `glitch` | electronic faults one after the other: a stuck loop of bits, bit noise, a whine, a gap | centre | buzzing loops .. noise | faults per second (2..64) |
+| `talk` | a voice speaking no language: vowels, hisses and stops through three formants | pitch of the voice (low = a giant) | how fast it speaks (2..12 phonemes a second) | voiced .. whispered |
+| `modem` | a data transmission: carrier, preambles, bursts of random symbols, gaps | lowest tone | symbols per second (20..640) | 2, 4 or 8 tones in an octave |
+| `neuron` | a model neuron firing | its speed | regular spikes .. chattering bursts | input current and its noise |
+| `alias` | a staircase saw far above its pitch, not band-limited: only its foldings are heard | frequency | how far above (1..64 times) | 256 steps .. 2 |
 
 - **Pitch**: `g<n>_pitch` is in semitones from the note when `g<n>_track` is on, from middle C when it is off;
   it goes down to -96 (1 Hz), where a generator is a rhythm or a slow modulator rather than a sound.
+- **Rot**: `g<n>_rot` resamples one generator at a lower rate and on fewer bits, with no filter (0.3 = a grain,
+  0.6 = 2 kHz and 4 bits). It sits before the ring of modulation: a rotten generator sends its aliases into the
+  frequency or the amplitude of the next.
 - **Moving timbre**: every generator has its own slow oscillator: `g<n>_lfo_rate`, and how far it moves a
   (`g<n>_lfo_a`) and b (`g<n>_lfo_b`, at 0.62 of the rate, so the pair of shapes never repeats). Give the four
   generators rates with no simple ratio (0.043, 0.071, 0.117, 0.19 Hz in `havoc_shapeshifter`): a held note
@@ -325,11 +332,19 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve process
   `fold`, `crush`, `ring` (a sine multiplies the sum), `chop` (a periodic gate), `stutter` (now and then the last
   2 to 42 ms repeat as if stuck: p1 = the length, p2 = the share of the time; it makes a fault of any sound),
   `sub` (a square one or two octaves below whatever comes in, at the level of the input: `mix` 0.5 puts a growl
-  under the sound).
+  under the sound), `warp` (frequency modulation of the whole sound by a sine: p1 low = a tape that drags, p1 high
+  = sidebands on everything), `mangle` (the bits of every sample: exclusive or with a mask, rotation, bits
+  killed, bits reversed; `mix` 0.2 is already a lot).
 - **Chaos**: `feedback` sends the machine's output into the frequency of every generator (0.25 roughens, 0.6
   howls, 0.85 collapses). `mutate` makes the machine change itself while it plays: at random, one generator gets
   other shapes and another pitch, and above `mutate_depth` 0.5 sometimes another process (`havoc_meltdown`: 0.8
   and 1). The same note always mutates the same way.
+- **Machines that speak**: `talk` low and slow with a `sub` is an oracle (`havoc_oracle`), on the note it sings
+  (`havoc_machine_prayer`), several at once are a crowd (`havoc_glossolalia`); with its `ring` driven by a `tone`
+  it is a voice on a radio (`havoc_ghost_station`), with its `fm` driven by a `neuron` it stammers
+  (`havoc_wetware`). `modem` against `talk` is a dialogue (`havoc_dialogue`, `havoc_handshake`). `neuron` at a
+  low pitch is single spikes (`havoc_synapse`). `alias` with its a moved slowly makes foldings that cross
+  (`havoc_nyquist`). Everything at its end: `havoc_overclock`, `havoc_total_loss`.
 - **Dark**: low pitches (-24 and under), `pulsar` with a low formant, `swarm` under the hearing range (beats),
   a `sub` and a low-pass, slow `swell` lives, and the long dark reverb of the bus (`reverb_decay` 0.95 and more,
   `reverb_damping` near 2000 Hz): `havoc_descent`, `havoc_leviathan`, `havoc_void_choir`, `havoc_possessed`,

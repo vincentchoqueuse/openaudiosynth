@@ -321,6 +321,7 @@ the few steps every engine voice shares: constant-power pan, glide coefficient, 
 - `void voice_pan_out(float *x, int n, float pan_l, float pan_r, float *L, float *R, uint32_t *nan_count)` — NaN guard then pan of a mono voice block into the stereo bus (L, R accumulate).
 - `void voice_vmod_out(vpoly_t *p, int vi, float *x, int n, float pan_l, float pan_r, float *L, float *R, uint32_t *nan_count)` — Per-voice modulation of level and pan of voice vi, NaN guard, then pan into the stereo bus.
 - `void voice_out(vpoly_t *p, int vi, float *x, int n, float pan_l, float pan_r, float *L, float *R, uint32_t *nan_count)` — Output of voice vi: applies its steal fade (vpoly), then voice_vmod_out.
+- `void voice_out_stereo(vpoly_t *p, int vi, float *xl, float *xr, int n, float *L, float *R, uint32_t *nan_count)` — The same for a voice that is already a stereo pair (xl, xr): steal fade, per-voice level and pan modulation (the pan offset ramped over the block), NaN guard, then added to the bus.
 
 ## `dsp/voice/voice_alloc.h`
 polyphonic voice allocation, engine independent. Same note already active: retrigger it. Otherwise a free voice; otherwise steal, by priority: oldest released voice, then oldest pedal-sustained voice, then the quietest. The fade-out (2 to 5 ms) before reuse is done by the engine (*steal = 1).
@@ -340,6 +341,7 @@ per-voice modulation, the same for every engine: each voice has its own MSEG and
 - `void voicemod_wiener_build(float *w, uint32_t seed)`
 - `float voicemod_wiener(const float *w, float ph)`
 - `float voicemod_fourier(const float *c, float ph)`
+- `float voicemod_lfo_shape(int wave, float ph, float sh, const float *fourier, const float *wiener)` — One value of an LFO shape (the part's and the notes'): 0 sine, 1 triangle, 2 saw, 3 square, 4 the held random value `sh`, 5 its Fourier harmonics, 6 its periodic random walk; ph in cycles, 0..1.
 - `void voicemod_init(voicemod_t *m, uint32_t seed)`
 - `void voicemod_start(voicemod_t *m, const voicemod_cfg_t *c, int note, float velocity, int hard)`
 - `void voicemod_note(voicemod_t *m, const voicemod_cfg_t *c, int note)`

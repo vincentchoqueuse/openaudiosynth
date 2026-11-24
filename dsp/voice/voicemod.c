@@ -61,18 +61,7 @@ void voicemod_block(voicemod_t *m, const voicemod_cfg_t *c)
         m->lfo_phase = fm_frac(m->lfo_phase + hz * c->dt);
         if (m->lfo_phase < prev)
             m->lfo_sh = dsp_rand_bipolar(&m->rng);
-        const float ph = m->lfo_phase;
-        float l;
-        switch (c->lfo_wave) {
-        case 1: l = 1.0f - 4.0f * dsp_absf(ph - 0.5f); break;
-        case 2: l = 2.0f * ph - 1.0f; break;
-        case 3: l = ph < 0.5f ? 1.0f : -1.0f; break;
-        case 4: l = m->lfo_sh; break;
-        case 5: l = voicemod_fourier(c->fourier, ph); break;
-        case 6: l = voicemod_wiener(c->wiener, ph); break;
-        default: l = fm_sin(ph);
-        }
-        m->src[VM_SRC_LFO] = l;
+        m->src[VM_SRC_LFO] = voicemod_lfo_shape(c->lfo_wave, m->lfo_phase, m->lfo_sh, c->fourier, c->wiener);
         for (int r = 0; r < VM_ROUTES; r++) {
             const int s = c->src[r], d = c->dst[r];
             if (s > 0 && s < VM_SRC_COUNT && d >= 0 && d < VM_DST_COUNT)

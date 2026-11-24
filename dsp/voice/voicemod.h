@@ -65,6 +65,21 @@ static inline float voicemod_fourier(const float *c, float ph)
     return norm > 1.0f ? y / norm : y;
 }
 
+/* One value of an LFO shape (the part's and the notes'): 0 sine, 1 triangle, 2 saw, 3 square, 4 the held random
+ * value `sh`, 5 its Fourier harmonics, 6 its periodic random walk; ph in cycles, 0..1. */
+static inline float voicemod_lfo_shape(int wave, float ph, float sh, const float *fourier, const float *wiener)
+{
+    switch (wave) {
+    case 1: return 1.0f - 4.0f * dsp_absf(ph - 0.5f);
+    case 2: return 2.0f * ph - 1.0f;
+    case 3: return ph < 0.5f ? 1.0f : -1.0f;
+    case 4: return sh;
+    case 5: return voicemod_fourier(fourier, ph);
+    case 6: return voicemod_wiener(wiener, ph);
+    default: return fm_sin(ph);
+    }
+}
+
 typedef struct {
     mseg_shape_t shape;               /* the per-voice MSEG */
     float lfo_rate;                   /* Hz, or a division when lfo_div > 0 */

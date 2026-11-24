@@ -154,20 +154,26 @@ const param_desc_t partmod_params[PM_COUNT] = {
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
 
+/* An MSEG shape from its block of parameters (the part's MSEGs and the notes' share the layout); sustain and loop
+ * points are 1-based in the parameters, 0 = none. */
+static void shape_from(mseg_shape_t *s, const float *p)
+{
+    s->count = (int)p[PM_MSEG_POINTS];
+    s->mode = (int)p[PM_MSEG_MODE];
+    s->sustain = (int)p[PM_MSEG_SUSTAIN] - 1;
+    s->loop_start = (int)p[PM_MSEG_LOOP_START] - 1;
+    s->loop_end = (int)p[PM_MSEG_LOOP_END] - 1;
+    for (int i = 0; i < MSEG_POINTS; i++) {
+        s->time[i] = p[PM_MSEG_HEAD + i * PM_PT_COUNT + PM_PT_TIME];
+        s->level[i] = p[PM_MSEG_HEAD + i * PM_PT_COUNT + PM_PT_LEVEL];
+        s->curve[i] = p[PM_MSEG_HEAD + i * PM_PT_COUNT + PM_PT_CURVE];
+    }
+}
+
 static void build_vcfg(partmod_t *m)
 {
     voicemod_cfg_t *c = &m->vcfg;
-    mseg_shape_t *s = &c->shape;
-    s->count = (int)m->p[PM_VMSEG(PM_MSEG_POINTS)];
-    s->mode = (int)m->p[PM_VMSEG(PM_MSEG_MODE)];
-    s->sustain = (int)m->p[PM_VMSEG(PM_MSEG_SUSTAIN)] - 1;
-    s->loop_start = (int)m->p[PM_VMSEG(PM_MSEG_LOOP_START)] - 1;
-    s->loop_end = (int)m->p[PM_VMSEG(PM_MSEG_LOOP_END)] - 1;
-    for (int i = 0; i < MSEG_POINTS; i++) {
-        s->time[i] = m->p[PM_VMSEG_PT(i, PM_PT_TIME)];
-        s->level[i] = m->p[PM_VMSEG_PT(i, PM_PT_LEVEL)];
-        s->curve[i] = m->p[PM_VMSEG_PT(i, PM_PT_CURVE)];
-    }
+    shape_from(&c->shape, &m->p[PM_VMSEG(0)]);
     c->lfo_div = (int)m->p[PM_VLFO(PM_VLFO_SYNC)];
     c->lfo_rate = c->lfo_div > 0 ? tempo_div_beats[c->lfo_div] : m->p[PM_VLFO(PM_VLFO_RATE)];
     c->lfo_wave = (int)m->p[PM_VLFO(PM_VLFO_WAVE)];
@@ -214,19 +220,8 @@ static void count_maps(partmod_t *m)
 
 static void build_shapes(partmod_t *m)
 {
-    for (int k = 0; k < PM_MSEGS; k++) {
-        mseg_shape_t *s = &m->shape[k];
-        s->count = (int)m->p[PM_MSEG(k, PM_MSEG_POINTS)];
-        s->mode = (int)m->p[PM_MSEG(k, PM_MSEG_MODE)];
-        s->sustain = (int)m->p[PM_MSEG(k, PM_MSEG_SUSTAIN)] - 1; /* 1-based in the parameters, 0 = none */
-        s->loop_start = (int)m->p[PM_MSEG(k, PM_MSEG_LOOP_START)] - 1;
-        s->loop_end = (int)m->p[PM_MSEG(k, PM_MSEG_LOOP_END)] - 1;
-        for (int i = 0; i < MSEG_POINTS; i++) {
-            s->time[i] = m->p[PM_MSEG_PT(k, i, PM_PT_TIME)];
-            s->level[i] = m->p[PM_MSEG_PT(k, i, PM_PT_LEVEL)];
-            s->curve[i] = m->p[PM_MSEG_PT(k, i, PM_PT_CURVE)];
-        }
-    }
+    for (int k = 0; k < PM_MSEGS; k++)
+        shape_from(&m->shape[k], &m->p[PM_MSEG(k, 0)]);
     m->shape_dirty = 0;
 }
 
@@ -355,19 +350,6 @@ void partmod_all_notes_off(partmod_t *m)
     }
 }
 
-static float lfo_shape(int wave, float ph, float sh, const float *fourier, const float *wiener)
-{
-    switch (wave) {
-    case PM_WAVE_WIENER: return voicemod_wiener(wiener, ph);
-    case PM_WAVE_FOURIER: return voicemod_fourier(fourier, ph);
-    case 1: return 1.0f - 4.0f * dsp_absf(ph - 0.5f);
-    case 2: return 2.0f * ph - 1.0f;
-    case 3: return ph < 0.5f ? 1.0f : -1.0f;
-    case 4: return sh;
-    default: return fm_sin(ph);
-    }
-}
-
 /* a macro as the targets and routes see it: its value, plus its walk (nothing while wander is 0) */
 static inline float macro_value(const partmod_t *m, int k)
 {
@@ -380,9 +362,9 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
         build_shapes(m);
     if (m->vcfg_dirty)
         build_vcfg(m);
-    m->vcfg.dt = (float)n / m->sr;
-    m->vcfg.beats_per_s = t->bpm * (1.0f / 60.0f);
     const float dt_s = (float)n / m->sr;
+    m->vcfg.dt = dt_s;
+    m->vcfg.beats_per_s = t->bpm * (1.0f / 60.0f);
     /* wander: each walk goes from one random point to the next along a smooth step, at a rate a little apart
      * from the others' (no common period); it adds to its macro in proportion to `wander` */
     const float wamt = m->p[PM_WANDER] * PM_WANDER_REACH, wrate = m->p[PM_WANDER_RATE] * dt_s;
@@ -411,7 +393,7 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
             m->lfo_phase[k] = fm_frac(m->lfo_phase[k] + m->p[PM_LFO(k, PM_LFO_RATE)] * dt_s);
         if (m->lfo_phase[k] < prev) /* new cycle */
             m->lfo_sh[k] = dsp_rand_bipolar(&m->rng);
-        m->src[PM_SRC_LFO1 + k] = lfo_shape((int)m->p[PM_LFO(k, PM_LFO_WAVE)], m->lfo_phase[k], m->lfo_sh[k],
+        m->src[PM_SRC_LFO1 + k] = voicemod_lfo_shape((int)m->p[PM_LFO(k, PM_LFO_WAVE)], m->lfo_phase[k], m->lfo_sh[k],
                                             &m->p[PM_FOURIER(k, 0, 0)], m->wiener[k]);
     }
     const float dt_beats = t->bpm * (1.0f / 60.0f) * dt_s;

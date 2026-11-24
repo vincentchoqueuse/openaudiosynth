@@ -951,7 +951,7 @@ static DSP_FAST_CODE void voice_render(havoc_t *e, int vi, float *L, float *R)
     const int n = SYNTH_BLOCK;
     const float *p = e->p;
     havoc_voice_t *v = &e->v[vi];
-    const float sr = e->sr, inv_sr = 1.0f / sr, dt = (float)n * inv_sr, inv_n = 1.0f / (float)n;
+    const float sr = e->sr, inv_sr = 1.0f / sr, dt = (float)n * inv_sr;
     const float *vm = vpoly_vmod(&e->poly, vi); /* per-voice modulation, microtuning, concert pitch, MPE */
 
     /* envelope (block rate): exponential towards an overshooting target, as an analog one */
@@ -1051,25 +1051,7 @@ static DSP_FAST_CODE void voice_render(havoc_t *e, int vi, float *L, float *R)
     dsp_ramp_mul(xr, g0, g1, n);
     v->gain_prev = g1;
 
-    /* steal fade, per-voice level and pan modulation, NaN guard, into the bus */
-    float g[SYNTH_BLOCK];
-    if (vpoly_fade(&e->poly, vi, g, n))
-        for (int i = 0; i < n; i++)
-            xl[i] *= g[i], xr[i] *= g[i];
-    for (int i = 0; i < n; i++)
-        g[i] = 1.0f;
-    float p0, p1, l0, r0, l1, r1;
-    voice_vmod_apply(&e->poly, vi, g, n, &p0, &p1);
-    voice_pan_offset(p0, 1.0f, 1.0f, &l0, &r0);
-    voice_pan_offset(p1, 1.0f, 1.0f, &l1, &r1);
-    dsp_guard_block(xl, n, &e->nan_count);
-    dsp_guard_block(xr, n, &e->nan_count);
-    const float dl = (l1 - l0) * inv_n, dr = (r1 - r0) * inv_n;
-    for (int i = 0; i < n; i++) {
-        l0 += dl, r0 += dr;
-        L[i] += xl[i] * g[i] * l0;
-        R[i] += xr[i] * g[i] * r0;
-    }
+    voice_out_stereo(&e->poly, vi, xl, xr, n, L, R, &e->nan_count);
     vpoly_end_block(&e->poly, vi, v->gate || v->env > 0.0f);
 }
 

@@ -155,30 +155,6 @@ static void drone_set_param(void *st, int id, float norm)
 
 static void drone_pitch_bend(void *st, float bend) { ((drone_t *)st)->bend = dsp_clampf(bend, -1.0f, 1.0f); }
 
-/* Steal fade, per-voice level and pan modulation, NaN guard, then the voice's stereo pair into the bus. */
-static void voice_out_stereo(drone_t *e, int vi, float *xl, float *xr, float *L, float *R)
-{
-    const int n = SYNTH_BLOCK;
-    float g[SYNTH_BLOCK];
-    if (vpoly_fade(&e->poly, vi, g, n))
-        for (int i = 0; i < n; i++)
-            xl[i] *= g[i], xr[i] *= g[i];
-    for (int i = 0; i < n; i++)
-        g[i] = 1.0f;
-    float d0, d1, l0, r0, l1, r1;
-    voice_vmod_apply(&e->poly, vi, g, n, &d0, &d1); /* g: the level modulation ramp (left at 1 without one) */
-    voice_pan_offset(d0, 1.0f, 1.0f, &l0, &r0);
-    voice_pan_offset(d1, 1.0f, 1.0f, &l1, &r1);
-    dsp_guard_block(xl, n, &e->nan_count);
-    dsp_guard_block(xr, n, &e->nan_count);
-    const float dl = (l1 - l0) / (float)n, dr = (r1 - r0) / (float)n;
-    for (int i = 0; i < n; i++) {
-        l0 += dl, r0 += dr;
-        L[i] += xl[i] * g[i] * l0;
-        R[i] += xr[i] * g[i] * r0;
-    }
-}
-
 static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
 {
     const int n = SYNTH_BLOCK;
@@ -353,7 +329,7 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
         xl[i] *= g, xr[i] *= g;
     }
     v->gain_prev = g1;
-    voice_out_stereo(e, vi, xl, xr, L, R);
+    voice_out_stereo(&e->poly, vi, xl, xr, SYNTH_BLOCK, L, R, &e->nan_count);
     vpoly_end_block(&e->poly, vi, v->gate || v->env > 0.0f);
 }
 

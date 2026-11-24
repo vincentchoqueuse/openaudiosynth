@@ -116,4 +116,29 @@ static inline void voice_out(vpoly_t *p, int vi, float *x, int n, float pan_l, f
     voice_vmod_out(p, vi, x, n, pan_l, pan_r, L, R, nan_count);
 }
 
+/* The same for a voice that is already a stereo pair (xl, xr): steal fade, per-voice level and pan modulation
+ * (the pan offset ramped over the block), NaN guard, then added to the bus. */
+static inline void voice_out_stereo(vpoly_t *p, int vi, float *xl, float *xr, int n, float *L, float *R,
+                                    uint32_t *nan_count)
+{
+    float g[SYNTH_BLOCK];
+    if (vpoly_fade(p, vi, g, n))
+        for (int i = 0; i < n; i++)
+            xl[i] *= g[i], xr[i] *= g[i];
+    for (int i = 0; i < n; i++)
+        g[i] = 1.0f;
+    float d0, d1, l0, r0, l1, r1;
+    voice_vmod_apply(p, vi, g, n, &d0, &d1); /* g: the level modulation ramp (left at 1 without one) */
+    voice_pan_offset(d0, 1.0f, 1.0f, &l0, &r0);
+    voice_pan_offset(d1, 1.0f, 1.0f, &l1, &r1);
+    dsp_guard_block(xl, n, nan_count);
+    dsp_guard_block(xr, n, nan_count);
+    const float inv_n = 1.0f / (float)n, dl = (l1 - l0) * inv_n, dr = (r1 - r0) * inv_n;
+    for (int i = 0; i < n; i++) {
+        l0 += dl, r0 += dr;
+        L[i] += xl[i] * g[i] * l0;
+        R[i] += xr[i] * g[i] * r0;
+    }
+}
+
 #endif /* VOICE_H */

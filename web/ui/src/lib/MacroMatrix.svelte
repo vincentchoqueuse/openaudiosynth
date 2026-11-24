@@ -36,6 +36,7 @@
 
 {#if view === 'names'}
 <table class="matrix">
+  <colgroup><col class="c-num" /><col />{#if !s.phone}<col class="c-cc" />{/if}<col class="c-count" /></colgroup>
   <thead><tr><th>#</th><th>Name</th>{#if !s.phone}<th>CC</th>{/if}<th>Targets</th></tr></thead>
   <tbody>
     {#each s.macroNames as name, k}
@@ -53,6 +54,7 @@
 {:else}
 {#if table.length}
 <table class="matrix">
+  <colgroup><col class="c-num" /><col class="c-src" /><col class="c-dst" /><col /><col class="c-val" /><col /><col class="c-val" /><col class="c-x" /></colgroup>
   <thead><tr><th>#</th><th>Macro</th><th>Parameter</th><th>At 0</th><th></th><th>At 1</th><th></th><th></th></tr></thead>
   <tbody>
     {#each table as r (r.slot)}

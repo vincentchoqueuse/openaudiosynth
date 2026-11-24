@@ -56,7 +56,7 @@ h3 { font-size: 11px; font-weight: 600; color: var(--muted); margin: 14px 0 6px;
                 background: var(--faint); color: var(--muted); font-weight: 500; white-space: nowrap; }
 .pills button:hover { color: var(--text); }
 .pills button.on { background: var(--accent); color: var(--on-accent); }
-.pills.lg button { width: 84px; padding: 5px 0; border-radius: 7px; font-size: 13px; font-weight: 600; } /* the views */
+.pills.lg button { width: 108px; padding: 5px 0; border-radius: 7px; font-size: 13px; font-weight: 600; } /* the views */
 .pills.md { margin: 14px 0; }                                                               /* the Synth view's */
 .pills.md button { min-width: 116px; padding: 4px 12px; font-size: 12.5px; }
 .pills.icon { gap: 2px; }                                                                   /* drawn choices */
@@ -148,19 +148,22 @@ button.add:disabled { opacity: .45; cursor: default; }
 .param input.val { width: 100%; min-width: 0; padding: 1px 4px; border: 1px solid var(--accent); border-radius: 5px; background: var(--bg); color: var(--text); font: inherit; font-size: 11.5px; }
 
 /* ---- matrix tables (macro targets, modulation routes) ---- */
-.matrix { width: 100%; border-collapse: collapse; font-size: 12px; }
+/* columns of fixed width (each table's <colgroup>): a choice with a longer name never moves the others */
+.matrix { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+.matrix col.c-num { width: 2.4em; } .matrix col.c-x { width: 2.6em; } .matrix col.c-val { width: 7em; }
+.matrix col.c-src { width: 17%; } .matrix col.c-dst { width: 23%; } .matrix col.c-via { width: 15%; }
+.matrix col.c-cc { width: 6em; } .matrix col.c-count { width: 9em; }
+.matrix td { overflow: hidden; }
 .matrix th { text-align: left; font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; padding: 0 6px 6px; border-bottom: 1px solid var(--line); }
 .matrix td { padding: 4px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); vertical-align: middle; }
 /* an empty row is dimmed control by control, never as a cell: an opacity on the cell would trap the open list of
    its Select under the rows below, and dim it too */
 .matrix tr.empty .select, .matrix tr.empty input, .matrix tr.empty .num, .matrix tr.empty .muted { opacity: .55; }
-.matrix .num { width: 1.6em; color: var(--muted); }
+.matrix .num { color: var(--muted); }
 .matrix .select, .matrix input { width: 100%; }
 .matrix input.name { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; font-size: 12px; }
-.matrix .cc { width: 5em; }
-.matrix .amt { width: 26%; min-width: 100px; }
 .matrix .amt input { width: 100%; }
-.matrix .val { width: 6.5em; text-align: right; color: var(--muted); white-space: nowrap; font-size: 11.5px; }
+.matrix .val { text-align: right; color: var(--muted); white-space: nowrap; font-size: 11.5px; }
 .matrix .x { width: 20px; height: 20px; border-radius: 50%; color: var(--muted); }
 .matrix .x:hover { background: var(--faint); color: var(--text); }
 

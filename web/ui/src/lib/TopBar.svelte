@@ -1,5 +1,5 @@
 <!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
-     pills of one width, then the preset: Previous / Next through the library, its name, a dot when settings have
+     pills of one width with their icon, then the preset: Previous / Next through the library, its name, a dot when settings have
      moved since it was loaded, and A/B to hear it as loaded, then the edit again; the Menu holds (Save to the library in development, Export sound,
      Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right, each set apart by a rule: the CPU load and the output level
      (Meter), the listening volume, the tempo and
@@ -36,7 +36,7 @@
   <div class="tb-left">
   <Menu label="Menu" icon="menu" {items} />
   <span class="vsep" aria-hidden="true"></span>
-  {#if views.length > 1}<Pills items={views.map(({ id, label }) => ({ id, label }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
+  {#if views.length > 1}<Pills items={views.map(({ id, label, icon }) => ({ id, label, icon }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
   <span class="vsep" aria-hidden="true"></span>
   <div class="namebox">
     <span class="tag">Preset</span>

@@ -68,6 +68,7 @@
 
 {#if slots.length}
 <table class="matrix {kind}">
+  <colgroup><col class="c-num" /><col class="c-src" /><col class="c-dst" /><col /><col class="c-val" />{#if kind === 'part'}<col class="c-via" />{/if}<col class="c-x" /></colgroup>
   <thead><tr><th>#</th><th>Source</th><th>Destination</th><th>Amount</th><th></th>{#if kind === 'part'}<th>Via</th>{/if}<th></th></tr></thead>
   <tbody>
     {#each slots as r (r)}

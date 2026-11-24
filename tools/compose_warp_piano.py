@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # compose_warp_piano.py — generates songs/warp_piano.json: an original, early-90s-IDM-flavoured piece
-# built around the `piano_ambient` patch: arpeggiated pedal piano, detuned pad, sub, broken-beat drums
+# built around the `modal_piano_ambient` patch: arpeggiated pedal piano, detuned pad, sub, broken-beat drums
 # with ghost notes, 32nd-note hat ratchets and drill snare fills, glitch zaps in a ping-pong echo.
 # Example of composing programmatically for the song format (docs/patch_format.md).
 # Usage: python3 tools/compose_warp_piano.py && ./build-host/host/synth_render --song songs/warp_piano.json --out x.wav
@@ -135,7 +135,7 @@ def per16(fn, nbars=32):
 song = {
     "version": 1,
     "name": "warp_piano",
-    "description": "Original piece in an early-90s IDM / Warp spirit: the hazy pedal piano (piano_ambient) "
+    "description": "Original piece in an early-90s IDM / Warp spirit: the hazy pedal piano (modal_piano_ambient) "
                    "arpeggiates a F#m9 - Dmaj7#11 - Bm9 - C#7sus progression; a detuned saw pad, sub swells; "
                    "broken-beat drums with ghost notes, 32nd-note hat ratchets and drill snare fills; glitch "
                    "zaps in a ping-pong echo; breakdown in bars 17-24.",
@@ -143,22 +143,22 @@ song = {
     "length_beats": BARS * 4,
     "tail_s": 8,
     "tracks": [
-        {"patch": "patches/piano_ambient.json", "step": 0.5, "notes": " ".join(piano), "gate": 0.95,
+        {"patch": "patches/modal_piano_ambient.json", "step": 0.5, "notes": " ".join(piano), "gate": 0.95,
          "velocity": 86, "humanize_velocity": 12, "humanize_ms": 14, "gain_db": 0, "reverb_send": 0.25},
-        {"patch": "patches/ambient_saw_pad.json", "step": 4, "notes": " ".join(pad_steps),
+        {"patch": "patches/va_saw_pad.json", "step": 4, "notes": " ".join(pad_steps),
          "gain_db": -15, "reverb_send": 0.5,
          "params": {"amp_attack": 3.0, "amp_release": 3.0, "cutoff": 700, "chorus_mode": "I+II", "chorus_mix": 0.5}},
-        {"patch": "patches/ambient_sub.json", "step": 0.25, "notes": " ".join(sub), "gain_db": -10,
+        {"patch": "patches/va_swell_sub.json", "step": 0.25, "notes": " ".join(sub), "gain_db": -10,
          "reverb_send": 0.0, "params": {"amp_attack": 0.8, "amp_release": 1.0}},
-        {"patch": "patches/drum_kick.json", "step": 0.25, "notes": " ".join(per16(kick)), "gain_db": 3,
+        {"patch": "patches/va_drum_kick.json", "step": 0.25, "notes": " ".join(per16(kick)), "gain_db": 3,
          "velocity": 105, "humanize_velocity": 6, "reverb_send": 0.03},
-        {"patch": "patches/drum_snare.json", "step": 0.125, "notes": " ".join(bars32(snare32)), "gain_db": 13,
+        {"patch": "patches/va_drum_snare.json", "step": 0.125, "notes": " ".join(bars32(snare32)), "gain_db": 13,
          "velocity": 100, "humanize_velocity": 8, "humanize_ms": 3, "reverb_send": 0.25},
-        {"patch": "patches/drum_hat.json", "step": 0.125, "notes": " ".join(bars32(hat32)), "gain_db": 24,
+        {"patch": "patches/va_drum_hat.json", "step": 0.125, "notes": " ".join(bars32(hat32)), "gain_db": 24,
          "velocity": 90, "humanize_velocity": 14, "humanize_ms": 4, "reverb_send": 0.08, "pan": 0.25},
-        {"patch": "patches/drum_ohat.json", "step": 0.25, "notes": " ".join(per16(ohat)), "gain_db": 20,
+        {"patch": "patches/va_drum_open_hat.json", "step": 0.25, "notes": " ".join(per16(ohat)), "gain_db": 20,
          "velocity": 85, "reverb_send": 0.15, "pan": -0.2},
-        {"patch": "patches/glitch_zap.json", "step": 0.25, "notes": " ".join(per16(zap)), "gain_db": -3,
+        {"patch": "patches/va_zap.json", "step": 0.25, "notes": " ".join(per16(zap)), "gain_db": -3,
          "velocity": 90, "reverb_send": 0.35},
     ],
     "reverb": {"decay": 0.86, "damping_hz": 5000, "predelay_s": 0.03, "size": 1.6, "return_db": -2},

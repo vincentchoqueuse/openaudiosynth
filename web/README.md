@@ -149,8 +149,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   port, so the API stays single-threaded as `synth.h` requires.
 - A patch loads exactly as in `synth_render` (fresh `synth_init`, then engine and parameters), so it sounds
   the same as the WAV renders.
-- The wasm output is **bit-identical** to the host (checked on `acid_bass`, `fm6_bass`, `wt_digital_pad`,
-  `kit_analog`, `modal_alien_bell`), thanks to `-ffp-contract=off`. WebAssembly has no flush-to-zero, so only
+- The wasm output is **bit-identical** to the host (checked on `va_acid_bass`, `fm6_bass`, `wt_digital_pad`,
+  `drums_analog`, `modal_alien_bell`), thanks to `-ffp-contract=off`. WebAssembly has no flush-to-zero, so only
   denormals (below −300 dB) could ever differ.
 - Measured costs: first init (wavetables) 136 ms in the worklet constructor; loading a patch 0.6 ms (less
   than one 2.7 ms quantum); rendering about 200× faster than real time under Node.

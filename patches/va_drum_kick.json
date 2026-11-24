@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "va_drum_kick",
+  "description": "Round analog-style kick: sine with a fast pitch drop (+30 semitones, 35 ms) and a short click; play G1.",
+  "params": {
+    "osc2_level": 0,
+    "drift": 0,
+    "pan_spread": 0,
+    "keytrack": 0,
+    "fenv_amount": 0,
+    "amp_attack": 0.0005,
+    "amp_sustain": 0,
+    "osc1_wave": "sine",
+    "cutoff": 4000,
+    "pitch_env": 30,
+    "pitch_env_decay": 0.035,
+    "noise_level": 0.06,
+    "amp_decay": 0.38,
+    "amp_release": 0.05,
+    "amp_velocity": 0.5,
+    "volume": 20
+  },
+  "audition": {
+    "notes": "G1 - - - - - - G1 - - G1 - - - - -",
+    "bpm": 92,
+    "step": 0.25,
+    "gate": 0.5
+  }
+}

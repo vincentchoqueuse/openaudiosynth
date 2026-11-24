@@ -7,7 +7,7 @@
   "tail_s": 6,
   "tracks": [
     {
-      "patch": "patches/kit_hybrid.json",
+      "patch": "patches/drums_hybrid.json",
       "pattern": [
         {
           "kick": "X...x...X...x...",
@@ -61,7 +61,7 @@
       }
     },
     {
-      "patch": "patches/dub_chords.json",
+      "patch": "patches/va_dub_chords.json",
       "step": 0.25,
       "start_step": 0,
       "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
@@ -87,7 +87,7 @@
       }
     },
     {
-      "patch": "patches/dub_chords.json",
+      "patch": "patches/va_dub_chords.json",
       "step": 0.25,
       "start_step": 128,
       "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
@@ -113,7 +113,7 @@
       }
     },
     {
-      "patch": "patches/dub_chords.json",
+      "patch": "patches/va_dub_chords.json",
       "step": 0.25,
       "start_step": 256,
       "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
@@ -139,7 +139,7 @@
       }
     },
     {
-      "patch": "patches/dub_chords.json",
+      "patch": "patches/va_dub_chords.json",
       "step": 0.25,
       "start_step": 384,
       "notes": "F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - - F3+G#3+C4+G4 - F3+G#3+C4+G4 - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - - C#3+F3+G#3+C4 - C#3+F3+G#3+C4 - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - - C3+D#3+G#3 - C3+D#3+G#3 - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - - D#3+G3+A#3 - D#3+G3+A#3 -",
@@ -165,7 +165,7 @@
       }
     },
     {
-      "patch": "patches/sub_bass.json",
+      "patch": "patches/va_sub_bass.json",
       "step": 0.25,
       "start_step": 128,
       "gain_db": 0,
@@ -177,7 +177,7 @@
       }
     },
     {
-      "patch": "patches/ambient_supersaw_pad.json",
+      "patch": "patches/va_swarm_pad.json",
       "step": 4,
       "start_step": 64,
       "gain_db": -12,
@@ -193,7 +193,7 @@
       }
     },
     {
-      "patch": "patches/prog_bass.json",
+      "patch": "patches/va_rolling_bass.json",
       "step": 0.25,
       "start_step": 128,
       "gain_db": -3,

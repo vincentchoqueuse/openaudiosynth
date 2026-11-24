@@ -28,7 +28,7 @@ settings), then the instrument's cards in the order the signal flows.*
 *Modulation: a multi-segment envelope, dragged point by point, with a playhead while it runs.*
 
 ![A trap kit: bass drum line with slides and hi-hat rolls](docs/screenshots/08-sequence-trap.png)
-*[kit_trap](https://vincentchoqueuse.github.io/openaudiosynth/?sound=kit_trap): a melodic bass drum that slides between held notes, triplet hi-hat rolls.*
+*[drums_trap](https://vincentchoqueuse.github.io/openaudiosynth/?sound=drums_trap): a melodic bass drum that slides between held notes, triplet hi-hat rolls.*
 
 <details>
 <summary>More: the opening screen, LFO, macros, the VA engine, the code editor</summary>

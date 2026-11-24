@@ -7,7 +7,7 @@
   "tail_s": 14,
   "tracks": [
     {
-      "patch": "patches/piano_cold.json",
+      "patch": "patches/modal_piano_cold.json",
       "step": 1,
       "notes": "E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ A1 G3+B3+C4+E4 _ G2? E3+B3+D4 _ C2 E3+G3+B3 _ B1? A3+E4+F#4 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ A1 G3+B3+C4+E4 _ F2? A3+B3+C4+E4 _ B1 A3+E4+F#4 _ E2? G3+B3+D4+F#4 _ A1 G3+B3+C4+E4 _ E2? G3+B3+D4 _ F2 A3+B3+C4+E4 _ E2? G3+B3+D4+F#4 _ A1 G3+B3+C4+E4 _ G2? E3+B3+D4 _ F2 A3+B3+C4+E4 _ B1? A3+D#4+F#4 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2? E3+G3+B3 _ A1 G3+B3+C4+E4 _ G2? E3+B3+D4 _ C2 E3+G3+B3 _ E2? G3+B3+D4+F#4 _ E2+B2+G3+B3+F#4+B4 _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -9,
@@ -19,7 +19,7 @@
       "humanize_ms": 18
     },
     {
-      "patch": "patches/piano_cold.json",
+      "patch": "patches/modal_piano_cold.json",
       "step": 1,
       "notes": "- - - - - - - - - - - - - B4 D5 E5 _ _ - F#5 G5 B4 _ _ - C5 B4 A4 _ _ - G4 F#4 E4 _ D#4 - B4 D5 G5 _ _ - F#5 E5 B4 _ _ - E5 D5 C5 _ _ - B4 A4 B4 _ _ - - E5 D5 _ _ - C5 E5 B4 _ _ - A4 C5 B4 _ D5 E5 _ _ _ _ D#5 - B4 D5 E5 _ _ - F#5 G5 B4 _ _ - C5 B4 A4 _ _ - G4 F#4 E4 _ _ - - - - - - - - - - - -",
       "gain_db": 9,
@@ -35,7 +35,7 @@
       }
     },
     {
-      "patch": "patches/pad_cold_tape.json",
+      "patch": "patches/va_cold_tape_pad.json",
       "step": 1,
       "notes": "G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+C4+E4 _ _ E3+B3+D4 _ _ E3+G3+B3 _ _ A3+E4+F#4 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+C4+E4 _ _ A3+B3+C4+E4 _ _ A3+E4+F#4 _ _ G3+B3+D4+F#4 _ _ G3+B3+C4+E4 _ _ G3+B3+D4 _ _ A3+B3+C4+E4 _ _ G3+B3+D4+F#4 _ _ G3+B3+C4+E4 _ _ E3+B3+D4 _ _ A3+B3+C4+E4 _ _ A3+D#4+F#4 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ E3+G3+B3 _ _ G3+B3+C4+E4 _ _ E3+B3+D4 _ _ E3+G3+B3 _ _ G3+B3+D4+F#4 _ _ G3+B3+F#4 _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -12,
@@ -44,7 +44,7 @@
       "gate": 1
     },
     {
-      "patch": "patches/ambient_air.json",
+      "patch": "patches/va_air.json",
       "step": 1,
       "notes": "E4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -6,

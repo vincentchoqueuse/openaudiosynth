@@ -117,13 +117,13 @@ static void suite_codec(void)
     he.overruns = 3;
     he.kit_size = 123456;
     snprintf(he.board, sizeof he.board, "h745");
-    snprintf(he.playing, sizeof he.playing, "piano_tension");
+    snprintf(he.playing, sizeof he.playing, "modal_piano_cold");
     n = link_encode_hello(buf, &h, &he);
     len = link_get_header(buf, n, &g);
     CHECK(link_decode_hello(buf + LINK_HEADER, len, &hr) == 0 && hr.id == 99 && hr.uid[11] == 7 &&
               hr.ip == he.ip && hr.preset == -2 && hr.preset_count == 75 && hr.peak_pct == 41 &&
               hr.overruns == 3 && hr.kit_size == 123456 && !strcmp(hr.board, "h745") &&
-              !strcmp(hr.playing, "piano_tension"),
+              !strcmp(hr.playing, "modal_piano_cold"),
           "hello round trip");
     uint32_t seq;
     uint8_t st;

@@ -7,7 +7,7 @@
   "tail_s": 5,
   "tracks": [
     {
-      "patch": "patches/kit_glitch.json",
+      "patch": "patches/drums_glitch.json",
       "pattern": [
         {
           "chat": "x.......x.......",
@@ -87,7 +87,7 @@
       "reverb_send": 0.05
     },
     {
-      "patch": "patches/sine_drone.json",
+      "patch": "patches/va_sine_drone.json",
       "step": 4,
       "notes": "A1+A5 _ _ _ _ _ _ _ _ _ _ _ - - - - E2+E6 _ _ _ _ _ _ _ _ _ _ _ A1+A5 _ _ _",
       "gain_db": -6,

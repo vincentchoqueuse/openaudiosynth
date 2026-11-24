@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "va_swell_sub",
+  "description": "Sine sub that swells in and fades out slowly, with a second, quieter sine detuned by a few cents: the two beat very slowly (period ~10 s on D1) and an LFO makes the beat rate wander. osc 2 is kept lower so the beating ripples (about -10 dB dips) instead of cancelling. Mono.",
+  "params": {
+    "osc1_wave": "sine",
+    "osc2_level": 0.5,
+    "cutoff": 400,
+    "resonance": 0.7,
+    "keytrack": 0,
+    "fenv_amount": 0,
+    "amp_attack": 3.0,
+    "amp_decay": 1.0,
+    "amp_sustain": 1.0,
+    "amp_release": 5.0,
+    "amp_velocity": 0,
+    "lfo2_detune": 3,
+    "drift": 1,
+    "pan_spread": 0,
+    "volume": 4.8,
+    "osc2_wave": "sine",
+    "osc2_detune": 4,
+    "lfo2_rate": 0.07,
+    "lfo2_spread": 1.0
+  },
+  "audition": {
+    "notes": "D1 _ _ _",
+    "bpm": 60,
+    "step": 2
+  }
+}

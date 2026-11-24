@@ -5,7 +5,7 @@
  *   synth_render --name va_bass --demo out.wav   a given demo
  *   synth_render --all build-host/renders        every demo, one WAV each
  *   synth_render --list
- *   synth_render --patch patches/acid_bass.json --out x.wav [--notes "C2 C2 C3 -"] [--tail 1.5]
+ *   synth_render --patch patches/va_acid_bass.json --out x.wav [--notes "C2 C2 C3 -"] [--tail 1.5]
  *   synth_render --song songs/drift.json --out x.wav
  * A patch that names a sample kit ("kit": "synth_drums") finds it in kits/NAME (the current directory), then in
  * the kits built next to this program (build-host/kits/NAME, tools/kit_demo).

@@ -40,16 +40,16 @@ leave headroom.
 
 ## Recipes (starting points, see `patches/`)
 
-- `acid_bass` — saw + sub pulse, `cutoff` ~200, `resonance` 8, `fenv_amount` 4.5, `fenv_decay` 0.18, accents.
-- `sub_bass` — tri + sine -1 oct, closed filter, no resonance.
-- `pluck` — saw + tri +1 oct + a bit of noise, `fenv_decay` 0.2, `amp_sustain` 0.
-- `brass` — two saws, `fenv_attack` 40–80 ms gives the "blat".
-- `pwm_strings` — two pulses + `lfo_pwm`, soft attack.
-- `warm_pad` — two detuned saws, slow attack, slowly opening filter.
-- `ambient_saw_pad` — two saws, **three desynchronized per-voice detune LFOs + LFO-of-LFO**, slow swell, big reverb
+- `va_acid_bass` — saw + sub pulse, `cutoff` ~200, `resonance` 8, `fenv_amount` 4.5, `fenv_decay` 0.18, accents.
+- `va_sub_bass` — tri + sine -1 oct, closed filter, no resonance.
+- a pluck — saw + tri +1 oct + a bit of noise, `fenv_decay` 0.2, `amp_sustain` 0.
+- a brass — two saws, `fenv_attack` 40–80 ms gives the "blat".
+- `va_pwm_strings` — two pulses + `lfo_pwm`, soft attack.
+- `va_warm_pad` — two detuned saws, slow attack, slowly opening filter.
+- `va_saw_pad` — two saws, **three desynchronized per-voice detune LFOs + LFO-of-LFO**, slow swell, big reverb
   in a song. Few chords: the movement carries the music.
-- `ambient_supersaw_pad` — 2 x 7-saw supersaw (one octave apart), per-saw motion + LFOs 2–4.
-- `ambient_saw_low`, `ambient_bell`, `ambient_air` — drone, glass bells, breathing hiss.
+- `va_swarm_pad` — 2 x 7-saw supersaw (one octave apart), per-saw motion + LFOs 2–4.
+- `va_saw_drone`, `va_soft_bell`, `va_air` — drone, glass bells, breathing hiss.
 
 ## Reading a patch (tools/patch_view.py)
 
@@ -118,7 +118,7 @@ sound itself (and for live play).
 
 ## Piano (`modal`, model `string`)
 
-Start from `piano_grand` (concert), `piano_felt` (soft felt, intimate) or `piano_ambient` (pedal,
+Start from `modal_piano_grand` (concert), `modal_piano_felt` (soft felt, intimate) or `modal_piano_ambient` (pedal,
 haze: the owner's favourite). Key controls: `inharmonicity` 3e-4..1e-3, `unison` 0.8-2 cents,
 `aftersound` (attack/aftersound contrast), `decay` + `decay_keytrack` ~0.85, `position` 0.12
 (hammer at 1/8), `hardness` + `vel_brightness`, `release` = damper (0.15-0.4 s) or pedal (2-3 s).
@@ -128,12 +128,12 @@ Use `modes` 32 and `humanize_velocity` / `humanize_ms` in phrases.
 
 A loud note stretches the string: the tension rises with the energy (mostly the low partials), so every partial
 starts sharp and they all glide down together as the note decays. 0.3-0.6 for a piano (a few cents:
-`piano_tension` vs `piano_ambient`), 1 for gongs and tam-tams (`gong_tension`). Stable at any setting.
+`modal_piano_ambient`), 1 for gongs and tam-tams (`modal_tam_tam`). Stable at any setting.
 
 ## Drums and glitch (`va` + `pitch_env`)
 
-`drum_kick` (sine, +30 st in 35 ms, play G1), `drum_snare` (tri + noise, D3), `drum_hat` /
-`drum_ohat` (high-passed noise), `glitch_zap` (falling saw + ping-pong echo). Program beats at 1/16
+`va_drum_kick` (sine, +30 st in 35 ms, play G1), `va_drum_snare` (tri + noise, D3), `va_drum_hat` /
+`va_drum_open_hat` (high-passed noise), `va_zap` (falling saw + ping-pong echo). Program beats at 1/16
 or 1/32 steps; ghost notes with `?`, accents with `!`; see `tools/compose_warp_piano.py`.
 
 ## Drum machine (`drums`)
@@ -151,7 +151,7 @@ the kit. Program with step grids (see `docs/patch_format.md`), add `swing` 0.12-
 `voice_mode`: poly, mono (last note wins, retriggers), legato (overlapping notes slide without
 retriggering; releasing returns to the previous held key). `glide` 0.03-0.08 s = acid slide,
 0.2-0.5 s = lazy lead; `glide_mode` legato = only tied notes glide. In phrases, `~` after a note
-slides into the next one: `"C2! C2 C3~ D#2"`. See `acid_slide`.
+slides into the next one: `"C2! C2 C3~ D#2"`. See `va_acid_slide`.
 
 ## Glitch kit (`drums`, `kit` glitch)
 
@@ -159,7 +159,7 @@ Microsound palette on the GM drum notes: kick = gated sub sine pulse, snare = wh
 sample-rate reduction), clap = single-sample click + 8 kHz blip, chat = micro tick, ohat = 12 kHz
 beep, toms = gated data tones 220/440/880 Hz (tone adds harmonics), cymbal = decimated 2-bit data
 noise, cowbell = ring-modulated modem chirp, clave = sub pop. Decay = gate length. Use precise
-grids, silences and pure sine drones (`sine_drone`); see `songs/microsound.json`.
+grids, silences and pure sine drones (`va_sine_drone`); see `songs/microsound.json`.
 
 ## Classic instruments
 
@@ -168,7 +168,7 @@ grids, silences and pure sine drones (`sine_drone`); see `songs/microsound.json`
   consecutive accents; `~` slides. Patches `acid_classic`, `acid_square`; song `acid_jam`.
 - `mono` (early-70s monosynth spirit): footage `16`/`32` for basses, push `mixer_drive` for the fat
   overdriven ladder, `emphasis` ~0.95 self-oscillates, `release` on = notes ring with the decay time,
-  `osc3_keytrack` off + range `32` = osc 3 as LFO for the mod wheel. Patches `mono_bass`, `mono_lead`.
+  `osc3_keytrack` off + range `32` = osc 3 as LFO for the mod wheel. Patches `mono_bass`, `mono_d_lead`.
 - `poly` (late-70s polysynth spirit): `osca_sync` + `pm_fenv` + `pm_freq_a` = the sync lead;
   `pm_oscb` + `pm_freq_a` = FM bells; pulses + `lfo_pwm` = strings; `unison` = giant mono sounds;
   `drift` = analog slop. Patches `poly_brass`, `poly_strings`, `poly_sync_lead`, `poly_bell`,
@@ -190,8 +190,8 @@ grids, silences and pure sine drones (`sine_drone`); see `songs/microsound.json`
 - **Matrix**: 6 slots `modN_source -> modN_destination x modN_amount (x modN_via)`. Full scale: pitch
   +/-24 st, cutoff +/-8 oct, detune +/-50 cents, others +/-1. `via` = mod wheel turns a slot into a
   performance control (vibrato depth, warp amount).
-- Recipes: `wt_hyper_lead`, `wt_growl_bass`, `wt_reese`, `wt_vowel_pad`, `wt_pluck`, `wt_sync_lead`,
-  `wt_digital_pad`, `wt_fold_bass`; demo song `songs/wavetable_drive.json`.
+- Recipes: `wt_hyper_lead`, `wt_growl_bass`, `wt_reese`, `wt_frozen_choir`, `wt_pluck`, `wt_sync_lead`,
+  `wt_digital_pad`, `wt_talking_fold`; demo song `songs/wavetable_drive.json`.
 
 ## Per-voice movement, comb filters, tunings, MPE (every engine)
 

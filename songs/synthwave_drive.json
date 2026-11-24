@@ -7,7 +7,7 @@
   "tail_s": 6,
   "tracks": [
     {
-      "patch": "patches/kit_analog.json",
+      "patch": "patches/drums_analog.json",
       "pattern": [
         {
           "kick": "X.......X.......",

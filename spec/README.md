@@ -78,7 +78,7 @@ Parameter fields: `type` (`float`, `int`, `enum`), `range` [min, max] or `choice
 ## 4. Patch
 
 ```json
-{"version": 1, "engine": "va", "name": "acid_bass", "description": "what it sounds like and why",
+{"version": 1, "engine": "va", "name": "va_acid_bass", "description": "what it sounds like and why",
  "params": {"cutoff": 220, "osc2_wave": "pulse", "fx.delay.mix": 0.3},
  "audition": {"notes": "C2! C2 C3~ D#2 - C2", "bpm": 124, "step": 0.25}}
 ```

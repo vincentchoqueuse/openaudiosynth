@@ -6,7 +6,7 @@
   "length_beats": 56,
   "tail_s": 10,
   "tracks": [
-    { "patch": "patches/ambient_saw_pad.json", "step": 4,
+    { "patch": "patches/va_saw_pad.json", "step": 4,
       "notes": "F2+C3+G3+A3+E4 _ _ _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": 0, "reverb_send": 0.6 }
   ],

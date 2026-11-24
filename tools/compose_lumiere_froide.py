@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # compose_lumiere_froide.py — generates songs/lumiere_froide.json: an original slow 3/4 piece in E minor in the
-# spirit of Satie's bass-then-chord sway, dressed like cold 90s ambient: the `piano_cold` patch far back in a
-# long plate, a worn-tape saw pad (`pad_cold_tape`) and tape air. Example of composing for docs/patch_format.md.
+# spirit of Satie's bass-then-chord sway, dressed like cold 90s ambient: the `modal_piano_cold` patch far back in a
+# long plate, a worn-tape saw pad (`va_cold_tape_pad`) and tape air. Example of composing for docs/patch_format.md.
 # Usage: python3 tools/compose_lumiere_froide.py && ./build-host/host/synth_render --song songs/lumiere_froide.json --out x.wav
 import json
 
@@ -54,14 +54,14 @@ song = {
     "length_beats": beats,
     "tail_s": 14,
     "tracks": [
-        {"patch": "patches/piano_cold.json", "step": 1, "notes": " ".join(piano), "gain_db": -9, "pan": -0.05,
+        {"patch": "patches/modal_piano_cold.json", "step": 1, "notes": " ".join(piano), "gain_db": -9, "pan": -0.05,
          "reverb_send": 0.7, "velocity": 58, "gate": 1, "humanize_velocity": 10, "humanize_ms": 18},
-        {"patch": "patches/piano_cold.json", "step": 1, "notes": " ".join(melody), "gain_db": 9, "pan": 0.08,
+        {"patch": "patches/modal_piano_cold.json", "step": 1, "notes": " ".join(melody), "gain_db": 9, "pan": 0.08,
          "reverb_send": 0.8, "velocity": 76, "gate": 1, "humanize_velocity": 8, "humanize_ms": 22,
          "params": {"brightness": 0.5, "hardness": 0.35}},
-        {"patch": "patches/pad_cold_tape.json", "step": 1, "notes": " ".join(pad), "gain_db": -12,
+        {"patch": "patches/va_cold_tape_pad.json", "step": 1, "notes": " ".join(pad), "gain_db": -12,
          "reverb_send": 0.6, "velocity": 70, "gate": 1},
-        {"patch": "patches/ambient_air.json", "step": 1, "notes": " ".join(air), "gain_db": -6,
+        {"patch": "patches/va_air.json", "step": 1, "notes": " ".join(air), "gain_db": -6,
          "reverb_send": 0.2, "velocity": 80, "gate": 1},
     ],
     "reverb": {"decay": 0.94, "damping_hz": 5000, "predelay_s": 0.06, "size": 2.0, "return_db": 0},

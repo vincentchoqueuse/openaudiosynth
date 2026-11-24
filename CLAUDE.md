@@ -119,7 +119,7 @@ just setup        # une fois : venv Python, npm, configuration des presets host,
 just build        # = cmake --build --preset host -j  (régénère aussi docs/catalog.* et docs/api.md)
 just test         # = ctest --preset host
 just check        # tout ce qui doit passer avant de rendre la main (host, Debug, ASan, ARM, wasm)
-just render acid_bass / just song trame_blanche      # rendu WAV dans build-host/renders/ et écoute
+just render va_acid_bass / just song trame_blanche      # rendu WAV dans build-host/renders/ et écoute
 just play va      # jouer en temps réel avec le MiniLab
 just golden       # enregistrer un changement de son voulu
 just web          # prototype navigateur (http://localhost:5173) ; just plugin-install : le plugin CLAP

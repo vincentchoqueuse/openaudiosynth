@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "va_saw_drone",
+  "description": "Dark detuned saw drone for the low register: same LFO-of-LFO detune movement, filter almost closed.",
+  "params": {
+    "volume": 3.8,
+    "osc1_wave": "saw",
+    "osc2_wave": "saw",
+    "osc2_oct": -1,
+    "osc2_level": 0.7,
+    "lfo2_detune": 10,
+    "lfo2_rate": 0.09,
+    "lfo2_spread": 1.0,
+    "lfo2_rate_mod": 1.0,
+    "lfo2_depth_mod": 0.5,
+    "lfo_wave": "sine",
+    "lfo_rate": 0.03,
+    "lfo_cutoff": 0.4,
+    "cutoff": 260,
+    "resonance": 1.0,
+    "keytrack": 0,
+    "fenv_amount": 0,
+    "amp_attack": 5.0,
+    "amp_sustain": 1.0,
+    "amp_release": 6.0,
+    "amp_velocity": 0,
+    "drift": 6,
+    "pan_spread": 0.4,
+    "lfo3_detune": 7,
+    "lfo3_rate": 0.069,
+    "lfo4_detune": 3,
+    "lfo4_rate": 0.021
+  },
+  "audition": {
+    "notes": "D2+A2 _ _ _",
+    "bpm": 60,
+    "step": 2
+  }
+}

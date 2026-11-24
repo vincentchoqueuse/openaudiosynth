@@ -7,7 +7,7 @@
   "tail_s": 4,
   "tracks": [
     {
-      "patch": "patches/kit_analog.json",
+      "patch": "patches/drums_analog.json",
       "pattern": [
         {
           "kick": "X.....x...X...x.",
@@ -84,7 +84,7 @@
       }
     },
     {
-      "patch": "patches/acid_bass.json",
+      "patch": "patches/va_acid_bass.json",
       "step": 0.25,
       "start_step": 64,
       "gain_db": -5,
@@ -98,7 +98,7 @@
       }
     },
     {
-      "patch": "patches/glitch_zap.json",
+      "patch": "patches/va_zap.json",
       "step": 0.25,
       "start_step": 128,
       "gain_db": -8,
@@ -109,7 +109,7 @@
       }
     },
     {
-      "patch": "patches/warm_pad.json",
+      "patch": "patches/va_warm_pad.json",
       "step": 4,
       "start_step": 12,
       "gain_db": -6,

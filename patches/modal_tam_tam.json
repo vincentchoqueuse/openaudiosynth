@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "engine": "modal",
+  "name": "modal_tam_tam",
+  "description": "Tam-tam: a membrane-like modal body struck hard, full string/plate nonlinearity: the pitch of the whole sound swoops down as the energy fades, the characteristic gong glide.",
+  "params": {
+    "volume": 6.7,
+    "model": "membrane",
+    "modes": 32,
+    "stretch": 0.1,
+    "decay": 12,
+    "damping": 0.6,
+    "brightness": 0.7,
+    "hardness": 0.4,
+    "position": 0.31,
+    "noise": 0.08,
+    "variation": 4,
+    "tension": 1.0,
+    "pan_spread": 0.3,
+    "reverb_mix": 0.35,
+    "reverb_decay": 0.9
+  },
+  "audition": {
+    "notes": "A1! _ _ _ _ _ _ _ _ _ _ _ D2? _ _ _ _ _ _ _",
+    "bpm": 60,
+    "step": 1,
+    "velocity": 127
+  }
+}

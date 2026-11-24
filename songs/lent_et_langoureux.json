@@ -7,7 +7,7 @@
   "tail_s": 16,
   "tracks": [
     {
-      "patch": "patches/ambient_supersaw_pad.json",
+      "patch": "patches/va_swarm_pad.json",
       "step": 1,
       "notes": "G3+Bb3+D4+F4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ G3+Bb3+D4+F4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ Ab3+C4+Eb4+G4 _ _ _ _ _ Bb3+D4+F4+A4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ F3+Cb4+Eb4+G4 _ _ _ _ _ G3+Bb3+D4+F4 _ _ _ _ _ Eb3+G3+Bb3+D4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ Eb3+F3+Ab3+C4 _ _ _ _ _ G3+Bb3+D4+F4 _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -5,
@@ -19,7 +19,7 @@
       }
     },
     {
-      "patch": "patches/ambient_keys.json",
+      "patch": "patches/va_chorus_keys.json",
       "step": 1,
       "notes": "Eb2 G3+Bb3+D4+F4 _ Eb2? G3+Bb3+D4+F4 _ Ab1 C4+D4+Eb4+G4 _ Ab1? C4+D4+Eb4+G4 _ Eb2 G3+Bb3+D4+F4 _ Eb2? G3+Bb3+D4+F4 _ Ab1 C4+D4+Eb4+G4 _ Ab1? C4+D4+Eb4+G4 _ F2 Ab3+C4+Eb4+G4 _ F2? Ab3+C4+Eb4+G4 _ G2 Bb3+D4+F4+A4 _ G2? Bb3+D4+F4+A4 _ Ab1 C4+D4+Eb4+G4 _ Ab1? C4+D4+Eb4+G4 _ Db2 F3+Cb4+Eb4+G4 _ Db2? F3+Cb4+Eb4+G4 _ Eb2 G3+Bb3+D4+F4 _ Eb2? G3+Bb3+D4+F4 _ C2 Eb3+G3+Bb3+D4 _ C2? Eb3+G3+Bb3+D4 _ Ab1 C4+D4+Eb4+G4 _ Ab1? C4+D4+Eb4+G4 _ Bb1 Eb3+F3+Ab3+C4 _ Bb1? Eb3+F3+Ab3+C4 _ Eb2 G3+Bb3+D4+F4 _ Eb2? G3+Bb3+D4+F4 _ Eb2 G3+Bb3+D4+F4 _ Eb2? G3+Bb3+D4+F4 _",
       "gain_db": 0,
@@ -28,7 +28,7 @@
       "gate": 0.95
     },
     {
-      "patch": "patches/ambient_lead.json",
+      "patch": "patches/va_flute_lead.json",
       "step": 1,
       "notes": "- - - Bb5 _ _ G5 _ _ D5 _ _ F5 _ _ _ Eb5 _ C5 _ _ _ _ _ - - - Ab5 _ _ A5 _ _ F5 _ _ G5 _ Eb5 D5 _ _ G5 _ _ _ _ _ F5 _ _ Bb4 _ _ D5 _ _ _ _ _ Eb5 _ _ C5 _ _ F5 _ _ Eb5 _ _ G5 _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -2,
@@ -37,14 +37,14 @@
       "pan": 0.1
     },
     {
-      "patch": "patches/ambient_sub.json",
+      "patch": "patches/va_swell_sub.json",
       "step": 1,
       "notes": "Eb1 _ _ _ _ _ Ab1 _ _ _ _ _ - - - - - - - - - - - - - - - - - - - - - - - - Ab1 _ _ _ _ _ Db1 _ _ _ _ _ Eb1 _ _ _ _ _ C1 _ _ _ _ _ - - - - - - Bb1 _ _ _ _ _ Eb1 _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": 0,
       "reverb_send": 0.05
     },
     {
-      "patch": "patches/ambient_air.json",
+      "patch": "patches/va_air.json",
       "step": 1,
       "notes": "C4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -18,

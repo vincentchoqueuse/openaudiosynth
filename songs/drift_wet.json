@@ -7,7 +7,7 @@
   "tail_s": 18,
   "tracks": [
     {
-      "patch": "patches/ambient_saw_pad.json",
+      "patch": "patches/va_saw_pad.json",
       "step": 4,
       "repeat": 2,
       "notes": "D3+A3+E4+F4 _ _ _ _ _ Bb2+F3+A3+D4 _ _ _ _ _",
@@ -15,21 +15,21 @@
       "reverb_send": 0.85
     },
     {
-      "patch": "patches/ambient_saw_low.json",
+      "patch": "patches/va_saw_drone.json",
       "step": 4,
       "notes": "D2+A2 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -3,
       "reverb_send": 0.25
     },
     {
-      "patch": "patches/ambient_sub.json",
+      "patch": "patches/va_swell_sub.json",
       "step": 4,
       "notes": "- - D1 _ _ - - - Bb1 _ _ - - - D1 _ _ _ - - Bb1 _ _ -",
       "gain_db": 1,
       "reverb_send": 0.05
     },
     {
-      "patch": "patches/ambient_bell.json",
+      "patch": "patches/va_soft_bell.json",
       "step": 1,
       "start_step": 16,
       "repeat": 2,
@@ -39,7 +39,7 @@
       "pan": 0.2
     },
     {
-      "patch": "patches/ambient_air.json",
+      "patch": "patches/va_air.json",
       "step": 4,
       "notes": "C4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -16,

@@ -14,7 +14,7 @@ values are clamped with a warning. Parameter names, ranges and units: `docs/cata
 {
   "version": 1,
   "engine": "va",
-  "name": "acid_bass",
+  "name": "va_acid_bass",
   "description": "what it sounds like and why",
   "params": { "cutoff": 220, "resonance": 8, "osc2_wave": "pulse", "osc2_oct": -1 },
   "audition": { "notes": "C2! C2 C3 - Eb2 _ Bb1 C2", "bpm": 124, "step": 0.25, "gate": 0.6, "velocity": 100 }
@@ -64,7 +64,7 @@ values are clamped with a warning. Parameter names, ranges and units: `docs/cata
     `~` slide into the next note (overlap -> legato glide on mono/legato voices), per note in chords;
     `|` is ignored (bar separator for readability).
 
-Render: `./build-host/host/synth_render --patch patches/acid_bass.json --out build-host/renders/x.wav`
+Render: `./build-host/host/synth_render --patch patches/va_acid_bass.json --out build-host/renders/x.wav`
 (`--notes "..."` overrides the phrase, `--tail 1.5` adds release time).
 
 ## Song — `songs/<name>.json`
@@ -73,7 +73,7 @@ Render: `./build-host/host/synth_render --patch patches/acid_bass.json --out bui
 {
   "version": 1, "name": "drift", "bpm": 60, "length_beats": 96, "tail_s": 10,
   "tracks": [
-    { "patch": "patches/ambient_saw_pad.json", "notes": "D3+A3 _ _ _", "step": 4, "repeat": 2,
+    { "patch": "patches/va_saw_pad.json", "notes": "D3+A3 _ _ _", "step": 4, "repeat": 2,
       "start_step": 0, "gain_db": 0, "pan": 0, "reverb_send": 0.5, "velocity": 100, "gate": 1,
       "params": { "cutoff": 1200 } }
   ],

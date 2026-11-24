@@ -7,7 +7,7 @@
   "tail_s": 5,
   "tracks": [
     {
-      "patch": "patches/kit_hybrid.json",
+      "patch": "patches/drums_hybrid.json",
       "pattern": [
         {
           "kick": "X...x...X...x...",
@@ -61,7 +61,7 @@
       }
     },
     {
-      "patch": "patches/piano_grand.json",
+      "patch": "patches/modal_piano_grand.json",
       "step": 0.25,
       "start_step": 64,
       "swing": 0.17,
@@ -78,7 +78,7 @@
       }
     },
     {
-      "patch": "patches/sub_bass.json",
+      "patch": "patches/va_sub_bass.json",
       "step": 0.25,
       "start_step": 32,
       "swing": 0.17,

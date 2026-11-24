@@ -9,7 +9,7 @@ pattern can change while it plays and several boards share one clock.
     tools/board.py --iface en0 note B5 --dur 3
     tools/board.py --iface en0 play "C4 E4 G4 C5 _ _ - -" --bpm 120 --loop 4
     tools/board.py --iface en0 play "A2 _ A2 C3" --sweep 13:0:127        # knob 1 (CC 13) up over the phrase
-    tools/board.py --iface en0 audition acid_bass                        # a patch's own phrase, on its preset
+    tools/board.py --iface en0 audition va_acid_bass                        # a patch's own phrase, on its preset
     tools/board.py --iface en0 cc 14 100
     tools/board.py --iface en0 test --seconds 2                          # every preset: plays, then the load
     tools/board.py --iface en0 panic

@@ -7,7 +7,7 @@
   "tail_s": 5,
   "tracks": [
     {
-      "patch": "patches/kit_hybrid.json",
+      "patch": "patches/drums_hybrid.json",
       "pattern": [
         {
           "kick": "X...x...X...x...",
@@ -117,7 +117,7 @@
       }
     },
     {
-      "patch": "patches/dub_chords.json",
+      "patch": "patches/va_dub_chords.json",
       "step": 0.25,
       "start_step": 320,
       "gain_db": -8,

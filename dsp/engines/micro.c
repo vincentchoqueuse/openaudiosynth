@@ -24,6 +24,30 @@ static const char *const low_mode_labels[] = {"fixed", "note", NULL};
 static const char *const lock_labels[] = {"off", "1/64", "1/32", "1/16", "1/8", "1/4", "1/2", "bar", NULL};
 static const float lock_beats[] = {0.0f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f};
 static const char *const space_labels[] = {"free", "hard", "alternate", NULL};
+/* what a pulse opens and closes, as a mask: 1 the main sine (with sub and click), 2 the second sine, 4 the noise, 8 the low layer */
+static const char *const pulse_target_labels[] = {"main", "sine2", "sines", "noise", "low", "tone_noise", "all", NULL};
+static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15};
+#define PULSE(K)                                                                                                       \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_MODE), "pulse" #K "_mode", "micro.pulse" #K ".mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0,  \
+          gate_mode_labels, "pulse " #K ": an on / off rhythm exact to the sample, on the song's beat (sync) or from the " \
+          "note at its own rate (free, up to audio rates); several pulses on one layer multiply"),                     \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_DIV), "pulse" #K "_div", "micro.pulse" #K ".div", 1.0f, (float)(TEMPO_DIV_COUNT - 1), 3.0f, \
+          PARAM_INT, "", 0, tempo_div_labels, "length of a step on the beat"),                                         \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_HZ), "pulse" #K "_hz", "micro.pulse" #K ".hz", 0.5f, 2000.0f, 16.0f, PARAM_EXP, "Hz", 1,   \
+          NULL, "steps per second in free mode"),                                                                      \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_STEPS), "pulse" #K "_steps", "micro.pulse" #K ".steps", 1.0f, 16.0f, 16.0f, PARAM_INT, "",  \
+          0, NULL, "length of its pattern: pulses of different lengths drift apart and meet again (16, 15, 13...)"),    \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_PATTERN), "pulse" #K "_pattern", "micro.pulse" #K ".pattern", 0.0f, 65535.0f, 21845.0f,    \
+          PARAM_INT, "", 0, NULL, "the pattern as 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1)"), \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_OFFSET), "pulse" #K "_offset", "micro.pulse" #K ".offset", 0.0f, 15.0f, 0.0f, PARAM_INT, \
+          "", 0, NULL, "steps the pattern is shifted by (a pulse against another, on the offbeat)"),                    \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_EDGE), "pulse" #K "_edge", "micro.pulse" #K ".edge", 0.00002f, 0.02f, 0.00002f, PARAM_EXP, \
+          "s", 1, NULL, "length of its edges: one sample is a cut with its click, a few milliseconds soften it"),       \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_DEPTH), "pulse" #K "_depth", "micro.pulse" #K ".depth", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, \
+          NULL, "how far a closed step goes down: 1 to silence, less leaves some of the layer through"),             \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_TARGET), "pulse" #K "_target", "micro.pulse" #K ".target", 0.0f, 6.0f, 0.0f, PARAM_INT, \
+          "", 0, pulse_target_labels, "the layers it opens and closes: main (sine, sub, click), sine2, both sines, "   \
+          "noise, low, the tone and the noise, or all")
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
@@ -190,7 +214,22 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_SPACE_DELAY, "space_delay", "micro.space_delay", -96.0f, 96.0f, 0.0f, PARAM_INT, "samples", 0, NULL,
           "one channel this many samples late: positive = the right, negative = the left (a few samples widen, "
           "tens of samples split a click into two)"),
+    PULSE(1), PULSE(2), PULSE(3), PULSE(4),
 };
+
+/* the length of a free pulse's step, in 1/65536 samples */
+/* a step length in 1/65536 samples; within a thousandth of a sample of a whole number, that whole number (a knob
+ * set to 1000 Hz reads 999.99 Hz: its steps are still exactly 48 samples at 48 kHz) */
+static int64_t pulse_q(float samples)
+{
+    const float whole = (float)(int64_t)(samples + 0.5f);
+    if (dsp_absf(samples - whole) < 1e-3f)
+        return (int64_t)whole << 16;
+    return (int64_t)(samples * 65536.0f + 0.5f);
+}
+static int64_t pulse_len_q(const micro_t *e, int k) { return pulse_q(e->sr / e->p[MICRO_PU(k, MICRO_PU_HZ)]); }
+/* the first sample at or after a step boundary q x len (len in 1/65536 samples) */
+static inline int64_t pulse_boundary(int64_t q, int64_t len_q) { return (q * len_q + 65535) >> 16; }
 
 /* the length of the grid in seconds (0: no grid) */
 static float lock_seconds(const micro_t *e)
@@ -444,6 +483,12 @@ static void hit(micro_t *e, micro_voice_t *v)
         low_hit(e, v);
     if ((int)e->p[MICRO_P_GATE_MODE] == 2 && v->hit_index == 0)
         v->gate_phase = 0.0f;
+    if (v->hit_index == 0) /* free pulses start from the note: step 0 on this sample */
+        for (int k = 0; k < MICRO_PULSES; k++) {
+            v->pu_n[k] = 0;
+            v->pu_q[k] = 0;
+            v->pu_nb[k] = pulse_boundary(1, pulse_len_q(e, k));
+        }
     v->hit_index++;
     if (v->hits_left > 0) {
         v->hits_left--;
@@ -490,6 +535,8 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         v->low_pitch_on = 0;
         v->vm_fresh = 1;
         v->gate_g = -1.0f; /* set on the first sample */
+        for (int k = 0; k < MICRO_PULSES; k++)
+            v->pu_g[k] = -1.0f;
     }
     const float vs = e->p[MICRO_P_VELOCITY];
     v->vel = 1.0f - vs + vs * vel;
@@ -565,6 +612,9 @@ static void micro_init(void *st, float sample_rate)
         for (int i = 0; i < MICRO_DELAY_MAX; i++)
             e->dly[c][i] = 0.0f;
     e->dly_w = 0;
+    e->clk = e->clk_end = 0;
+    e->clk_bpm = 0.0f;
+    e->clk_ok = 0;
     for (int i = 0; i < MICRO_VOICES; i++) {
         micro_voice_t *v = &e->v[i];
         *v = (micro_voice_t){0};
@@ -626,6 +676,16 @@ static void micro_tempo(void *st, float bpm, float beat)
     e->beat0 = b0;
     e->beat1 = beat;
     e->have_beat = 1;
+    /* the pulses' clock: one block on, unless the song's beat says otherwise (a start, a loop, a wrap) or the tempo
+     * changed; then it is set again from the beat, to the nearest sample */
+    const float spb = 60.0f * e->sr / e->bpm;
+    int64_t end = e->clk_end + SYNTH_BLOCK;
+    if (!e->clk_ok || e->bpm != e->clk_bpm || dsp_absf((float)end / spb - beat) > 0.01f)
+        end = (int64_t)(beat * spb + 0.5f);
+    e->clk_end = end;
+    e->clk = end - SYNTH_BLOCK;
+    e->clk_bpm = e->bpm;
+    e->clk_ok = 1;
 }
 
 /* phase increment (cycles per sample) of a pitch, at most 0.45 */
@@ -658,6 +718,13 @@ typedef struct {
     uint32_t lpat;
     float ldg, lnorm, ldrop, lbeat, lmix;
     int space;                                /* free, hard, alternate */
+    int pulses;                               /* pulses on (0: none, the loop skips them) */
+    int pu_mode[MICRO_PULSES], pu_steps[MICRO_PULSES], pu_off[MICRO_PULSES];
+    uint32_t pu_pat[MICRO_PULSES];
+    uint8_t pu_mask[MICRO_PULSES];
+    float pu_slew[MICRO_PULSES], pu_floor[MICRO_PULSES];
+    int64_t pu_len[MICRO_PULSES];             /* free pulses: a step, in 1/65536 samples */
+    uint8_t pu_step[MICRO_PULSES][SYNTH_BLOCK]; /* pulses on the beat: the step of each sample (the same for every voice) */
 } micro_block_t;
 
 /* one voice into the bus: level, steal fade, per-voice level and pan. xa = main sine, sub and click; xb = second
@@ -998,6 +1065,46 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
             v->click_amp *= click_mul;
         }
         ck[i] = c * gg;
+
+        /* pulses: each one's step on the beat or from the note, its pattern, its slewed gain, into the layers it targets */
+        if (blk->pulses) {
+            float m[4] = {1.0f, 1.0f, 1.0f, 1.0f}; /* main, second sine, noise, low */
+            for (int k = 0; k < MICRO_PULSES; k++) {
+                const int mode = blk->pu_mode[k];
+                if (mode == 0)
+                    continue;
+                int ps;
+                if (mode == 1) {
+                    ps = blk->pu_step[k][i];
+                } else { /* free: steps of len samples from the note, counted in whole samples */
+                    if (v->pu_n[k] >= v->pu_nb[k]) {
+                        v->pu_q[k]++;
+                        v->pu_nb[k] = pulse_boundary(v->pu_q[k] + 1, blk->pu_len[k]);
+                    }
+                    ps = (v->pu_q[k] + blk->pu_off[k]) % blk->pu_steps[k];
+                    v->pu_n[k]++;
+                }
+                const float target = (blk->pu_pat[k] >> ps) & 1u ? 1.0f : blk->pu_floor[k];
+                float pg = v->pu_g[k];
+                if (pg < 0.0f)
+                    pg = target;
+                else if (pg < target)
+                    pg = dsp_minf(pg + blk->pu_slew[k], target);
+                else if (pg > target)
+                    pg = dsp_maxf(pg - blk->pu_slew[k], target);
+                v->pu_g[k] = pg;
+                for (int t = 0; t < 4; t++)
+                    if (blk->pu_mask[k] & (1u << t))
+                        m[t] *= pg;
+            }
+            xa[i] *= m[0];
+            ck[i] *= m[0];
+            xb[i] *= m[1];
+            if (ln > 0.0f)
+                xn[i] *= m[2];
+            if (low_live)
+                xw[i] *= m[3];
+        }
         any_click |= c != 0.0f;
     }
 
@@ -1081,6 +1188,34 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     b.lpat = b.lgate == 1 ? b.gpat : b.lgate == 2 ? ~b.gpat : (uint32_t)p[MICRO_P_LOW_PATTERN];
     b.ldg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE], b.lnorm = 1.0f / fm_tanh(b.ldg), b.ldrop = p[MICRO_P_LOW_DROP];
     b.space = (int)p[MICRO_P_SPACE];
+    b.pulses = 0;
+    for (int k = 0; k < MICRO_PULSES; k++) {
+        const float *q = &p[MICRO_PU(k, 0)];
+        b.pu_mode[k] = (int)q[MICRO_PU_MODE];
+        b.pulses |= b.pu_mode[k] > 0;
+        b.pu_steps[k] = dsp_clampi((int)q[MICRO_PU_STEPS], 1, 16);
+        b.pu_off[k] = (int)q[MICRO_PU_OFFSET];
+        b.pu_pat[k] = (uint32_t)q[MICRO_PU_PATTERN];
+        b.pu_mask[k] = pulse_target_mask[dsp_clampi((int)q[MICRO_PU_TARGET], 0, 6)];
+        if (b.pu_mode[k] == 1) {
+            /* on the beat: the step of each sample from the integer clock and a step length in 1/65536 samples,
+             * so a step of a whole number of samples is exactly that */
+            const float div = tempo_div_beats[(int)q[MICRO_PU_DIV]];
+            const int64_t len = pulse_q((div > 0.0f ? div : 0.25f) * 60.0f * e->sr / e->bpm);
+            int64_t sq = (e->clk << 16) / len, nb = pulse_boundary(sq + 1, len);
+            for (int i = 0; i < n; i++) {
+                if (e->clk + i >= nb) {
+                    sq++;
+                    nb = pulse_boundary(sq + 1, len);
+                }
+                b.pu_step[k][i] = (uint8_t)((sq + b.pu_off[k]) % b.pu_steps[k]);
+            }
+        } else if (b.pu_mode[k] == 2) {
+            b.pu_len[k] = pulse_len_q(e, k);
+        }
+        b.pu_slew[k] = 1.0f / ((float)samples_of(q[MICRO_PU_EDGE], e->sr));
+        b.pu_floor[k] = 1.0f - q[MICRO_PU_DEPTH];
+    }
     b.lbeat = lock_hz(e, p[MICRO_P_LOW_BEAT]) * inv_sr, b.lmix = b.lbeat != 0.0f ? p[MICRO_P_LOW_BEAT_MIX] : 0.0f;
     if (b.nfilt != e->noise_filter_set) {
         for (int i = 0; i < MICRO_VOICES; i++) {
@@ -1133,6 +1268,10 @@ static const engine_stage_t micro_stages[] = {
     {"pitch_env", "Pitch env", "mod", "pitch_amount pitch_time pitch_curve", "", "sine osc2 sub", NULL, 0.0f, 0.0f},
     {"ratchet", "Ratchet", "mod", "ratchet ratchet_div ratchet_hz ratchet_decay", "", "amp", "ratchet", 1.0f, 4.0f},
     {"gate", "Gate", "mod", "gate_", "", "amp", "gate_mode", 0.0f, 1.0f},
+    {"pulse1", "Pulse 1", "mod", "pulse1_", "", "sine osc2 noise low", "pulse1_mode", 0.0f, 1.0f},
+    {"pulse2", "Pulse 2", "mod", "pulse2_", "", "sine osc2 noise low", "pulse2_mode", 0.0f, 1.0f},
+    {"pulse3", "Pulse 3", "mod", "pulse3_", "", "sine osc2 noise low", "pulse3_mode", 0.0f, 1.0f},
+    {"pulse4", "Pulse 4", "mod", "pulse4_", "", "sine osc2 noise low", "pulse4_mode", 0.0f, 1.0f},
     {"grid", "Grid and space", "mod", "lock space space_delay", "", "sine osc2 low noise", NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "voice_mode glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };

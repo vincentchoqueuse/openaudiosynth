@@ -1234,6 +1234,42 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `lock` | off, 1/64, 1/32, 1/16, 1/8, 1/4, 1/2, bar | off |  | `micro.lock` | frequencies on the grid: each sine (main, low) moves to the nearest frequency that makes a whole number of cycles in this length of the tempo, and the beatings (osc2 offset, low_beat) a whole number of beats; with phase_reset a hit on the grid starts and ends on the same point of its wave, every loop identical |
 | `space` | free, hard, alternate | free |  | `micro.space` | free: the pans as set; hard: every pan snapped to left, centre or right; alternate: each hit (a note, a ratchet repeat) on the other side, fully left then fully right (the low layer stays in the centre) |
 | `space_delay` | -96 .. 96 samples | 0 |  | `micro.space_delay` | one channel this many samples late: positive = the right, negative = the left (a few samples widen, tens of samples split a click into two) |
+| `pulse1_mode` | off, sync, free | off |  | `micro.pulse1.mode` | pulse 1: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
+| `pulse1_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse1.div` | length of a step on the beat |
+| `pulse1_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse1.hz` | steps per second in free mode |
+| `pulse1_steps` | 1 .. 16 | 16 |  | `micro.pulse1.steps` | length of its pattern: pulses of different lengths drift apart and meet again (16, 15, 13...) |
+| `pulse1_pattern` | 0 .. 65535 | 21845 |  | `micro.pulse1.pattern` | the pattern as 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
+| `pulse1_offset` | 0 .. 15 | 0 |  | `micro.pulse1.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
+| `pulse1_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse1.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
+| `pulse1_depth` | 0 .. 1 | 1 | yes | `micro.pulse1.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
+| `pulse1_target` | main, sine2, sines, noise, low, tone_noise, all | main |  | `micro.pulse1.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, or all |
+| `pulse2_mode` | off, sync, free | off |  | `micro.pulse2.mode` | pulse 2: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
+| `pulse2_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse2.div` | length of a step on the beat |
+| `pulse2_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse2.hz` | steps per second in free mode |
+| `pulse2_steps` | 1 .. 16 | 16 |  | `micro.pulse2.steps` | length of its pattern: pulses of different lengths drift apart and meet again (16, 15, 13...) |
+| `pulse2_pattern` | 0 .. 65535 | 21845 |  | `micro.pulse2.pattern` | the pattern as 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
+| `pulse2_offset` | 0 .. 15 | 0 |  | `micro.pulse2.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
+| `pulse2_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse2.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
+| `pulse2_depth` | 0 .. 1 | 1 | yes | `micro.pulse2.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
+| `pulse2_target` | main, sine2, sines, noise, low, tone_noise, all | main |  | `micro.pulse2.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, or all |
+| `pulse3_mode` | off, sync, free | off |  | `micro.pulse3.mode` | pulse 3: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
+| `pulse3_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse3.div` | length of a step on the beat |
+| `pulse3_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse3.hz` | steps per second in free mode |
+| `pulse3_steps` | 1 .. 16 | 16 |  | `micro.pulse3.steps` | length of its pattern: pulses of different lengths drift apart and meet again (16, 15, 13...) |
+| `pulse3_pattern` | 0 .. 65535 | 21845 |  | `micro.pulse3.pattern` | the pattern as 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
+| `pulse3_offset` | 0 .. 15 | 0 |  | `micro.pulse3.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
+| `pulse3_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse3.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
+| `pulse3_depth` | 0 .. 1 | 1 | yes | `micro.pulse3.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
+| `pulse3_target` | main, sine2, sines, noise, low, tone_noise, all | main |  | `micro.pulse3.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, or all |
+| `pulse4_mode` | off, sync, free | off |  | `micro.pulse4.mode` | pulse 4: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
+| `pulse4_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse4.div` | length of a step on the beat |
+| `pulse4_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse4.hz` | steps per second in free mode |
+| `pulse4_steps` | 1 .. 16 | 16 |  | `micro.pulse4.steps` | length of its pattern: pulses of different lengths drift apart and meet again (16, 15, 13...) |
+| `pulse4_pattern` | 0 .. 65535 | 21845 |  | `micro.pulse4.pattern` | the pattern as 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
+| `pulse4_offset` | 0 .. 15 | 0 |  | `micro.pulse4.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
+| `pulse4_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse4.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
+| `pulse4_depth` | 0 .. 1 | 1 | yes | `micro.pulse4.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
+| `pulse4_target` | main, sine2, sines, noise, low, tone_noise, all | main |  | `micro.pulse4.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, or all |
 
 ## Engine `havoc` (1 voices)
 

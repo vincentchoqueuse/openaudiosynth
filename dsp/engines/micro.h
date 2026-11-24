@@ -21,6 +21,11 @@
 
 #define MICRO_VOICES 8
 
+/* settings of a pulse (MICRO_PU(k, f): setting f of pulse k, 0-based) */
+enum { MICRO_PU_MODE = 0, MICRO_PU_DIV, MICRO_PU_HZ, MICRO_PU_STEPS, MICRO_PU_PATTERN, MICRO_PU_OFFSET, MICRO_PU_EDGE,
+       MICRO_PU_DEPTH, MICRO_PU_TARGET, MICRO_PU_COUNT };
+#define MICRO_PULSES 4
+#define MICRO_PU(k, f) (MICRO_P_PULSE + (k) * MICRO_PU_COUNT + (f))
 enum {
     MICRO_P_VOICE_MODE = 0, MICRO_P_PITCH_MODE, MICRO_P_FREQ, MICRO_P_TRANSPOSE, MICRO_P_FINE, MICRO_P_GLIDE,
     MICRO_P_BEND_RANGE, MICRO_P_PHASE, MICRO_P_PHASE_RESET, MICRO_P_SINE_LEVEL,
@@ -45,7 +50,9 @@ enum {
     /* the grid: frequencies a whole number of cycles per length of the tempo; space: hard sides, sides that
      * alternate at every hit, the two channels an exact number of samples apart */
     MICRO_P_LOCK, MICRO_P_SPACE, MICRO_P_SPACE_DELAY,
-    MICRO_P_COUNT
+    /* four pulses: on / off rhythms exact to the sample, each opening and closing the layers it targets */
+    MICRO_P_PULSE,
+    MICRO_P_COUNT = MICRO_P_PULSE + MICRO_PULSES * MICRO_PU_COUNT
 };
 extern const param_desc_t micro_params[MICRO_P_COUNT];
 extern const engine_ops_t micro_engine;
@@ -93,6 +100,10 @@ typedef struct {
     float vm_gain;
     int vm_fresh;
     float side; /* space alternate: the side of the current hit, -1 left, +1 right */
+    float pu_g[MICRO_PULSES];  /* each pulse's gain, slewed (-1: set on the first sample) */
+    int32_t pu_n[MICRO_PULSES];  /* free pulses: samples since the note */
+    int32_t pu_q[MICRO_PULSES];  /* free pulses: steps since the note */
+    int64_t pu_nb[MICRO_PULSES]; /* free pulses: the sample (since the note) where the next step starts */
 } micro_voice_t;
 
 typedef struct {
@@ -108,6 +119,11 @@ typedef struct {
     vpoly_t poly;
     micro_voice_t v[MICRO_VOICES];
     float dly[2][MICRO_DELAY_MAX]; /* space_delay: the last samples of each channel */
+    /* the sample clock of the pulses on the beat: samples since beat 0, an integer, so that a step of a whole number
+     * of samples is that many samples, forever; it follows the song's beat and resyncs on a jump or a new tempo */
+    int64_t clk, clk_end;
+    float clk_bpm;
+    int clk_ok;
     int dly_w;
 } micro_t;
 

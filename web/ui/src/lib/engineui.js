@@ -67,7 +67,7 @@ export const ENGINE_UI = {
       ['fine', 'phase', 'phase_reset', 'burst', 'osc2_split', 'osc2_pitch_env', 'noise_q', 'noise_gate', 'noise_pan',
        'low_phase', 'low_drop_time', 'low_attack', 'low_hold', 'low_curve', 'low_drive', 'low_gate', 'low_pattern', 'low_beat',
        'low_beat_mix', 'amp_hold', 'attack_curve', 'decay_curve', 'velocity', 'pan', 'pitch_curve', 'gate_depth', 'gate_edge',
-       'noise_pattern', 'bend_range'],
+       'noise_pattern', 'bend_range', /^pulse\d_(offset|edge|depth)$/],
       (n, s) => {
         if (n === 'freq') return choice(s, 'pitch_mode') !== 'fixed';
         if (n === 'osc2_ratio') return choice(s, 'osc2_mode') !== 'ratio';
@@ -81,6 +81,8 @@ export const ENGINE_UI = {
         if (n === 'gate_hz') return choice(s, 'gate_mode') !== 'free';
         if (/^gate_(steps|pattern|depth|edge)$/.test(n)) return choice(s, 'gate_mode') === 'off';
         if (/^click_(level|tone|decay)$/.test(n)) return choice(s, 'click_mode') === 'off';
+        let m = /^pulse(\d)_(div|hz)$/.exec(n); // a pulse shows its step length on the beat, or its rate when free
+        if (m) return choice(s, `pulse${m[1]}_mode`) !== (m[2] === 'div' ? 'sync' : 'free');
         return false;
       }),
   },

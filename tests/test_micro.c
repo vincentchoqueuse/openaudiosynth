@@ -6,7 +6,8 @@
  * pitch fixed or from the note, hits on its own gate), a glide that arrives, and every
  * parameter at its extremes bounded and deterministic; the grid (a frequency moved to a whole number of cycles per
  * step, the low layer too) and the space (hard sides, sides that alternate on the sample of each hit, one channel an
- * exact number of samples late). Engine-level renders (no master stage) unless noted. */
+ * exact number of samples late); the pulses (on / off on the sample of the step, an offset, two lengths meeting every
+ * six steps, the edge, the target, free mode at audio rate). Engine-level renders (no master stage) unless noted. */
 #include <math.h>
 #include <string.h>
 
@@ -149,9 +150,103 @@ static void grid_and_space(void)
           first_nonzero(L, 9600), first_nonzero(R, 9600));
 }
 
+/* the pulses: on / off on the exact sample, lengths that drift apart, an offset, the edge, the target */
+static void set_pulse(int k, float mode, float div, float steps, float pattern, float offset, float target)
+{
+    setp(MICRO_PU(k, MICRO_PU_MODE), mode);
+    setp(MICRO_PU(k, MICRO_PU_DIV), div);
+    setp(MICRO_PU(k, MICRO_PU_STEPS), steps);
+    setp(MICRO_PU(k, MICRO_PU_PATTERN), pattern);
+    setp(MICRO_PU(k, MICRO_PU_OFFSET), offset);
+    setp(MICRO_PU(k, MICRO_PU_TARGET), target);
+}
+static void pulses(void)
+{
+    /* pulse 1 on 1/16 at 120 BPM (6000 samples a step), every other step from step 1: open, shut, open... and each
+     * change on the sample where its step starts (edge one sample) */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, 0.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 30000, 120.0f);
+    const float s0 = max_abs(L + 100, 5800), s1 = max_abs(L + 6000, 6000), s2 = max_abs(L + 12000, 6000);
+    int edge_ok = L[5999] != 0.0f && L[6000] == 0.0f && L[11999] == 0.0f && L[12000] != 0.0f;
+    printf("  pulse 1/16 every other step: %.3f, %.3f, %.3f; edges on samples 6000 and 12000: %s\n", (double)s0, (double)s1,
+           (double)s2, edge_ok ? "yes" : "no");
+    CHECK(s0 > 0.05f && s1 == 0.0f && s2 > 0.05f && edge_ok, "pulse: steps %g %g %g, edges %d", (double)s0, (double)s1,
+          (double)s2, edge_ok);
+    /* an offset of one step: the same pattern shifted (shut, open, shut) */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 1.0f, 0.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 18000, 120.0f);
+    CHECK(max_abs(L, 6000) == 0.0f && max_abs(L + 6000, 6000) > 0.05f && max_abs(L + 12000, 6000) == 0.0f,
+          "pulse offset 1: %g %g %g", (double)max_abs(L, 6000), (double)max_abs(L + 6000, 6000), (double)max_abs(L + 12000, 6000));
+    /* two pulses of 3 and 2 steps on one layer, each open on its first step only: the layer sounds where both are
+     * open, every 6 steps (steps 0 and 6), and nowhere else */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    set_pulse(0, 1.0f, 3.0f, 3.0f, 1.0f, 0.0f, 0.0f);
+    set_pulse(1, 1.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 48000, 120.0f);
+    int open = 0, where = 0;
+    for (int s = 0; s < 8; s++)
+        if (max_abs(L + s * 6000 + 50, 5900) > 0.05f)
+            open++, where |= 1 << s;
+    printf("  pulses of 3 and 2 steps: open on steps mask 0x%x (expected 0x41)\n", where);
+    CHECK(where == 0x41 && open == 2, "pulses 3 x 2: open steps mask 0x%x", where);
+    /* the edge: 5 ms (240 samples) from shut to open, half way after 120 */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    setp(MICRO_P_PITCH_MODE, 1.0f);
+    setp(MICRO_P_FREQ, 4000.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 2.0f, 0.0f, 0.0f);
+    setp(MICRO_PU(0, MICRO_PU_EDGE), 0.005f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 18000, 120.0f);
+    const float full = max_abs(L + 6000 + 600, 1200), mid = max_abs(L + 6000 + 110, 20);
+    printf("  pulse edge 5 ms: %.2f of full 120 samples in\n", (double)(mid / full));
+    CHECK(max_abs(L + 5000, 1000) == 0.0f && mid > 0.4f * full && mid < 0.6f * full, "pulse edge: %.2f of full halfway",
+          (double)(mid / full));
+    /* the target: a pulse on the noise leaves the sine alone */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 0.0f, 0.0f, 3.0f); /* always shut, on the noise */
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 9600, 120.0f);
+    CHECK(max_abs(L + 100, 9000) > 0.05f, "a pulse on the noise silences the sine");
+    /* free mode at 1 kHz on 2 steps (pattern 1): a 500 Hz on / off, the first switch 48 samples after the note */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    set_pulse(0, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f);
+    setp(MICRO_PU(0, MICRO_PU_HZ), 1000.0f);
+    note_at(69, 16);
+    beat_pos = 0.0f;
+    run(L, R, 9600, 120.0f);
+    /* the note's hit is the sample before its first sound (its envelope starts at 0): the steps count from there */
+    int z0 = -1, o1 = -1;
+    const int h = first_nonzero(L, 9600) - 1;
+    for (int i = h + 1; i < 400; i++) {
+        if (z0 < 0 && L[i] == 0.0f && L[i - 1] != 0.0f)
+            z0 = i;
+        else if (z0 >= 0 && o1 < 0 && L[i] != 0.0f)
+            o1 = i;
+    }
+    printf("  free pulse 1 kHz: hit at %d, shut from %d, open again at %d\n", h, z0, o1);
+    CHECK(z0 == h + 48 && o1 == h + 96, "free pulse 1 kHz: hit at %d, shut from %d, open again at %d", h, z0, o1);
+}
+
 void suite_micro(void)
 {
     grid_and_space();
+    pulses();
     /* onset: a note asked at sample 37 of the stream starts on sample 37 through the synth (block 1, offset 5) */
     {
         synth_t *s = synth_default();

@@ -30,6 +30,8 @@
   // a rhythm of 16 steps kept as a number (bit k = step k + 1): drawn as steps
   const steps = $derived(/(^|_)pattern$/.test(d.name) && d.min === 0 && d.max === 65535);
   const bits = $derived(Math.round(value));
+  // its length: the steps of the same name ("pulse1_pattern" -> "pulse1_steps"), else the gate's; the steps past it are dimmed
+  const used = $derived(steps ? Math.round(session.byName[d.name.replace(/pattern$/, 'steps')] ? session.getP(d.name.replace(/pattern$/, 'steps')) : session.byName.gate_steps ? session.getP('gate_steps') : 16) : 16);
   let typing = $state(false); // the value is being typed
   function typed(e) {
     if (e.key === 'Escape') { e.stopPropagation(); typing = false; return; }
@@ -47,7 +49,7 @@
   {#if steps}
     <div class="cell steps" role="group" aria-label={label}>
       {#each Array(16) as _, k}
-        <button class:on={(bits >> k) & 1} aria-pressed={!!((bits >> k) & 1)} aria-label="Step {k + 1}" onclick={() => onchange(bits ^ (1 << k))}></button>
+        <button class:on={(bits >> k) & 1} class:past={k >= used} aria-pressed={!!((bits >> k) & 1)} aria-label="Step {k + 1}" onclick={() => onchange(bits ^ (1 << k))}></button>
       {/each}
     </div>
   {:else if toggle}

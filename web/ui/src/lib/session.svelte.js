@@ -8,6 +8,9 @@ import { parseKit, filesToKit } from './kit.js';
 import { engineColor, engineRank, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
 import { human, unclaimed } from './naming.js';
 import { urlParams } from './urlparams.js';
+import { remembered, remember } from './prefs.js';
+
+const FIRST_SOUND = 'wt_drifting_glass'; // what a first visit opens on
 
 class Session {
   synth = new Synth();
@@ -30,7 +33,7 @@ class Session {
   clipHook = null;
   #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
-  picks = $state(0); // sounds picked in the library (the editor opens on Summary)
+  picks = $state(0); // sounds picked in the library (the name flashes)
   // the Synth tab's editor: which tab is open, and the stage the diagram asked to show (scrolled to, lit)
   editorTab = $state('summary');
   focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
@@ -73,7 +76,10 @@ class Session {
   // parameters moved since the sound was loaded (or since the defaults, for a new sound)
   changedCount = $derived(this.engine ? [...this.engine.params, ...this.shared]
     .filter((d) => Math.abs((this.values[d.id] ?? d.def) - (this.baseline[d.id] ?? d.def)) > 1e-6).length : 0);
-  title = $derived(this.current ? this.current.replace('.json', '') : 'init');
+  title = $derived(this.current ? this.current.replace('.json', '') : 'init'); // the sound's id (address, files)
+  // a sound's name as read: without its instrument's prefix ("drone_abyss" under drone: "Abyss")
+  nameOf = (p) => { const n = p.name.startsWith(p.engine + '_') ? p.name.slice(p.engine.length + 1) : p.name; return (n.charAt(0).toUpperCase() + n.slice(1)).replace(/_/g, ' '); };
+  label = $derived(this.info ? this.nameOf(this.info) : this.current ? this.title : 'New sound');
   // the library in the order it is listed (instruments, then their sounds): what Previous / Next walk through
   ordered = $derived(this.patches.map((p, i) => [p, i]).sort(([a, i], [b, j]) => engineRank(a.engine) - engineRank(b.engine) || a.engine.localeCompare(b.engine) || i - j).map(([p]) => p));
   // A/B: while the sound as loaded is heard (B), the edited values (A) wait here; null: the edit is heard
@@ -212,7 +218,13 @@ class Session {
       await this.listPatches();
       const asked = urlParams.sound && this.patches.find((p) => p.name === urlParams.sound || p.file === urlParams.sound + '.json');
       if (asked) await this.loadPatch(asked); // ?sound= in the address
-      else if (urlParams.sound) this.say(`No sound called ${urlParams.sound}`);
+      else {
+        if (urlParams.sound) this.say(`No sound called ${urlParams.sound}`);
+        // the page opens on a sound that plays: the last one played here, or the showcase
+        const last = remembered('synth.sound', FIRST_SOUND);
+        const first = this.patches.find((p) => p.name === last) ?? this.patches.find((p) => p.name === FIRST_SOUND);
+        if (first) await this.loadPatch(first);
+      }
       this.synth.enableMidi((n) => (this.midiNames = n)).catch(() => (this.midiNames = []));
     } catch (e) {
       this.say('Could not start audio: ' + e.message);
@@ -281,7 +293,8 @@ class Session {
 
   // a sound of the library; returns true when it is the current one
   loadPatch = async (p) => {
-    this.clipHook?.stop(); // another sound: the sequencer stops (its clip is replaced)
+    const wasPlaying = !!this.clipHook?.playing(); // another sound: its own clip takes over, and goes on playing
+    this.clipHook?.stop();
     const seq = ++this.#loadSeq;
     let text;
     try {
@@ -300,7 +313,8 @@ class Session {
     if (!r?.ok) { if (seq === this.#loadSeq) [this.current, this.info] = prev; return false; }
     this.baseline = { ...this.values };
     this.picks++;
-    this.editorTab = 'summary';
+    remember('synth.sound', p.name);
+    if (wasPlaying) this.clipHook?.play();
     return true;
   };
 

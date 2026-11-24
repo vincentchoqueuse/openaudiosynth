@@ -1,20 +1,33 @@
 <!-- Keyboard.svelte — slim two-octave keyboard plus the computer keyboard (physical key positions, so it
-     works in AZERTY and QWERTY): bottom letter row from C, top row an octave up; arrow keys shift octaves. -->
+     works in AZERTY and QWERTY): bottom letter row from C, top row an octave up; arrow keys shift octaves. Hold keeps
+     the notes played until they are played again or Hold goes off (a drone under one hand, the macros under the other). -->
 <script>
   import { keyIsForControl } from './keys.js';
   let { synth, held = new Set() } = $props();
   let octave = $state(3);
   let down = $state(new Set());
+  let hold = $state(false), latched = $state(new Set()); // Hold: the notes kept after their key is released
   const ROW1 = ['KeyZ','KeyS','KeyX','KeyD','KeyC','KeyV','KeyG','KeyB','KeyH','KeyN','KeyJ','KeyM','Comma'];
   const ROW2 = ['KeyQ','Digit2','KeyW','Digit3','KeyE','KeyR','Digit5','KeyT','Digit6','KeyY','Digit7','KeyU','KeyI'];
   const keys = Array.from({ length: 25 }, (_, i) => ({ i, black: [1, 3, 6, 8, 10].includes(i % 12) }));
   const whites = keys.filter((k) => !k.black);
   const base = $derived(12 * (octave + 1));
 
-  function on(n) { if (n <= 127 && !down.has(n)) { down.add(n); down = new Set(down); synth.noteOn(n, 100); } }
-  function off(n) { if (down.has(n)) { down.delete(n); down = new Set(down); synth.noteOff(n); } }
+  function on(n) {
+    if (n > 127 || down.has(n)) return;
+    down.add(n); down = new Set(down);
+    if (latched.has(n)) { latched.delete(n); latched = new Set(latched); synth.noteOff(n); return; } // played again: released
+    synth.noteOn(n, 100);
+    if (hold) { latched.add(n); latched = new Set(latched); }
+  }
+  function off(n) {
+    if (!down.has(n)) return;
+    down.delete(n); down = new Set(down);
+    if (!latched.has(n) && !hold) synth.noteOff(n);
+  }
+  function setHold(v) { hold = v; if (!v) { latched.forEach((n) => !down.has(n) && synth.noteOff(n)); latched = new Set(); } }
   // changing octave releases what is held: the key-up to come would be computed in the new octave
-  function setOctave(o) { [...down].forEach(off); octave = Math.min(7, Math.max(0, o)); }
+  function setOctave(o) { [...down].forEach(off); octave = Math.min(7, Math.max(0, o)); } // held notes stay
   function keyNote(code) {
     let k = ROW1.indexOf(code);
     if (k >= 0) return base + k;
@@ -30,7 +43,7 @@
     if (n >= 0) { on(n); e.preventDefault(); }
   }
   function ku(e) { const n = keyNote(e.code); if (n >= 0) off(n); }
-  const lit = (n) => down.has(n) || held.has(n);
+  const lit = (n) => down.has(n) || latched.has(n) || held.has(n);
   const blackX = (i) => (whites.filter((w) => w.i < i).length * 100) / whites.length;
   function press(e, n) { e.currentTarget.setPointerCapture(e.pointerId); on(n); }
 </script>
@@ -41,6 +54,7 @@
     <button aria-label="Octave down" onclick={() => setOctave(octave - 1)}>−</button>
     <span>C{octave}</span>
     <button aria-label="Octave up" onclick={() => setOctave(octave + 1)}>+</button>
+    <button class="hold" class:on={hold} aria-pressed={hold} onclick={() => setHold(!hold)} title="Hold: notes stay until played again">Hold</button>
   </div>
   <div class="keys">
     {#each whites as k}

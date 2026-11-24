@@ -4,7 +4,7 @@
 <script>
   import { engineColor, engineRank } from './engines.js';
   import { urlParams } from './urlparams.js';
-  let { patches, current, onpick } = $props();
+  let { patches, current, onpick, nameOf = (p) => p.name } = $props();
 
   let search = $state(urlParams.q); // ?q= in the address fills it
   let open = $state(null); // engine whose presets are shown
@@ -34,7 +34,7 @@
     {#if found}
       {#each found as p (p.file)}
         <button class="preset" class:active={p.file === current} style="--c:{engineColor(p.engine)}" onclick={() => onpick(p)}>
-          <span class="dot"></span><span class="pname">{p.name}</span><span class="peng">{p.engine}</span>
+          <span class="dot"></span><span class="pname">{nameOf(p)}</span><span class="peng">{p.engine}</span>
         </button>
       {:else}
         <p class="empty">No sound matches.</p>
@@ -49,7 +49,7 @@
           <div class="presets" style="--c:{engineColor(eng)}">
             {#each list as p (p.file)}
               <button class="preset" class:active={p.file === current} title={p.description} onclick={() => onpick(p)}>
-                <span class="pname">{p.name}</span>
+                <span class="pname">{nameOf(p)}</span>
               </button>
             {/each}
           </div>

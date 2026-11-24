@@ -1,6 +1,6 @@
 <!-- Param.svelte — one parameter from the descriptor table, as a row: its label, its control, its value in its
      unit. A thin slider in normalized space (exp curves feel right), a switch for off / on, drawn buttons for a
-     choice of waveforms, pills for a few choices, a menu for more. Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
+     choice of waveforms, pills for a few choices, a menu for more, sixteen step buttons for a rhythm pattern. Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
      moved since the sound was loaded; double-click on the
      label or the slider puts that value back. A small coloured pill before the label, with their numbers: the macros
      that move this parameter (a click opens their assignments). The descriptor's help text is the tooltip.
@@ -27,6 +27,9 @@
   const waves = $derived(!!d.labels && /(^|_)wave$/.test(d.name) && d.labels.every(isWave));
   const toggle = $derived(d.labels?.length === 2 && d.labels[0] === 'off' && d.labels[1] === 'on');
   const macros = $derived(session.macrosOf[d.id] ?? []); // the macros that move it
+  // a rhythm of 16 steps kept as a number (bit k = step k + 1): drawn as steps
+  const steps = $derived(/(^|_)pattern$/.test(d.name) && d.min === 0 && d.max === 65535);
+  const bits = $derived(Math.round(value));
   let typing = $state(false); // the value is being typed
   function typed(e) {
     if (e.key === 'Escape') { e.stopPropagation(); typing = false; return; }
@@ -41,7 +44,13 @@
 <div class="param" class:changed title={d.help ?? ''}>
   <span class="label" role="button" tabindex="-1" title={changed ? 'moved · double-click: back to the sound\'s value' : ''} ondblclick={() => onchange(base)}>{#if macros.length}<button class="macro-pill" title={'moved by ' + macros.map((k) => `macro ${k + 1} (${session.macroName(k)})`).join(', ') + ' · click: assignments'}
       aria-label={'Moved by macro ' + macros.map((k) => k + 1).join(', ') + ': open the assignments'} onclick={() => session.goTo('macros-assign')}>{macros.map((k) => k + 1).join(' ')}</button>{/if}{label}</span>
-  {#if toggle}
+  {#if steps}
+    <div class="cell steps" role="group" aria-label={label}>
+      {#each Array(16) as _, k}
+        <button class:on={(bits >> k) & 1} aria-pressed={!!((bits >> k) & 1)} aria-label="Step {k + 1}" onclick={() => onchange(bits ^ (1 << k))}></button>
+      {/each}
+    </div>
+  {:else if toggle}
     <span class="cell"><Switch on={idx === 1} onchange={(v) => onchange(d.min + (v ? 1 : 0))} name={label} /></span>
   {:else if waves}
     <div class="cell"><Pills items={d.labels.map((l, i) => ({ id: i, label: l, draw: waveIcon(l) }))} value={idx} onpick={(i) => onchange(d.min + i)} size="icon" {label} /></div>

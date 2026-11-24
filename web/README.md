@@ -60,10 +60,12 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   and Preset with the sound's name; on the right the
   CPU load (time spent rendering over the audio's time, measured in the worklet) and the output level as meters,
   the volume and Sequencer ▶, each set apart by a rule (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
-  (tempo, loop, position, piano roll). **Synth**: Structure always on top, its blocks open their settings, then
-  smaller pills of one width with an icon, each with its own tabs under it, even a single one: Macros (Names;
-  Assignments, 16 fixed rows), Engine (the instrument, in the order the signal flows, the sampler's pads chosen like the modulators; Effects: the output filter, chorus, delay, reverb, master), Modulation
-  (Modulators; Assignments, of the part or of each note), Info (Description). **Code**: the instrument (the patch file) or the sequencer (the clip), in an editor as tall as
+  (tempo, loop, position, piano roll). **Synth**: five pills of one width with an icon: Overview (the sound's
+  description, its instrument, the signal path whose blocks open their settings), Instrument (Randomize, Instrument
+  defaults, then its cards in the order the signal flows; the main settings in view, the others under More:
+  `lib/engineui.js`), Effects (the rack and the master), Modulation (the only pill with tabs: All assignments, then
+  one per modulator, each with what it moves under its editor) and Macros (Wander, then the eight macros as groups:
+  name, CC, the settings each moves). **Code**: the sound (the patch file) or the clip, in an editor as tall as
   the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (menu, sound, volume, tempo, play), the live display,
   the macros and the keyboard, with the library in its drawer; no Synth or Code view, no piano roll (the clip plays
   from the top bar), no macro CC, no shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
@@ -74,12 +76,11 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 - **Interface rules** (every part of the page follows them):
   - one component per kind of control, used everywhere: `Pills` (the views, size lg; the Synth view's pills, md,
     with an icon; drawn choices of a waveform or a shape, icon), `Tabs` (an editor's own views, small and
-    underlined), `Seg` (a mode or a value among a few words: one shot / loop held / loop free, Hz / beats, Part /
-    Each note, the sampler's pads), `Switch` (every on / off), `Icon` (every icon, named in `lib/icons.js`), `Param`
+    underlined), `Seg` (a mode or a value among a few words: one shot / loop held / loop free, Hz / beats, the sampler's pads), `Switch` (every on / off), `Icon` (every icon, named in `lib/icons.js`), `Param`
     (a parameter row, reading and writing the session unless told otherwise);
   - three levels of navigation, each its own look: the views as pills in the top bar (Sequence, Synth, Code); then
-    the Synth view's pills (Macros, Engine, Modulation, Info); then each pill's tabs, even a single one (Names /
-    Assignments; the instrument / Effects; Modulators / Assignments; Description); no folds;
+    the Synth view's pills (Overview, Instrument, Effects, Modulation, Macros); a row of tabs only where there is
+    something to choose (Modulation);
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;
   - a choice of waveforms or shapes is a row of drawn buttons (`lib/waves.js`: oscillators, LFOs, envelope starting

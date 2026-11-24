@@ -3,8 +3,8 @@
 import { session as s } from './session.svelte.js';
 
 export const MODS = [
-  ['Env 1', 'mseg1_', 'mseg1', 'part', 'env'], ['Env 2', 'mseg2_', 'mseg2', 'part', 'env'], ['Note env', 'vmseg_', 'vmseg', 'voice', 'env'],
-  ['LFO 1', 'mlfo1_', 'mlfo1', 'part', 'lfo'], ['LFO 2', 'mlfo2_', 'mlfo2', 'part', 'lfo'], ['Note LFO', 'vlfo_', 'vlfo', 'voice', 'lfo'],
+  ['Global env 1', 'mseg1_', 'mseg1', 'part', 'env'], ['Global env 2', 'mseg2_', 'mseg2', 'part', 'env'], ['Note env', 'vmseg_', 'vmseg', 'voice', 'env'],
+  ['Global LFO 1', 'mlfo1_', 'mlfo1', 'part', 'lfo'], ['Global LFO 2', 'mlfo2_', 'mlfo2', 'part', 'lfo'], ['Note LFO', 'vlfo_', 'vlfo', 'voice', 'lfo'],
 ];
 
 // does a modulator drive anything? (a route from it with an amount)

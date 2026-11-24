@@ -42,7 +42,7 @@
 
 <div class="codeview">
   <div class="toolbar">
-    <Seg items={[{ id: 'sound', label: 'Instrument' }, { id: 'clip', label: 'Sequencer' }]} value={doc} onpick={pick} label="Document" />
+    <Seg items={[{ id: 'sound', label: 'Sound' }, { id: 'clip', label: 'Clip' }]} value={doc} onpick={pick} label="Document" />
     <span class="status" class:bad={syntax || error}>
       {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : '')}
     </span>

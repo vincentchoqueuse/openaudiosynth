@@ -13,7 +13,7 @@
       ['↑ ↓ (Shift)', 'the selection a semitone (an octave)'], ['← → (Alt)', 'the selection a grid step (finer)'],
       ['Shift ← →', 'shorten / lengthen the selection'], ['Edit, Pitch, Time, Velocity', 'the menus above the roll: on the selection, or every note'], ['Shift while dragging', 'finer than the grid'], ['velocity lane', 'drag on a bar']]],
     ['Controls', [['double-click a label or slider', 'back to the sound\'s value'], ['double-click a value', 'type it (Enter sets it; 30 ms, 1.2k)'],
-      ['Shift while dragging a slider', 'ten times finer'], ['← → on a slider (Shift, Page Up / Down)', 'a step of 1 % (0.1 %, 10 %)'], ['click a block of the signal path', 'open its settings']]],
+      ['Shift while dragging a slider', 'ten times finer'], ['← → on a slider (Shift, Page Up / Down)', 'a step of 1 % (0.1 %, 10 %)'], ['click a block of the signal path', 'open its settings'], ['click the dot by the sound\'s name', 'revert to the sound as loaded'], ['Hold, by the keyboard', 'notes stay until played again']]],
   ];
 </script>
 

@@ -1,7 +1,7 @@
 // naming.js — how parameter names read in the interface ("osc1_wave" -> group "Osc 1", label "Wave"), and how
 // parameters gather into sections: by name prefix, or by the stages of the signal chain an engine describes.
 
-const WORDS = { lfo: 'LFO', mseg: 'MSEG', fenv: 'Filter env', penv: 'Pitch env', amp: 'Amp', env: 'Env', fx: 'FX', vel: 'Velocity', op: 'Op', bpm: 'BPM', pw: 'PW', pwm: 'PWM', fm: 'FM', db: 'dB', mpe: 'MPE', cc: 'CC', a4: 'A4' };
+const WORDS = { chat: 'Closed hat', ohat: 'Open hat', ltom: 'Low tom', mtom: 'Mid tom', htom: 'High tom', lfo: 'LFO', mseg: 'MSEG', fenv: 'Filter env', penv: 'Pitch env', amp: 'Amp', env: 'Env', fx: 'FX', vel: 'Velocity', op: 'Op', bpm: 'BPM', pw: 'PW', pwm: 'PWM', fm: 'FM', db: 'dB', mpe: 'MPE', cc: 'CC', a4: 'A4' };
 export const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
 const word = (w) => WORDS[w] ?? w.replace(/^([a-z]+)(\d+)$/, (_, a, n) => (WORDS[a] ?? cap(a)) + ' ' + n);
 export const human = (s) => cap(s.split('_').map(word).join(' '));

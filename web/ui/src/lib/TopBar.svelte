@@ -1,8 +1,8 @@
 <!-- TopBar.svelte — the one bar above everything. On the left: the Menu (Save to the library in development,
-     Export sound, Export song, Revert, Instrument defaults, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub
+     Export sound, Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub
      issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]); the three views (Sequence, Synth, Code), pills of
      one width with their icon; the sound: Previous / Next through the library, its name, a dot when settings have
-     moved since it was loaded, and A/B to hear it as loaded, then the edit again. On the right, each set apart by a
+     moved since it was loaded (a click on it reverts), and A/B to hear it as loaded, then the edit again. On the right, each set apart by a
      rule: the CPU load and the output level (Meter), the listening volume, the tempo, and play / stop the
      sequence (Space). -->
 <script>
@@ -22,7 +22,6 @@
     { label: 'Export sound (JSON)', run: s.exportPatch },
     { label: 'Export song', run: q.exportSong },
     { label: s.info ? 'Revert to saved' : 'Back to defaults', run: s.revert, disabled: !s.changedCount },
-    { label: 'Instrument defaults', run: s.resetEngine },
     { label: 'Share (QR code)…', run: () => (s.shareOpen = true) },
     '-',
     { label: 'Undo', kbd: '⌘Z', run: h.undo, disabled: !h.canUndo },
@@ -43,8 +42,8 @@
     <span class="tag">Sound</span>
     <button class="step" onclick={() => s.step(-1)} disabled={!s.patches.length} aria-label="Previous sound" title="Previous sound of the library">‹</button>
     <button class="step" onclick={() => s.step(1)} disabled={!s.patches.length} aria-label="Next sound" title="Next sound of the library">›</button>
-    {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}
-    {#if s.changedCount}<span class="moved" title="{s.changedCount} setting{s.changedCount > 1 ? 's' : ''} moved since it was loaded (Menu: Revert)" aria-label="edited"></span>{/if}
+    {#key s.picks}<span class="name" class:flash={s.picks > 0} title={s.title}>{s.label}</span>{/key}
+    {#if s.changedCount}<button class="moved" onclick={s.revert} title="{s.changedCount} setting{s.changedCount > 1 ? 's' : ''} moved since it was loaded: click to revert (Undo brings the edit back)" aria-label="Edited: revert to the sound as loaded"></button>{/if}
     <button class="ab" class:on={!!s.edited} disabled={!s.canCompare} onclick={s.compare} aria-pressed={!!s.edited}
             title={s.edited ? 'Hearing the sound as loaded: click for your edit' : 'Hear the sound as loaded, then your edit again'}>{s.edited ? 'B · loaded' : 'A/B'}</button>
   </div>
@@ -64,7 +63,7 @@
   </label>
   <span class="vsep" aria-hidden="true"></span>
   <label class="tempo" title="Tempo of the clip and of everything synced (LFOs, delay)"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
-  <span class="seqlabel">Sequencer</span>
+  <span class="seqlabel">Clip</span>
   <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   </div>
 </header>

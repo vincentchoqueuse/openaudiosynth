@@ -167,7 +167,18 @@ button.add:disabled { opacity: .45; cursor: default; }
 .matrix .x { width: 20px; height: 20px; border-radius: 50%; color: var(--muted); }
 .matrix .x:hover { background: var(--faint); color: var(--text); }
 
-/* Drift, above the macro assignments: two settings side by side, then what they do */
+/* a heading between two cards of the same page (Modulation) */
+/* above the macros to play: what is playing, in one line */
+.playing { display: flex; align-items: baseline; gap: 14px; margin: 0 0 6px; min-width: 0; }
+.playing h2 { margin: 0; flex: none; }
+.playing span { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+h3.sub { margin: 18px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+/* the macros table: a group row per macro (its name, its CC, Add setting), its settings under it */
+.matrix.macros tr.group td { border-bottom: 0; padding-top: 10px; }
+.matrix.macros tr.group .ghead { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.matrix.macros tr.group .cc { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
+.matrix.macros tr.group .cc input { width: 4.2em; }
+/* Wander, above the macros: two settings side by side, then what they do */
 .drift { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 300px) 1fr; gap: 4px 26px; align-items: center; margin: 0 0 14px; }
 .drift .hint { margin: 0; }
 @media (max-width: 1100px) { .drift { grid-template-columns: 1fr; } }
@@ -249,7 +260,8 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .step { width: 22px; height: 22px; border-radius: 6px; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 0 2px; }
 .topbar .step:hover:not(:disabled) { background: var(--faint); color: var(--text); }
 .topbar .name { margin-left: 2px; }
-.topbar .moved { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); } /* settings moved since the sound was loaded */
+.topbar .moved { flex: none; width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--accent); cursor: pointer; }
+.topbar .moved:hover { box-shadow: 0 0 0 3px var(--accent-soft); } /* settings moved since the sound was loaded */
 .topbar .ab { margin-left: 4px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .topbar .ab:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
 .topbar .ab.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
@@ -287,6 +299,14 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .oct { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }
 .oct button { width: 22px; height: 18px; border-radius: 4px; color: var(--muted); }
 .oct button:hover { background: var(--faint); color: var(--text); }
+.oct button.hold { width: auto; padding: 0 6px; margin-top: 3px; font-size: 10px; letter-spacing: .04em; border: 1px solid var(--line); }
+.oct button.hold.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
+/* a 16-step pattern (Param.svelte): one small button per step, a gap every four */
+.steps { display: grid; grid-template-columns: repeat(16, 1fr); gap: 2px; }
+.steps button { height: 16px; border-radius: 3px; background: var(--track); padding: 0; }
+.steps button:nth-child(4n + 1):not(:first-child) { margin-left: 3px; }
+.steps button.on { background: var(--accent); }
+.steps button:hover { filter: brightness(1.25); }
 .keys { position: relative; display: flex; flex: 1; height: 64px; gap: 2px; user-select: none; touch-action: none; }
 .keys .w { flex: 1; background: var(--key-w); border-radius: 0 0 5px 5px; box-shadow: inset 0 0 0 1px var(--line); }
 .keys .b { position: absolute; top: 0; width: 2.6%; height: 58%; background: var(--key-b); border-radius: 0 0 4px 4px; z-index: 1; }

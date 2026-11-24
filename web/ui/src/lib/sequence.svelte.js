@@ -85,7 +85,8 @@ class Sequence {
       d = { current: old.current ? this.#fromGrid(old.current) : null, saved };
     }
     this.saved = d.saved && typeof d.saved === 'object' ? d.saved : {};
-    session.clipHook = { take: (p) => this.fromPatch(p), give: () => this.toPatch(), stop: () => this.playing && this.stop() };
+    session.clipHook = { take: (p) => this.fromPatch(p), give: () => this.toPatch(), stop: () => this.playing && this.stop(),
+      playing: () => this.playing, play: () => this.play() };
     if (d.current) this.#load(d.current);
     this.#ready = true;
     $effect.root(() => {
@@ -164,7 +165,10 @@ class Sequence {
     clearTimeout(this.#pending);
     this.#pending = setTimeout(() => this.send(), 25);
   }
-  play = () => { session.seqPlaying = true; this.beat = 0; this.send(); };
+  play = () => {
+    if (!this.notes.length) { session.notify('The clip is empty: draw notes, or pick a sound of the library.'); return; }
+    session.seqPlaying = true; this.beat = 0; this.send();
+  };
   stop = (toPlayer = true) => {
     clearTimeout(this.#pending);
     session.seqPlaying = false;

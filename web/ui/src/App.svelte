@@ -87,7 +87,10 @@
     </main>
 
     <footer>
-      <Card title="Macro control" plain class="macrocard"><MacroStrip /></Card>
+      <Card plain class="macrocard">
+        <div class="playing"><h2>Macros</h2><span title={s.description}>{s.description || s.label}</span></div>
+        <MacroStrip />
+      </Card>
       <Keyboard synth={s.synth} held={lit} />
     </footer>
 

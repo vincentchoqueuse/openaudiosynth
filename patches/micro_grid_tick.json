@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_grid_tick",
+  "description": "Ticks on the grid: 40 cycles of a sine locked to the sixteenth (a whole number of cycles per step, every repeat identical to the sample), alternating hard left and hard right at each hit, the right channel 23 samples late so each tick splits in two; a low pole under it on the beat.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 6400,
+    "lock": "1/16",
+    "phase_reset": "on",
+    "burst": 40,
+    "env_mode": "one_shot",
+    "amp_attack": 2e-05,
+    "amp_decay": 0.004,
+    "ratchet": 4,
+    "ratchet_div": "1/16",
+    "ratchet_decay": -3,
+    "space": "alternate",
+    "space_delay": 23,
+    "low_level": -4,
+    "low_freq": 48,
+    "low_decay": 0.35,
+    "low_drop": 12,
+    "low_drop_time": 0.02,
+    "low_gate": "pattern",
+    "low_pattern": 4369,
+    "gate_mode": "sync",
+    "gate_div": "1/16",
+    "gate_pattern": 65535,
+    "volume": 8,
+    "tempo": 120
+  },
+  "audition": {
+    "notes": "A4 - - - A4 - - - A4 - - - A4 - - -",
+    "bpm": 120,
+    "step": 0.25
+  }
+}

@@ -4,7 +4,9 @@
  * ratchets on their interval and dying away, a gate pattern on the beat, the noise layer (inverse gate, a tick per
  * step, the periodic and stepped kinds), the low layer (on its sample, exact length, two hits identical, its
  * pitch fixed or from the note, hits on its own gate), a glide that arrives, and every
- * parameter at its extremes bounded and deterministic. Engine-level renders (no master stage) unless noted. */
+ * parameter at its extremes bounded and deterministic; the grid (a frequency moved to a whole number of cycles per
+ * step, the low layer too) and the space (hard sides, sides that alternate on the sample of each hit, one channel an
+ * exact number of samples late). Engine-level renders (no master stage) unless noted. */
 #include <math.h>
 #include <string.h>
 
@@ -64,8 +66,92 @@ static int last_nonzero(const float *x, int n)
     return -1;
 }
 
+/* the grid and the space: lock, space hard / alternate, space_delay */
+static void grid_and_space(void)
+{
+    /* lock 1/16 at 120 BPM (0.125 s): 1003 Hz goes to 1000 Hz, 125 whole cycles, and the low layer's 45 Hz to 48 Hz */
+    fresh();
+    setp(MICRO_P_PITCH_MODE, 1.0f);
+    setp(MICRO_P_FREQ, 1003.0f);
+    setp(MICRO_P_LOCK, 3.0f);
+    setp(MICRO_P_SUSTAIN, 1.0f); /* a steady level: a step later the wave must be the same */
+    note_at(60, 0);
+    beat_pos = 0.0f;
+    run(L, R, 24000, 120.0f);
+    const float f = estimate_freq(L + 2400, 19200, SR);
+    printf("  lock 1/16 at 120 BPM: 1003 Hz plays %.3f Hz\n", (double)f);
+    CHECK(fabsf(f - 1000.0f) < 0.2f, "lock: 1003 Hz plays %.3f Hz instead of 1000", (double)f);
+    /* a whole number of cycles in a step: the wave at the end of a step is the wave at its start */
+    float worst = 0.0f;
+    for (int i = 2400; i < 2400 + 480; i++)
+        worst = fmaxf(worst, fabsf(L[i + 6000] - L[i]));
+    CHECK(worst < 2e-3f * max_abs(L + 2400, 480), "lock: a step later the wave differs by %g", (double)worst);
+    fresh();
+    setp(MICRO_P_SINE_LEVEL, -60.0f);
+    setp(MICRO_P_LOW_LEVEL, 0.0f);
+    setp(MICRO_P_LOW_DECAY, 2.0f);
+    setp(MICRO_P_LOCK, 3.0f);
+    note_at(60, 0);
+    beat_pos = 0.0f;
+    run(L, R, 24000, 120.0f);
+    const float fl = estimate_freq(L + 2400, 19200, SR);
+    printf("  lock 1/16: the low layer's 45 Hz plays %.3f Hz\n", (double)fl);
+    CHECK(fabsf(fl - 48.0f) < 0.05f, "lock: low 45 Hz plays %.3f Hz instead of 48", (double)fl);
+
+    /* space hard: a pan of 0.6 is fully right, nothing on the left */
+    fresh();
+    setp(MICRO_P_PAN, 0.6f);
+    setp(MICRO_P_SPACE, 1.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 9600, 120.0f);
+    CHECK(max_abs(L, 9600) == 0.0f && max_abs(R, 9600) > 0.01f, "space hard: left %g, right %g", (double)max_abs(L, 9600),
+          (double)max_abs(R, 9600));
+
+    /* space alternate: ratchet hits 100 ms apart, left, right, left; the side changes on the hit's own sample */
+    fresh();
+    setp(MICRO_P_SPACE, 2.0f);
+    setp(MICRO_P_RATCHET, 3.0f);
+    setp(MICRO_P_RATCHET_DIV, 0.0f); /* off the tempo: at ratchet_hz */
+    setp(MICRO_P_RATCHET_HZ, 10.0f);
+    setp(MICRO_P_ENV_MODE, 1.0f);
+    setp(MICRO_P_DECAY, 0.05f);
+    note_at(69, 7);
+    beat_pos = 0.0f;
+    run(L, R, 19200, 120.0f);
+    const int l0 = first_nonzero(L, 19200), r0 = first_nonzero(R, 19200);
+    const float rl = max_abs(R, 4800 + 7), lr = max_abs(L + 4800 + 7, 4800), ll = max_abs(L + 9600 + 7, 4800);
+    printf("  space alternate: first left sample %d, first right %d (hit 2 at %d)\n", l0, r0, 4800 + 7);
+    CHECK(l0 >= 7 && l0 <= 8 && r0 == l0 + 4800 && rl == 0.0f && lr == 0.0f && ll > 0.01f, /* a hit's first sample is its envelope's 0 */
+          "space alternate: left from %d, right from %d, right before %g, left during hit 2 %g, left at hit 3 %g", l0, r0,
+          (double)rl, (double)lr, (double)ll);
+
+    /* space_delay 10: the right channel is the left one, ten samples late, to the bit */
+    fresh();
+    setp(MICRO_P_CLICK_MODE, 1.0f);
+    setp(MICRO_P_SPACE_DELAY, 10.0f);
+    note_at(69, 3);
+    beat_pos = 0.0f;
+    run(L, R, 9600, 120.0f);
+    int same = first_nonzero(R, 9600) == first_nonzero(L, 9600) + 10;
+    for (int i = 0; i + 10 < 9600; i++)
+        same &= R[i + 10] == L[i];
+    CHECK(same, "space_delay 10: the right is not the left ten samples late (left from %d, right from %d)",
+          first_nonzero(L, 9600), first_nonzero(R, 9600));
+    setp(MICRO_P_SPACE_DELAY, -10.0f);
+    fresh();
+    setp(MICRO_P_CLICK_MODE, 1.0f);
+    setp(MICRO_P_SPACE_DELAY, -10.0f);
+    note_at(69, 3);
+    beat_pos = 0.0f;
+    run(L, R, 9600, 120.0f);
+    CHECK(first_nonzero(L, 9600) == first_nonzero(R, 9600) + 10, "space_delay -10: left from %d, right from %d",
+          first_nonzero(L, 9600), first_nonzero(R, 9600));
+}
+
 void suite_micro(void)
 {
+    grid_and_space();
     /* onset: a note asked at sample 37 of the stream starts on sample 37 through the synth (block 1, offset 5) */
     {
         synth_t *s = synth_default();
@@ -221,6 +307,7 @@ void suite_micro(void)
     setp(MICRO_P_DECAY, 0.02f);
     setp(MICRO_P_RATCHET, 4.0f);
     setp(MICRO_P_RATCHET_DIV, 0.0f);
+    setp(MICRO_P_RATCHET_DIV, 0.0f); /* off the tempo: at ratchet_hz */
     setp(MICRO_P_RATCHET_HZ, 10.0f);
     setp(MICRO_P_RATCHET_DECAY, -6.0f);
     note_at(81, 0);

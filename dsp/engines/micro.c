@@ -21,6 +21,9 @@ static const char *const noise_filter_labels[] = {"off", "lp", "bp", "hp", NULL}
 static const char *const noise_env_labels[] = {"amp", "hit", "step", NULL};
 static const char *const noise_gate_labels[] = {"off", "same", "inverse", "pattern", NULL};
 static const char *const low_mode_labels[] = {"fixed", "note", NULL};
+static const char *const lock_labels[] = {"off", "1/64", "1/32", "1/16", "1/8", "1/4", "1/2", "bar", NULL};
+static const float lock_beats[] = {0.0f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f};
+static const char *const space_labels[] = {"free", "hard", "alternate", NULL};
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
@@ -177,7 +180,46 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           "and falls `low_beat` times a second, starting full on every hit"),
     PARAM(MICRO_P_LOW_BEAT_MIX, "low_beat_mix", "micro.low_beat_mix", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
           "share of the second sine: 0.5 = equal, the sound falls to silence at every beat; less = a shallower swell"),
+    PARAM(MICRO_P_LOCK, "lock", "micro.lock", 0.0f, 7.0f, 0.0f, PARAM_INT, "", 0, lock_labels,
+          "frequencies on the grid: each sine (main, low) moves to the nearest frequency that makes a whole number of "
+          "cycles in this length of the tempo, and the beatings (osc2 offset, low_beat) a whole number of beats; with "
+          "phase_reset a hit on the grid starts and ends on the same point of its wave, every loop identical"),
+    PARAM(MICRO_P_SPACE, "space", "micro.space", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, space_labels,
+          "free: the pans as set; hard: every pan snapped to left, centre or right; alternate: each hit (a note, a "
+          "ratchet repeat) on the other side, fully left then fully right (the low layer stays in the centre)"),
+    PARAM(MICRO_P_SPACE_DELAY, "space_delay", "micro.space_delay", -96.0f, 96.0f, 0.0f, PARAM_INT, "samples", 0, NULL,
+          "one channel this many samples late: positive = the right, negative = the left (a few samples widen, "
+          "tens of samples split a click into two)"),
 };
+
+/* the length of the grid in seconds (0: no grid) */
+static float lock_seconds(const micro_t *e)
+{
+    const int k = dsp_clampi((int)e->p[MICRO_P_LOCK], 0, 7);
+    return k > 0 ? lock_beats[k] * 60.0f / e->bpm : 0.0f;
+}
+
+/* a pitch on the grid: the nearest frequency with a whole number of cycles (at least one) in the grid's length */
+static float lock_semi(const micro_t *e, float semi)
+{
+    const float t = lock_seconds(e);
+    if (t <= 0.0f)
+        return semi;
+    float k = (float)(int32_t)(fm_mtof(semi) * t + 0.5f);
+    k = dsp_maxf(k, 1.0f);
+    return 69.0f + 12.0f * fm_log2(k / (t * 440.0f));
+}
+
+/* a frequency difference (a beating) on the grid: a whole number of beats in its length, never 0 unless it was */
+static float lock_hz(const micro_t *e, float hz)
+{
+    const float t = lock_seconds(e);
+    if (t <= 0.0f || hz == 0.0f)
+        return hz;
+    float k = (float)(int32_t)(dsp_absf(hz) * t + 0.5f);
+    k = dsp_maxf(k, 1.0f);
+    return (hz < 0.0f ? -k : k) / t;
+}
 
 /* ---------------- envelope segments ---------------- */
 
@@ -300,8 +342,8 @@ static float base_semi(const micro_t *e, int note)
 {
     const float tr = e->p[MICRO_P_TRANSPOSE] + 0.01f * e->p[MICRO_P_FINE];
     if ((int)e->p[MICRO_P_PITCH_MODE] == 1)
-        return 69.0f + 12.0f * fm_log2(e->p[MICRO_P_FREQ] * (1.0f / 440.0f)) + tr;
-    return (float)note + tr;
+        return lock_semi(e, 69.0f + 12.0f * fm_log2(e->p[MICRO_P_FREQ] * (1.0f / 440.0f)) + tr);
+    return lock_semi(e, (float)note + tr);
 }
 
 static float ratchet_interval(const micro_t *e)
@@ -324,6 +366,7 @@ static void low_hit(micro_t *e, micro_voice_t *v)
             up += 12.0f;
         v->low_semi = base + up;
     }
+    v->low_semi = lock_semi(e, v->low_semi);
     if (v->low_stage != MICRO_ENV_IDLE) {
         const float dg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE];
         const float m = p[MICRO_P_LOW_BEAT] != 0.0f ? p[MICRO_P_LOW_BEAT_MIX] : 0.0f;
@@ -370,6 +413,8 @@ static void hit(micro_t *e, micro_voice_t *v)
             v->semi = v->semi_target = target;
         v->gate = 1;
     }
+    if ((int)e->p[MICRO_P_SPACE] == 2) /* alternate: every hit on the other side */
+        v->side = v->side < 0.0f ? 1.0f : -1.0f;
     const float db = e->p[MICRO_P_RATCHET_DECAY] * (float)v->hit_index;
     v->hit_gain = dsp_minf(fm_db2lin(db), 1.0f);
     if ((int)e->p[MICRO_P_PHASE_RESET]) {
@@ -516,6 +561,10 @@ static void micro_init(void *st, float sample_rate)
     smooth_init(&e->vol, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(e->p[MICRO_P_VOLUME]));
     e->vol_prev = e->vol.y;
     vpoly_init(&e->poly, MICRO_VOICES, sample_rate, &micro_poly_ops, e);
+    for (int c = 0; c < 2; c++)
+        for (int i = 0; i < MICRO_DELAY_MAX; i++)
+            e->dly[c][i] = 0.0f;
+    e->dly_w = 0;
     for (int i = 0; i < MICRO_VOICES; i++) {
         micro_voice_t *v = &e->v[i];
         *v = (micro_voice_t){0};
@@ -608,12 +657,22 @@ typedef struct {
     int lgate;
     uint32_t lpat;
     float ldg, lnorm, ldrop, lbeat, lmix;
+    int space;                                /* free, hard, alternate */
 } micro_block_t;
 
 /* one voice into the bus: level, steal fade, per-voice level and pan. xa = main sine, sub and click; xb = second
  * sine; xn = noise layer (valid when it is on); xw = low layer (valid when low_live). */
+/* space hard: a pan snapped to left, centre or right, as exact gains (a side is 1 and 0, the centre equal power) */
+static inline void hard_pan(float x, float *l, float *r)
+{
+    *l = x > 0.33f ? 0.0f : x < -0.33f ? 1.0f : 0.70710678f;
+    *r = x > 0.33f ? 1.0f : x < -0.33f ? 0.0f : 0.70710678f;
+}
+
+/* sd: with space alternate, the side of each sample of the block (-1 left, +1 right; it changes on the sample of a
+ * hit), else NULL */
 static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, int low_live, float *xa, float *xb,
-                                    float *xn, float *xw, float *L, float *R)
+                                    float *xn, float *xw, const float *sd, float *L, float *R)
 {
     micro_voice_t *v = &e->v[vi];
     const int n = SYNTH_BLOCK;
@@ -654,10 +713,26 @@ static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, 
             R[i] += 0.70710678f * xw[i];
         }
     }
+    if (sd) { /* alternate: the sines and the noise fully on the side of their hit, the second sine opposite when split */
+        if (ln > 0.0f)
+            dsp_guard_block(xn, n, &e->nan_count);
+        for (int i = 0; i < n; i++) {
+            const float l = sd[i] < 0.0f ? 1.0f : 0.0f, r = 1.0f - l;
+            const float a = xa[i] + (ln > 0.0f ? xn[i] : 0.0f);
+            L[i] += a * l + xb[i] * (b->split ? r : l);
+            R[i] += a * r + xb[i] * (b->split ? l : r);
+        }
+        return;
+    }
+    const int hard = b->space == 1;
     if (ln > 0.0f) { /* the noise at its own place */
         dsp_guard_block(xn, n, &e->nan_count);
         float nl, nr;
-        voice_pan(dsp_clampf(p[MICRO_P_PAN] + d + p[MICRO_P_NOISE_PAN], -1.0f, 1.0f), &nl, &nr);
+        const float np = dsp_clampf(p[MICRO_P_PAN] + d + p[MICRO_P_NOISE_PAN], -1.0f, 1.0f);
+        if (hard)
+            hard_pan(np, &nl, &nr);
+        else
+            voice_pan(np, &nl, &nr);
         for (int i = 0; i < n; i++) {
             L[i] += xn[i] * nl;
             R[i] += xn[i] * nr;
@@ -665,15 +740,24 @@ static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, 
     }
     if (b->split) { /* main sine on the left, second on the right, around the pan */
         float al, ar, bl, br;
-        voice_pan(dsp_clampf(p[MICRO_P_PAN] + d - 1.0f, -1.0f, 1.0f), &al, &ar);
-        voice_pan(dsp_clampf(p[MICRO_P_PAN] + d + 1.0f, -1.0f, 1.0f), &bl, &br);
+        const float pa = dsp_clampf(p[MICRO_P_PAN] + d - 1.0f, -1.0f, 1.0f), pb = dsp_clampf(p[MICRO_P_PAN] + d + 1.0f, -1.0f, 1.0f);
+        if (hard) {
+            hard_pan(pa, &al, &ar);
+            hard_pan(pb, &bl, &br);
+        } else {
+            voice_pan(pa, &al, &ar);
+            voice_pan(pb, &bl, &br);
+        }
         for (int i = 0; i < n; i++) {
             L[i] += xa[i] * al + xb[i] * bl;
             R[i] += xa[i] * ar + xb[i] * br;
         }
     } else {
         float pl, pr;
-        voice_pan_offset(d, b->pan_l, b->pan_r, &pl, &pr);
+        if (hard)
+            hard_pan(p[MICRO_P_PAN] + d, &pl, &pr);
+        else
+            voice_pan_offset(d, b->pan_l, b->pan_r, &pl, &pr);
         for (int i = 0; i < n; i++) {
             const float x = xa[i] + xb[i];
             L[i] += x * pl;
@@ -708,7 +792,8 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
     micro_voice_t *v = &e->v[vi];
     const float *vm = vpoly_vmod(&e->poly, vi);
     const float shift = e->bend + vm[VM_PITCH];
-    float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK], xw[SYNTH_BLOCK];
+    float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK], xw[SYNTH_BLOCK], sd[SYNTH_BLOCK];
+    const int alt = blk->space == 2;
     const int low_live = ll > 0.0f || v->low_stage != MICRO_ENV_IDLE || v->low_tail != 0.0f;
     if (v->low_stage != MICRO_ENV_IDLE) {
         seg_sync(&v->low_amp);
@@ -731,6 +816,8 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
         } else if (v->hit_in > 0) {
             v->hit_in--;
         }
+        if (alt)
+            sd[i] = v->side;
         if (v->off_in == 0) {
             voice_release_now(e, v);
             v->off_in = -1;
@@ -936,7 +1023,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
         svf_process(&v->noise_f, xn, xn, n);
     }
 
-    voice_mix(e, vi, blk, low_live, xa, xb, xn, xw, L, R);
+    voice_mix(e, vi, blk, low_live, xa, xb, xn, xw, alt ? sd : 0, L, R);
 
     const int sounding = v->stage != MICRO_ENV_IDLE || v->hit_in >= 0 || v->click_live > 0 ||
                          (ln > 0.0f && nenv > 0 && v->noise_amp > 1e-4f) || v->low_stage != MICRO_ENV_IDLE ||
@@ -963,7 +1050,7 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     b.ls = p[MICRO_P_SUB_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_SUB_LEVEL]);
     b.split = (int)p[MICRO_P_OSC2_SPLIT], b.o2hz = (int)p[MICRO_P_OSC2_MODE] == 1;
     b.o2penv = (int)p[MICRO_P_OSC2_PITCH_ENV];
-    b.o2ratio = p[MICRO_P_OSC2_RATIO], b.o2off = p[MICRO_P_OSC2_OFFSET] * inv_sr;
+    b.o2ratio = p[MICRO_P_OSC2_RATIO], b.o2off = lock_hz(e, p[MICRO_P_OSC2_OFFSET]) * inv_sr;
     b.sub_mul = (int)p[MICRO_P_SUB_OCTAVE] >= 2 ? 0.25f : 0.5f;
     b.pamt = p[MICRO_P_PITCH_AMOUNT];
     b.glide_c = p[MICRO_P_GLIDE] > 0.00075f ? voice_glide_arrive_coef(p[MICRO_P_GLIDE], 1, e->sr) : 1.0f;
@@ -993,7 +1080,8 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     b.lgate = b.gmode > 0 ? (int)p[MICRO_P_LOW_GATE] : 0;
     b.lpat = b.lgate == 1 ? b.gpat : b.lgate == 2 ? ~b.gpat : (uint32_t)p[MICRO_P_LOW_PATTERN];
     b.ldg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE], b.lnorm = 1.0f / fm_tanh(b.ldg), b.ldrop = p[MICRO_P_LOW_DROP];
-    b.lbeat = p[MICRO_P_LOW_BEAT] * inv_sr, b.lmix = b.lbeat != 0.0f ? p[MICRO_P_LOW_BEAT_MIX] : 0.0f;
+    b.space = (int)p[MICRO_P_SPACE];
+    b.lbeat = lock_hz(e, p[MICRO_P_LOW_BEAT]) * inv_sr, b.lmix = b.lbeat != 0.0f ? p[MICRO_P_LOW_BEAT_MIX] : 0.0f;
     if (b.nfilt != e->noise_filter_set) {
         for (int i = 0; i < MICRO_VOICES; i++) {
             svf_set_mode(&e->v[i].noise_f, (svf_mode_t)(b.nfilt > 0 ? b.nfilt - 1 : 0));
@@ -1008,9 +1096,28 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         e->click_mode_set = b.cm;
     }
 
+    /* space_delay: the voices into a pair of their own, then one channel late by an exact number of samples */
+    const int dl = (int)p[MICRO_P_SPACE_DELAY];
+    if (dl == 0) {
+        for (int vi = 0; vi < MICRO_VOICES; vi++)
+            if (vpoly_active(&e->poly, vi))
+                voice_render(e, vi, &b, L, R);
+        return;
+    }
+    float tl[SYNTH_BLOCK] = {0.0f}, tr[SYNTH_BLOCK] = {0.0f};
     for (int vi = 0; vi < MICRO_VOICES; vi++)
         if (vpoly_active(&e->poly, vi))
-            voice_render(e, vi, &b, L, R);
+            voice_render(e, vi, &b, tl, tr);
+    const int late = dl > 0 ? 1 : 0, d = dl > 0 ? dl : -dl;
+    float *src[2] = {tl, tr}, *dst[2] = {L, R};
+    for (int i = 0; i < n; i++) {
+        const int w = (e->dly_w + i) & (MICRO_DELAY_MAX - 1);
+        for (int c = 0; c < 2; c++)
+            e->dly[c][w] = src[c][i];
+        dst[1 - late][i] += src[1 - late][i];
+        dst[late][i] += e->dly[late][(w - d) & (MICRO_DELAY_MAX - 1)];
+    }
+    e->dly_w = (e->dly_w + n) & (MICRO_DELAY_MAX - 1);
 }
 
 static const engine_stage_t micro_stages[] = {
@@ -1026,6 +1133,7 @@ static const engine_stage_t micro_stages[] = {
     {"pitch_env", "Pitch env", "mod", "pitch_amount pitch_time pitch_curve", "", "sine osc2 sub", NULL, 0.0f, 0.0f},
     {"ratchet", "Ratchet", "mod", "ratchet ratchet_div ratchet_hz ratchet_decay", "", "amp", "ratchet", 1.0f, 4.0f},
     {"gate", "Gate", "mod", "gate_", "", "amp", "gate_mode", 0.0f, 1.0f},
+    {"grid", "Grid and space", "mod", "lock space space_delay", "", "sine osc2 low noise", NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "voice_mode glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
 

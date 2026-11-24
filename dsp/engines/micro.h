@@ -42,6 +42,9 @@ enum {
     MICRO_P_LOW_LEVEL, MICRO_P_LOW_MODE, MICRO_P_LOW_FREQ, MICRO_P_LOW_PHASE, MICRO_P_LOW_DROP, MICRO_P_LOW_DROP_TIME,
     MICRO_P_LOW_ATTACK, MICRO_P_LOW_HOLD, MICRO_P_LOW_DECAY, MICRO_P_LOW_CURVE, MICRO_P_LOW_DRIVE, MICRO_P_LOW_GATE,
     MICRO_P_LOW_PATTERN, MICRO_P_LOW_BEAT, MICRO_P_LOW_BEAT_MIX,
+    /* the grid: frequencies a whole number of cycles per length of the tempo; space: hard sides, sides that
+     * alternate at every hit, the two channels an exact number of samples apart */
+    MICRO_P_LOCK, MICRO_P_SPACE, MICRO_P_SPACE_DELAY,
     MICRO_P_COUNT
 };
 extern const param_desc_t micro_params[MICRO_P_COUNT];
@@ -50,6 +53,8 @@ extern const engine_ops_t micro_engine;
 /* One envelope segment from y0 to y1 in n samples: linear (a = 1, y += b) or exponential toward a target t past
  * (or before) the end, y = t + (y - t) * a. Its value is recomputed exactly at the start of every block (from k),
  * so long segments do not drift; within a block the recursion runs. */
+#define MICRO_DELAY_MAX 128 /* a power of two above the largest space_delay (96 samples) */
+
 typedef struct {
     float y, y0, y1, t, a, la, b;
     int n, k, lin;
@@ -87,6 +92,7 @@ typedef struct {
     int lstep;                      /* the step its gate was on at the last sample */
     float vm_gain;
     int vm_fresh;
+    float side; /* space alternate: the side of the current hit, -1 left, +1 right */
 } micro_voice_t;
 
 typedef struct {
@@ -101,6 +107,8 @@ typedef struct {
     uint32_t nan_count;
     vpoly_t poly;
     micro_voice_t v[MICRO_VOICES];
+    float dly[2][MICRO_DELAY_MAX]; /* space_delay: the last samples of each channel */
+    int dly_w;
 } micro_t;
 
 #endif /* ENGINE_MICRO_H */

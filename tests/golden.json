@@ -41,6 +41,7 @@
  "patch/micro_data_ratchet": "269a6e28db2bfe13",
  "patch/micro_deep_kick": "34b68f14f898c028",
  "patch/micro_gated_tone": "ff85c0afbc32d377",
+ "patch/micro_grid_tick": "50ad9f40d1d338d5",
  "patch/micro_high_tone": "bbd460b58d5a1786",
  "patch/micro_low_beating": "eaad33fba09f045d",
  "patch/micro_low_interlock": "5ba62a12165b472a",

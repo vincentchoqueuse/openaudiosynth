@@ -274,6 +274,8 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
 
 See `songs/grille_fine.json` and `songs/trame_blanche.json`.
 
+- **The grid** (`lock`: 1/64 .. bar): each sine (the main one, the low layer) moves to the nearest frequency that makes a whole number of cycles in that length of the tempo (1003 Hz at 1/16 and 120 BPM: 1000 Hz, 125 cycles), and the beatings (`osc2_offset` in hz mode, `low_beat`) to a whole number of beats. With `phase_reset` on, a hit on the grid starts and ends on the same point of its wave: every repeat is identical to the sample. The pitch is set when the note starts, from the tempo then.
+- **The space** (`space`): `hard` snaps every pan to left, centre or right, as exact gains (one side is exactly silent); `alternate` puts each hit, a note or a ratchet repeat, fully on the other side, the switch on the hit's own sample (the low layer stays in the centre). `space_delay` makes one channel late by an exact number of samples (positive: the right): a few samples widen, twenty and more split a click in two (`micro_grid_tick`).
 
 ## Noise machine with a wide palette (`havoc`)
 

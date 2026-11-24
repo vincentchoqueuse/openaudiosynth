@@ -1231,6 +1231,9 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `low_pattern` | 0 .. 65535 | 4369 |  | `micro.low_pattern` | the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1) |
 | `low_beat` | -30 .. 30 Hz | 0 | yes | `micro.low_beat` | a second low sine this many hertz away from the first (0 = none): the two interfere, the level swells and falls `low_beat` times a second, starting full on every hit |
 | `low_beat_mix` | 0 .. 1 | 0.5 | yes | `micro.low_beat_mix` | share of the second sine: 0.5 = equal, the sound falls to silence at every beat; less = a shallower swell |
+| `lock` | off, 1/64, 1/32, 1/16, 1/8, 1/4, 1/2, bar | off |  | `micro.lock` | frequencies on the grid: each sine (main, low) moves to the nearest frequency that makes a whole number of cycles in this length of the tempo, and the beatings (osc2 offset, low_beat) a whole number of beats; with phase_reset a hit on the grid starts and ends on the same point of its wave, every loop identical |
+| `space` | free, hard, alternate | free |  | `micro.space` | free: the pans as set; hard: every pan snapped to left, centre or right; alternate: each hit (a note, a ratchet repeat) on the other side, fully left then fully right (the low layer stays in the centre) |
+| `space_delay` | -96 .. 96 samples | 0 |  | `micro.space_delay` | one channel this many samples late: positive = the right, negative = the left (a few samples widen, tens of samples split a click into two) |
 
 ## Engine `havoc` (1 voices)
 

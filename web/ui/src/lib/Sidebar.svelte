@@ -13,7 +13,8 @@
   <div class="brand"><span class="logo"></span>OASynth <span class="by">by Choc</span>
     <button class="ghost drawer" onclick={() => (open = !open)} aria-expanded={open}>Sounds {open ? '˄' : '˅'}</button>
   </div>
-  <Library patches={s.patches} current={s.current} onpick={pick} nameOf={s.nameOf} />
+  <Library patches={s.patches} current={s.current} onpick={pick} nameOf={s.nameOf}
+           onnew={async (eng) => { await s.newSound(eng); open = false; }} fresh={s.current ? null : s.engine?.name} />
   <div class="side-foot">
     <span class="midi" class:on={s.midiNames.length} title={s.midiNames.join(', ') || 'No MIDI input'}>
       {s.midiNames.length ? s.midiNames[0] : 'no MIDI input'}

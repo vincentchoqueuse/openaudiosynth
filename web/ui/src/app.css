@@ -238,6 +238,7 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .preset .pname { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .preset .peng { font-size: 11px; color: var(--muted); }
 .preset .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); flex: none; }
+.preset.new { font-size: 11.5px; opacity: .8; }
 .preset:hover { background: var(--faint); color: var(--text); }
 .preset.active { background: color-mix(in srgb, var(--c) 18%, transparent); color: var(--text); font-weight: 500; }
 .side-foot { padding: 10px 8px 2px; border-top: 1px solid var(--line); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
@@ -249,42 +250,40 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .links a, .links .theme { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); padding: 0; }
 .links a:hover, .links .theme:hover { color: var(--text); background: var(--faint); }
 
-/* top bar (TopBar.svelte): Menu, the views, the preset | CPU, output, volume, play; always in view */
-.topbar { position: sticky; top: -24px; z-index: 3; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
-  margin: -24px -32px 18px; padding: 10px 32px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
+/* top bar (TopBar.svelte), always in view. Three parts: the views | the sound | playing and the menu; the sides
+   share the room left, so the sound sits in the middle */
+.topbar { position: sticky; top: -24px; z-index: 3; display: flex; align-items: center; gap: 16px;
+  margin: -24px -32px 18px; padding: 9px 32px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
-.topbar .tb-left, .topbar .tb-right { display: flex; align-items: center; gap: 12px; }
-.topbar .tb-left { min-width: 0; }
-.topbar .tb-right { justify-content: flex-end; margin-left: auto; } /* wraps under the left part when the bar is short */
+.topbar .tb-left, .topbar .tb-right { flex: 1 1 0; display: flex; align-items: center; gap: 14px; min-width: 0; }
+.topbar .tb-right { justify-content: flex-end; }
+.topbar .tb-mid { flex: 0 1 auto; }
 .topbar .btn { padding: 5px 12px; }
-.topbar .namebox { display: flex; align-items: center; gap: 6px; min-width: 9em; }
+.topbar .namebox { display: flex; align-items: center; gap: 4px; min-width: 0; }
 .topbar .step { width: 22px; height: 22px; border-radius: 6px; color: var(--muted); font-size: 15px; line-height: 1; padding: 0 0 2px; }
 .topbar .step:hover:not(:disabled) { background: var(--faint); color: var(--text); }
-.topbar .name { margin-left: 2px; }
+.topbar .name { padding: 0 6px; text-align: center; }
 .topbar .moved { flex: none; width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--accent); cursor: pointer; }
 .topbar .moved:hover { box-shadow: 0 0 0 3px var(--accent-soft); } /* settings moved since the sound was loaded */
-.topbar .ab { margin-left: 4px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.topbar .ab { margin-left: 8px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .topbar .ab:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
 .topbar .ab.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 .topbar .ab:disabled { opacity: .4; }
-.topbar .namebox .tag { font-size: 11px; }
 .topbar .name { font-weight: 600; font-size: 13.5px; color: var(--text); letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .topbar .name.flash { animation: flash .9s ease-out; } /* a sound just loaded */
 .topbar .meter { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; }
 .topbar { --bar-w: 80px; --readout-w: 8ch; } /* CPU, Out and Vol: one bar width, one readout width */
-.topbar .meter .mval, .topbar .volume .db { font-size: 11.5px; }
+.topbar .meter .mval { font-size: 11.5px; }
 .topbar .meter .track { width: var(--bar-w); height: 6px; border-radius: 3px; background: var(--faint); overflow: hidden; }
 .topbar .meter .fill { height: 100%; background: linear-gradient(to right, var(--ok), var(--accent)); border-radius: 3px; }
 .topbar .meter .mval { flex: none; width: var(--readout-w); text-align: right; white-space: nowrap; }
 .topbar .meter .mlabel { width: 2.2em; }
 .topbar .meter.hot .fill { background: var(--hot); }
 .topbar .meter.hot .mval { color: var(--hot); }
-.topbar .volume { display: inline-flex; align-items: center; gap: 8px; }
+.topbar .volume { display: inline-flex; align-items: center; gap: 7px; }
 .topbar .volume input { width: var(--bar-w); }
-.topbar .volume .db { flex: none; width: var(--readout-w); text-align: right; white-space: nowrap; color: var(--text); } /* "-60.0 dB" fits */
 .topbar .tempo { display: inline-flex; align-items: center; gap: 6px; }
 .topbar .tempo input { width: 4.2em; font-size: 12.5px; }
-.topbar .seqlabel { margin-right: -4px; }
 
 /* the views: a title with its icon; Live (wave or spectrum) */
 .viewtitle { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; font-size: 20px; font-weight: 650; letter-spacing: -.02em; }
@@ -358,25 +357,18 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .chain .led { fill: var(--track); }
 .chain .led.on { fill: var(--ok); }
 
-/* ---- a narrow top bar (a 13-inch laptop): the meters go first, then the Sequencer label, so it stays on one line ---- */
+/* ---- a narrower top bar: the meters go first (a 13-inch laptop), then the views become icons and the tempo loses
+   its unit (a tablet), so the bar always keeps one line ---- */
 .topbar { container: topbar / inline-size; }
-@container topbar (max-width: 1440px) {
-  .topbar .tb-right .meter, .topbar .tb-right .meter + .vsep { display: none; }
+@container topbar (max-width: 1280px) {
+  .topbar .tb-right .meter { display: none; }
 }
-@container topbar (max-width: 900px) {
-  .topbar .tb-right .seqlabel { display: none; }
-}
-/* a tablet: the views and the menu as icons, the volume and the tempo without their words, so the bar keeps one line */
 @container topbar (max-width: 860px) {
   .topbar .pills.lg button { width: 38px; padding: 6px 0; font-size: 0; gap: 0; }
-  .topbar .opener { font-size: 0; gap: 0; padding: 6px 10px; }
-  .topbar .opener .caret { display: none; }
-  .topbar .namebox .tag, .topbar .volume .db, .topbar .volume > span:first-child, .topbar .tempo-unit { display: none; }
-  .topbar .tb-left > .vsep, .topbar .tb-right > .vsep { display: none; }
+  .topbar .tempo-unit { display: none; }
   .topbar .tb-left, .topbar .tb-right { gap: 8px; }
-  .topbar .namebox { min-width: 0; }
   .topbar .tempo input { width: 3.6em; }
-  .topbar { --bar-w: 64px; }
+  .topbar { --bar-w: 64px; gap: 10px; }
 }
 
 /* ---- a tablet held upright, and phones: the library is a bar at the top that opens on demand ---- */
@@ -392,13 +384,14 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 /* ---- phone ---- */
 @media (max-width: 760px) {
   main { padding: 16px; }
-  /* a phone plays: one line with the menu, previous / next, the sound's name, the tempo and play (the volume is the
-     phone's own buttons, A/B belongs to editing) */
-  .topbar { flex-wrap: nowrap; gap: 8px; margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
-  .topbar .tb-left { flex: 1; min-width: 0; }
-  .topbar .namebox { flex: 1; min-width: 0; }
-  .topbar .tb-right { flex: none; margin-left: 0; gap: 8px; }
-  .topbar .meter, .topbar .vsep, .topbar .volume, .topbar .ab, .topbar .seqlabel { display: none; }
+  /* a phone plays: one line with previous / next around the sound's name, then the tempo, play and the menu (the
+     volume is the phone's own buttons, A/B belongs to editing) */
+  .topbar { gap: 8px; margin: -16px -16px 14px; padding: 8px 16px; top: -16px; }
+  .topbar .tb-left { display: none; }
+  .topbar .tb-mid { flex: 1 1 0; }
+  .topbar .tb-mid .name { text-align: left; }
+  .topbar .tb-right { flex: none; gap: 8px; }
+  .topbar .meter, .topbar .vsep, .topbar .volume, .topbar .ab { display: none; }
   .pills.lg button { width: auto; padding: 5px 12px; }
   footer { padding: 12px 16px 10px; }
 }

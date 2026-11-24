@@ -1,10 +1,11 @@
 <!-- Library.svelte — the sound library, as on the board: instruments first (one per engine, in its color, with
-     its number of presets), the presets of the open one below it; typing in the search box lists the matching
+     its number of presets), the presets of the open one below it, after "New sound" (an empty sound on that
+     instrument); typing in the search box lists the matching
      presets of every instrument instead. -->
 <script>
   import { engineColor, engineRank } from './engines.js';
   import { urlParams } from './urlparams.js';
-  let { patches, current, onpick, nameOf = (p) => p.name } = $props();
+  let { patches, current, onpick, nameOf = (p) => p.name, onnew = null, fresh = null } = $props(); // fresh: the instrument of a new sound being edited
 
   let search = $state(urlParams.q); // ?q= in the address fills it
   let open = $state(null); // engine whose presets are shown
@@ -25,6 +26,7 @@
   $effect(() => {
     const p = patches.find((x) => x.file === current);
     if (p) open = p.engine;
+    else if (fresh) open = fresh;
   });
 </script>
 
@@ -47,6 +49,11 @@
         </button>
         {#if open === eng}
           <div class="presets" style="--c:{engineColor(eng)}">
+            {#if onnew}
+              <button class="preset new" class:active={fresh === eng} title="An empty sound on this instrument: everything at its default" onclick={() => onnew(eng)}>
+                <span class="pname">+ New sound</span>
+              </button>
+            {/if}
             {#each list as p (p.file)}
               <button class="preset" class:active={p.file === current} title={p.description} onclick={() => onpick(p)}>
                 <span class="pname">{nameOf(p)}</span>

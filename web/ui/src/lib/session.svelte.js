@@ -79,7 +79,7 @@ class Session {
   title = $derived(this.current ? this.current.replace('.json', '') : 'init'); // the sound's id (address, files)
   // a sound's name as read: without its instrument's prefix ("drone_abyss" under drone: "Abyss")
   nameOf = (p) => { const n = p.name.startsWith(p.engine + '_') ? p.name.slice(p.engine.length + 1) : p.name; return (n.charAt(0).toUpperCase() + n.slice(1)).replace(/_/g, ' '); };
-  label = $derived(this.info ? this.nameOf(this.info) : this.current ? this.title : 'New sound');
+  label = $derived(this.info ? this.nameOf(this.info) : this.current ? this.title : `New ${this.engine?.name ?? ''} sound`);
   // the library in the order it is listed (instruments, then their sounds): what Previous / Next walk through
   ordered = $derived(this.patches.map((p, i) => [p, i]).sort(([a, i], [b, j]) => engineRank(a.engine) - engineRank(b.engine) || a.engine.localeCompare(b.engine) || i - j).map(([p]) => p));
   // A/B: while the sound as loaded is heard (B), the edited values (A) wait here; null: the edit is heard
@@ -289,6 +289,23 @@ class Session {
   // back to the engine's default sound (the engine too, not only the sliders)
   resetEngine = () => {
     for (const d of this.engine.params) if (Math.abs((this.values[d.id] ?? d.def) - d.def) > 1e-9) this.setValue(d, d.def);
+  };
+
+  // An empty sound on an instrument: everything at its default (the instrument, the effects, the modulation), the
+  // instrument's default macros, one long note as its clip. It goes through the patch reader like any sound.
+  newSound = async (engine) => {
+    const wasPlaying = !!this.clipHook?.playing();
+    this.clipHook?.stop();
+    const prev = [this.current, this.info];
+    this.current = '';
+    this.info = null;
+    const r = await this.applyPatch(JSON.stringify({ version: 1, engine, name: `${engine}_new`, params: {},
+                                                     audition: { notes: 'C3 _ _ _', bpm: 90, step: 1 } }));
+    if (!r?.ok) { if (r) [this.current, this.info] = prev; return false; }
+    this.baseline = { ...this.values };
+    this.picks++;
+    if (wasPlaying) this.clipHook?.play();
+    return true;
   };
 
   // a sound of the library; returns true when it is the current one

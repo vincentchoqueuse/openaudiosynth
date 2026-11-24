@@ -4,6 +4,7 @@ const circle = (r) => `M8 ${8 - r}a${r} ${r} 0 1 0 0 ${2 * r}a${r} ${r} 0 1 0 0-
 
 export const ICONS = {
   menu: { d: 'M2.5 4h11M2.5 8h11M2.5 12h11' },
+  volume: { d: 'M2 6.2h2.6L8 3.2v9.6L4.6 9.8H2zM10.6 5.8a3.2 3.2 0 0 1 0 4.4M12.6 3.8a6 6 0 0 1 0 8.4' },
   // the views and the Synth view's pills
   sequence: { d: 'M2 2.5v11M2 13.5h12M4.5 4.5h3.5M7 7.5h4.5M9.5 10.5h3' },
   synth: { d: 'M1.5 8c1.2 0 1.6-5 3.2-5s1.8 10 3.3 10 1.7-10 3.3-10 1.8 5 3.2 5' },

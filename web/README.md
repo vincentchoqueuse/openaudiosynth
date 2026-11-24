@@ -66,7 +66,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   `lib/engineui.js`), Effects (the rack and the master), Modulation (the only pill with tabs: All assignments, then
   one per modulator, each with what it moves under its editor) and Macros (Wander, then the eight macros as groups:
   name, CC, the settings each moves). **Code**: the sound (the patch file) or the clip, in an editor as tall as
-  the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (menu, sound, volume, tempo, play), the live display,
+  the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (the sound, the tempo, play, the menu), the live display,
   the macros and the keyboard, with the library in its drawer; no Synth or Code view, no piano roll (the clip plays
   from the top bar), no macro CC, no shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
   keyboard, which lights the notes the clip plays.

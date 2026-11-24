@@ -5,7 +5,7 @@
      piano roll's). -->
 <script>
   import Icon from './Icon.svelte';
-  let { label, icon = null, items = [], align = 'left', title = '' } = $props();
+  let { label, icon = null, items = [], align = 'left', title = '', compact = false } = $props(); // compact: the icon alone
   let open = $state(false), box, maxH = $state(400), up = $state(false);
   // the space left in the area that scrolls (and clips) the menu, below the button, or above it when that is larger
   function room() {
@@ -37,8 +37,9 @@
 <svelte:window onpointerdown={(e) => { if (open && !box?.contains(e.target)) open = false; }} />
 
 <div class="menuwrap" bind:this={box} onkeydown={nav} role="presentation">
-  <button class="btn ghost opener" onclick={toggle} aria-haspopup="menu" aria-expanded={open} {title}>
-    {#if icon}<Icon name={icon} size={14} />{/if}{label}<span class="caret" aria-hidden="true">▾</span>
+  <button class="btn ghost opener" class:compact onclick={toggle} aria-haspopup="menu" aria-expanded={open} title={title || (compact ? label : '')}
+          aria-label={compact ? label : null}>
+    {#if icon}<Icon name={icon} size={compact ? 16 : 14} />{/if}{#if !compact}{label}<span class="caret" aria-hidden="true">▾</span>{/if}
   </button>
   {#if open}
     <div class="menu" class:right={align === 'right'} class:up role="menu" aria-label={label} style="max-height:{maxH}px">
@@ -56,6 +57,7 @@
 <style>
   .menuwrap { position: relative; }
   .opener { display: inline-flex; align-items: center; gap: 7px; }
+  .opener.compact { padding: 6px 8px; }
   .caret { font-size: 9px; color: var(--muted); margin-left: -2px; }
   .menu { position: absolute; top: calc(100% + 6px); left: 0; z-index: 6; min-width: 220px; overflow-y: auto;
     display: grid; padding: 5px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;

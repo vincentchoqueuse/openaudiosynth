@@ -545,6 +545,10 @@ static void micro_set_param(void *st, int id, float norm)
     if (id < 0 || id >= MICRO_P_COUNT)
         return;
     e->p[id] = param_from_norm(&micro_params[id], norm);
+    if (id == MICRO_P_VOLUME && vpoly_active_count(&e->poly) == 0) { /* silent: the next note starts at the new volume */
+        smooth_snap(&e->vol, fm_db2lin(e->p[MICRO_P_VOLUME]));
+        e->vol_prev = e->vol.y;
+    }
     if (id == MICRO_P_VOICE_MODE)
         vpoly_set_mode(&e->poly, (vpoly_mode_t)(int)e->p[id]);
     if (id == MICRO_P_PITCH_MODE || id == MICRO_P_FREQ || id == MICRO_P_TRANSPOSE || id == MICRO_P_FINE)

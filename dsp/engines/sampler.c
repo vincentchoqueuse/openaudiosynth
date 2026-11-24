@@ -190,8 +190,13 @@ static vpoly_t *sampler_poly(void *st) { return &((sampler_t *)st)->poly; }
 static void sampler_set_param(void *st, int id, float norm)
 {
     sampler_t *e = st;
-    if (id >= 0 && id < SAMPLER_P_COUNT)
-        e->p[id] = param_from_norm(&sampler_params[id], norm);
+    if (id < 0 || id >= SAMPLER_P_COUNT)
+        return;
+    e->p[id] = param_from_norm(&sampler_params[id], norm);
+    if (vpoly_active_count(&e->poly) == 0) { /* silent: the next hit starts at the new volume */
+        smooth_snap(&e->vol, fm_db2lin(e->p[SAMPLER_P_VOLUME]));
+        e->vol_prev = e->vol.y;
+    }
 }
 
 static void sampler_pitch_bend(void *st, float bend) { ((sampler_t *)st)->bend_semi = 2.0f * bend; }

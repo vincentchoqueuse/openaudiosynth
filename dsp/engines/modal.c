@@ -298,6 +298,10 @@ static void modal_set_param(void *st, int id, float norm)
         return;
     e->p[id] = param_from_norm(&modal_params[id], norm);
     e->version++;
+    if (vpoly_active_count(&e->poly) == 0) { /* silent: the next note starts at the new volume */
+        smooth_snap(&e->vol, fm_db2lin(e->p[MODAL_P_VOLUME]));
+        e->vol_prev = e->vol.y;
+    }
 }
 
 static void modal_pitch_bend(void *st, float bend)

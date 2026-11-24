@@ -243,6 +243,19 @@ static void va_set_param(void *st, int id, float norm)
     if (id < 0 || id >= VA_P_COUNT)
         return;
     e->p[id] = param_from_norm(&va_params[id], norm);
+    if (vpoly_active_count(&e->poly) == 0) { /* silent: nothing to glide, the next note starts on the new values */
+        smooth_snap(&e->sm_cut, fm_log2(e->p[VA_P_CUTOFF]));
+        smooth_snap(&e->sm_res, e->p[VA_P_RESO]);
+        smooth_snap(&e->sm_lvl[0], e->p[VA_P_OSC1_LEVEL]);
+        smooth_snap(&e->sm_lvl[1], e->p[VA_P_OSC2_LEVEL]);
+        smooth_snap(&e->sm_lvl[2], e->p[VA_P_NOISE_LEVEL]);
+        smooth_snap(&e->sm_pw[0], e->p[VA_P_OSC1_PW]);
+        smooth_snap(&e->sm_pw[1], e->p[VA_P_OSC2_PW]);
+        smooth_snap(&e->sm_vol, fm_db2lin(e->p[VA_P_VOLUME]));
+        for (int k = 0; k < 3; k++)
+            e->lvl_prev[k] = e->sm_lvl[k].y;
+        e->vol_prev = e->sm_vol.y;
+    }
     switch (id) {
     case VA_P_AMP_A: case VA_P_AMP_D: case VA_P_AMP_S: case VA_P_AMP_R:
     case VA_P_FENV_A: case VA_P_FENV_D: case VA_P_FENV_S: case VA_P_FENV_R:

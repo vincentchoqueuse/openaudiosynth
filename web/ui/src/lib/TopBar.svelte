@@ -1,9 +1,10 @@
-<!-- TopBar.svelte — the one bar above everything: first the Menu, then the three views (Sequence, Synth, Code),
-     pills of one width with their icon, then the preset: Previous / Next through the library, its name, a dot when settings have
-     moved since it was loaded, and A/B to hear it as loaded, then the edit again; the Menu holds (Save to the library in development, Export sound,
-     Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]), the sound's name; on the right, each set apart by a rule: the CPU load and the output level
-     (Meter), the listening volume, the tempo and
-     play / stop the sequence (Space). -->
+<!-- TopBar.svelte — the one bar above everything. On the left: the Menu (Save to the library in development,
+     Export sound, Export song, Revert, Instrument defaults, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub
+     issue from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]); the three views (Sequence, Synth, Code), pills of
+     one width with their icon; the sound: Previous / Next through the library, its name, a dot when settings have
+     moved since it was loaded, and A/B to hear it as loaded, then the edit again. On the right, each set apart by a
+     rule: the CPU load and the output level (Meter), the listening volume, the tempo, and play / stop the
+     sequence (Space). -->
 <script>
   import { session as s } from './session.svelte.js';
   import { history as h } from './history.svelte.js';
@@ -39,7 +40,7 @@
   {#if views.length > 1}<Pills items={views.map(({ id, label, icon }) => ({ id, label, icon }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
   <span class="vsep" aria-hidden="true"></span>
   <div class="namebox">
-    <span class="tag">Preset</span>
+    <span class="tag">Sound</span>
     <button class="step" onclick={() => s.step(-1)} disabled={!s.patches.length} aria-label="Previous sound" title="Previous sound of the library">‹</button>
     <button class="step" onclick={() => s.step(1)} disabled={!s.patches.length} aria-label="Next sound" title="Next sound of the library">›</button>
     {#key s.picks}<span class="name" class:flash={s.picks > 0}>{s.title}</span>{/key}

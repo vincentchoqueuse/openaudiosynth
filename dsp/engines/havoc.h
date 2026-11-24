@@ -1,4 +1,4 @@
-/* havoc.h — noise machine with a wide palette: one note runs four generators, each one of ten very different
+/* havoc.h — noise machine with a wide palette: one note runs four generators, each one of sixteen very different
  * processes (a sine with phase feedback, the logistic map, an integer formula on a counter, random impulses into a
  * resonator, a whistling band of noise, a pulsar train, a cellular automaton read as a wave, a swarm of wandering
  * sines, a tone that jumps at random, a clipped random walk, a chatter of bleeps, electronic faults, a formant voice speaking no language, a data
@@ -6,8 +6,8 @@
  * or not), two shape controls whose meaning depends on the process and that its own slow oscillator can move (two
  * sines at rates without a common period, so the timbre never comes back the same way), a life (steady, random bursts, a periodic
  * pulse, a slow swell) and a place; it can be frequency-modulated and ring-modulated by the generator before it
- * (the four form a ring). The sum goes through two processors in series, each one of: filter, comb, wavefolder,
- * resampler, ring modulator, chopper, stutter, octave divider. The output can come back into every generator's
+ * (the four form a ring). The sum goes through two processors in series, each one of: filter (low, band, high), comb,
+ * wavefolder, resampler with bit reduction, ring modulator, chopper, stutter, octave divider, warp, mangle. The output can come back into every generator's
  * frequency (feedback), and the machine can mutate while it plays: at random, a generator gets other shapes, another
  * pitch, another process.
  * References: G. Peterson and H. Barney, Control methods used in a study of the vowels (formant frequencies);

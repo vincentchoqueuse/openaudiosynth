@@ -406,7 +406,7 @@ int main(int argc, char **argv)
 
     signal(SIGINT, on_sigint);
     term_raw();
-    printf("keys: a w s e d f t g y h u j k o l p ; = notes | z/x octave -/+ | 1 sine 2 va 3 modal\n"
+    printf("keys: a w s e d f t g y h u j k o l p ; = notes | z/x octave -/+ | 1..9, 0 engine\n"
            "      c/v cutoff -/+ | b/n resonance -/+ (va)\n"
            "      . chorus  m delay  r reverb  i freeze (on/off) | space all notes off | q quit\n"
            "MIDI: CC 91 reverb, 93 chorus, 94 delay, 69 freeze, 1 mod wheel, 64 sustain\n");
@@ -442,13 +442,13 @@ int main(int argc, char **argv)
                 octave--;
             } else if (c == 'x' && octave < 8) {
                 octave++;
-            } else if (c >= '1' && c < '1' + SYNTH_ENGINE_COUNT) {
+            } else if (c >= '0' && c <= '9' && (c == '0' ? 9 : c - '1') < SYNTH_ENGINE_COUNT) { /* 1..9, then 0 */
                 host_msg_t m = {0};
                 m.kind = MSG_ENGINE;
-                m.id = c - '1';
+                m.id = c == '0' ? 9 : c - '1';
                 ring_push(&g_ui_ring, &m);
                 atomic_store(&g_engine, m.id);
-                printf("\rengine %s          \n", engine_registry[c - '1']->name);
+                printf("\rengine %s          \n", engine_registry[m.id]->name);
             } else if (c == '.' || c == 'm' || c == 'r' || c == 'i') {
                 /* effect toggles: the same messages as the MIDI CCs, through the synth's CC handling */
                 static int chorus = 0, delay = 0, reverb = 0, freeze = 0;

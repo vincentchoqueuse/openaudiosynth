@@ -1,4 +1,4 @@
-/* drums.h — drum machine engine: 12 instruments on General-MIDI note numbers, two kits:
+/* drums.h — drum machine engine: 12 instruments on General-MIDI note numbers, four kits:
  * "analog" (in the spirit of the classic early-80s analog machines: resonant sine kick with a long
  * boom, two-tone + noise snare, 6 detuned square "metal" oscillators for hats/cymbal, multi-burst clap,
  * cowbell from two squares), "hybrid" (mid-80s analog/sample hybrids: punchy waveshaped kick with a

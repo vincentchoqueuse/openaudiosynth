@@ -37,7 +37,7 @@
         <small>The notes outside the scale are shaded in the piano roll; Random stays in it.</small></label>
       <label>Octave <Select bind:value={q.octave} label="Octave" options={OCTAVES.map((o) => ({ value: o, label: String(o) }))} />
         <small>Where the piano roll opens and where Random writes its notes.</small></label>
-      <label>Song <Select bind:value={q.loops} label="Times the clip plays in the exported song (File, Export song)" options={LOOPS.map((n) => ({ value: n, label: `× ${n}` }))} />
+      <label>Song <Select bind:value={q.loops} label="Times the clip plays in the exported song (Menu, Export song)" options={LOOPS.map((n) => ({ value: n, label: `× ${n}` }))} />
         <small>Times the clip plays in the exported song (Menu, Export song).</small></label>
     </div>
   </div>

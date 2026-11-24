@@ -37,7 +37,7 @@ Cibles :
 dsp/            # code portable (C11, sans dépendance) ; index de l'API : docs/api.md
   core/         # dsp.h (bloc, macros mémoire, aléatoire, rampes), fastmath, smooth, denormal, table de sinus
   osc/ filter/ env/ mod/ fx/   # oscillateurs, filtres (SVF, ladder), ADSR, LFO et descripteurs, effets
-  voice/        # vpoly (polyphonie, vol, mono/legato), voice.h (sortie de voix commune), dérive
+  voice/        # vpoly (polyphonie, vol, mono/legato), voice.h (sortie de voix commune), analog.h (dérive), voicemod (modulation par note)
   engines/      # un fichier par moteur + engine.h (interface) + registry.c
   synth.h / synth.c   # API publique unique
 midi/           # USB-MIDI 4 octets et flux DIN ; lien réseau des cartes (UDP, docs/link.md)
@@ -165,7 +165,7 @@ Détail et historique : `docs/progress.md`.
 - [x] **M4** : `fm6` (32 algorithmes, enveloppes rate/level, keyboard scaling, import sysex).
 - [~] **M5** : MSEG (`dsp/env/mseg`), modulation par part pour tous les moteurs (8 macros, 2 LFO synchronisables, 2 MSEG, 8 routes, `dsp/mod/partmod`), matrice de `wt` ; restent les presets sur carte.
 - [x] Parts multitimbrales (`synth_part_engine`, `synth_part_param`), tempo et horloge MIDI (`dsp/mod/tempo`), delay synchronisé.
-- [x] Lissage commun des paramètres (5 ms, tous moteurs), modulation par voix (`dsp/voice/voicemod`, MSEG et LFO par note, 4 routes), microtonalité (tempéraments, Scala), MPE ; filtre en peigne (`dsp/filter/comb`, dans `wt`). Filtres formant et MS-20 (`dsp/filter/formant`, `k35`, slot commun `vfilter`) dans `va` et `wt`, second filtre de `va` en série ou parallèle, suréchantillonnage partagé `dsp/filter/halfband.h`.
+- [x] Lissage commun des paramètres (5 ms, tous moteurs), modulation par voix (`dsp/voice/voicemod`, MSEG et LFO par note, 4 routes), microtonalité (tempéraments, Scala), MPE ; filtre en peigne (`dsp/filter/comb`, dans `wt`). Filtres formant et MS-20 (`dsp/filter/formant`, `scream`, slot commun `vfilter`) dans `va` et `wt`, second filtre de `va` en série ou parallèle, suréchantillonnage partagé `dsp/filter/halfband.h`.
 - [x] **M6** : effets (chorus, delay, réverb, freeze), saturation et limiteur du master.
 - [~] **M7** : portage H745 ; fait : projet CubeMX, le M7 rend le synthé dans l'interruption audio (`target/h745/app`, `just h745`, `just flash`) ; joue et sonne sur la carte ; sélecteur de presets sur l'écran tactile (M4, boîte aux lettres en SRAM4) ; Ethernet sur le M4 (notes, CC, paramètres, presets, kits d'échantillons ; `docs/link.md` ; essayé sur la carte : les 81 presets joués par le réseau, client Python `tools/board.py`) ; USB MIDI hôte sur le M4 (contrôleur class-compliant, essayé avec un Launch Control ; `board_config.h`) ; potards sur les 8 macros avec reprise douce et vue Contrôles à l'écran (`app/knobs.c`) ; niveau de sortie `BOARD_VOLUME` ; optimisation : plus aucun preset au-delà de 90 % au pire tampon (moyenne 22 %), puis la F746.
 - Hors feuille de route, faits : moteurs `modal` (dont piano physique), `drums`, `wt`, `drone` (machine à drones : partiels qui errent, corps, souffle, éclats ; de glacial à chaleureux), `havoc` (machine à bruit à large palette : 4 générateurs au choix parmi 16 procédés, modulés en anneau, 2 traitements) et `micro` (sinus de précision : enveloppes à l'échantillon près, hauteur fixe, clics, salves, ratchets, motifs de gate, couche de bruit, couche de sub à enveloppe exacte) ; format ouvert OID 0.3.

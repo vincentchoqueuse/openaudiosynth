@@ -1,6 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left (Sidebar);
      the top bar (Menu, the three views, the preset; level, volume and the sequencer's play); the view open:
-     Sequence (Live, then the sequencer), Synth (Structure, then the editors) or Code (the instrument's or the clip's
+     Sequence (Live, then the sequencer), Synth (Summary, then the editors) or Code (the instrument's or the clip's
      JSON), each under its title; the macros to play and the keyboard along the bottom. State and actions live in
      lib/session.svelte.js and lib/sequence.svelte.js; the page takes the color of the instrument playing. Space
      plays / stops the clip; Cmd+Z / Shift+Cmd+Z undo / redo; ? opens the shortcuts. -->

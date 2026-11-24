@@ -44,7 +44,7 @@
       <tr class:empty={!name && !n}>
         <td class="num mono">{k + 1}</td>
         <td><input class="name" placeholder="Macro {k + 1}" value={name} oninput={(e) => (s.macroNames[k] = e.target.value)} aria-label="Name of macro {k + 1}" /></td>
-        {#if !s.phone}<td class="cc"><input type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC of macro {k + 1}"
+        {#if !s.phone}<td><input type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC of macro {k + 1}"
                    onchange={(e) => s.setP(`macro${k + 1}_cc`, Math.max(0, Math.min(119, Math.round(+e.target.value || 0))))} title="MIDI CC that turns it (0 = none)" /></td>{/if}
         <td class="muted">{n ? `${n} target${n > 1 ? 's' : ''}` : '—'}</td>
       </tr>

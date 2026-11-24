@@ -1,5 +1,5 @@
 <!-- ModPanel.svelte — the Modulation pill. Its tabs are chosen in SynthTab: Assignments first (the matrix of the
-     part or of each note: every slot, filled or empty; ModMatrix), then one tab per modulator (lib/mods.js: the two
+     part or of each note: the routes in use, and Add route; ModMatrix), then one tab per modulator (lib/mods.js: the two
      envelopes and the per-note one, the two LFOs and the per-note one), each shown the same way, MsegEditor or
      LfoView: a bar of choices, its drawing, a bar of settings. -->
 <script>

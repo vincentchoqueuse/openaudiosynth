@@ -56,7 +56,6 @@ _Static_assert((SYNTH_EVQ_SIZE & (SYNTH_EVQ_SIZE - 1)) == 0 && SYNTH_EVQ_SIZE >=
 #endif
 
 /* the global parameter ids of synth.h mirror the effect-bus table */
-_Static_assert(SYNTH_PARAM_CHORUS_MODE - SYNTH_PARAM_CHORUS_MODE == FXB_P_CHORUS_MODE, "fx ids");
 _Static_assert(SYNTH_PARAM_REVERB_FREEZE - SYNTH_PARAM_CHORUS_MODE == FXB_P_REVERB_FREEZE, "fx ids");
 _Static_assert(SYNTH_PARAM_TEMPO - SYNTH_PARAM_CHORUS_MODE == FXB_P_COUNT, "fx ids");
 
@@ -134,7 +133,6 @@ _Static_assert(SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_
 /* the output filter of every part (macros and routes can move it), then the master's saturation and limiter */
 static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
 static const char *const saturation_labels[] = {"off", "soft", "tube", "hard", NULL};
-static const char *const limiter_labels[] = {"off", "on", NULL};
 static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
 /* the effects of the rack, by the id of their stage (synth_fx_stages) */
 enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_COUNT };
@@ -158,7 +156,7 @@ static const param_desc_t out_desc[] = {
           "gain into the saturation, the peaks kept at the same level (denser, so louder, as it squares them): 0-6 dB = glue, 12 dB and more = audibly driven"),
     PARAM(SYNTH_PARAM_SATURATION_TONE, "saturation_tone", "master.saturation.tone", 1000.0f, 20000.0f, 20000.0f, PARAM_EXP, "Hz", 1, NULL,
           "a low-pass after the saturation: 20 kHz = open, lower = darker, tape-like"),
-    PARAM(SYNTH_PARAM_LIMITER, "limiter", "master.limiter.mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, limiter_labels,
+    PARAM(SYNTH_PARAM_LIMITER, "limiter", "master.limiter.mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, param_onoff_labels,
           "a look-ahead peak limiter, last on the mix (1.5 ms of latency): no peak goes past the ceiling, no clipping"),
     PARAM(SYNTH_PARAM_LIMITER_GAIN, "limiter_gain", "master.limiter.gain", 0.0f, 18.0f, 0.0f, PARAM_LIN, "dB", 1, NULL,
           "gain into the limiter: louder, the peaks held at the ceiling (beyond 6-8 dB the mix starts to pump)"),

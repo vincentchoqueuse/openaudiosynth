@@ -22,7 +22,7 @@ typedef struct {
     int qh, qn, t;                             /* queue head, size, running sample index */
     float box[LIMITER_MAX];                    /* the released gain over the window, and its sum */
     int bpos;
-    float sum, env;
+    float env;
     float ceiling, gain, rel;                  /* targets: ceiling and input gain (linear), release coefficient */
     float gain_prev, ceil_prev;
     float reduction;                           /* the smallest gain of the last block (meter, 1 = none) */

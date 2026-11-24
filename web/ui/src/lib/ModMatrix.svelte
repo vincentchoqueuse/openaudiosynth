@@ -67,37 +67,37 @@
 </script>
 
 {#if slots.length}
-<table class="matrix {kind}">
+<table class="matrix">
   <colgroup><col class="c-num" /><col class="c-src" /><col class="c-dst" /><col /><col class="c-val" />{#if kind === 'part'}<col class="c-via" />{/if}<col class="c-x" /></colgroup>
   <thead><tr><th>#</th><th>Source</th><th>Destination</th><th>Amount</th><th></th>{#if kind === 'part'}<th>Via</th>{/if}<th></th></tr></thead>
   <tbody>
     {#each slots as r (r)}
-      {@const s = srcOf(r)}
+      {@const src = srcOf(r)}
       {@const a = get(`${pre}${r}_amount`)}
-      <tr class:empty={!s}>
+      <tr class:empty={!src}>
         <td class="num mono">{r}</td>
-          <td><Select value={s} onchange={(v) => setSource(r, v)} label="Source of slot {r}" options={srcOptions} /></td>
+          <td><Select value={src} onchange={(v) => setSource(r, v)} label="Source of route {r}" options={srcOptions} /></td>
         <td>
           {#if kind === 'part'}
-            <Select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(v) => set(`${pre}${r}_destination`, v)} label="Destination of slot {r}"
-                    options={s ? dstOptions : [{ value: 0, label: '—' }, ...dstOptions]} />
+            <Select value={Math.round(get(`${pre}${r}_destination`))} disabled={!src} onchange={(v) => set(`${pre}${r}_destination`, v)} label="Destination of route {r}"
+                    options={src ? dstOptions : [{ value: 0, label: '—' }, ...dstOptions]} />
           {:else}
-            <Select value={Math.round(get(`${pre}${r}_destination`))} disabled={!s} onchange={(v) => set(`${pre}${r}_destination`, v)} label="Destination of slot {r}"
+            <Select value={Math.round(get(`${pre}${r}_destination`))} disabled={!src} onchange={(v) => set(`${pre}${r}_destination`, v)} label="Destination of route {r}"
                     options={vdstLabels.map((l, i) => ({ value: i, label: l }))} />
           {/if}
         </td>
         <td class="amt">
-          <input type="range" class="bipolar" min="-1" max="1" step="0.002" value={toPos(a)} disabled={!s}
+          <input type="range" class="bipolar" min="-1" max="1" step="0.002" value={toPos(a)} disabled={!src}
                  style="--lo:{50 + Math.min(0, toPos(a)) * 50}%; --hi:{50 + Math.max(0, toPos(a)) * 50}%"
                  oninput={(e) => set(`${pre}${r}_amount`, toAmount(+e.target.value))} ondblclick={() => set(`${pre}${r}_amount`, 0)}
-                 aria-label="Amount of slot {r}" title="double-click: 0" />
+                 aria-label="Amount of route {r}" title="double-click: 0" />
         </td>
-        <td class="val mono" title="amount {a.toFixed(3)} of the destination's range">{s ? inUnits(r) : ''}</td>
+        <td class="val mono" title="amount {a.toFixed(3)} of the destination's range">{src ? inUnits(r) : ''}</td>
         {#if kind === 'part'}
-          <td><Select class="via" value={Math.round(get(`${pre}${r}_via`))} disabled={!s} onchange={(v) => set(`${pre}${r}_via`, v)} label="Scaled by"
+          <td><Select value={Math.round(get(`${pre}${r}_via`))} disabled={!src} onchange={(v) => set(`${pre}${r}_via`, v)} label="Scaled by"
                   options={srcLabels.map((l, i) => ({ value: i, label: i ? `× ${srcName(l)}` : '—' }))} /></td>
         {/if}
-        <td><button class="x" onclick={() => clear(r)} aria-label="Remove slot {r}" title="remove">×</button></td>
+        <td><button class="x" onclick={() => clear(r)} aria-label="Remove route {r}" title="remove">×</button></td>
       </tr>
     {/each}
   </tbody>

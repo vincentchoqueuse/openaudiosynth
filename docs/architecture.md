@@ -19,7 +19,7 @@ synth_render(s, L, R, n) ── split into blocks of 32 ──► render_block()
 |---|---|---|
 | `dsp/core` | block size, memory macros, fast math, smoothing, FTZ | nothing |
 | `dsp/osc`, `filter`, `env`, `mod`, `fx` | DSP building blocks, each `x_init / x_reset / x_set / x_process` in physical units | core |
-| `dsp/voice` | `voice_alloc` (who gets the note), `vpoly` (stealing fade, sustain, voice lifetime), `drift` | core |
+| `dsp/voice` | `voice_alloc` (who gets the note), `vpoly` (stealing fade, sustain, voice lifetime), `analog` (drift, tolerance, jitter of an oscillator), `voicemod` (per-note modulation) | core |
 | `dsp/engines` | engines implementing `engine_ops_t` + `registry.c` | building blocks, voice |
 | `dsp/fx/fxbus` | effect bus with its own parameter table | fx |
 | `dsp/synth.c` | public API, event queue, dispatch, master — **no engine-specific code** | engines (via registry), fxbus |
@@ -43,11 +43,7 @@ An engine owns per-voice DSP state and four `vpoly` callbacks (start, release, l
 the engine computes control values once (parameters smoothed at SR/32), then renders each active
 voice, hands it to `voice_out` (steal fade, NaN guard, pan; `dsp/voice/voice.h`), and calls `vpoly_end_block`. See `docs/adding_an_engine.md`.
 
-| Engine | Per voice | Notes |
-|---|---|---|
-| `sine` | sine + ADSR | reference, smallest example |
-| `va` | 2 osc (sine/saw/pulse/tri/supersaw) + noise → SVF → ADSR; 3 detune LFOs, drift | global LFO 1 drives LFO-of-LFO |
-| `modal` | up to 16 complex one-pole resonators; strike (pulse + noise) and bow (noise) | coefficients rebuilt only when parameters change |
+The engines and their parameters are listed in `docs/catalog.md` (generated from the descriptors).
 
 ## Memory
 

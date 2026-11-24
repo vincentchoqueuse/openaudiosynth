@@ -3,8 +3,8 @@
  * the plugin state is a patch file (docs/patch_format.md, host/patch.c), parameters come from the descriptor
  * tables. Reference: the CLAP 1.2 headers (third_party/clap, MIT).
  *
- * One file, several plugins: "synth" plays any engine (it has an "engine" parameter), and there is one plugin per
- * engine ("synth va", "synth fm6"...) that plays that engine only and lists only its parameters. Same code, same
+ * One file, several plugins: "OASynth" plays any engine (it has an "engine" parameter), and there is one plugin per
+ * engine ("OASynth va", "OASynth fm6"...) that plays that engine only and lists only its parameters. Same code, same
  * parameter ids, same state format (a patch of another engine is refused by a single-engine plugin).
  *
  * Parameters (stable ids, so automation survives an engine change): "engine" (ENGINE_ID); every parameter of

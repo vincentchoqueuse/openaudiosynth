@@ -17,7 +17,7 @@
    `voice_glide_coef`, `dsp_ramp_env_mul`, `voice_out`; on/off switches use `param_onoff_labels`.
 5. **Register**: add `SYNTH_ENGINE_<NAME>` before `SYNTH_ENGINE_COUNT` in `dsp/synth.h`, the state to
    the union in `dsp/engines/registry.h`, the ops to `dsp/engines/registry.c`, the source to
-   `CMakeLists.txt`.
+   `cmake/synth_sources.cmake`.
 6. **Test** (`tests/test_<name>.c` defining `suite_<name>()`, plus one `TEST_SUITE(<name>)` line in
    `tests/suites.h`; ctest picks it up): no NaN / bounded under random parameters and notes, bit-exact determinism, expected
    response (pitch, decay times...).

@@ -1,5 +1,6 @@
 /* test_filter.c — TPT SVF: cutoff within +/-5 % (LP/HP, Q = 0.707), band-pass gain, stability under
- * fast modulation at high resonance, determinism; DC blocker. */
+ * fast modulation at high resonance, determinism; DC blocker; the ladder, the formant and screaming filters and
+ * the common filter slot (vfilter). */
 #include <math.h>
 #include <stdlib.h>
 

@@ -1,6 +1,6 @@
 /* va.c — subtractive engine (see va.h).
  * Per block: parameter smoothing, LFO, then for each voice pitch -> oscillators,
- * filter envelope -> cutoff (in octaves), mix, SVF, amp, pan.
+ * filter envelope -> cutoff (in octaves), mix, the two filter slots, amp, pan.
  * Everything affecting gain, cutoff or pitch is interpolated over the block. */
 #include "va.h"
 #include "../core/fastmath.h"
@@ -450,8 +450,8 @@ static const engine_stage_t va_stages[] = {
 
 const engine_ops_t va_engine = {
     .name = "va",
-    .description = "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> 2-pole TPT SVF "
-                       "-> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
+    .description = "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> two filter slots in series or parallel "
+                       "(state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
     .params = va_params,
     .param_count = VA_P_COUNT,
     .voices = VA_VOICES,

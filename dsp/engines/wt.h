@@ -1,7 +1,7 @@
 /* wt.h — wavetable synthesizer in the spirit of modern wavetable instruments: two wavetable oscillators
  * (9 generated tables, position morphing, unison up to 8, warps: sync, bend, mirror, FM from B, ring by B;
  * osc B's FM/ring source is the sub), sine sub one octave down, noise, one filter (12 dB state-variable
- * LP/BP/HP/notch or 24 dB ladder with drive), amp envelope, a modulation envelope, two per-voice LFOs and a
+ * LP/BP/HP/notch, 24 dB ladder with drive, comb, formant or screaming 2-pole), amp envelope, a modulation envelope, two per-voice LFOs and a
  * 6-slot modulation matrix (dsp/mod/modmatrix.h), a distortion per voice before or after the filter (dsp/fx/dist.h:
  * soft, tube, hard, fold; its drive a matrix destination, for growls). Mono, legato and glide. No code from any product. */
 #ifndef ENGINE_WT_H

@@ -163,9 +163,9 @@ grids, silences and pure sine drones (`va_sine_drone`); see `songs/microsound.js
 
 ## Classic instruments
 
-- `acid` (transistor bass line spirit): ride `cutoff`, `resonance` 0.7-0.9, `env_mod` 2-3.5 oct,
-  `decay` short; accents (`!`, velocity >= 96) get louder, brighter and the cutoff climbs over
-  consecutive accents; `~` slides. Patches `acid_classic`, `acid_square`; song `acid_jam`.
+- Acid bass lines (on `mono`): ride `cutoff`, `emphasis` 0.7-0.9, `contour` 2-3.5 oct, `fenv_decay` short,
+  `glide_mode` legato so that only tied notes (`~`) slide, `velocity` up so that accents (`!`) are louder and
+  brighter. Patches `mono_acid_classic`, `mono_acid_square`; song `acid_jam`.
 - `mono` (early-70s monosynth spirit): footage `16`/`32` for basses, push `mixer_drive` for the fat
   overdriven ladder, `emphasis` ~0.95 self-oscillates, `release` on = notes ring with the decay time,
   `osc3_keytrack` off + range `32` = osc 3 as LFO for the mod wheel. Patches `mono_bass`, `mono_d_lead`.
@@ -306,7 +306,7 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of sixteen proces
   under More.
 - **Moving timbre**: every generator has its own slow oscillator: `g<n>_lfo_rate`, and how far it moves a
   (`g<n>_lfo_a`) and b (`g<n>_lfo_b`, at 0.62 of the rate, so the pair of shapes never repeats). Give the four
-  generators rates with no simple ratio (0.043, 0.071, 0.117, 0.19 Hz in): a held note
+  generators rates with no simple ratio (0.043, 0.071, 0.117, 0.19 Hz): a held note
   never passes twice through the same sound. On `byte` it changes the formula, on `cell` the rule, on `pulsar`
   the vowel, on `tone` and `logistic` it goes from a note to noise and back.
 - **Life**: `g<n>_life` is how the generator exists in time: `steady`, `bursts` (on and off at random,
@@ -330,10 +330,10 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of sixteen proces
 - **Machines that speak**: `talk` low and slow with a `sub` is an oracle (`havoc_oracle`), on the note it sings, several at once are a crowd; with its `ring` driven by a `tone`
   it is a voice on a radio, with its `fm` driven by a `neuron` it stammers. `modem` against `talk` is a dialogue (`havoc_handshake`). `neuron` at a
   low pitch is single spikes. `alias` with its a moved slowly makes foldings that cross
-  (`havoc_nyquist`). Everything at its end:.
+  (`havoc_nyquist`).
 - **Dark**: low pitches (-24 and under), `pulsar` with a low formant, `swarm` under the hearing range (beats),
   a `sub` and a low-pass, slow `swell` lives, and the long dark reverb of the bus (`reverb_decay` 0.95 and more,
-  `reverb_damping` near 2000 Hz):, `havoc_leviathan`.
+  `reverb_damping` near 2000 Hz): `havoc_leviathan`.
 - **Where to start**: sparse events = `dust` at a very low pitch (`havoc_wind_chimes` with a long
   ring); weather = `wind` and dense `dust` (`havoc_solar_wind`); fire = `rumble` with b high; machines = `logistic` or `cell` with a `pulse` life into a `comb` (`havoc_automaton`); computers = `computer` and `byte`; creatures =
   `swarm` and `pulsar` (`havoc_insects`); science fiction = `bleep` for anything that talks or reports (`havoc_droid_talk`), `glitch` and `stutter`

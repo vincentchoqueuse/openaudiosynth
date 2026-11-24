@@ -8,9 +8,8 @@ cp -R build-host/plugin/OASynth.clap ~/Library/Audio/Plug-Ins/CLAP/     # instal
 ctest --test-dir build-host -R clap                                   # test host: loads the .clap and checks it
 ```
 
-- **One file, thirteen plugins**: `synth` plays any engine (it has an `engine` parameter), and there is one plugin per
-  engine (`synth va`, `synth fm6`, `synth drums`...) that plays that engine only and lists only its parameters
-  (about a hundred instead of 531). Same code, same parameter ids, same state format; a single-engine plugin
+- **One file, one plugin for everything and one per engine**: `OASynth` plays any engine (it has an `engine` parameter), and there is one plugin per
+  engine (`OASynth va`, `OASynth fm6`, `OASynth drums`...) that plays that engine only and lists only its parameters. Same code, same parameter ids, same state format; a single-engine plugin
   refuses the state of another engine. Ids: `synth.engine` (all engines), `synth.<engine>`.
 - **Notes and MIDI** go to `synth_midi` with their sample offset; a **parameter change** splits the block where it
   falls. The plugin renders bit for bit like the engine called directly, and like `synth_render` for a patch
@@ -23,7 +22,7 @@ ctest --test-dir build-host -R clap                                   # test hos
   from `patches/` loads as a state. A patch holds one engine: the values of the other engines are not saved (they
   come back at their defaults). A state loaded while playing re-initializes the engine at the start of the next
   block (a one-off load spike, like any preset change).
-- **Sample kits** (`synth sampler`, or `synth` on the sampler engine): the `kit` parameter chooses one: *none*,
+- **Sample kits** (`OASynth sampler`, or `OASynth` on the sampler engine): the `kit` parameter chooses one: *none*,
   then the kits found when the plugin is loaded. The three demo kits (recorded from the drums engine) are in the
   bundle (`Contents/Resources/kits/*.oidk`); put your own in `~/Library/Application Support/synth/kits/`, one
   directory of `NN_name.wav` files per kit (NN: the MIDI note) or one `.oidk` file, named with `a-z`, `0-9`

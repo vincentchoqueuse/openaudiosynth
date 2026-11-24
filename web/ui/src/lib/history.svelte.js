@@ -12,7 +12,7 @@ const KEEP = 200; // steps kept
 const IDLE_MS = 400;
 
 const capture = () => JSON.stringify({
-  e: s.engineId, v: s.values, cur: s.current, m: s.macroNames,
+  e: s.engineId, v: s.values, b: s.baseline, cur: s.current, m: s.macroNames,
   q: { ...q.snap(), name: q.name },
 });
 
@@ -83,6 +83,7 @@ class History {
       const id = +key, d = s.paramById(id);
       if (d && (engineChanged || s.values[id] !== v)) s.setValue(d, v);
     }
+    if (p.b) s.baseline = p.b; // what "edited" and A/B compare with comes back with the sound
     s.current = p.cur;
     s.info = s.patches.find((x) => x.file === p.cur) ?? null;
     s.macroNames = p.m;

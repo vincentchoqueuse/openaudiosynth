@@ -17,7 +17,7 @@
 typedef struct {
     const engine_ops_t *engine;
     char name[64];
-    char kit[64];                               /* sample kit by name ("synth_drums"), "" none */
+    char kit[64];                               /* sample kit by name ("synth_analog"), "" none */
     char macro_name[PATCH_MACROS][PATCH_MACRO_NAME]; /* the "macros" section's names ("" unnamed) */
     int n;
     int ids[PATCH_MAX_PARAMS];                  /* synth_set_param ids (engine or global) */

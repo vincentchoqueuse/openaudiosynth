@@ -34,7 +34,7 @@ extern const engine_ops_t modal_engine;
 
 typedef struct {
     reso_t mode[MODAL_MODES];               /* one complex resonator per mode */
-    float g_strike[MODAL_MODES], g_bow[MODAL_MODES], g_out;
+    float g_strike[MODAL_MODES], g_bow[MODAL_MODES];
     float jitter[MODAL_MODES];              /* per-note random detune factors */
     float vm_pitch, vm_bright, vm_timbre;   /* per-voice modulation the modes were built with */
     float c0[MODAL_MODES], s0[MODAL_MODES]; /* rotation of each mode at rest (the tension bends it) */

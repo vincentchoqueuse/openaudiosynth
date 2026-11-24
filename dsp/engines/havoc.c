@@ -13,7 +13,6 @@ static const char *const type_labels[] = {"tone", "logistic", "byte", "dust", "w
                                           "computer", "rumble", "bleep", "glitch", "talk", "modem", "neuron", "alias", NULL};
 static const char *const life_labels[] = {"steady", "bursts", "pulse", "swell", NULL};
 static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", "sub", "warp", "mangle", NULL};
-static const char *const onoff_labels[] = {"off", "on", NULL};
 
 #define HAVOC_GEN_PARAMS(g, n, dtype, dpitch, dtrack, da, db, dlevel, dpan, drate)                                         \
     PARAM(HAVOC_G_P(g, HAVOC_G_TYPE), "g" n "_type", "havoc.gen" n ".type", 0.0f, (float)(HAVOC_T_COUNT - 1), dtype, \
@@ -41,7 +40,7 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
           "pitch of this generator, in semitones from the note (or from middle C when it does not track): "          \
           "-96 = 1 Hz, a rhythm; +60 = 8 kHz"),                                                                      \
     PARAM(HAVOC_G_P(g, HAVOC_G_TRACK), "g" n "_track", "havoc.gen" n ".track", 0.0f, 1.0f, dtrack, PARAM_INT, "", 0,  \
-          onoff_labels, "on: this generator follows the note; off: it stays where its pitch puts it"),               \
+          param_onoff_labels, "on: this generator follows the note; off: it stays where its pitch puts it"),               \
     PARAM(HAVOC_G_P(g, HAVOC_G_A), "g" n "_a", "havoc.gen" n ".a", 0.0f, 1.0f, da, PARAM_LIN, "", 1, NULL,            \
           "first shape control of this generator (see its process)"),                                                \
     PARAM(HAVOC_G_P(g, HAVOC_G_B), "g" n "_b", "havoc.gen" n ".b", 0.0f, 1.0f, db, PARAM_LIN, "", 1, NULL,            \

@@ -1,14 +1,14 @@
 /* synth_render.c — offline renderer: plays a scripted demo through the public API and writes a
  * 32-bit float stereo WAV. Also reports peak / RMS levels so loudness regressions are visible.
  *
- *   synth_render --engine va --demo out.wav      first built-in demo of the engine (va and others have some)
+ *   synth_render --engine va --demo out.wav      first built-in demo of the engine (va only)
  *   synth_render --name va_bass --demo out.wav   a given demo
  *   synth_render --all build-host/renders        every demo, one WAV each
  *   synth_render --list
  *   synth_render --patch patches/va_acid_bass.json --out x.wav [--notes "C2 C2 C3 -"] [--tail 1.5]
  *   synth_render --song songs/drift.json --out x.wav
- * A patch that names a sample kit ("kit": "synth_drums") finds it in kits/NAME (the current directory), then in
- * the kits built next to this program (build-host/kits/NAME, tools/kit_demo).
+ * A patch that names a sample kit ("kit": "synth_analog") finds it in kits/NAME (the current directory), then in
+ * the kits built next to this program (build-host/kits/NAME, made by host/kit_demo.c).
  */
 #include <math.h>
 #include <stdio.h>

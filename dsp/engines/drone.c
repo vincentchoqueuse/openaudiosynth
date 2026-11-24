@@ -131,7 +131,7 @@ static void drone_init(void *st, float sr)
         v->noise = dsp_seed(0xD500u + (uint32_t)i);
         v->rng = dsp_seed(0xD400u + (uint32_t)i);
         v->lfo[0] = v->lfo[1] = 0.0f;
-        v->ping_phase = v->ping_inc = v->ping_env = v->ping_peak = v->ping_pan = v->ping_up = v->ping_down = 0.0f;
+        v->ping_phase = v->ping_inc = v->ping_env = v->ping_peak = v->ping_up = v->ping_down = 0.0f;
         v->ping_l = v->ping_r = 0.0f;
         v->ping_rising = 0;
         v->env = v->env_prev = 0.0f;

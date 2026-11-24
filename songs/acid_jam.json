@@ -1,7 +1,7 @@
 {
   "version": 1,
   "name": "acid_jam",
-  "description": "Acid jam: the acid engine (accents, slides, resonant ladder) over the hybrid kit; the cutoff and resonance are ridden section by section, dub stabs in the second half.",
+  "description": "Acid jam: the monosynth (accents, slides, resonant ladder) over the hybrid kit; the cutoff and resonance are ridden section by section, dub stabs in the second half.",
   "bpm": 126,
   "length_beats": 128,
   "tail_s": 5,

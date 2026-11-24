@@ -47,12 +47,6 @@ void dist_reset(dist_t *d)
     d->mix_prev = d->mix;
 }
 
-void dist_set_bias(dist_t *d, float bias)
-{
-    d->bias = bias;
-    d->b0 = fm_tanh(bias);
-}
-
 void dist_set(dist_t *d, dist_mode_t mode, float drive_db, float tone_hz, float mix)
 {
     const int switched_on = d->mode == DIST_OFF && mode != DIST_OFF;

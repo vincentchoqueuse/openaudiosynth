@@ -29,7 +29,7 @@ SECTION_TITLES = {
     "env": "Envelope", "env2": "Modulation envelope", "pitch_env": "Pitch envelope", "lfo": "LFO", "lfo1": "LFO 1",
     "lfo2": "LFO 2", "motion": "Motion (detune LFOs)", "mod": "Modulation matrix", "polymod": "Poly-mod",
     "resonator": "Resonator (modes)", "exciter": "Exciter (hammer / mallet / bow)", "fm": "FM", "drum": "Drums",
-    "voice": "Voice", "output": "Output", "accent": "Accent", "fx": "Effects", "master": "Master",
+    "voice": "Voice", "output": "Output", "fx": "Effects", "master": "Master",
     "part": "Part (mixer strip)", "tempo": "Tempo", "macro": "Macros", "mlfo1": "Part LFO 1", "mlfo2": "Part LFO 2",
     "mseg1": "MSEG 1", "mseg2": "MSEG 2",
 }

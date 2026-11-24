@@ -424,7 +424,7 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 
 ## Engine `va` (8 voices)
 
-subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> 2-pole TPT SVF -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)
+subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|

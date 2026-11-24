@@ -39,7 +39,7 @@ typedef struct {
     svf_t body_lp, air_bp[2];
     uint32_t noise;
     float lfo[2];              /* phases of the two slow LFOs (cycles) */
-    float ping_phase, ping_inc, ping_env, ping_peak, ping_pan, ping_up, ping_down, ping_l, ping_r;
+    float ping_phase, ping_inc, ping_env, ping_peak, ping_up, ping_down, ping_l, ping_r;
     int ping_rising;
     float env, env_prev;       /* block-rate envelope, interpolated over the block */
     int gate, note, fresh;

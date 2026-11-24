@@ -226,24 +226,9 @@ class Session {
     }
   };
 
-  setEngine = (id) => {
-    this.patchGen++;
-    this.#audition = null; // a new sound: no phrase of its own
-    this.engineId = id;
-    this.synth.setEngine(id);
-    this.current = '';
-    this.info = null;
-    this.resetValues(false);
-    this.description = '';
-    // routes point at engine parameters by index: they mean nothing for another engine
-    for (let r = 1; r <= 8; r++) if (this.getP(`route${r}_destination`)) this.setP(`route${r}_destination`, 0);
-    this.defaultMacros();
-    this.baseline = { ...this.values };
-  };
-
   // The instrument's default macros for a sound that has none (as on the board's knobs): macros 1..6 on its main
   // parameters, around their present value (a third of the travel either way; a cutoff or any frequency from about
-  // four octaves below to three above, as on the board's knobs, so the macro sweeps from dark to bright; only a little towards a long
+  // four octaves below to three above, so the macro sweeps from dark to bright; only a little towards a long
   // attack), 7 and 8 on the delay and reverb sends over their whole travel. Each macro is set where the parameter
   // is, so assigning them changes nothing in the sound. All in normalized units: along each parameter's own curve.
   defaultMacros = () => {
@@ -299,7 +284,7 @@ class Session {
       if (!res.ok) throw new Error(`${p.file}: ${res.status}`);
       text = await res.text();
     } catch (e) {
-      this.say('Could not load the patch: ' + e.message);
+      this.say('Could not load the sound: ' + e.message);
       return false;
     }
     // its name first, with its values (the history records them as one state); back to the previous one if refused
@@ -318,7 +303,7 @@ class Session {
   // Returns the worklet's answer ({ok: false, error} if refused), or null if another load overtook it.
   applyPatch = async (text, seq = ++this.#loadSeq) => {
     let r;
-    try { r = await this.synth.loadPatch(text); } catch (e) { r = { ok: false, error: 'Could not load the patch: ' + e.message }; }
+    try { r = await this.synth.loadPatch(text); } catch (e) { r = { ok: false, error: 'Could not load the sound: ' + e.message }; }
     if (seq !== this.#loadSeq) return null; // another patch was clicked meanwhile
     if (!r.ok) { this.say(r.error); return r; }
     this.patchGen++; // a running sequence goes on with the new sound
@@ -416,6 +401,7 @@ class Session {
   };
 
   exportPatch = () => {
+    if (this.edited) this.compare(); // the edit is what is exported, not the loaded sound heard meanwhile
     const p = this.currentPatch(), name = p.name;
     const text = JSON.stringify(p, null, 2) + '\n';
     navigator.clipboard?.writeText(text).catch(() => {});
@@ -428,6 +414,7 @@ class Session {
 
   // ---- save into patches/ (development): the board's presets are generated from there ----
   openSave = () => {
+    if (this.edited) this.compare();
     const p = this.currentPatch();
     this.saving = { name: p.name, description: p.description, exists: false, error: '' };
   };

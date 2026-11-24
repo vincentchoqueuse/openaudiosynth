@@ -1,5 +1,6 @@
 <!-- SynthTab.svelte — the Synth view: shaping the sound. Pills, each with its own tabs under it: Summary (the
-     signal path drawn: the instrument, the effect bus, the modulators, display only; and the sound's description,
+     signal path drawn: the instrument, the effect bus, the modulators;
+     a click on a block opens its settings; and the sound's description,
      instrument and file), Engine (the instrument, named
      after it: a Randomize button that throws all its settings elsewhere, then its parameters, or the sampler's kit), Effects (the bus and the master), Modulation (the assignments, then a tab per modulator, a dot on those assigned), and Macros (assignments, then names and CC). The tab open
      lives in the session; a sound picked in the library opens on Summary. -->
@@ -28,6 +29,11 @@
     { id: 'macros', label: 'Macros', icon: 'macros',
       tabs: [{ id: 'macros-assign', label: 'Assignments' }, { id: 'macros', label: 'Names' }] },
   ]);
+  // a block or a modulator of the signal path clicked: its settings open (its card is scrolled to and lit)
+  function pick(st, kind) {
+    if (kind === 'route') return s.goTo('mod-assign');
+    s.goTo(s.engine?.stages?.some((x) => x.id === st.id) ? 'engine' : 'fx', st.id);
+  }
   const group = $derived(GROUPS.find((g) => g.tabs.some((t) => t.id === s.editorTab)) ?? GROUPS[0]);
 </script>
 
@@ -35,7 +41,7 @@
 <Tabs items={group.tabs} value={s.editorTab} onpick={s.goTo} label={group.label} />
 
 {#if s.editorTab === 'summary'}
-  <ChainView />
+  <ChainView onpick={pick} />
 {:else if s.editorTab === 'info'}
   <InfoPanel />
 {:else if group.id === 'macros'}

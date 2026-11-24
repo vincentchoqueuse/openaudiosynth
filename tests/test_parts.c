@@ -1,5 +1,5 @@
 /* test_parts.c — multitimbral parts: routing by MIDI channel and key range, transposition (no stuck note when
- * it changes while a key is held), level, mute, balance, effect send, part off. Uses the sine engine (known
+ * it changes while a key is held), level, mute, balance, effect send, part off. Uses the micro engine (pure sines, known
  * pitches) so each part can be told apart in the spectrum. */
 #include <math.h>
 #include <stdlib.h>

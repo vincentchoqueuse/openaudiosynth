@@ -1,13 +1,12 @@
-/* fxbus.c — effect bus (see fxbus.h). Order: chorus (insert, adds width to the dry sound) ->
- * delay send -> reverb send fed with dry + delay (the echoes are reverberated too). Mix levels are
- * smoothed at control rate and ramped per sample. */
+/* fxbus.c — chorus, tape delay and plate reverb as stages the caller runs in its own order (see fxbus.h). The
+ * delay leaves its echoes pending: the reverb right after it takes them into its send (the echoes are reverberated
+ * too), anything else has them added first (fxbus_flush). Mix levels are smoothed at control rate and ramped per
+ * sample. */
 #include "fxbus.h"
-#include "../core/fastmath.h"
 
 #define IDLE_AFTER_S 20.0f /* keep computing a muted effect this long so its tail empties */
 
 static const char *const chorus_labels[] = {"off", "I", "II", "I+II", "ensemble", NULL};
-static const char *const onoff_labels[] = {"off", "on", NULL};
 
 const param_desc_t fxbus_params[FXB_P_COUNT] = {
     PARAM(FXB_P_CHORUS_MODE, "chorus_mode", "fx.chorus.mode", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, chorus_labels,
@@ -28,7 +27,7 @@ const param_desc_t fxbus_params[FXB_P_COUNT] = {
           "tape saturation inside the loop: repeats get grainier and compressed"),
     PARAM(FXB_P_DELAY_WOW, "delay_wow", "fx.delay.wow", 0.0f, 1.0f, 0.25f, PARAM_LIN, "", 1, NULL,
           "tape wow and flutter: pitch wobble of the repeats (0.2 subtle, 0.6+ seasick)"),
-    PARAM(FXB_P_DELAY_PINGPONG, "delay_pingpong", "fx.delay.pingpong", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, onoff_labels,
+    PARAM(FXB_P_DELAY_PINGPONG, "delay_pingpong", "fx.delay.pingpong", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, param_onoff_labels,
           "repeats alternate left / right"),
     PARAM(FXB_P_REVERB_MIX, "reverb_mix", "fx.reverb.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
           "plate reverb level (0 = off): 0.2 room-ish, 0.5 ambient, 0.8+ washed out"),
@@ -38,14 +37,9 @@ const param_desc_t fxbus_params[FXB_P_COUNT] = {
           "high-frequency loss in the tail: lower = darker, softer"),
     PARAM(FXB_P_REVERB_PREDELAY, "reverb_predelay", "fx.reverb.predelay", 0.0f, 0.25f, 0.03f, PARAM_LIN, "s", 0, NULL,
           "gap before the reverb: keeps the dry sound clear"),
-    PARAM(FXB_P_REVERB_FREEZE, "reverb_freeze", "fx.reverb.freeze", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 1, onoff_labels,
+    PARAM(FXB_P_REVERB_FREEZE, "reverb_freeze", "fx.reverb.freeze", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 1, param_onoff_labels,
           "freeze: the current tail holds forever and new sound stays dry on top (CC 69)"),
 };
-
-size_t fxbus_mem_floats(float sr, float max_delay_s, float reverb_size)
-{
-    return delay_mem_floats(sr, max_delay_s) + reverb_mem_floats(sr, reverb_size);
-}
 
 void fxbus_init(fxbus_t *f, float sr, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)
 {
@@ -62,7 +56,6 @@ void fxbus_init(fxbus_t *f, float sr, float *mem, size_t mem_floats, float max_d
     if (mem && size >= 0.5f) {
         reverb_init(&f->reverb, sr, size, mem);
         f->has_reverb = 1;
-        f->reverb_size = size;
         const size_t used = reverb_mem_floats(sr, size);
         mem += used;
         mem_floats -= used;
@@ -183,13 +176,4 @@ DSP_FAST_CODE void fxbus_reverb(fxbus_t *f, float *L, float *R, int n)
         L[i] += wl[i];
         R[i] += wr[i];
     }
-}
-
-DSP_FAST_CODE void fxbus_process(fxbus_t *f, float *L, float *R, int n)
-{
-    fxbus_begin(f);
-    fxbus_chorus(f, L, R, n);
-    fxbus_delay(f, L, R, n);
-    fxbus_reverb(f, L, R, n);
-    fxbus_flush(f, L, R, n);
 }

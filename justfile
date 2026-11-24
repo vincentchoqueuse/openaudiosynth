@@ -31,11 +31,11 @@ test: build
 check:
     sh tools/check_all.sh
 
-# render a patch's audition to build-host/renders/<patch>.wav (and play it)
 # drive a board over Ethernet (docs/link.md), e.g. just link --iface en5 discover
 link *args: build
     ./build-host/host/synth_link {{args}}
 
+# render a patch's audition to build-host/renders/<patch>.wav (and play it)
 render patch: build
     mkdir -p build-host/renders
     ./build-host/host/synth_render --patch patches/{{patch}}.json --out build-host/renders/{{patch}}.wav --tail 3

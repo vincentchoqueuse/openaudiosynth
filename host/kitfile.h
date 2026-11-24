@@ -1,6 +1,6 @@
 /* kitfile.h — sample kits from WAV files (host side): a directory of NN_name.wav files (NN: the MIDI note)
  * becomes a kit in memory (dsp/core/kit.h), the samples mixed to mono, converted to 16 bits and resampled to
- * 48 kHz with the sampler's own band-limited player. Named kits ("kit": "synth_drums" in a patch) are looked
+ * 48 kHz with the sampler's own band-limited player. Named kits ("kit": "synth_analog" in a patch) are looked
  * up in search directories and loaded once. */
 #ifndef KITFILE_H
 #define KITFILE_H

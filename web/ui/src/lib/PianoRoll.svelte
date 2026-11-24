@@ -306,6 +306,7 @@
     if (!area?.offsetParent || typing(e.target) || session.saving || session.shortcutsOpen || session.settingsOpen || session.clipSettingsOpen || session.shareOpen) return;
     const mod = e.metaKey || e.ctrlKey, k = e.key, arrow = k.startsWith('Arrow');
     if (arrow && !sel.size) return; // the computer keyboard's octave
+    if (arrow && (e.target?.type === 'range' || e.target?.closest?.('.select'))) return; // a slider or a menu keeps its arrows
     const C = { KeyA: () => (sel = new Set(q.notes.map((n) => n.id))), KeyC: cmd.copy, KeyX: cmd.cut, KeyV: cmd.paste,
       KeyD: cmd.duplicate, KeyL: cmd.legato, KeyU: cmd.quantize };
     let act = null;

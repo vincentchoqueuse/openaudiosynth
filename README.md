@@ -55,6 +55,7 @@ settings), then the instrument's cards in the order the signal flows.*
 | `drums` | a synthesized drum machine: analog, hybrid, glitch and trap kits, plus a melodic bass drum that slides between held notes |
 | `sampler` | a drum sampler: kits of your own samples, 16 pads with speed, start/end points, reverse, loop, filter, choke groups; band-limited playback |
 | `drone` | a drone machine: wandering partials, a body, breath and sparkles, from glacial to warm |
+| `micro` | precision sines: envelopes exact to the sample, fixed pitch, clicks, bursts, gate patterns, a noise layer and a low layer |
 
 Every part has 8 macros, 2 tempo-syncable LFOs, 2 looping multi-segment envelopes (MSEG) and 8 modulation routes;
 per-note MSEG and LFO, MPE, microtuning (Scala), 8 multitimbral parts, MIDI clock, and an effect bus (phaser,
@@ -109,7 +110,7 @@ just check                 # everything: host, Debug, ASan, ARM, wasm
 
 Patches, songs and controller maps are plain JSON described by schemas in [spec/](spec/) (format OID 0.3): a patch
 names an engine and its parameters in physical units (Hz, seconds, dB, semitones). The same file plays on the Mac,
-in the browser, in the plugin and on the boards. 88 patches are in [patches/](patches/), songs in [songs/](songs/).
+in the browser, in the plugin and on the boards. The patches are in [patches/](patches/), songs in [songs/](songs/).
 
 ## Layout
 

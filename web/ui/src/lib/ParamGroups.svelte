@@ -9,7 +9,7 @@
      is loaded. The five effects of the bus form a rack: each shows its place and two arrows that move it earlier or
      later in the signal (session.setRack); one added from the row goes after those already in use. A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz); an engine may name its controls itself and keep only the main ones in view,
-     the others under a More button (engineui.js). The card the Structure diagram asks for is scrolled to and lit. -->
+     the others under a More button (engineui.js). The card the signal path asks for (a click on a block in Summary) is scrolled to and lit. -->
 <script>
   import Card from './Card.svelte';
   import Switch from './Switch.svelte';
@@ -51,9 +51,16 @@
   let lastOn = {}; // value of a stage's switch before it was turned off (this sound only)
   $effect(() => { s.patchGen; lastOn = {}; });
   const stageOn = (st) => !st?.enable || Math.abs(s.getP(st.enable) - st.off) > 1e-6;
-  let kept = $state({}); // effects switched off by hand: they stay folded cards (this sound only)
+  // effects that have been on, or that a macro moves, since this sound was loaded: they stay cards (folded when
+  // switched off, and never leaving while a slider is dragged down to 0); the others wait under Add effect
+  let kept = $state({});
   $effect(() => { s.patchGen; kept = {}; });
-  const idle = (st) => tab === 'fx' && !!st?.enable && !stageOn(st) && !kept[st.id]; // an effect not in use
+  $effect(() => {
+    if (tab !== 'fx') return;
+    for (const [, ps, st] of groups)
+      if (st?.enable && !kept[st.id] && (stageOn(st) || ps.some(({ d }) => s.macrosOf[d.id]))) kept[st.id] = true;
+  });
+  const idle = (st) => tab === 'fx' && !!st?.enable && !kept[st.id]; // an effect not in use
   // the rack: the bus effects whose order is free
   const inRack = (st) => tab === 'fx' && !!st && s.rack.includes(st.id);
   const shownRack = () => s.rack.filter((id) => !idle(s.fxStages.find((x) => x.id === id)));
@@ -68,10 +75,9 @@
   }
   function toggle(st) {
     if (inRack(st) && idle(st)) { const shown = shownRack(); if (shown.length) rackPlace(st.id, shown[shown.length - 1], true); }
-    if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); kept[st.id] = true; s.setP(st.enable, st.off); }
+    if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); s.setP(st.enable, st.off); }
     else s.setP(st.enable, lastOn[st.enable] ?? st.on);
   }
-  // the engine with stages, laid out as its signal: one column per kind of audio stage (sources, filters, amps),
   // the engine's cards in the order its signal flows: sources, filters, amp, modulators, voice, the rest
   const ordered = $derived.by(() => {
     if (tab !== 'engine' || !s.engine?.stages?.length) return groups;

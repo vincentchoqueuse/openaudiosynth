@@ -13,7 +13,7 @@
 #include "../filter/halfband.h"
 
 #define DIST_DRY_N 16
-#define DIST_TUBE_BIAS 0.3f /* the tube's default bias (dist_set_bias) */
+#define DIST_TUBE_BIAS 0.3f /* the tube's asymmetry: an offset into the tanh (0 would be symmetric) */
 #define DIST_LATENCY 11.5f /* the half-band pair's delay at the base rate, in samples */
 
 typedef enum { DIST_OFF = 0, DIST_SOFT, DIST_TUBE, DIST_HARD, DIST_FOLD, DIST_MODE_COUNT } dist_mode_t;
@@ -33,8 +33,6 @@ void dist_init(dist_t *d, float sample_rate);
 void dist_reset(dist_t *d);
 /* drive_db: gain into the shaper (0..36 dB); tone_hz: low-pass after it; mix: 0 dry .. 1 wet. */
 void dist_set(dist_t *d, dist_mode_t mode, float drive_db, float tone_hz, float mix);
-/* the tube's asymmetry: an offset into the tanh (0 = symmetric; DIST_TUBE_BIAS by default) */
-void dist_set_bias(dist_t *d, float bias);
 /* in place allowed; does nothing (out = in) when the mode is off */
 void dist_process(dist_t *d, const float *in, float *out, int n);
 

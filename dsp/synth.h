@@ -22,7 +22,7 @@ typedef enum {
     SYNTH_ENGINE_SAMPLER,  /* drum sampler: a kit of samples (synth_part_kit), 16 pads with their own settings */
     SYNTH_ENGINE_DRONE,    /* drone machine: wandering partials, warm body, air, sparkles; glacial .. warm */
     SYNTH_ENGINE_MICRO,    /* precision sines: per-sample envelopes, fixed pitch, clicks, bursts, ratchets, gates */
-    SYNTH_ENGINE_HAVOC,    /* noise machine: 4 generators of 10 processes each, cross-modulated, 2 processors */
+    SYNTH_ENGINE_HAVOC,    /* noise machine: 4 generators of 16 processes each, cross-modulated, 2 processors */
     SYNTH_ENGINE_COUNT
 } synth_engine_t;
 
@@ -32,7 +32,7 @@ typedef enum {
 #define SYNTH_PARAM_GLOBAL 256
 enum {
     SYNTH_PARAM_MASTER_DB = SYNTH_PARAM_GLOBAL, /* -60 .. +6 dB, default 0 dB */
-    /* effect bus: chorus -> tape delay -> plate reverb (all off by default) */
+    /* effect bus: chorus, tape delay, plate reverb (all off by default; their order: SYNTH_PARAM_FX_SLOT_1..) */
     SYNTH_PARAM_CHORUS_MODE,     /* off, I, II, I+II, ensemble          (CC 93 sets the mix) */
     SYNTH_PARAM_CHORUS_MIX,
     SYNTH_PARAM_DELAY_MIX,       /* CC 94 */
@@ -73,7 +73,7 @@ enum {
     SYNTH_PARAM_LIMITER_GAIN,    /* 0 .. 18 dB into the limiter */
     SYNTH_PARAM_LIMITER_CEILING, /* -12 .. 0 dBFS, the highest peak out */
     SYNTH_PARAM_LIMITER_RELEASE, /* 0.01 .. 1 s */
-    /* phaser then flanger, at the start of the effect bus, before the chorus (off at mix 0, the default) */
+    /* phaser and flanger, first on the effect bus by default (off at mix 0, the default) */
     SYNTH_PARAM_PHASER_MIX,      /* 0 .. 1 (1: half dry, half phased) */
     SYNTH_PARAM_PHASER_RATE,     /* 0.02 .. 10 Hz */
     SYNTH_PARAM_PHASER_CENTER,   /* 100 .. 5000 Hz, the middle of the sweep */

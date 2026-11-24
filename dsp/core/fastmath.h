@@ -11,7 +11,6 @@
 #define FM_SIN_SIZE (1 << FM_SIN_BITS)
 extern const float fm_sin_table[FM_SIN_SIZE + 1];
 
-#define FM_PI 3.14159265358979f
 #define FM_TWO_PI 6.28318530717959f
 #define FM_LN2 0.693147180559945f
 #define FM_LOG2E 1.44269504088896f

@@ -501,7 +501,7 @@
   },
   "engines": {
     "va": {
-      "description": "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> 2-pole TPT SVF -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
+      "description": "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
       "voices": 8,
       "params": {
         "osc1_wave": {"type": "enum", "choices": ["sine", "saw", "pulse", "tri", "supersaw"], "default": "saw", "realtime": false, "role": "osc1.waveform", "help": "osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure, supersaw = up to 7 detuned saws (see supersaw_*)"},

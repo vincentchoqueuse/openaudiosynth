@@ -23,7 +23,6 @@ void limiter_reset(limiter_t *l)
     l->dpos = l->bpos = 0;
     l->qh = l->qn = 0;
     l->t = 0;
-    l->sum = (float)l->len;
     l->env = 1.0f;
     l->reduction = 1.0f;
 }

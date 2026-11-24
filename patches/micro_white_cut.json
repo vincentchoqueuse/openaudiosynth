@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_white_cut",
+  "description": "A rectangle of white noise: full level from the first sample, 20 ms, cut on the sample. No filter, no fade.",
+  "params": {
+    "sine_level": -60,
+    "env_mode": "one_shot",
+    "amp_attack": 2e-05,
+    "amp_hold": 0.02,
+    "amp_decay": 0.0005,
+    "decay_curve": 0,
+    "amp_sustain": 0,
+    "noise_level": -4,
+    "noise_type": "white",
+    "noise_filter": "off",
+    "noise_env": "amp",
+    "velocity": 0.6,
+    "volume": 8,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "notes": [
+      {
+        "pitch": 60,
+        "start": 1,
+        "length": 0.1,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 3,
+        "length": 0.1,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 3.75,
+        "length": 0.1,
+        "velocity": 100
+      }
+    ]
+  }
+}

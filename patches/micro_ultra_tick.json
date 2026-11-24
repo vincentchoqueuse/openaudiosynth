@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_ultra_tick",
+  "description": "At the edge of hearing: 40 cycles of 13 kHz, three milliseconds, to one side.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 13000,
+    "burst": 40,
+    "env_mode": "one_shot",
+    "amp_attack": 2e-05,
+    "amp_hold": 1,
+    "amp_decay": 0.001,
+    "amp_sustain": 0,
+    "phase": 0,
+    "pan": 0.45,
+    "velocity": 0.7,
+    "volume": 8,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "notes": [
+      {
+        "pitch": 60,
+        "start": 0.0,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 0.5,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 0.75,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 1.0,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 1.5,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 2.0,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 2.5,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 2.75,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 3.0,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 3.5,
+        "length": 0.05,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 3.75,
+        "length": 0.05,
+        "velocity": 100
+      }
+    ]
+  }
+}

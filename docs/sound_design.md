@@ -278,7 +278,14 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
   a second; both restart together, so the swell falls on the same samples at every hit (`micro_low_beating`:
   3 Hz under a higher pair split left and right at 2 Hz). `low_beat_mix` 0.5 falls to silence at every beat,
   less is shallower.
-See `songs/grille_fine.json`.
+- **The cold, exact register**: few materials, each one bare: a low sine as the only weight (`micro_low_pole`:
+  started from its top, so the hit has its own click), white noise as rectangles cut on the sample
+  (`micro_white_cut`: `noise_env` amp under an envelope of one sample of attack, a hold and a half-millisecond
+  decay), pure tones of an exact number of cycles that start and end at zero (`micro_test_tone`: `burst` 24),
+  ticks at the edge of hearing (`micro_ultra_tick`: 13 kHz, 3 ms, to one side), and silence between them. No
+  reverb to speak of, hard pans, every length a number of samples.
+
+See `songs/grille_fine.json` and `songs/trame_blanche.json`.
 
 ## Four-operator FM on a matrix (`fm4`)
 

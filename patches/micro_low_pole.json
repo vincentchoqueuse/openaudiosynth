@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_low_pole",
+  "description": "A pole: the low sine alone, started from its top so the hit carries its own click, three octaves of fall in 12 ms, 30 ms held, gone in 180.",
+  "params": {
+    "sine_level": -60,
+    "env_mode": "one_shot",
+    "amp_attack": 2e-05,
+    "amp_decay": 0.01,
+    "amp_sustain": 0,
+    "low_level": 8,
+    "low_freq": 43,
+    "low_phase": 90,
+    "low_drop": 36,
+    "low_drop_time": 0.012,
+    "low_attack": 2e-05,
+    "low_hold": 0.03,
+    "low_decay": 0.18,
+    "low_curve": 0.7,
+    "low_drive": 0.5,
+    "velocity": 0.5,
+    "volume": 6,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 4,
+    "loop": true,
+    "grid": "1/16",
+    "notes": [
+      {
+        "pitch": 36,
+        "start": 0,
+        "length": 0.25,
+        "velocity": 100
+      },
+      {
+        "pitch": 36,
+        "start": 1.5,
+        "length": 0.25,
+        "velocity": 100
+      },
+      {
+        "pitch": 36,
+        "start": 2.5,
+        "length": 0.25,
+        "velocity": 100
+      }
+    ]
+  }
+}

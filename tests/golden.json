@@ -89,10 +89,14 @@
  "patch/micro_low_beating": "45b253007c43ae89",
  "patch/micro_low_interlock": "7461fbe8a8226f00",
  "patch/micro_low_line": "9c7cb1221af306cc",
+ "patch/micro_low_pole": "ea21c23594bdc2fd",
  "patch/micro_low_pressure": "a25dac8f8a5b4d1a",
  "patch/micro_low_pulse": "9d67d0eea33423d7",
  "patch/micro_noise_interlock": "a4f742e0c722d630",
  "patch/micro_sub_pressure": "a4f9e17415f27751",
+ "patch/micro_test_tone": "927dc57156d49aaf",
+ "patch/micro_ultra_tick": "01af17fc5807b93a",
+ "patch/micro_white_cut": "ec5ce808e6ba9399",
  "patch/modal_alien_bell": "b012da6800794823",
  "patch/modal_bowl_bowed": "808cf56b575cf35c",
  "patch/modal_church_bell": "52c25f574212d60e",
@@ -182,6 +186,7 @@
  "song/swarm": "aa97f2aef532d1e2",
  "song/synthwave_drive": "c684e99d09ef9213",
  "song/techno_hybrid": "d7d9007364b5a803",
+ "song/trame_blanche": "759d9a0190aa0755",
  "song/warp_piano": "b86a6761c5e5fef0",
  "song/wavetable_drive": "5b45b1af658f408d"
 }

@@ -9,7 +9,7 @@ set(H745_DRIVERS ${CMAKE_CURRENT_LIST_DIR}/../Drivers)
 # (the 12 MB arena of `wt` needs the SDRAM, a later step).
 set(SYNTH_BOARD_DEFINES
     SYNTH_PARTS=1
-    SYNTH_FX_MEM_FLOATS=100000
+    SYNTH_FX_MEM_FLOATS=106144
     SYNTH_ENGINE_MEM_FLOATS=1
     "DSP_LARGE_DATA=__attribute__((section(\".RAM_D1\")))"
 )

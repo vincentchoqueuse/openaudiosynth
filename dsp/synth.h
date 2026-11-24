@@ -32,7 +32,7 @@ typedef enum {
 #define SYNTH_PARAM_GLOBAL 256
 enum {
     SYNTH_PARAM_MASTER_DB = SYNTH_PARAM_GLOBAL, /* -60 .. +6 dB, default 0 dB */
-    /* effect bus: chorus, tape delay, plate reverb (all off by default; their order: SYNTH_PARAM_FX_SLOT_1..) */
+    /* effect bus: chorus, tape delay, plate reverb (all off by default; their order: SYNTH_PARAM_FX_SLOT_1..6) */
     SYNTH_PARAM_CHORUS_MODE,     /* off, I, II, I+II, ensemble          (CC 93 sets the mix) */
     SYNTH_PARAM_CHORUS_MIX,
     SYNTH_PARAM_DELAY_MIX,       /* CC 94 */
@@ -86,8 +86,18 @@ enum {
     SYNTH_PARAM_FLANGER_DEPTH,   /* 0 .. 1 */
     SYNTH_PARAM_FLANGER_FEEDBACK, /* -0.9 .. 0.9 */
     /* the effect rack: which effect sits at each place of the bus, in the order the signal goes through */
-    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb (default: in that order) */
-    SYNTH_PARAM_FX_SLOT_5 = SYNTH_PARAM_FX_SLOT_1 + 4,
+    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb, tape (default: in that order) */
+    SYNTH_PARAM_FX_SLOT_6 = SYNTH_PARAM_FX_SLOT_1 + 5,
+    /* tape: wow, flutter, saturation, loss of highs and hiss on the whole signal (a place of the rack) */
+    SYNTH_PARAM_TAPE,            /* off, on */
+    SYNTH_PARAM_TAPE_WOW,        /* 0 .. 1 (1: about 0.5 % of slow pitch wander) */
+    SYNTH_PARAM_TAPE_FLUTTER,    /* 0 .. 1 (1: about 0.15 % of fast pitch flutter) */
+    SYNTH_PARAM_TAPE_DRIVE,      /* 0 .. 1 (0 .. 18 dB into the saturation) */
+    SYNTH_PARAM_TAPE_HISS,       /* 0 .. 1 */
+    SYNTH_PARAM_TAPE_TONE,       /* 1000 .. 18000 Hz (the loss of highs) */
+    /* shimmer: the reverb's tail comes back into it transposed */
+    SYNTH_PARAM_REVERB_SHIMMER,  /* 0 .. 1 */
+    SYNTH_PARAM_REVERB_SHIMMER_PITCH, /* octave up, fifth up, twelfth up, octave down */
     SYNTH_PARAM_GLOBAL_END
 };
 

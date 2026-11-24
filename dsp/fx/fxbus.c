@@ -3,7 +3,9 @@
  * too), anything else has them added first (fxbus_flush). Mix levels are smoothed at control rate and ramped per
  * sample. */
 #include "fxbus.h"
+#include "../core/fastmath.h"
 
+#define SHIMMER_K 5.0f /* gain of the shimmer's return at amount 1, times (1 - decay) */
 #define IDLE_AFTER_S 20.0f /* keep computing a muted effect this long so its tail empties */
 
 static const char *const chorus_labels[] = {"off", "I", "II", "I+II", "ensemble", NULL};
@@ -48,6 +50,12 @@ void fxbus_init(fxbus_t *f, float sr, float *mem, size_t mem_floats, float max_d
         f->p[i] = fxbus_params[i].def;
     chorus_init(&f->chorus, sr);
 
+    /* the shimmer's line from the end of the arena */
+    f->sh_buf = 0;
+    if (mem && mem_floats > FXB_SHIMMER_LEN) {
+        mem_floats -= FXB_SHIMMER_LEN;
+        f->sh_buf = mem + mem_floats;
+    }
     /* reverb first (it defines the sound most), shrinking its size if the arena is small */
     f->has_reverb = f->has_delay = 0;
     float size = dsp_clampf(reverb_size, 0.5f, REVERB_MAX_SIZE);
@@ -76,6 +84,20 @@ void fxbus_init(fxbus_t *f, float sr, float *mem, size_t mem_floats, float max_d
     f->delay_idle_s = f->reverb_idle_s = IDLE_AFTER_S; /* idle until used */
     f->dirty = 1;
     f->pending = 0;
+    for (int i = 0; f->sh_buf && i < FXB_SHIMMER_LEN; i++)
+        f->sh_buf[i] = 0.0f;
+    for (int i = 0; i < SYNTH_BLOCK; i++)
+        f->sh_fb[i] = 0.0f;
+    f->sh_w = f->sh_run = 0;
+    f->sh_ph = 0.0f;
+    fxbus_set_shimmer(f, 0.0f, 12.0f);
+}
+
+void fxbus_set_shimmer(fxbus_t *f, float amount, float semitones)
+{
+    f->sh_amount = dsp_clampf(amount, 0.0f, 1.0f);
+    /* a tap whose delay shrinks by (ratio - 1) samples per sample reads the line `ratio` times faster */
+    f->sh_rate = (fm_exp2(semitones * (1.0f / 12.0f)) - 1.0f) * (1.0f / (float)(FXB_SHIMMER_LEN - 8));
 }
 
 void fxbus_set_param(fxbus_t *f, int id, float norm)
@@ -162,13 +184,44 @@ DSP_FAST_CODE void fxbus_reverb(fxbus_t *f, float *L, float *R, int n)
     /* a muted reverb goes idle; if it was frozen, the frozen tail is kept for when it comes back */
     const int reverb_on = f->has_reverb && f->reverb_idle_s < IDLE_AFTER_S;
     if (!reverb_on) {
+        f->sh_run = 0; /* nothing of the old tail comes back when the reverb does */
         fxbus_flush(f, L, R, n);
         return;
     }
     const int muted = r1 <= 1e-5f, echoes = f->pending;
     for (int i = 0; i < n; i++)
         send[i] = muted ? 0.0f : 0.5f * (L[i] + R[i] + (echoes ? f->pl[i] + f->pr[i] : 0.0f));
+    /* shimmer: the last block's transposed tail joins the send; then this block's tail is transposed for the next.
+     * Two taps half a window apart read the tail faster (or slower) than it is written, cross-faded where each
+     * jumps back (the rotating-head transposer); a tanh bounds the loop */
+    const int shimmer = f->sh_buf && f->sh_amount > 0.0f;
+    if (shimmer && f->sh_run && !muted)
+        for (int i = 0; i < n; i++)
+            send[i] += f->sh_fb[i];
     reverb_process(&f->reverb, send, wl, wr, n);
+    if (shimmer) {
+        /* the gain of the loop follows the decay: a long tail returns less at each pass (its reverb gives more
+         * back), so the amount means the same at every decay and the loop cannot run away */
+        const float dc = f->p[FXB_P_REVERB_DECAY], win = (float)(FXB_SHIMMER_LEN - 8);
+        const float g = f->sh_amount * dsp_minf(SHIMMER_K * (1.0f - dc), 0.7f);
+        for (int i = 0; i < n; i++) {
+            f->sh_buf[f->sh_w] = 0.5f * (wl[i] + wr[i]);
+            f->sh_ph = fm_frac(f->sh_ph + f->sh_rate);
+            float y = 0.0f;
+            for (int k = 0; k < 2; k++) {
+                const float ph = fm_frac(f->sh_ph + 0.5f * (float)k);
+                const float d = 2.0f + win * (1.0f - ph);
+                const int di = (int)d;
+                const float fr = d - (float)di;
+                const int a0 = (f->sh_w - di) & (FXB_SHIMMER_LEN - 1), a1 = (a0 - 1) & (FXB_SHIMMER_LEN - 1);
+                y += (f->sh_buf[a0] + (f->sh_buf[a1] - f->sh_buf[a0]) * fr) * (0.5f - 0.5f * fm_cos(ph));
+            }
+            f->sh_fb[i] = fm_tanh(g * y);
+            f->sh_w = (f->sh_w + 1) & (FXB_SHIMMER_LEN - 1);
+        }
+        f->sh_run = 1;
+    } else
+        f->sh_run = 0;
     dsp_ramp_mul(wl, r0, r1, n);
     dsp_ramp_mul(wr, r0, r1, n);
     fxbus_flush(f, L, R, n);

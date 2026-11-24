@@ -5,7 +5,9 @@
  * resonances (positive: multiples of the delay's frequency, negative: odd multiples of half of it), bounded at full
  * feedback with a fast sweep, deterministic. The rack: the default order named in full is the default, another
  * order sounds different, the same order twice is identical, places naming an effect twice still run every effect
- * once, every order of the five stays bounded. */
+ * once, orders of the six stay bounded. Tape: untouched while off, level kept when clean, wow of the depth it says,
+ * highs lost, hiss at its level, saturation that holds the peak, deterministic. Shimmer: the tail of a pure tone gains
+ * its octave, bounded at full amount with an endless decay. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,8 +16,10 @@
 #include "fx/delay.h"
 #include "fx/dist.h"
 #include "fx/flanger.h"
+#include "fx/fxbus.h"
 #include "fx/phaser.h"
 #include "fx/reverb.h"
+#include "fx/tape.h"
 #include "synth.h"
 #include "test.h"
 
@@ -340,9 +344,10 @@ static void rack_render(const int *slots, float *L, float *R, int n)
     synth_set_param(s, SYNTH_PARAM_REVERB_MIX, 0.4f);
     synth_set_param(s, SYNTH_PARAM_FLANGER_MIX, 0.6f);
     synth_set_param(s, SYNTH_PARAM_CHORUS_MODE, 0.5f);
+    synth_set_param(s, SYNTH_PARAM_TAPE, 1.0f);
     if (slots)
-        for (int k = 0; k < 5; k++)
-            synth_set_param(s, SYNTH_PARAM_FX_SLOT_1 + k, (float)slots[k] / 4.0f);
+        for (int k = 0; k < 6; k++)
+            synth_set_param(s, SYNTH_PARAM_FX_SLOT_1 + k, (float)slots[k] / 5.0f);
     const uint8_t on[3] = {0x90, 57, 100}, off[3] = {0x80, 57, 0};
     synth_midi(s, on, 3, 0);
     for (int i = 0; i < n; i += 64) {
@@ -358,10 +363,12 @@ static void test_rack(void)
     float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
     float *L2 = malloc(sizeof(float) * (size_t)n), *R2 = malloc(sizeof(float) * (size_t)n);
     const size_t bytes = sizeof(float) * (size_t)n;
-    static const int usual[5] = {0, 1, 2, 3, 4};    /* phaser, flanger, chorus, delay, reverb */
-    static const int reversed[5] = {4, 3, 2, 1, 0}; /* the reverb first, its tail through everything else */
-    static const int twice[5] = {4, 4, 4, 3, 3};    /* reverb, delay, then those not named: phaser, flanger, chorus */
-    static const int same[5] = {4, 3, 0, 1, 2};
+    static const int usual[6] = {0, 1, 2, 3, 4, 5};    /* phaser, flanger, chorus, delay, reverb, tape */
+    static const int reversed[6] = {5, 4, 3, 2, 1, 0}; /* the reverb before everything but the tape */
+    static const int twice[6] = {4, 4, 4, 3, 3, 3};    /* reverb, delay; those not named go before their usual follower */
+    static const int same[6] = {4, 0, 1, 2, 3, 5};
+    static const int front[6] = {5, 1, 2, 3, 4, 5};    /* only the first place renamed: the tape first, the rest as usual */
+    static const int moved[6] = {5, 0, 1, 2, 3, 4};
 
     rack_render(NULL, L, R, n);
     rack_render(usual, L2, R2, n);
@@ -380,15 +387,18 @@ static void test_rack(void)
     rack_render(twice, L, R, n);
     rack_render(same, L2, R2, n);
     CHECK(memcmp(L, L2, bytes) == 0 && memcmp(R, R2, bytes) == 0, "rack: places naming an effect twice do not run every effect once");
+    rack_render(front, L, R, n);
+    rack_render(moved, L2, R2, n);
+    CHECK(memcmp(L, L2, bytes) == 0 && memcmp(R, R2, bytes) == 0, "rack: naming the first place alone does not keep the others in the usual order");
 
-    /* every order of the five: finite and bounded */
-    int order[5], bad = 0;
+    /* orders of the six: finite and bounded */
+    int order[6], bad = 0;
     float worst = 0.0f;
-    for (int code = 0; code < 3125; code++) {
+    for (int code = 0; code < 46656; code++) {
         int seen = 0, c = code;
-        for (int k = 0; k < 5; k++)
-            order[k] = c % 5, c /= 5, seen |= 1 << order[k];
-        if (seen != 31 || code % 7) /* the permutations, one in seven of them (18 renders) */
+        for (int k = 0; k < 6; k++)
+            order[k] = c % 6, c /= 6, seen |= 1 << order[k];
+        if (seen != 63 || code % 97) /* the permutations, one in 97 of them */
             continue;
         rack_render(order, L, R, 24000);
         if (!all_finite_bounded(L, 24000, 2.0f) || !all_finite_bounded(R, 24000, 2.0f))
@@ -400,9 +410,159 @@ static void test_rack(void)
     free(L), free(R), free(L2), free(R2);
 }
 
+static void tape_run(tape_t *t, float *L, float *R, int n)
+{
+    for (int i = 0; i < n; i += 32)
+        tape_process(t, L + i, R + i, n - i < 32 ? n - i : 32);
+}
+
+static void test_tape(void)
+{
+    const float sr = 48000.0f;
+    const int n = 48000 * 4;
+    static tape_t t;
+    static float tape_mem[TAPE_MEM_FLOATS];
+    float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n), *L2 = malloc(sizeof(float) * (size_t)n);
+    #define TAPE_SINE(f, a)                                                             \
+        for (int i = 0; i < n; i++)                                                     \
+            L[i] = R[i] = (a) * sinf(6.2831853f * (f) * (float)i / sr)
+    /* off: untouched */
+    TAPE_SINE(1000.0f, 0.5f);
+    memcpy(L2, L, sizeof(float) * (size_t)n);
+    tape_init(&t, sr, tape_mem);
+    tape_run(&t, L, R, n);
+    CHECK(memcmp(L, L2, sizeof(float) * (size_t)n) == 0, "tape off changes the signal");
+    /* on, everything at rest: the level is kept, the pitch too */
+    tape_init(&t, sr, tape_mem);
+    tape_set(&t, 1, 0.0f, 0.0f, 0.0f, 0.0f, 18000.0f);
+    tape_run(&t, L, R, n);
+    const float lv = 20.0f * log10f(rms(L + 24000, n - 24000) / rms(L2 + 24000, n - 24000));
+    const float f0 = estimate_freq(L + 24000, n - 24000, sr);
+    printf("  tape at rest: %.2f dB, %.2f Hz\n", (double)lv, (double)f0);
+    CHECK(fabsf(lv) < 1.0f && fabsf(f0 - 1000.0f) < 0.5f, "tape at rest: %.2f dB, %.2f Hz", (double)lv, (double)f0);
+    /* full wow: the pitch wanders by about 0.5 % either way (measured over 50 ms windows) */
+    TAPE_SINE(1000.0f, 0.5f);
+    tape_init(&t, sr, tape_mem);
+    tape_set(&t, 1, 1.0f, 0.0f, 0.0f, 0.0f, 18000.0f);
+    tape_run(&t, L, R, n);
+    float lo = 1e9f, hi = 0.0f;
+    for (int i = 24000; i + 2400 <= n; i += 1200) {
+        const float f = estimate_freq(L + i, 2400, sr);
+        lo = fminf(lo, f), hi = fmaxf(hi, f);
+    }
+    printf("  tape wow 1: %.1f .. %.1f Hz around 1000\n", (double)lo, (double)hi);
+    CHECK(hi - lo > 5.0f && hi - lo < 14.0f && lo < 1000.0f && hi > 1000.0f, "tape wow: %.1f .. %.1f Hz", (double)lo, (double)hi);
+    /* tone at 1 kHz: an 8 kHz sine loses more than 12 dB */
+    TAPE_SINE(8000.0f, 0.5f);
+    tape_init(&t, sr, tape_mem);
+    tape_set(&t, 1, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f);
+    tape_run(&t, L, R, n);
+    const float loss = 20.0f * log10f(rms(L + 24000, n - 24000) / (0.5f * 0.70710678f));
+    CHECK(loss < -12.0f, "tape tone 1 kHz: 8 kHz only %.1f dB down", (double)loss);
+    /* hiss alone: between -70 and -45 dBFS */
+    for (int i = 0; i < n; i++)
+        L[i] = R[i] = 0.0f;
+    tape_init(&t, sr, tape_mem);
+    tape_set(&t, 1, 0.0f, 0.0f, 0.0f, 1.0f, 18000.0f);
+    tape_run(&t, L, R, n);
+    const float hiss = 20.0f * log10f(rms(L + 24000, n - 24000) + 1e-12f);
+    printf("  tape hiss 1: %.1f dBFS\n", (double)hiss);
+    CHECK(hiss > -70.0f && hiss < -45.0f, "tape hiss: %.1f dBFS", (double)hiss);
+    /* full drive on a peak of 0.25: the peak holds, the wave is squarer (more level for the same peak) */
+    TAPE_SINE(200.0f, 0.25f);
+    tape_init(&t, sr, tape_mem);
+    tape_set(&t, 1, 0.0f, 0.0f, 1.0f, 0.0f, 18000.0f);
+    tape_run(&t, L, R, n);
+    const float pk = max_abs(L + 24000, n - 24000), crest = pk / rms(L + 24000, n - 24000);
+    printf("  tape drive 1 on a sine at 0.25: peak %.3f, crest %.2f\n", (double)pk, (double)crest);
+    CHECK(pk > 0.2f && pk < 0.3f && crest < 1.3f, "tape drive: peak %.3f, crest %.2f", (double)pk, (double)crest);
+    /* everything at its top on loud noise: bounded, deterministic */
+    for (int run = 0; run < 2; run++) {
+        uint32_t s = dsp_seed(5u);
+        for (int i = 0; i < n; i++)
+            L[i] = R[i] = dsp_rand_bipolar(&s);
+        tape_init(&t, sr, tape_mem);
+        tape_set(&t, 1, 1.0f, 1.0f, 1.0f, 1.0f, 18000.0f);
+        tape_run(&t, L, R, n);
+        if (run == 0) {
+            CHECK(all_finite_bounded(L, n, 1.5f), "tape at its top: max %g", (double)max_abs(L, n));
+            memcpy(L2, L, sizeof(float) * (size_t)n);
+        } else
+            CHECK(memcmp(L, L2, sizeof(float) * (size_t)n) == 0, "tape not deterministic");
+    }
+    #undef TAPE_SINE
+    free(L), free(R), free(L2);
+}
+
+/* level (dB) of one frequency in x: correlation with a sine and a cosine */
+static float tone_db(const float *x, int n, float f, float sr)
+{
+    double a = 0.0, b = 0.0;
+    for (int i = 0; i < n; i++) {
+        const double ph = 6.283185307179586 * (double)f * (double)i / (double)sr;
+        a += (double)x[i] * sin(ph), b += (double)x[i] * cos(ph);
+    }
+    return (float)(10.0 * log10((a * a + b * b) / ((double)n * (double)n) * 4.0 + 1e-30));
+}
+
+static void test_shimmer(void)
+{
+    const float sr = 48000.0f;
+    const int n = 48000 * 6;
+    static fxbus_t f;
+    static float mem[320000];
+    float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
+    float oct[2];
+    for (int k = 0; k < 2; k++) {
+        fxbus_init(&f, sr, mem, 320000, 2.0f, 1.5f);
+        fxbus_set_param(&f, FXB_P_REVERB_MIX, 1.0f);
+        fxbus_set_param(&f, FXB_P_REVERB_DECAY, 0.93f);
+        fxbus_set_param(&f, FXB_P_REVERB_DAMPING, 1.0f);
+        fxbus_set_shimmer(&f, k ? 0.8f : 0.0f, 12.0f);
+        for (int i = 0; i < n; i++) /* a second of a pure 330 Hz, then its tail */
+            L[i] = R[i] = i < 48000 ? 0.3f * sinf(6.2831853f * 330.0f * (float)i / sr) : 0.0f;
+        for (int i = 0; i < n; i += 32) {
+            fxbus_begin(&f);
+            fxbus_reverb(&f, L + i, R + i, 32);
+            fxbus_flush(&f, L + i, R + i, 32);
+        }
+        oct[k] = tone_db(L + 96000, 96000, 660.0f, sr) - tone_db(L + 96000, 96000, 330.0f, sr);
+        printf("  shimmer %d: max %.2f\n", k, (double)max_abs(L, n));
+        CHECK(all_finite_bounded(L, n, 4.0f), "shimmer %d: max %g", k, (double)max_abs(L, n));
+    }
+    printf("  shimmer: octave against the tone in the tail %.1f dB without, %.1f dB with\n", (double)oct[0], (double)oct[1]);
+    CHECK(oct[1] > oct[0] + 20.0f && oct[1] > -25.0f, "shimmer adds no octave: %.1f dB -> %.1f dB", (double)oct[0], (double)oct[1]);
+    /* the worst case: full amount, endless decay, loud noise for 20 s. The loop is bounded by its tanh, so the
+     * shimmer can add at most what a full-scale input would: the level stays within 3x the reverb's own */
+    float worst[2] = {0.0f, 0.0f};
+    int finite = 1;
+    for (int k = 0; k < 2; k++) {
+        fxbus_init(&f, sr, mem, 320000, 2.0f, 1.5f);
+        fxbus_set_param(&f, FXB_P_REVERB_MIX, 1.0f);
+        fxbus_set_param(&f, FXB_P_REVERB_DECAY, 1.0f);
+        fxbus_set_shimmer(&f, k ? 1.0f : 0.0f, 12.0f);
+        uint32_t s = dsp_seed(3u);
+        for (int b = 0; b < 30000; b++) {
+            float l[32], r[32];
+            for (int i = 0; i < 32; i++)
+                l[i] = r[i] = 0.5f * dsp_rand_bipolar(&s);
+            fxbus_begin(&f);
+            fxbus_reverb(&f, l, r, 32);
+            fxbus_flush(&f, l, r, 32);
+            finite &= all_finite_bounded(l, 32, 1e6f);
+            worst[k] = fmaxf(worst[k], max_abs(l, 32));
+        }
+    }
+    printf("  endless decay, noise for 20 s: max %.1f without shimmer, %.1f with\n", (double)worst[0], (double)worst[1]);
+    CHECK(finite && worst[1] < 3.0f * worst[0], "shimmer runs away: max %g against %g", (double)worst[1], (double)worst[0]);
+    free(L), free(R);
+}
+
 void suite_fx(void)
 {
     test_rack();
+    test_tape();
+    test_shimmer();
     test_modfx();
     test_dist();
     test_delay();

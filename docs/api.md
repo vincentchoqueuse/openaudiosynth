@@ -269,9 +269,9 @@ parameter descriptors: the single source of truth for UIs, MIDI learn, presets, 
 - `int param_label(const param_desc_t *d, const char *label)` — Index of a label of an enumerated parameter, or -1.
 
 ## `dsp/mod/partmod.h`
-parameter and modulation layer of a part, the same for every engine. Parameter changes made while notes sound (knobs, CCs, macros, routes) glide to their target with a 5 ms one-pole, for every engine; with nothing sounding they apply at once (patch loading stays exact). Modulation: 8 macros, 2 LFOs (free or tempo-synced), 2 MSEGs, MIDI sources (mod wheel, aftertouch, pitch bend, velocity, note, random per note) and 8 routes {source, destination, amount, via} onto any `realtime` parameter of the part's engine. Evaluated once per block: each modulated parameter gets base + sum of its routes (normalized domain, clamped) through the engine's set_param; when a route goes away the base value is restored. One value per part (all voices).
+parameter and modulation layer of a part, the same for every engine. Parameter changes made while notes sound (knobs, CCs, macros, routes) glide to their target with a 5 ms one-pole, for every engine; with nothing sounding they apply at once (patch loading stays exact). Modulation: 8 macros, 2 LFOs (free or tempo-synced), 2 MSEGs, MIDI sources (mod wheel, aftertouch, pitch bend, velocity, note, random per note) and 8 routes {source, destination, amount, via} onto any `realtime` parameter of the part's engine. Evaluated once per block: each modulated parameter gets base + sum of its routes (normalized domain, clamped) through the engine's set_param; when a route goes away the base value is restored. One value per part (all voices). Wander: eight slow random walks, one per macro at rates that share no period; `wander` adds each to its macro (the sound drifts through what its macros reach, never twice the same way), and the first is a source.
 - types: `partmod_t`
-- constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_COUNT`, `PM_WAVE_FOURIER` = 5, `PM_WAVE_WIENER` = 6
+- constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_WANDER`, `PM_WANDER_RATE`, `PM_COUNT`, `PM_WAVE_FOURIER` = 5, `PM_WAVE_WIENER` = 6
 - data: `const param_desc_t partmod_params[PM_COUNT]`
 - `int pm_global_target(int id)` — ids below this one
 - `void partmod_init(partmod_t *m, float sample_rate, uint32_t seed)`
@@ -408,8 +408,9 @@ stereo flanger: a short delay line (a fraction of a millisecond to 10 ms) swept 
 three effects of the synth's bus and their parameter descriptors: chorus (insert), tape delay and plate reverb (their wet added to the signal). They are stages the caller runs in any order among other effects (the rack of synth.c): fxbus_begin, then fxbus_chorus, fxbus_delay and fxbus_reverb once each, fxbus_flush before anything else reads the signal and at the end. Delay and reverb memory comes from a caller-provided arena; if the arena is too small the reverb size and maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
 - types: `fxbus_t`
 - data: `const param_desc_t fxbus_params[FXB_P_COUNT]`
-- `void fxbus_init(fxbus_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — mem/mem_floats: arena for delay + reverb (may be NULL/0: then only the chorus is available).
+- `void fxbus_init(fxbus_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — mem/mem_floats: arena for the shimmer's line, the reverb and the delay (may be NULL/0: then only the chorus is available).
 - `void fxbus_set_param(fxbus_t *f, int id, float norm)`
+- `void fxbus_set_shimmer(fxbus_t *f, float amount, float semitones)` — Shimmer: how much of the reverb's output comes back into it transposed (0 = none, 1 = a tail that keeps climbing), and by how many semitones (12 = the classic octave up; negative goes down).
 - `void fxbus_begin(fxbus_t *f)` — One block in place (n <= SYNTH_BLOCK), as stages: each at most once per block, between fxbus_begin and a last fxbus_flush. The delay leaves its echoes pending: the reverb right after it reads them itself, anything els...
 - `void fxbus_chorus(fxbus_t *f, float *L, float *R, int n)`
 - `void fxbus_delay(fxbus_t *f, float *L, float *R, int n)`
@@ -444,6 +445,15 @@ plate reverb after J. Dattorro, "Effect Design Part 1: Reverberator and Other Fi
 - `void reverb_set(reverb_t *r, float decay, float damping_hz, float predelay_s)` — decay 0..0.99 (tail length), damping_hz: high-frequency loss in the tank (darker when lower), predelay_s: 0..0.25 s.
 - `void reverb_set_freeze(reverb_t *r, int on)` — Freeze: the tank becomes (almost) lossless and the input is closed, so the current tail holds indefinitely; turning it off lets the tail decay normally. Transitions are smoothed (~50 ms).
 - `void reverb_process(reverb_t *r, const float *in, float *outL, float *outR, int n)` — Mono input, wet stereo output (outL/outR are overwritten).
+
+## `dsp/fx/tape.h`
+a worn tape machine on the whole signal: wow (slow pitch wander) and flutter (fast) from a short modulated delay read with linear interpolation, a soft saturation (tanh, level kept at low drive), the loss of highs (one-pole low-pass) and hiss (white noise). Stereo, the two channels through the same transport (one wow, one flutter). Switched on and off through a short cross-fade with the dry signal; it starts from an empty transport each time it is switched on. Its delay memory is the caller's. References: the wow / flutter of a transport as a delay modulation (DAFX, Zolzer ed., "Vibrato"); tape saturation as a tanh shaper (V. Valimaki et al., virtual analog effects).
+- types: `tape_t`
+- constants: `TAPE_MEM_FLOATS`
+- `void tape_init(tape_t *t, float sample_rate, float *mem)`
+- `void tape_reset(tape_t *t)`
+- `void tape_set(tape_t *t, int on, float wow, float flutter, float drive, float hiss, float tone_hz)` — on: 0 / 1; wow, flutter, drive, hiss: 0..1; tone_hz: the low-pass (the loss of highs).
+- `void tape_process(tape_t *t, float *L, float *R, int n)` — in place; passes the signal through untouched while it is and was off
 
 ## `dsp/engines/drone.h`
 drone engine: each note is a whole drone that never repeats. Four layers: partials (harmonic sines, glassy and slightly stretched when cold, with two beating twins), a body (two detuned saws in a low-pass, faded in as it warms up), air (noise in two band-passes on the note's harmonics) and sparkles (rare pings of a high harmonic). Every partial's level, pitch and place wander on smoothed random walks (no cycle to hear), and the two slow LFOs of a note have periods in the golden ratio. Seven macros move it all: temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width. Envelopes up to 3 minutes. References: the Ornstein-Uhlenbeck process for the walks; additive synthesis of harmonic series (J.-C. Risset).

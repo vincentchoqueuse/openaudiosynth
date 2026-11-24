@@ -1,7 +1,8 @@
 /* test_mod.c — MSEG (segments, curves, sustain, loops held and free, retrigger without jump, zero times are
  * bounded) and the per-part modulation layer through the public API (a macro route moves the sound, a removed
  * route restores the base value, a non-realtime destination is ignored, a tempo-synced LFO follows the beat,
- * an MSEG route shapes the level). */
+ * an MSEG route shapes the level); the wander walks of the macros (still at 0, smooth, bounded, one per macro,
+ * deterministic). */
 #include <math.h>
 #include <stdlib.h>
 
@@ -159,8 +160,53 @@ static void macro_global_and_cc(void)
           (double)(20.0f * log10f(back / hi)));
 }
 
+/* wander: slow walks of the macros. Nothing while its amount is 0; with it, each macro moves on its own walk,
+ * smoothly, within its reach, and the same way at every start. */
+static void wander_walks(void)
+{
+    static partmod_t m, m2;
+    static tempo_t tp;
+    tempo_init(&tp, SR, 120.0f);
+    partmod_init(&m, SR, 1);
+    partmod_init(&m2, SR, 1);
+    const int blocks = (int)(60.0f * SR / 32.0f); /* a minute */
+    for (int b = 0; b < 200; b++) {
+        partmod_block(&m, &tp, 32, 0, 0);
+        partmod_block(&m2, &tp, 32, 0, 0);
+    }
+    int still = 1;
+    for (int k = 0; k < PM_MACROS; k++)
+        still &= m.wd[k] == 0.0f;
+    CHECK(still, "wander at 0 moves the macros");
+    partmod_set(&m, PM_WANDER, 1.0f);
+    partmod_set(&m2, PM_WANDER, 1.0f);
+    partmod_set(&m, PM_WANDER_RATE, param_to_norm(&partmod_params[PM_WANDER_RATE], 0.5f));
+    partmod_set(&m2, PM_WANDER_RATE, param_to_norm(&partmod_params[PM_WANDER_RATE], 0.5f));
+    partmod_block(&m, &tp, 32, 0, 0); /* the amount just opened: the first block is where the walk stands */
+    partmod_block(&m2, &tp, 32, 0, 0);
+    float lo[2] = {1.0f, 1.0f}, hi[2] = {-1.0f, -1.0f}, step = 0.0f, prev = m.wd[0];
+    int same = 0, det = 1;
+    for (int b = 0; b < blocks; b++) {
+        partmod_block(&m, &tp, 32, 0, 0);
+        partmod_block(&m2, &tp, 32, 0, 0);
+        for (int k = 0; k < 2; k++)
+            lo[k] = fminf(lo[k], m.wd[k]), hi[k] = fmaxf(hi[k], m.wd[k]);
+        step = fmaxf(step, fabsf(m.wd[0] - prev));
+        prev = m.wd[0];
+        same += m.wd[0] == m.wd[1];
+        det &= m.wd[0] == m2.wd[0] && m.wd[7] == m2.wd[7];
+    }
+    printf("  wander 1 at 0.5 Hz, a minute: macro 1 offset %.2f .. %.2f, largest step per block %.4f\n", (double)lo[0], (double)hi[0], (double)step);
+    CHECK(hi[0] - lo[0] > 0.2f && hi[1] - lo[1] > 0.2f, "wander does not move: %.2f and %.2f", (double)(hi[0] - lo[0]), (double)(hi[1] - lo[1]));
+    CHECK(lo[0] >= -PM_WANDER_REACH && hi[0] <= PM_WANDER_REACH, "wander beyond its reach: %.2f .. %.2f", (double)lo[0], (double)hi[0]);
+    CHECK(step < 0.002f, "wander is not smooth: step %.4f in a block", (double)step);
+    CHECK(same < blocks / 100, "the walks of macros 1 and 2 are the same");
+    CHECK(det, "wander is not the same at every start");
+}
+
 void suite_mod(void)
 {
+    wander_walks();
     routes_engine_switch();
     macro_targets();
     macro_global_and_cc();

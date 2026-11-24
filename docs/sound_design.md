@@ -93,7 +93,13 @@ Struck notes decay by themselves even when the key is held; bowed notes sustain 
 
 `phaser_*`, `flanger_*`, `chorus_*`, `delay_*`, `reverb_*`, `saturation*` and `limiter*` can be set in any patch (and per song track via `params`).
 
-The five effects of the bus form a rack whose order is free: `fx_slot1` .. `fx_slot5` name the effect at each place (`phaser`, `flanger`, `chorus`, `delay`, `reverb`; that order by default). Each effect takes what comes out of the one before it, so the order is heard as soon as two are on: `"fx_slot1": "reverb", "fx_slot2": "delay"` puts the echoes on the reverb's tail instead of the reverb on the echoes; a phaser placed after the reverb sweeps the whole tail. Naming only the first places is enough: the effects not named follow in the usual order. There is one of each effect.
+The six effects of the bus form a rack whose order is free: `fx_slot1` .. `fx_slot6` name the effect at each place (`phaser`, `flanger`, `chorus`, `delay`, `reverb`, `tape`; that order by default). Each effect takes what comes out of the one before it, so the order is heard as soon as two are on: `"fx_slot1": "reverb", "fx_slot2": "delay"` puts the echoes on the reverb's tail instead of the reverb on the echoes; a phaser placed after the reverb sweeps the whole tail. Naming only the first places is enough: an effect no place names goes just before the one that usually follows it, so the others keep their usual order. There is one of each effect.
+
+Three tools for ambient and electronica, on any engine:
+
+- **Shimmer** (`reverb_shimmer`, `reverb_shimmer_pitch`): the reverb's tail comes back into it transposed (an octave up by default; a fifth up stacks into chords, an octave down sinks). 0.3 is a halo, 0.6 and more a tail that keeps climbing. Its return follows the decay, so it cannot run away; it needs a long `reverb_decay` (0.9 and more) and an open `reverb_damping` to be heard (`drone_halo`).
+- **Tape** (`tape` on, `tape_wow`, `tape_flutter`, `tape_drive`, `tape_hiss`, `tape_tone`): a worn machine on the whole signal. Last in the rack (the default) the reverb wobbles with the notes; first (`"fx_slot1": "tape"`) the echoes and the reverb stay steady behind a worn source (`va_worn_tape_keys`, `modal_piano_dream`).
+- **Wander** (`wander`, `wander_rate`; "Drift" in the browser): each of the eight macros follows its own slow random walk, at rates that share no period, up to a third of its travel either way. A sound with macros on its tone, its echoes and its space moves by itself and never comes back the same way; 0.2 is alive, 0.6 always changing. A patch needs `macros` for it to do anything (`wt_drifting_glass`). `wander` is also a route source (the first walk).
 
 | Want | Set |
 |---|---|

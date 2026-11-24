@@ -29,7 +29,7 @@
   const toAmount = (p) => Math.round(p * Math.abs(p) * 1000) / 1000;
 
   const LABEL = { mlfo1: 'LFO 1', mlfo2: 'LFO 2', mseg1: 'Env 1', mseg2: 'Env 2', vmseg: 'Note env', vlfo: 'Note LFO',
-    mod_wheel: 'Mod wheel', pitch_bend: 'Pitch bend' };
+    mod_wheel: 'Mod wheel', pitch_bend: 'Pitch bend', wander: 'Drift' };
   const srcName = (l) => LABEL[l] ?? l.replace(/^macro(\d)$/, 'Macro $1').replace(/^./, (c) => c.toUpperCase());
 
   const srcOptions = $derived(srcLabels.map((l, i) => ({ value: i, label: i ? srcName(l) : '—' })));

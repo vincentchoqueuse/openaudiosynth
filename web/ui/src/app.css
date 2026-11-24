@@ -167,6 +167,11 @@ button.add:disabled { opacity: .45; cursor: default; }
 .matrix .x { width: 20px; height: 20px; border-radius: 50%; color: var(--muted); }
 .matrix .x:hover { background: var(--faint); color: var(--text); }
 
+/* Drift, above the macro assignments: two settings side by side, then what they do */
+.drift { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 300px) 1fr; gap: 4px 26px; align-items: center; margin: 0 0 14px; }
+.drift .hint { margin: 0; }
+@media (max-width: 1100px) { .drift { grid-template-columns: 1fr; } }
+
 /* ---- toolbar: settings on the left (a label, then its control), actions on the right, one height ---- */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 30px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .toolbar label { display: inline-flex; align-items: center; gap: 6px; }

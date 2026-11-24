@@ -16,7 +16,7 @@
   let scope = $state('part'); // the routes of the part or of each note
   const m = $derived(MODS[view] ?? MODS[0]);
   // part modulation parameters no editor shows (none today; kept so a new one is never hidden)
-  const rest = $derived(s.shared.filter((d) => d.id >= 1024 && !/^(mseg\d|vmseg|route\d|vroute\d|map\d|macro\d|mlfo\d|vlfo)/.test(d.name)));
+  const rest = $derived(s.shared.filter((d) => d.id >= 1024 && !/^(mseg\d|vmseg|route\d|vroute\d|map\d|macro\d|mlfo\d|vlfo|wander)/.test(d.name)));
 </script>
 
 {#if view !== 'assign'}

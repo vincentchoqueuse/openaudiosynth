@@ -1,7 +1,8 @@
 <!-- MacroMatrix.svelte — the macros set up in the Synth view, as tables like the modulation matrix, in two tabs:
      Names (the eight macros' names and the MIDI CC that turns them, not on a phone), then Assignments (the rows in use among the
      part's 32, and Add assignment under them, like the modulation matrix: which macro, which parameter (any that moves live: the engine's, the master or an effect), its value with
-     the macro at 0 and at 1, sliders over the parameter's travel, read in its units). They are played above the
+     the macro at 0 and at 1, sliders over the parameter's travel, read in its units), under the two Drift settings
+     (how far and how fast the macros wander by themselves). They are played above the
      keyboard (MacroStrip). The slots are decoded once, in the session (macroMaps). -->
 <script>
   import { fromNorm, toNorm, format } from './synth.js';
@@ -9,6 +10,7 @@
   import { session as s } from './session.svelte.js';
   import Select from './Select.svelte';
   import { precise } from './slider.js';
+  import Param from './Param.svelte';
   let { view } = $props(); // 'names' | 'assign'
   let added = $state({}); // empty rows opened with Add assignment (this sound only)
   $effect(() => { s.patchGen; added = {}; });
@@ -52,6 +54,14 @@
   </tbody>
 </table>
 {:else}
+{#if s.byName.wander}
+  <!-- Drift: slow random walks of the macros (the part's `wander` and `wander_rate`) -->
+  <div class="drift">
+    <Param d={s.byName.wander} label="Drift" />
+    <Param d={s.byName.wander_rate} label="Drift rate" />
+    <span class="hint">Drift moves every macro slowly on its own random walk: the sound wanders through what its macros reach.</span>
+  </div>
+{/if}
 {#if table.length}
 <table class="matrix">
   <colgroup><col class="c-num" /><col class="c-src" /><col class="c-dst" /><col /><col class="c-val" /><col /><col class="c-val" /><col class="c-x" /></colgroup>

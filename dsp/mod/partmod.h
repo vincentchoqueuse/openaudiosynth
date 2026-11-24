@@ -4,7 +4,9 @@
  * 2 MSEGs, MIDI sources (mod wheel, aftertouch, pitch bend, velocity, note, random per note) and 8 routes
  * {source, destination, amount, via} onto any `realtime` parameter of the part's engine. Evaluated once per
  * block: each modulated parameter gets base + sum of its routes (normalized domain, clamped) through the
- * engine's set_param; when a route goes away the base value is restored. One value per part (all voices). */
+ * engine's set_param; when a route goes away the base value is restored. One value per part (all voices).
+ * Wander: eight slow random walks, one per macro at rates that share no period; `wander` adds each to its macro
+ * (the sound drifts through what its macros reach, never twice the same way), and the first is a source. */
 #ifndef PARTMOD_H
 #define PARTMOD_H
 
@@ -59,14 +61,18 @@ enum { PM_M_MACRO = 0, PM_M_DST, PM_M_FROM, PM_M_TO, PM_M_COUNT };
  * exceeds 1, so it stays within -1..1 */
 #define PM_FOURIER_H VM_FOURIER_H
 #define PM_FOURIER(l, k, ab) (PM_MACRO_CC(PM_MACROS) + ((l) * PM_FOURIER_H + (k)) * 2 + (ab))
-#define PM_COUNT PM_FOURIER(PM_LFOS + 1, 0, 0)
+/* wander (appended): how far the walks move the macros, and how fast they go */
+#define PM_WANDER PM_FOURIER(PM_LFOS + 1, 0, 0)
+#define PM_WANDER_RATE (PM_WANDER + 1)
+#define PM_COUNT (PM_WANDER + 2)
+#define PM_WANDER_REACH 0.35f /* of a macro's travel, either way, at wander = 1 */
 #define PM_WAVE_FOURIER 5
 #define PM_WAVE_WIENER 6
 
 /* sources (index 0 = none) */
 enum { PM_SRC_NONE = 0, PM_SRC_MACRO1, PM_SRC_LFO1 = PM_SRC_MACRO1 + PM_MACROS, PM_SRC_MSEG1 = PM_SRC_LFO1 + PM_LFOS,
        PM_SRC_WHEEL = PM_SRC_MSEG1 + PM_MSEGS, PM_SRC_AFTERTOUCH, PM_SRC_BEND, PM_SRC_VELOCITY, PM_SRC_NOTE,
-       PM_SRC_RANDOM, PM_SRC_COUNT };
+       PM_SRC_RANDOM, PM_SRC_WANDER, PM_SRC_COUNT };
 
 extern const param_desc_t partmod_params[PM_COUNT];
 
@@ -78,6 +84,9 @@ typedef struct {
     float lfo_phase[PM_LFOS], lfo_sh[PM_LFOS];
     float wiener[PM_LFOS + 1][VM_WIENER_N]; /* the wiener shape of each LFO (the last: the per-voice one) */
     float src[PM_SRC_COUNT];
+    float wd_from[PM_MACROS], wd_to[PM_MACROS], wd_ph[PM_MACROS]; /* the walks: between two random points */
+    float wd[PM_MACROS];  /* what each walk adds to its macro (0 while wander is 0) */
+    uint32_t wd_rng;      /* their own generator: the rest of the part's randomness is untouched */
     float base[PM_ENGINE_PARAMS]; /* unmodulated normalized value of each engine parameter */
     float cur[PM_ENGINE_PARAMS];  /* value last given to the engine */
     int16_t live[PM_LIVE_MAX];    /* parameters gliding to their target or modulated */

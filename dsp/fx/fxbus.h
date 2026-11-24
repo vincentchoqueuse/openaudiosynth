@@ -22,6 +22,8 @@ enum {
 };
 extern const param_desc_t fxbus_params[FXB_P_COUNT];
 
+#define FXB_SHIMMER_LEN 4096 /* a power of two: the transposer's window, in samples */
+
 typedef struct {
     float sr;
     float p[FXB_P_COUNT]; /* physical values */
@@ -35,12 +37,20 @@ typedef struct {
     float delay_idle_s, reverb_idle_s; /* time spent with mix 0 */
     int dirty;
     float pl[SYNTH_BLOCK], pr[SYNTH_BLOCK]; /* echoes of this block not added to the signal yet */
+    /* shimmer: the reverb's own output, transposed, comes back into it (a block late) */
+    float *sh_buf, sh_fb[SYNTH_BLOCK]; /* the transposer's line: the last FXB_SHIMMER_LEN floats of the arena */
+    float sh_amount, sh_rate, sh_ph; /* 0..1; delay slope (ratio - 1) / window per sample; phase of the two taps */
+    int sh_w, sh_run;
     int pending;
 } fxbus_t;
 
-/* mem/mem_floats: arena for delay + reverb (may be NULL/0: then only the chorus is available). */
+/* mem/mem_floats: arena for the shimmer's line, the reverb and the delay (may be NULL/0: then only the chorus is
+ * available). */
 void fxbus_init(fxbus_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size);
 void fxbus_set_param(fxbus_t *f, int id, float norm);
+/* Shimmer: how much of the reverb's output comes back into it transposed (0 = none, 1 = a tail that keeps
+ * climbing), and by how many semitones (12 = the classic octave up; negative goes down). */
+void fxbus_set_shimmer(fxbus_t *f, float amount, float semitones);
 /* One block in place (n <= SYNTH_BLOCK), as stages: each at most once per block, between fxbus_begin and a last
  * fxbus_flush. The delay leaves its echoes pending: the reverb right after it reads them itself, anything else
  * calls fxbus_flush first, which adds them to the signal. */

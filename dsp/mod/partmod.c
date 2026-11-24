@@ -4,7 +4,7 @@
 
 static const char *const src_labels[] = {"none", "macro1", "macro2", "macro3", "macro4", "macro5", "macro6", "macro7",
                                          "macro8", "mlfo1", "mlfo2", "mseg1", "mseg2", "mod_wheel", "aftertouch",
-                                         "pitch_bend", "velocity", "note", "random", NULL};
+                                         "pitch_bend", "velocity", "note", "random", "wander", NULL};
 static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", NULL};
 static const char *const mode_labels[] = {"oneshot", "loop_held", "loop_free", NULL};
 static const char *const time_labels[] = {"seconds", "beats", NULL};
@@ -147,6 +147,10 @@ const param_desc_t partmod_params[PM_COUNT] = {
     FOURIER(1, "mlfo2", 5), FOURIER(1, "mlfo2", 6), FOURIER(1, "mlfo2", 7), FOURIER(1, "mlfo2", 8),
     FOURIER(2, "vlfo", 1), FOURIER(2, "vlfo", 2), FOURIER(2, "vlfo", 3), FOURIER(2, "vlfo", 4),
     FOURIER(2, "vlfo", 5), FOURIER(2, "vlfo", 6), FOURIER(2, "vlfo", 7), FOURIER(2, "vlfo", 8),
+    PARAM(PM_WANDER, "wander", "wander.amount", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "slow random drift of the eight macros, each on its own walk: the sound moves by itself through what its macros reach and never comes back the same way (0.2 alive, 0.5 always changing, 1 = up to a third of each macro's travel)"),
+    PARAM(PM_WANDER_RATE, "wander_rate", "wander.rate", 0.01f, 2.0f, 0.08f, PARAM_EXP, "Hz", 1, NULL,
+          "how often the walks change direction: 0.02 Hz glacial, 0.08 Hz a slow breath, 0.5 Hz and more restless"),
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
 
@@ -236,6 +240,13 @@ void partmod_init(partmod_t *m, float sample_rate, uint32_t seed)
         m->src[i] = 0.0f;
     for (int k = 0; k < PM_LFOS; k++)
         m->lfo_phase[k] = m->lfo_sh[k] = 0.0f;
+    m->wd_rng = dsp_seed(seed * 131u + 0x3A7Du);
+    for (int k = 0; k < PM_MACROS; k++) { /* each walk starts somewhere else in its first segment */
+        m->wd_from[k] = 0.0f;
+        m->wd_to[k] = dsp_rand_bipolar(&m->wd_rng);
+        m->wd_ph[k] = 0.5f * (dsp_rand_bipolar(&m->wd_rng) + 1.0f);
+        m->wd[k] = 0.0f;
+    }
     for (int k = 0; k <= PM_LFOS; k++) /* a different walk for each LFO, the same at every start */
         voicemod_wiener_build(m->wiener[k], seed * 31u + 0x5717u + (uint32_t)k);
     for (int i = 0; i < VM_WIENER_N; i++)
@@ -357,6 +368,12 @@ static float lfo_shape(int wave, float ph, float sh, const float *fourier, const
     }
 }
 
+/* a macro as the targets and routes see it: its value, plus its walk (nothing while wander is 0) */
+static inline float macro_value(const partmod_t *m, int k)
+{
+    return m->wd[k] == 0.0f ? m->p[PM_MACRO(k)] : dsp_clampf(m->p[PM_MACRO(k)] + m->wd[k], 0.0f, 1.0f);
+}
+
 void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *ops, void *eng)
 {
     if (m->shape_dirty)
@@ -366,9 +383,25 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
     m->vcfg.dt = (float)n / m->sr;
     m->vcfg.beats_per_s = t->bpm * (1.0f / 60.0f);
     const float dt_s = (float)n / m->sr;
+    /* wander: each walk goes from one random point to the next along a smooth step, at a rate a little apart
+     * from the others' (no common period); it adds to its macro in proportion to `wander` */
+    const float wamt = m->p[PM_WANDER] * PM_WANDER_REACH, wrate = m->p[PM_WANDER_RATE] * dt_s;
+    for (int k = 0; k < PM_MACROS; k++) {
+        m->wd_ph[k] += wrate * (1.0f + 0.137f * (float)k);
+        if (m->wd_ph[k] >= 1.0f) {
+            m->wd_ph[k] -= 1.0f;
+            m->wd_from[k] = m->wd_to[k];
+            m->wd_to[k] = dsp_rand_bipolar(&m->wd_rng);
+        }
+        const float x = dsp_clampf(m->wd_ph[k], 0.0f, 1.0f), sm = x * x * (3.0f - 2.0f * x);
+        const float w = m->wd_from[k] + (m->wd_to[k] - m->wd_from[k]) * sm;
+        m->wd[k] = wamt * w;
+        if (k == 0)
+            m->src[PM_SRC_WANDER] = w;
+    }
     /* sources */
     for (int k = 0; k < PM_MACROS; k++)
-        m->src[PM_SRC_MACRO1 + k] = m->p[PM_MACRO(k)];
+        m->src[PM_SRC_MACRO1 + k] = macro_value(m, k);
     for (int k = 0; k < PM_LFOS; k++) {
         const int div = (int)m->p[PM_LFO(k, PM_LFO_SYNC)];
         const float prev = m->lfo_phase[k];
@@ -404,7 +437,7 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
                 continue;
             mdst[nm] = d, mval[nm++] = from;
         }
-        mval[j] += (to - from) * m->p[PM_MACRO(mac - 1)];
+        mval[j] += (to - from) * macro_value(m, mac - 1);
     }
 
     /* route offsets, gathered per destination (destinations join the live list) */
@@ -472,7 +505,7 @@ void partmod_global_targets(const partmod_t *m, float *val, uint8_t *set, float 
         const float from = m->p[PM_MAP(k, PM_M_FROM)], to = m->p[PM_MAP(k, PM_M_TO)];
         if (!set[g])
             val[g] = from, set[g] = 1;
-        val[g] += (to - from) * m->p[PM_MACRO(mac - 1)];
+        val[g] += (to - from) * macro_value(m, mac - 1);
     }
     for (int r = 0; m->n_routes && r < PM_ROUTES; r++) {
         const int src = (int)m->p[PM_ROUTE(r, PM_R_SRC)], id = (int)m->p[PM_ROUTE(r, PM_R_DST)] - 1;

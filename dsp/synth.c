@@ -18,6 +18,7 @@
 #include "fx/flanger.h"
 #include "fx/limiter.h"
 #include "fx/phaser.h"
+#include "fx/tape.h"
 #include "mod/partmod.h"
 #include "mod/tempo.h"
 #include "global_params.h"
@@ -44,7 +45,7 @@ _Static_assert((SYNTH_EVQ_SIZE & (SYNTH_EVQ_SIZE - 1)) == 0 && SYNTH_EVQ_SIZE >=
 #define SYNTH_FX_REVERB_SIZE 1.5f
 #endif
 #ifndef SYNTH_FX_MEM_FLOATS
-#define SYNTH_FX_MEM_FLOATS 320000 /* ~1.3 MB: 2 s stereo delay + size-1.5 plate at 48 kHz */
+#define SYNTH_FX_MEM_FLOATS 320000 /* ~1.3 MB: 2 s stereo delay + size-1.5 plate at 48 kHz, the shimmer and tape lines */
 #endif
 /* Engine arena: read-only data of the engines that declare shared_floats (wavetables: ~11.8 MB with the
  * 9 factory tables of 32 frames). A board lowers it (fewer tables are built) and places it in SDRAM. */
@@ -77,7 +78,8 @@ const engine_stage_t synth_fx_stages[] = {
     {"chorus", "Chorus", "fx", "chorus_", "flanger", NULL, "chorus_mode", 0.0f, 1.0f},
     {"delay", "Delay", "fx", "delay_", "chorus", NULL, "delay_mix", 0.0f, 0.25f},
     {"reverb", "Reverb", "fx", "reverb_", "delay", NULL, "reverb_mix", 0.0f, 0.3f},
-    {"master", "Master", "fx", "master", "reverb", NULL, NULL, 0.0f, 0.0f},
+    {"tape", "Tape", "fx", "tape tape_", "reverb", NULL, "tape", 0.0f, 1.0f},
+    {"master", "Master", "fx", "master", "tape", NULL, NULL, 0.0f, 0.0f},
     {"saturation", "Saturation", "fx", "saturation saturation_", "master", NULL, "saturation", 0.0f, 1.0f},
     {"limiter", "Limiter", "fx", "limiter limiter_", "saturation", NULL, "limiter", 0.0f, 1.0f},
 };
@@ -135,10 +137,12 @@ static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
 static const char *const saturation_labels[] = {"off", "soft", "tube", "hard", NULL};
 static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
 /* the effects of the rack, by the id of their stage (synth_fx_stages) */
-enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_COUNT };
-static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", NULL};
+enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_TAPE, RACK_COUNT };
+static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", "tape", NULL};
+static const char *const shimmer_labels[] = {"octave_up", "fifth_up", "twelfth_up", "octave_down", NULL};
+static const float shimmer_semitones[4] = {12.0f, 7.0f, 19.0f, -12.0f};
 #define RACK_SLOT(K, N) PARAM(SYNTH_PARAM_FX_SLOT_1 + K, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_COUNT - 1), (float)K, PARAM_INT, "", 0, \
-                           rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, those not named follow in the usual order")
+                           rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, one not named goes just before the effect that usually follows it")
 static const param_desc_t out_desc[] = {
     PARAM(SYNTH_PARAM_OUT_FILTER, "out_filter", "output.filter.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, out_filter_labels,
           "a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB)"),
@@ -186,7 +190,23 @@ static const param_desc_t out_desc[] = {
           "how far the sweep goes, down to a twentieth of the delay"),
     PARAM(SYNTH_PARAM_FLANGER_FEEDBACK, "flanger_feedback", "fx.flanger.feedback", -0.9f, 0.9f, 0.6f, PARAM_LIN, "", 1, NULL,
           "resonance: high = metallic, ringing; negative = hollow (the resonances at the odd multiples of half the delay's frequency)"),
-    RACK_SLOT(0, 1), RACK_SLOT(1, 2), RACK_SLOT(2, 3), RACK_SLOT(3, 4), RACK_SLOT(4, 5),
+    RACK_SLOT(0, 1), RACK_SLOT(1, 2), RACK_SLOT(2, 3), RACK_SLOT(3, 4), RACK_SLOT(4, 5), RACK_SLOT(5, 6),
+    PARAM(SYNTH_PARAM_TAPE, "tape", "fx.tape.mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 1, param_onoff_labels,
+          "a worn tape machine on the whole signal: pitch that wanders, soft saturation, dull highs, hiss"),
+    PARAM(SYNTH_PARAM_TAPE_WOW, "tape_wow", "fx.tape.wow", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 1, NULL,
+          "wow: slow pitch wander of everything (0.2 alive, 0.5 worn cassette, 1 = about 0.5 %, seasick)"),
+    PARAM(SYNTH_PARAM_TAPE_FLUTTER, "tape_flutter", "fx.tape.flutter", 0.0f, 1.0f, 0.2f, PARAM_LIN, "", 1, NULL,
+          "flutter: fast pitch tremble (about 7 Hz), the grain of a cheap transport"),
+    PARAM(SYNTH_PARAM_TAPE_DRIVE, "tape_drive", "fx.tape.drive", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 1, NULL,
+          "level onto the tape: 0 clean, 0.3 rounded peaks and glue, 0.7 and more compressed and gritty (level kept)"),
+    PARAM(SYNTH_PARAM_TAPE_HISS, "tape_hiss", "fx.tape.hiss", 0.0f, 1.0f, 0.15f, PARAM_LIN, "", 1, NULL,
+          "tape hiss under the sound (0 = none; it stays after the notes, like a real machine left running)"),
+    PARAM(SYNTH_PARAM_TAPE_TONE, "tape_tone", "fx.tape.tone", 1000.0f, 18000.0f, 9000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "loss of highs: 12 kHz and more a good machine, 6-9 kHz a cassette, 2-4 kHz a tape left in the sun"),
+    PARAM(SYNTH_PARAM_REVERB_SHIMMER, "reverb_shimmer", "fx.reverb.shimmer", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "shimmer: the tail comes back into the reverb transposed, so it climbs and glows (0.3 a halo, 0.6 an organ of light, 1 = it keeps rising); needs a long decay"),
+    PARAM(SYNTH_PARAM_REVERB_SHIMMER_PITCH, "reverb_shimmer_pitch", "fx.reverb.shimmer_pitch", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, shimmer_labels,
+          "interval of the shimmer: an octave up (the classic), a fifth up (stacks into chords), a twelfth up, or an octave down (the tail sinks)"),
 };
 _Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
@@ -293,6 +313,9 @@ struct synth {
     phaser_t phaser;
     flanger_t flanger;
     float ph[6], fl[5];                 /* phaser and flanger settings, physical values */
+    tape_t tape;
+    float tp[6];                        /* tape settings: on, wow, flutter, drive, hiss, tone */
+    float shim[2];                      /* shimmer: amount, index of its interval */
     uint8_t rack_slot[RACK_COUNT];      /* the effect asked for at each place of the rack */
     uint8_t rack[RACK_COUNT];           /* the order run: each effect once (rack_resolve) */
     limiter_t lim;
@@ -634,8 +657,10 @@ static int any_switching(const synth_t *s)
     return 0;
 }
 
-/* The order of the rack from what its places ask for: an effect named twice keeps its first place, and those no
- * place names follow in the usual order, so every effect runs once whatever the five values are. */
+/* The order of the rack from what its places ask for: an effect named twice keeps its first place; an effect no
+ * place names goes just before the one that follows it in the usual order (the last one: at the end). So naming
+ * only the first place moves that effect to the front and leaves the others as they were, and every effect runs
+ * once whatever the values are. */
 static void rack_resolve(synth_t *s)
 {
     uint8_t used[RACK_COUNT] = {0};
@@ -645,9 +670,18 @@ static void rack_resolve(synth_t *s)
         if (e < RACK_COUNT && !used[e])
             used[e] = 1, s->rack[n++] = (uint8_t)e;
     }
-    for (int e = 0; e < RACK_COUNT; e++)
-        if (!used[e])
-            s->rack[n++] = (uint8_t)e;
+    for (int e = RACK_COUNT - 1; e >= 0; e--) { /* from the last: its follower is always placed already */
+        if (used[e])
+            continue;
+        int at = n;
+        for (int i = 0; i < n; i++)
+            if (s->rack[i] == e + 1)
+                at = i;
+        for (int i = n; i > at; i--)
+            s->rack[i] = s->rack[i - 1];
+        s->rack[at] = (uint8_t)e;
+        used[e] = 1, n++;
+    }
 }
 
 /* the master level or an effect parameter (id SYNTH_PARAM_MASTER_DB .. the effect bus), normalized */
@@ -685,7 +719,13 @@ static void global_apply(synth_t *s, int id, float norm)
     } else if (id >= SYNTH_PARAM_FLANGER_MIX && id <= SYNTH_PARAM_FLANGER_FEEDBACK) {
         s->fl[id - SYNTH_PARAM_FLANGER_MIX] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
         flanger_set(&s->flanger, s->fl[0], s->fl[1], s->fl[2], s->fl[3], s->fl[4]);
-    } else if (id >= SYNTH_PARAM_FX_SLOT_1 && id <= SYNTH_PARAM_FX_SLOT_5) {
+    } else if (id >= SYNTH_PARAM_TAPE && id <= SYNTH_PARAM_TAPE_TONE) {
+        s->tp[id - SYNTH_PARAM_TAPE] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        tape_set(&s->tape, (int)s->tp[0], s->tp[1], s->tp[2], s->tp[3], s->tp[4], s->tp[5]);
+    } else if (id == SYNTH_PARAM_REVERB_SHIMMER || id == SYNTH_PARAM_REVERB_SHIMMER_PITCH) {
+        s->shim[id - SYNTH_PARAM_REVERB_SHIMMER] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        fxbus_set_shimmer(&s->fx, s->shim[0], shimmer_semitones[dsp_clampi((int)s->shim[1], 0, 3)]);
+    } else if (id >= SYNTH_PARAM_FX_SLOT_1 && id <= SYNTH_PARAM_FX_SLOT_6) {
         s->rack_slot[id - SYNTH_PARAM_FX_SLOT_1] = (uint8_t)param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
         rack_resolve(s);
     } else if (id >= SYNTH_PARAM_LIMITER && id <= SYNTH_PARAM_LIMITER_RELEASE) {
@@ -874,7 +914,7 @@ static void fx_recover(synth_t *s)
     float p[FXB_P_COUNT];
     for (int i = 0; i < FXB_P_COUNT; i++)
         p[i] = s->fx.p[i];
-    fxbus_init(&s->fx, s->sr, s->fx_mem, SYNTH_FX_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
+    fxbus_init(&s->fx, s->sr, s->fx_mem, SYNTH_FX_MEM_FLOATS - TAPE_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
     for (int i = 0; i < FXB_P_COUNT; i++)
         fxbus_set_param(&s->fx, i, param_to_norm(&fxbus_params[i], p[i]));
     dcblock_reset(&s->dc[0]);
@@ -884,6 +924,8 @@ static void fx_recover(synth_t *s)
     limiter_reset(&s->lim);
     phaser_reset(&s->phaser);
     flanger_reset(&s->flanger);
+    tape_reset(&s->tape);
+    fxbus_set_shimmer(&s->fx, s->shim[0], shimmer_semitones[dsp_clampi((int)s->shim[1], 0, 3)]);
     s->nan_count++;
 }
 
@@ -1000,7 +1042,7 @@ static DSP_FAST_CODE void render_block(synth_t *s)
         if (s->part[k].ops)
             has_dry |= part_render(s, &s->part[k], L, R, dryL, dryR);
 
-    /* the rack: the five effects of the bus in the order of its places */
+    /* the rack: the six effects of the bus in the order of its places */
     fxbus_begin(&s->fx);
     for (int k = 0; k < RACK_COUNT; k++)
         switch (s->rack[k]) {
@@ -1014,6 +1056,10 @@ static DSP_FAST_CODE void render_block(synth_t *s)
             break;
         case RACK_CHORUS: fxbus_chorus(&s->fx, L, R, n); break;
         case RACK_DELAY: fxbus_delay(&s->fx, L, R, n); break;
+        case RACK_TAPE:
+            fxbus_flush(&s->fx, L, R, n);
+            tape_process(&s->tape, L, R, n);
+            break;
         default: fxbus_reverb(&s->fx, L, R, n); break;
         }
     fxbus_flush(&s->fx, L, R, n);
@@ -1096,7 +1142,7 @@ void synth_init(synth_t *s, float sample_rate)
     s->ev_head = s->ev_count = s->ev_dropped = 0;
     s->time_served = s->time_rendered = 0;
     s->out_pos = SYNTH_BLOCK; /* empty buffer */
-    fxbus_init(&s->fx, sample_rate, s->fx_mem, SYNTH_FX_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
+    fxbus_init(&s->fx, sample_rate, s->fx_mem, SYNTH_FX_MEM_FLOATS - TAPE_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
     tempo_init(&s->tempo, sample_rate, tempo_desc[0].def);
     s->delay_sync = 0;
     s->tuning = s->tuning_root = 0;
@@ -1111,6 +1157,10 @@ void synth_init(synth_t *s, float sample_rate)
     s->lim_mix = s->lim_mix_prev = 0.0f;
     phaser_init(&s->phaser, sample_rate);
     flanger_init(&s->flanger, sample_rate);
+    tape_init(&s->tape, sample_rate, s->fx_mem + SYNTH_FX_MEM_FLOATS - TAPE_MEM_FLOATS); /* the arena's last floats */
+    for (int k = 0; k < 6; k++)
+        s->tp[k] = out_desc[SYNTH_PARAM_TAPE + k - SYNTH_PARAM_OUT_FILTER].def;
+    s->shim[0] = s->shim[1] = 0.0f;
     for (int k = 0; k < RACK_COUNT; k++)
         s->rack_slot[k] = (uint8_t)k;
     rack_resolve(s);

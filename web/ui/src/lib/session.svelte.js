@@ -115,7 +115,7 @@ class Session {
   paramById = (id) => (id >= 0 && id < 256 ? this.engine?.params[id] : this.shared.find((d) => d.id === id));
 
   // ---- the effect rack: the bus effects (phaser, flanger, chorus, delay, reverb) in the order of its five places
-  // (fx_slot1..5); read as the synth does: an effect named twice keeps its first place, those not named follow ----
+  // (fx_slot1..5); read as the synth does: an effect named twice keeps its first place, one not named goes just before the effect that usually follows it ----
   rackUnits = $derived(this.byName.fx_slot1?.labels ?? []);
   rack = $derived.by(() => {
     const units = this.rackUnits, out = [];
@@ -123,7 +123,12 @@ class Session {
       const e = units[Math.round(this.getP(`fx_slot${k}`))];
       if (e && !out.includes(e)) out.push(e);
     }
-    return [...out, ...units.filter((e) => !out.includes(e))];
+    for (let i = units.length - 1; i >= 0; i--) { // one not named: just before the effect that usually follows it
+      if (out.includes(units[i])) continue;
+      const at = out.indexOf(units[i + 1]);
+      out.splice(at < 0 ? out.length : at, 0, units[i]);
+    }
+    return out;
   });
   setRack = (order) => order.forEach((e, k) => this.setP(`fx_slot${k + 1}`, this.rackUnits.indexOf(e)));
   // the stages of the effect chain as the signal goes through them now: those of the rack in its order, each fed

@@ -1,9 +1,12 @@
 {
   "version": 1,
   "engine": "havoc",
-  "name": "havoc_bit_error",
+  "name": "havoc_bad_memory",
   "description": "A memory with bad cells: short buzzing loops of stuck bits, each with its own colour, and gaps.",
   "params": {
+    "g1_lfo_rate": 0.16,
+    "g1_lfo_a": 0.3,
+    "g1_lfo_b": 0.4,
     "g1_type": "glitch",
     "g1_pitch": -10,
     "g1_track": "off",
@@ -16,6 +19,9 @@
     "g1_life_shape": 0.5,
     "g1_level": 0.8,
     "g1_pan": -0.4,
+    "g2_lfo_rate": 0.26,
+    "g2_lfo_a": 0.4,
+    "g2_lfo_b": -0.25,
     "g2_type": "glitch",
     "g2_pitch": 9,
     "g2_track": "off",

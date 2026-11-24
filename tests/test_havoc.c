@@ -105,6 +105,29 @@ static void test_life_and_ring(void)
     }
     CHECK(hi > 0.02f && lo < 0.01f * hi, "havoc bleeps: rms %g in a note, %g in a rest", (double)hi, (double)lo);
 
+    /* the generator's own oscillator on the feedback of the tone: the brightness (level of the sample-to-sample
+     * difference against the level) swings over a second; without it, it holds still */
+    float swing[2];
+    for (int on = 0; on < 2; on++) {
+        solo(HAVOC_T_TONE, 0.4f, 0.0f);
+        setp(HAVOC_G_P(0, HAVOC_G_LFO_RATE), 2.0f);
+        setp(HAVOC_G_P(0, HAVOC_G_LFO_A), on ? 0.4f : 0.0f);
+        play(57, L, N);
+        float bmin = 1e9f, bmax = 0.0f;
+        for (int at = N / 4; at + 2400 <= N; at += 2400) {
+            float d = 0.0f, e = 0.0f;
+            for (int i = 1; i < 2400; i++) {
+                d += (L[at + i] - L[at + i - 1]) * (L[at + i] - L[at + i - 1]);
+                e += L[at + i] * L[at + i];
+            }
+            bmin = fminf(bmin, d / e);
+            bmax = fmaxf(bmax, d / e);
+        }
+        swing[on] = bmax / bmin;
+    }
+    CHECK(swing[0] < 1.2f && swing[1] > 4.0f, "havoc own oscillator: brightness swings by %g without, %g with",
+          (double)swing[0], (double)swing[1]);
+
     /* generator 4, silent itself, modulates the frequency of generator 1 */
     solo(HAVOC_T_TONE, 0.0f, 0.0f);
     play(69, L2, N);

@@ -4,6 +4,9 @@
   "name": "havoc_uplink",
   "description": "Data on a carrier: bleeps keyed by an integer formula, bursts of bit noise between the packets.",
   "params": {
+    "g1_lfo_rate": 0.09,
+    "g1_lfo_a": 0.5,
+    "g1_lfo_b": 0.4,
     "g1_type": "byte",
     "g1_pitch": -40,
     "g1_track": "off",

@@ -2,7 +2,8 @@
  * processes (a sine with phase feedback, the logistic map, an integer formula on a counter, random impulses into a
  * resonator, a whistling band of noise, a pulsar train, a cellular automaton read as a wave, a swarm of wandering
  * sines, a tone that jumps at random, a clipped random walk, a chatter of bleeps, electronic faults). Each generator has its own pitch (following the note
- * or not), two shape controls whose meaning depends on the process, a life (steady, random bursts, a periodic
+ * or not), two shape controls whose meaning depends on the process and that its own slow oscillator can move (two
+ * sines at rates without a common period, so the timbre never comes back the same way), a life (steady, random bursts, a periodic
  * pulse, a slow swell) and a place; it can be frequency-modulated and ring-modulated by the generator before it
  * (the four form a ring). The sum goes through two processors in series, each one of: filter, comb, wavefolder,
  * resampler, ring modulator, chopper, stutter.
@@ -33,7 +34,8 @@ enum {
 /* Settings of a generator and of a processor. */
 enum {
     HAVOC_G_TYPE = 0, HAVOC_G_PITCH, HAVOC_G_TRACK, HAVOC_G_A, HAVOC_G_B, HAVOC_G_FM, HAVOC_G_RING, HAVOC_G_LIFE,
-    HAVOC_G_LIFE_RATE, HAVOC_G_LIFE_SHAPE, HAVOC_G_LEVEL, HAVOC_G_PAN, HAVOC_G_COUNT
+    HAVOC_G_LIFE_RATE, HAVOC_G_LIFE_SHAPE, HAVOC_G_LEVEL, HAVOC_G_PAN, HAVOC_G_LFO_RATE, HAVOC_G_LFO_A, HAVOC_G_LFO_B,
+    HAVOC_G_COUNT
 };
 enum { HAVOC_X_TYPE = 0, HAVOC_X_P1, HAVOC_X_P2, HAVOC_X_MIX, HAVOC_X_PCOUNT };
 
@@ -62,6 +64,7 @@ typedef struct {
     int ev_kind, ev_len;                         /* bleep: waveform; glitch: fault, cells of the stuck loop */
     int life_on;
     float gain; /* life gain at the end of the last block */
+    float lfo, lfo2; /* phases of the two sines that move a and b (cycles) */
 } havoc_gen_t;
 
 typedef struct {

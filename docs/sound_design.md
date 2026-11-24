@@ -309,6 +309,11 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve process
 
 - **Pitch**: `g<n>_pitch` is in semitones from the note when `g<n>_track` is on, from middle C when it is off;
   it goes down to -96 (1 Hz), where a generator is a rhythm or a slow modulator rather than a sound.
+- **Moving timbre**: every generator has its own slow oscillator: `g<n>_lfo_rate`, and how far it moves a
+  (`g<n>_lfo_a`) and b (`g<n>_lfo_b`, at 0.62 of the rate, so the pair of shapes never repeats). Give the four
+  generators rates with no simple ratio (0.043, 0.071, 0.117, 0.19 Hz in `havoc_shapeshifter`): a held note
+  never passes twice through the same sound. On `byte` it changes the formula, on `cell` the rule, on `pulsar`
+  the vowel (`havoc_throat`), on `tone` and `logistic` it goes from a note to noise and back.
 - **Life**: `g<n>_life` is how the generator exists in time: `steady`, `bursts` (on and off at random,
   `life_rate` times a second, on for `life_shape` of the time), `pulse` (a decaying hit every period: rhythm),
   `swell` (a slow random breath). Three generators with three lives are three layers of one scene.
@@ -325,7 +330,7 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve process
   `havoc_automaton`); computers = `computer` and `byte` (`havoc_mainframe`, `havoc_data_stream`); creatures =
   `swarm` and `pulsar` (`havoc_insects`, `havoc_whale`, `havoc_throat`); science fiction = `bleep` for anything that talks or reports (`havoc_droid_talk`,
   `havoc_telemetry`, `havoc_cockpit`, keyed by a `byte` through `ring` in `havoc_uplink`), `glitch` and `stutter`
-  for what breaks (`havoc_bit_error`, `havoc_system_failure`, `havoc_short_circuit`, `havoc_stuck_voice`), a
+  for what breaks (`havoc_bad_memory`, `havoc_system_failure`, `havoc_short_circuit`, `havoc_stuck_voice`), a
   slow saw into `fm` for sweeps (`havoc_scanner`); walls = `tone` with a near 1 and `fm`
   (`havoc_scream`). `pulsar`, `tone`, `logistic` and `cell` with `track` on play in tune (`havoc_throat`,
   `havoc_sub_engine`).

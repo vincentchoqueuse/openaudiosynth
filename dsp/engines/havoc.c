@@ -15,7 +15,7 @@ static const char *const life_labels[] = {"steady", "bursts", "pulse", "swell", 
 static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", NULL};
 static const char *const onoff_labels[] = {"off", "on", NULL};
 
-#define HAVOC_GEN_PARAMS(g, n, dtype, dpitch, dtrack, da, db, dlevel, dpan)                                         \
+#define HAVOC_GEN_PARAMS(g, n, dtype, dpitch, dtrack, da, db, dlevel, dpan, drate)                                         \
     PARAM(HAVOC_G_P(g, HAVOC_G_TYPE), "g" n "_type", "havoc.gen" n ".type", 0.0f, (float)(HAVOC_T_COUNT - 1), dtype, \
           PARAM_INT, "", 0, type_labels,                                                                             \
           "process of this generator. tone: a sine, a = phase feedback (sine, saw, noise), b = a second detuned "    \
@@ -56,7 +56,15 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
     PARAM(HAVOC_G_P(g, HAVOC_G_LEVEL), "g" n "_level", "havoc.gen" n ".level", 0.0f, 1.0f, dlevel, PARAM_LIN, "", 1,  \
           NULL, "output level of this generator (at 0 it can still modulate the next one)"),                         \
     PARAM(HAVOC_G_P(g, HAVOC_G_PAN), "g" n "_pan", "havoc.gen" n ".pan", -1.0f, 1.0f, dpan, PARAM_LIN, "", 1, NULL,   \
-          "place of this generator, left to right")
+          "place of this generator, left to right"),                                                                 \
+    PARAM(HAVOC_G_P(g, HAVOC_G_LFO_RATE), "g" n "_lfo_rate", "havoc.gen" n ".lfo_rate", 0.01f, 30.0f, drate,          \
+          PARAM_EXP, "Hz", 1, NULL,                                                                                  \
+          "rate of this generator's own oscillator, which moves its two shape controls: a at this rate, b at 0.62 "  \
+          "of it, so the pair never repeats; give every generator another rate"),                                    \
+    PARAM(HAVOC_G_P(g, HAVOC_G_LFO_A), "g" n "_lfo_a", "havoc.gen" n ".lfo_a", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1,   \
+          NULL, "how far the oscillator moves a (0 = not at all)"),                                                  \
+    PARAM(HAVOC_G_P(g, HAVOC_G_LFO_B), "g" n "_lfo_b", "havoc.gen" n ".lfo_b", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1,   \
+          NULL, "how far the oscillator moves b (0 = not at all)")
 
 #define HAVOC_PROC_PARAMS(x, n)                                                                                      \
     PARAM(HAVOC_X_P(x, HAVOC_X_TYPE), "x" n "_type", "havoc.proc" n ".type", 0.0f, (float)(HAVOC_X_COUNT - 1), 0.0f,  \
@@ -89,10 +97,10 @@ const param_desc_t havoc_params[HAVOC_P_COUNT] = {
           "how far the generators are spread to their places (0 = all in the middle)"),
     HAVOC_PROC_PARAMS(0, "1"),
     HAVOC_PROC_PARAMS(1, "2"),
-    HAVOC_GEN_PARAMS(0, "1", (float)HAVOC_T_TONE, 0.0f, 1.0f, 0.3f, 0.0f, 0.7f, 0.0f),
-    HAVOC_GEN_PARAMS(1, "2", (float)HAVOC_T_DUST, -36.0f, 0.0f, 0.6f, 0.7f, 0.0f, -0.5f),
-    HAVOC_GEN_PARAMS(2, "3", (float)HAVOC_T_WIND, 12.0f, 0.0f, 0.5f, 0.3f, 0.0f, 0.5f),
-    HAVOC_GEN_PARAMS(3, "4", (float)HAVOC_T_LOGISTIC, -12.0f, 1.0f, 0.5f, 0.0f, 0.0f, 0.0f),
+    HAVOC_GEN_PARAMS(0, "1", (float)HAVOC_T_TONE, 0.0f, 1.0f, 0.3f, 0.0f, 0.7f, 0.0f, 0.13f),
+    HAVOC_GEN_PARAMS(1, "2", (float)HAVOC_T_DUST, -36.0f, 0.0f, 0.6f, 0.7f, 0.0f, -0.5f, 0.21f),
+    HAVOC_GEN_PARAMS(2, "3", (float)HAVOC_T_WIND, 12.0f, 0.0f, 0.5f, 0.3f, 0.0f, 0.5f, 0.34f),
+    HAVOC_GEN_PARAMS(3, "4", (float)HAVOC_T_LOGISTIC, -12.0f, 1.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.55f),
 };
 
 /* ---------------- voice ---------------- */
@@ -118,6 +126,8 @@ static void voice_clear(havoc_voice_t *v)
         s->ev_len = 32;
         s->life_on = 1;
         s->gain = 0.0f;
+        s->lfo = 0.37f * (float)g; /* every generator starts elsewhere in its cycle */
+        s->lfo2 = 0.25f + 0.61f * (float)g;
     }
     for (int x = 0; x < HAVOC_PROC; x++) {
         havoc_proc_t *q = &v->proc[x];
@@ -253,7 +263,15 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
     havoc_gen_t *s = &v->gen[g];
     const float sr = e->sr, inv_sr = 1.0f / sr, dt = (float)n * inv_sr, inv_n = 1.0f / (float)n;
     const int type = (int)gp[HAVOC_G_TYPE];
-    const float a = gp[HAVOC_G_A], b = gp[HAVOC_G_B];
+    float a = gp[HAVOC_G_A], b = gp[HAVOC_G_B];
+    if (gp[HAVOC_G_LFO_A] != 0.0f || gp[HAVOC_G_LFO_B] != 0.0f) { /* its own oscillator moves the two shapes */
+        s->lfo += gp[HAVOC_G_LFO_RATE] * dt;
+        s->lfo -= (float)(int)s->lfo;
+        s->lfo2 += 0.618034f * gp[HAVOC_G_LFO_RATE] * dt;
+        s->lfo2 -= (float)(int)s->lfo2;
+        a = dsp_clampf(a + gp[HAVOC_G_LFO_A] * fm_sin_pos(s->lfo), 0.0f, 1.0f);
+        b = dsp_clampf(b + gp[HAVOC_G_LFO_B] * fm_sin_pos(s->lfo2), 0.0f, 1.0f);
+    }
 
     /* pitch, and the frequency modulation by the other generator (through zero) */
     const float note = (gp[HAVOC_G_TRACK] >= 0.5f ? semi : 60.0f) + gp[HAVOC_G_PITCH];

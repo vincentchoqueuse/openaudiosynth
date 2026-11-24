@@ -4,6 +4,9 @@
   "name": "havoc_mainframe",
   "description": "The computer of an old film thinking: two tones jumping to random pitches at their own speeds, relay clicks.",
   "params": {
+    "g1_lfo_rate": 0.1,
+    "g1_lfo_a": 0.3,
+    "g1_lfo_b": 0.35,
     "g1_type": "computer",
     "g1_pitch": 12,
     "g1_track": "off",

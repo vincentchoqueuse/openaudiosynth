@@ -173,6 +173,45 @@ static void test_processors(void)
     }
 }
 
+static void test_sub_and_chaos(void)
+{
+    /* the octave divider alone (full mix removes half of the input, a dull square stays on top): A4 gives A3 */
+    solo(HAVOC_T_TONE, 0.0f, 0.0f);
+    setp(HAVOC_X_P(0, HAVOC_X_TYPE), (float)HAVOC_X_SUB);
+    setp(HAVOC_X_P(0, HAVOC_X_P1), 0.0f);
+    setp(HAVOC_X_P(0, HAVOC_X_P2), 0.2f);
+    play(69, L, N);
+    const float f = peak_hz(L + N / 2, 60.0f, 2000.0f);
+    CHECK(fabsf(f - 220.0f) < 3.0f, "havoc sub: strongest at %.1f Hz under A4, expected 220", (double)f);
+
+    /* the feedback changes the sound; the size of the mutations does nothing while there are none; with them the
+     * sound is another, and the same every time */
+    solo(HAVOC_T_TONE, 0.3f, 0.0f);
+    play(57, L2, N);
+    solo(HAVOC_T_TONE, 0.3f, 0.0f);
+    setp(HAVOC_P_FEEDBACK, 0.7f);
+    play(57, L, N);
+    float diff = 0.0f;
+    for (int i = N / 2; i < N; i++)
+        diff = fmaxf(diff, fabsf(L[i] - L2[i]));
+    CHECK(diff > 0.01f && all_finite_bounded(L, N, 1.0f), "havoc feedback: changes the signal by %g at most", (double)diff);
+
+    solo(HAVOC_T_TONE, 0.3f, 0.0f);
+    setp(HAVOC_P_MUTATE_DEPTH, 1.0f);
+    play(57, L, N);
+    CHECK(memcmp(L, L2, sizeof L) == 0, "havoc: mutation depth without mutations changes the sound");
+    solo(HAVOC_T_TONE, 0.3f, 0.0f);
+    setp(HAVOC_P_MUTATE, 0.9f);
+    setp(HAVOC_P_MUTATE_DEPTH, 1.0f);
+    play(57, L, N);
+    CHECK(memcmp(L, L2, sizeof L) != 0 && all_finite_bounded(L, N, 1.0f), "havoc mutations: the same sound as without");
+    solo(HAVOC_T_TONE, 0.3f, 0.0f);
+    setp(HAVOC_P_MUTATE, 0.9f);
+    setp(HAVOC_P_MUTATE_DEPTH, 1.0f);
+    play(57, L2, N);
+    CHECK(memcmp(L, L2, sizeof L) == 0, "havoc mutations: not repeatable");
+}
+
 static void test_stutter(void)
 {
     /* never stuck (p2 = 0): the signal passes untouched; stuck most of the time: a fragment repeats exactly */
@@ -249,5 +288,6 @@ void suite_havoc(void)
     test_life_and_ring();
     test_processors();
     test_stutter();
+    test_sub_and_chaos();
     test_machine();
 }

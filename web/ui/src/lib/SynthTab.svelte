@@ -1,7 +1,7 @@
 <!-- SynthTab.svelte — the Synth view: shaping the sound. Pills, each with its own tabs under it: Summary (the
      signal path drawn: the instrument, the effect bus, the modulators, display only; and the sound's description,
      instrument and file), Engine (the instrument, named
-     after it: its parameters, or the sampler's kit), Effects (the bus and the master), Modulation (the assignments, then a tab per modulator, a dot on those assigned), and Macros (assignments, then names and CC). The tab open
+     after it: a Randomize button that throws all its settings elsewhere, then its parameters, or the sampler's kit), Effects (the bus and the master), Modulation (the assignments, then a tab per modulator, a dot on those assigned), and Macros (assignments, then names and CC). The tab open
      lives in the session; a sound picked in the library opens on Summary. -->
 <script>
   import { cap } from './naming.js';
@@ -45,5 +45,11 @@
 {:else if s.editorTab === 'engine' && s.engine?.name === 'sampler'}
   <KitPanel />
 {:else}
+  {#if s.editorTab === 'engine'}
+    <div class="toolbar">
+      <button class="ghost" onclick={s.randomize} title="Throw every setting of the instrument somewhere else">Randomize</button>
+      <span>Changes every setting of the instrument at once. Undo brings the sound back.</span>
+    </div>
+  {/if}
   <ParamGroups tab={s.editorTab} />
 {/if}

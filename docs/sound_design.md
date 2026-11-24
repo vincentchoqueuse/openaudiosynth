@@ -323,7 +323,17 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of twelve process
   repeated dive (`havoc_laser_tag`); a `byte` into the `ring` of anything is digital hash (`havoc_radio_drift`).
 - **Processors**: `x1_type` and `x2_type`, in series on the sum: `lp`, `bp`, `hp`, `comb` (a tuned pipe),
   `fold`, `crush`, `ring` (a sine multiplies the sum), `chop` (a periodic gate), `stutter` (now and then the last
-  2 to 42 ms repeat as if stuck: p1 = the length, p2 = the share of the time; it makes a fault of any sound).
+  2 to 42 ms repeat as if stuck: p1 = the length, p2 = the share of the time; it makes a fault of any sound),
+  `sub` (a square one or two octaves below whatever comes in, at the level of the input: `mix` 0.5 puts a growl
+  under the sound).
+- **Chaos**: `feedback` sends the machine's output into the frequency of every generator (0.25 roughens, 0.6
+  howls, 0.85 collapses). `mutate` makes the machine change itself while it plays: at random, one generator gets
+  other shapes and another pitch, and above `mutate_depth` 0.5 sometimes another process (`havoc_meltdown`: 0.8
+  and 1). The same note always mutates the same way.
+- **Dark**: low pitches (-24 and under), `pulsar` with a low formant, `swarm` under the hearing range (beats),
+  a `sub` and a low-pass, slow `swell` lives, and the long dark reverb of the bus (`reverb_decay` 0.95 and more,
+  `reverb_damping` near 2000 Hz): `havoc_descent`, `havoc_leviathan`, `havoc_void_choir`, `havoc_possessed`,
+  `havoc_nerve`, `havoc_hive_mind`, `havoc_last_transmission`.
 - **Where to start**: sparse events = `dust` at a very low pitch (`havoc_geiger`, `havoc_wind_chimes` with a long
   ring); weather = `wind` and dense `dust` (`havoc_solar_wind`, `havoc_rainfall`); fire = `rumble` with b high
   (`havoc_bonfire`); machines = `logistic` or `cell` with a `pulse` life into a `comb` (`havoc_pile_driver`,

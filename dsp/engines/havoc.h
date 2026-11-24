@@ -6,7 +6,9 @@
  * sines at rates without a common period, so the timbre never comes back the same way), a life (steady, random bursts, a periodic
  * pulse, a slow swell) and a place; it can be frequency-modulated and ring-modulated by the generator before it
  * (the four form a ring). The sum goes through two processors in series, each one of: filter, comb, wavefolder,
- * resampler, ring modulator, chopper, stutter.
+ * resampler, ring modulator, chopper, stutter, octave divider. The output can come back into every generator's
+ * frequency (feedback), and the machine can mutate while it plays: at random, a generator gets other shapes, another
+ * pitch, another process.
  * References: R. May, Simple mathematical models with very complicated dynamics (the logistic map); S. Wolfram,
  * Statistical mechanics of cellular automata (the 256 elementary rules); C. Roads, Microsound (pulsar synthesis,
  * dust); TPT state-variable filter (V. Zavalishin). */
@@ -28,7 +30,7 @@ enum {
 enum { HAVOC_LIFE_STEADY = 0, HAVOC_LIFE_BURSTS, HAVOC_LIFE_PULSE, HAVOC_LIFE_SWELL };
 enum {
     HAVOC_X_OFF = 0, HAVOC_X_LP, HAVOC_X_BP, HAVOC_X_HP, HAVOC_X_COMB, HAVOC_X_FOLD, HAVOC_X_CRUSH, HAVOC_X_RING,
-    HAVOC_X_CHOP, HAVOC_X_STUTTER, HAVOC_X_COUNT
+    HAVOC_X_CHOP, HAVOC_X_STUTTER, HAVOC_X_SUB, HAVOC_X_COUNT
 };
 
 /* Settings of a generator and of a processor. */
@@ -41,7 +43,7 @@ enum { HAVOC_X_TYPE = 0, HAVOC_X_P1, HAVOC_X_P2, HAVOC_X_MIX, HAVOC_X_PCOUNT };
 
 enum {
     HAVOC_P_ATTACK = 0, HAVOC_P_RELEASE, HAVOC_P_GLIDE, HAVOC_P_VELOCITY, HAVOC_P_VOLUME, HAVOC_P_BEND_RANGE,
-    HAVOC_P_WIDTH,
+    HAVOC_P_WIDTH, HAVOC_P_FEEDBACK, HAVOC_P_MUTATE, HAVOC_P_MUTATE_DEPTH,
     HAVOC_P_PROCS,                                             /* then HAVOC_PROC x HAVOC_X_PCOUNT */
     HAVOC_P_GENS = HAVOC_P_PROCS + HAVOC_PROC * HAVOC_X_PCOUNT, /* then HAVOC_GEN x HAVOC_G_COUNT */
     HAVOC_P_COUNT = HAVOC_P_GENS + HAVOC_GEN * HAVOC_G_COUNT
@@ -65,6 +67,8 @@ typedef struct {
     int life_on;
     float gain; /* life gain at the end of the last block */
     float lfo, lfo2; /* phases of the two sines that move a and b (cycles) */
+    float mut_a, mut_b, mut_pitch; /* what the last mutation left on a, b and the pitch (semitones) */
+    int mut_type;                  /* and on the process (added to the type, modulo their number) */
 } havoc_gen_t;
 
 typedef struct {
@@ -73,6 +77,8 @@ typedef struct {
     int wr;
     int stuck, pos, len; /* stutter: repeating, place in the fragment, its length (samples) */
     float wait;          /* stutter: seconds to its next change */
+    float sub_env[2], sub_lp[2]; /* sub: level follower, smoothed square, per side */
+    int sub_sgn[2], sub_ff[2];   /* sub: sign of the input, the two dividers (bits 0 and 1) */
     uint32_t rng;
     int16_t buf[2][HAVOC_DELAY];
 } havoc_proc_t;
@@ -81,6 +87,8 @@ typedef struct {
     havoc_gen_t gen[HAVOC_GEN];
     havoc_proc_t proc[HAVOC_PROC];
     float fb[SYNTH_BLOCK];   /* last block of the last generator: it modulates the first */
+    float ofb[SYNTH_BLOCK];  /* last block of the machine's output (mono): the feedback */
+    uint32_t rng;            /* the mutations */
     float semi, semi_target; /* glided pitch (MIDI note number) */
     float env, vel, gain_prev;
     float dc_xl, dc_yl, dc_xr, dc_yr; /* DC blocker of the output */

@@ -404,6 +404,30 @@ class Session {
     this.info = this.patches.find((x) => x.file === r.file) ?? this.info;
     this.notify(`Saved patches/${r.file}. On the board: just build, then just flash.`);
   };
+  // Randomize: every setting of the instrument thrown somewhere else at once (effects, modulation and macros are
+  // left alone). A few are kept where the result stays playable: the volume and the bend range do not move, the
+  // attack stays short enough to hear something, a level is either off (one in four) or well up, and the settings
+  // that wreck everything (feedback, mutate) are drawn low more often than high.
+  randomize = () => {
+    const e = this.engine;
+    if (!e) return;
+    const r = Math.random;
+    let moved = 0;
+    for (const d of e.params) {
+      if (d.name === 'volume' || d.name === 'bend_range' || d.name === 'kit') continue;
+      let n = r();
+      if (/attack$/.test(d.name)) n = 0.35 * r();
+      else if (/release$/.test(d.name)) n = 0.2 + 0.5 * r();
+      else if (/(^|_)level(_|$)/.test(d.name)) n = r() < 0.25 ? 0 : 0.4 + 0.6 * r();
+      else if (d.name === 'feedback' || d.name === 'mutate') n = r() * r();
+      this.setValue(d, fromNorm(d, n));
+      moved++;
+    }
+    // never a silent result: the first level of the instrument is up
+    const first = e.params.find((d) => /(^|_)level(_|$)/.test(d.name));
+    if (first) this.setValue(first, fromNorm(first, 0.6 + 0.4 * r()));
+    this.notify(`Randomized ${moved} settings. Undo or Revert brings the sound back.`);
+  };
   revert = async () => {
     if (this.info) await this.loadPatch(this.info);
     else this.resetEngine();

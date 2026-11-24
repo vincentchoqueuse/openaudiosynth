@@ -12,7 +12,7 @@
 static const char *const type_labels[] = {"tone", "logistic", "byte", "dust", "wind", "pulsar", "cell", "swarm",
                                           "computer", "rumble", "bleep", "glitch", NULL};
 static const char *const life_labels[] = {"steady", "bursts", "pulse", "swell", NULL};
-static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", NULL};
+static const char *const proc_labels[] = {"off", "lp", "bp", "hp", "comb", "fold", "crush", "ring", "chop", "stutter", "sub", NULL};
 static const char *const onoff_labels[] = {"off", "on", NULL};
 
 #define HAVOC_GEN_PARAMS(g, n, dtype, dpitch, dtrack, da, db, dlevel, dpan, drate)                                         \
@@ -74,7 +74,9 @@ static const char *const onoff_labels[] = {"off", "on", NULL};
           "a wavefolder, p1 = drive, p2 = asymmetry. crush: p1 = lower sampling rate, p2 = fewer bits. ring: "       \
           "multiplied by a sine, p1 = its frequency (1 Hz .. 8 kHz), p2 = phase between left and right. chop: a "    \
           "periodic gate, p1 = rate (0.5 .. 32 Hz), p2 = share of the time it is open. stutter: now and then the "   \
-          "last instants repeat as if stuck, p1 = length of the fragment (2 .. 42 ms), p2 = share of the time stuck"),                             \
+          "last instants repeat as if stuck, p1 = length of the fragment (2 .. 42 ms), p2 = share of the time "      \
+          "stuck. sub: a square one octave below whatever comes in (p1 towards 1: two octaves), at the level of "    \
+          "the input, p2 = from dull to buzzing; mix adds it under the sound"),                             \
     PARAM(HAVOC_X_P(x, HAVOC_X_P1), "x" n "_p1", "havoc.proc" n ".p1", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,      \
           "first control of this processor (see its type)"),                                                         \
     PARAM(HAVOC_X_P(x, HAVOC_X_P2), "x" n "_p2", "havoc.proc" n ".p2", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,      \
@@ -95,6 +97,15 @@ const param_desc_t havoc_params[HAVOC_P_COUNT] = {
           "pitch-bend range"),
     PARAM(HAVOC_P_WIDTH, "width", "drone.width", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
           "how far the generators are spread to their places (0 = all in the middle)"),
+    PARAM(HAVOC_P_FEEDBACK, "feedback", "havoc.feedback", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "the machine's output modulates the frequency of every generator: a little roughens, a lot howls and "
+          "collapses into chaos"),
+    PARAM(HAVOC_P_MUTATE, "mutate", "havoc.mutate", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "how often the machine changes itself while it plays: 0 = never, 0.5 = about once a second, 1 = thirteen "
+          "times a second. A mutation gives one generator, at random, other shapes and another pitch"),
+    PARAM(HAVOC_P_MUTATE_DEPTH, "mutate_depth", "havoc.mutate_depth", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
+          "size of the mutations: how far the shapes and the pitch (2 octaves at most) are thrown; above the "
+          "middle a mutation can also change the generator's process"),
     HAVOC_PROC_PARAMS(0, "1"),
     HAVOC_PROC_PARAMS(1, "2"),
     HAVOC_GEN_PARAMS(0, "1", (float)HAVOC_T_TONE, 0.0f, 1.0f, 0.3f, 0.0f, 0.7f, 0.0f, 0.13f),
@@ -126,6 +137,8 @@ static void voice_clear(havoc_voice_t *v)
         s->ev_len = 32;
         s->life_on = 1;
         s->gain = 0.0f;
+        s->mut_a = s->mut_b = s->mut_pitch = 0.0f;
+        s->mut_type = 0;
         s->lfo = 0.37f * (float)g; /* every generator starts elsewhere in its cycle */
         s->lfo2 = 0.25f + 0.61f * (float)g;
     }
@@ -138,13 +151,18 @@ static void voice_clear(havoc_voice_t *v)
         }
         q->cph = q->ph = q->wait = 0.0f;
         q->stuck = q->pos = 0;
+        for (int c = 0; c < 2; c++) {
+            q->sub_env[c] = q->sub_lp[c] = 0.0f;
+            q->sub_sgn[c] = q->sub_ff[c] = 0;
+        }
         q->len = 64;
         q->rng = dsp_seed(0x57A7u + (uint32_t)x);
         q->gate = 1.0f;
         q->wr = 0;
     }
     for (int i = 0; i < SYNTH_BLOCK; i++)
-        v->fb[i] = 0.0f;
+        v->fb[i] = v->ofb[i] = 0.0f;
+    v->rng = dsp_seed(0x3A7E1u);
     v->dc_xl = v->dc_yl = v->dc_xr = v->dc_yr = 0.0f;
     v->env = 0.0f;
     v->gain_prev = 0.0f;
@@ -262,8 +280,8 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
     const float *gp = &e->p[HAVOC_G_P(g, 0)];
     havoc_gen_t *s = &v->gen[g];
     const float sr = e->sr, inv_sr = 1.0f / sr, dt = (float)n * inv_sr, inv_n = 1.0f / (float)n;
-    const int type = (int)gp[HAVOC_G_TYPE];
-    float a = gp[HAVOC_G_A], b = gp[HAVOC_G_B];
+    const int type = ((int)gp[HAVOC_G_TYPE] + s->mut_type) % HAVOC_T_COUNT;
+    float a = dsp_clampf(gp[HAVOC_G_A] + s->mut_a, 0.0f, 1.0f), b = dsp_clampf(gp[HAVOC_G_B] + s->mut_b, 0.0f, 1.0f);
     if (gp[HAVOC_G_LFO_A] != 0.0f || gp[HAVOC_G_LFO_B] != 0.0f) { /* its own oscillator moves the two shapes */
         s->lfo += gp[HAVOC_G_LFO_RATE] * dt;
         s->lfo -= (float)(int)s->lfo;
@@ -274,7 +292,7 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
     }
 
     /* pitch, and the frequency modulation by the other generator (through zero) */
-    const float note = (gp[HAVOC_G_TRACK] >= 0.5f ? semi : 60.0f) + gp[HAVOC_G_PITCH];
+    const float note = (gp[HAVOC_G_TRACK] >= 0.5f ? semi : 60.0f) + gp[HAVOC_G_PITCH] + s->mut_pitch;
     float mult = 1.0f;
     if (type == HAVOC_T_COMPUTER) { /* a new random pitch (or a rest) at its own rate */
         s->jump_ph += dt * fm_exp2(5.6f * b); /* 1 .. 48 jumps a second */
@@ -316,11 +334,12 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
     if (v->fresh || jumped)
         s->inc = inc;
     const float fmd = 8.0f * gp[HAVOC_G_FM] * gp[HAVOC_G_FM], d_inc = (inc - s->inc) * inv_n;
+    const float fbd = 6.0f * e->p[HAVOC_P_FEEDBACK] * e->p[HAVOC_P_FEEDBACK]; /* the machine's own output */
     float incs[SYNTH_BLOCK];
     float ci = s->inc;
     for (int i = 0; i < n; i++) {
         ci += d_inc;
-        incs[i] = dsp_minf(dsp_absf(ci * (1.0f + fmd * m[i])), 0.49f);
+        incs[i] = dsp_minf(dsp_absf(ci * (1.0f + fmd * m[i] + fbd * v->ofb[i])), 0.49f);
     }
     s->inc = inc;
 
@@ -666,6 +685,26 @@ static DSP_FAST_CODE void proc_render(havoc_t *e, havoc_proc_t *q, const float *
         }
         break;
     }
+    case HAVOC_X_SUB: { /* every upward zero crossing flips a divider, every fall of that one flips the next */
+        const float low = p1, c = 0.02f + 0.6f * p2 * p2;
+        for (int k = 0; k < 2; k++) {
+            float *x = side[k];
+            for (int i = 0; i < n; i++) {
+                q->sub_env[k] += 0.004f * (dsp_absf(x[i]) - q->sub_env[k]);
+                const float hyst = 0.1f * q->sub_env[k];
+                if (q->sub_sgn[k] <= 0 && x[i] > hyst) {
+                    q->sub_sgn[k] = 1;
+                    q->sub_ff[k] = (q->sub_ff[k] + 1) & 3;
+                } else if (q->sub_sgn[k] > 0 && x[i] < -hyst) {
+                    q->sub_sgn[k] = -1;
+                }
+                const float sq = (1.0f - low) * (q->sub_ff[k] & 1 ? 1.0f : -1.0f) + low * (q->sub_ff[k] & 2 ? 1.0f : -1.0f);
+                q->sub_lp[k] += c * (1.5f * q->sub_env[k] * sq - q->sub_lp[k]);
+                x[i] += mix * (q->sub_lp[k] - 0.5f * x[i]); /* at full mix, half of the sound stays above its sub */
+            }
+        }
+        break;
+    }
     case HAVOC_X_STUTTER: { /* records the sum; now and then replays its last instants in a loop instead */
         q->wait -= (float)n * inv_sr;
         if (q->wait <= 0.0f) {
@@ -737,6 +776,17 @@ static DSP_FAST_CODE void voice_render(havoc_t *e, int vi, float *L, float *R)
     }
     const float semi = v->semi + e->bend * p[HAVOC_P_BEND_RANGE] + vm[VM_PITCH];
 
+    /* mutations: now and then one generator is thrown elsewhere */
+    const float mut = p[HAVOC_P_MUTATE], mdepth = p[HAVOC_P_MUTATE_DEPTH];
+    if (mut > 0.001f && dsp_rand_unipolar(&v->rng) < 0.05f * fm_exp2(8.0f * mut) * dt) {
+        havoc_gen_t *s = &v->gen[dsp_rand_u32(&v->rng) >> 30];
+        s->mut_a = mdepth * dsp_rand_bipolar(&v->rng);
+        s->mut_b = mdepth * dsp_rand_bipolar(&v->rng);
+        s->mut_pitch = (float)(int)(24.0f * mdepth * dsp_rand_bipolar(&v->rng));
+        if (dsp_rand_unipolar(&v->rng) < 2.0f * mdepth - 1.0f)
+            s->mut_type = (int)(dsp_rand_unipolar(&v->rng) * (float)HAVOC_T_COUNT) % HAVOC_T_COUNT;
+    }
+
     /* the generators, each one modulated by the block of the one before */
     float out[HAVOC_GEN][SYNTH_BLOCK], xl[SYNTH_BLOCK], xr[SYNTH_BLOCK];
     for (int i = 0; i < n; i++)
@@ -777,6 +827,7 @@ static DSP_FAST_CODE void voice_render(havoc_t *e, int vi, float *L, float *R)
         v->dc_xr = sr_;
         xl[i] = v->dc_yl;
         xr[i] = v->dc_yr;
+        v->ofb[i] = 0.5f * (xl[i] + xr[i]);
     }
 
     /* level: envelope, velocity, volume */
@@ -825,6 +876,7 @@ static const engine_stage_t havoc_stages[] = {
     {"gen4", "Generator 4", "source", "g4_", "", NULL, NULL, 0.0f, 0.0f},
     {"proc1", "Processor 1", "filter", "x1_", "gen1 gen2 gen3 gen4", NULL, NULL, 0.0f, 0.0f},
     {"proc2", "Processor 2", "filter", "x2_", "proc1", NULL, NULL, 0.0f, 0.0f},
+    {"chaos", "Chaos", "mod", "feedback mutate mutate_depth", "", "gen1 gen2 gen3 gen4", NULL, 0.0f, 0.0f},
     {"amp", "Amp", "amp", "width amp_attack amp_release velocity volume", "proc2", NULL, NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
@@ -836,7 +888,8 @@ const engine_ops_t havoc_engine = {
                    "automaton, swarm of sines, random jumping tone, clipped random walk, chatter of bleeps, electronic "
                    "faults) with its own pitch, life "
                    "(steady, bursts, pulse, swell) and place, modulating each other in a ring (FM, ring), then two "
-                   "processors (filter, comb, fold, crush, ring, chop, stutter) (1 voice, notes slide the machine)",
+                   "processors (filter, comb, fold, crush, ring, chop, stutter, octave divider); the output can feed back "
+                   "into every frequency and the machine can mutate while it plays (1 voice, notes slide the machine)",
     .params = havoc_params,
     .param_count = HAVOC_P_COUNT,
     .voices = HAVOC_VOICES,

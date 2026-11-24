@@ -3,6 +3,7 @@
 #include <math.h>
 
 #include "engines/engine.h"
+#include "fx/rack.h"
 #include "global_params.h"
 #include "test.h"
 #include "voice/analog.h"
@@ -31,9 +32,11 @@ static void check_tables(void)
     }
     for (int g = 0; g < SYNTH_GLOBAL_COUNT; g++) {
         const param_desc_t *d = synth_global_param(g);
-        /* effect descriptors carry their index in the effect table; master and tempo carry their synth id */
-        const int fx = g >= 1 && SYNTH_PARAM_GLOBAL + g < SYNTH_PARAM_TEMPO;
-        CHECK(d && d->id == (fx ? g - 1 : SYNTH_PARAM_GLOBAL + g), "global %d has id %d", g, d ? d->id : -1);
+        /* the rack's descriptors carry their index in its table (two blocks of ids); the others their synth id */
+        const int id = SYNTH_PARAM_GLOBAL + g;
+        const int want = id >= SYNTH_PARAM_PHASER_MIX ? RACK_P_BUS_COUNT + id - SYNTH_PARAM_PHASER_MIX
+                         : g >= 1 && id < SYNTH_PARAM_TEMPO ? g - 1 : id;
+        CHECK(d && d->id == want, "global %d has id %d", g, d ? d->id : -1);
     }
     /* part and modulation tables: ids, unique names, label counts */
     for (int k = 0; k < SYNTH_PART_COUNT + SYNTH_MOD_COUNT; k++) {

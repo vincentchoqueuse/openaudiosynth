@@ -16,7 +16,7 @@
 #include "fx/delay.h"
 #include "fx/dist.h"
 #include "fx/flanger.h"
-#include "fx/fxbus.h"
+#include "fx/rack.h"
 #include "fx/phaser.h"
 #include "fx/reverb.h"
 #include "fx/tape.h"
@@ -509,22 +509,20 @@ static void test_shimmer(void)
 {
     const float sr = 48000.0f;
     const int n = 48000 * 6;
-    static fxbus_t f;
+    static rack_t f;
     static float mem[320000];
     float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
     float oct[2];
     for (int k = 0; k < 2; k++) {
-        fxbus_init(&f, sr, mem, 320000, 2.0f, 1.5f);
-        fxbus_set_param(&f, FXB_P_REVERB_MIX, 1.0f);
-        fxbus_set_param(&f, FXB_P_REVERB_DECAY, 0.93f);
-        fxbus_set_param(&f, FXB_P_REVERB_DAMPING, 1.0f);
-        fxbus_set_shimmer(&f, k ? 0.8f : 0.0f, 12.0f);
+        rack_init(&f, sr, mem, 320000, 2.0f, 1.5f);
+        rack_set_param(&f, RACK_P_REVERB_MIX, 1.0f);
+        rack_set_param(&f, RACK_P_REVERB_DECAY, 0.93f);
+        rack_set_param(&f, RACK_P_REVERB_DAMPING, 1.0f);
+        rack_set_param(&f, RACK_P_REVERB_SHIMMER, k ? 0.8f : 0.0f);
         for (int i = 0; i < n; i++) /* a second of a pure 330 Hz, then its tail */
             L[i] = R[i] = i < 48000 ? 0.3f * sinf(6.2831853f * 330.0f * (float)i / sr) : 0.0f;
         for (int i = 0; i < n; i += 32) {
-            fxbus_begin(&f);
-            fxbus_reverb(&f, L + i, R + i, 32);
-            fxbus_flush(&f, L + i, R + i, 32);
+            rack_process(&f, L + i, R + i, 32);
         }
         oct[k] = tone_db(L + 96000, 96000, 660.0f, sr) - tone_db(L + 96000, 96000, 330.0f, sr);
         printf("  shimmer %d: max %.2f\n", k, (double)max_abs(L, n));
@@ -537,18 +535,16 @@ static void test_shimmer(void)
     float worst[2] = {0.0f, 0.0f};
     int finite = 1;
     for (int k = 0; k < 2; k++) {
-        fxbus_init(&f, sr, mem, 320000, 2.0f, 1.5f);
-        fxbus_set_param(&f, FXB_P_REVERB_MIX, 1.0f);
-        fxbus_set_param(&f, FXB_P_REVERB_DECAY, 1.0f);
-        fxbus_set_shimmer(&f, k ? 1.0f : 0.0f, 12.0f);
+        rack_init(&f, sr, mem, 320000, 2.0f, 1.5f);
+        rack_set_param(&f, RACK_P_REVERB_MIX, 1.0f);
+        rack_set_param(&f, RACK_P_REVERB_DECAY, 1.0f);
+        rack_set_param(&f, RACK_P_REVERB_SHIMMER, k ? 1.0f : 0.0f);
         uint32_t s = dsp_seed(3u);
         for (int b = 0; b < 30000; b++) {
             float l[32], r[32];
             for (int i = 0; i < 32; i++)
                 l[i] = r[i] = 0.5f * dsp_rand_bipolar(&s);
-            fxbus_begin(&f);
-            fxbus_reverb(&f, l, r, 32);
-            fxbus_flush(&f, l, r, 32);
+            rack_process(&f, l, r, 32);
             finite &= all_finite_bounded(l, 32, 1e6f);
             worst[k] = fmaxf(worst[k], max_abs(l, 32));
         }

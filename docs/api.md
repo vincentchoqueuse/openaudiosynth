@@ -404,19 +404,6 @@ stereo flanger: a short delay line (a fraction of a millisecond to 10 ms) swept 
 - `void flanger_set(flanger_t *f, float mix, float rate_hz, float delay_ms, float depth, float feedback)` — mix 0..1 (0: off, 1: half dry, half delayed = the deepest notches); rate_hz LFO; delay_ms the longest delay (0.5..10); depth 0..1 (how far down the sweep goes, to a twentieth of it); feedback -0.9..0.9
 - `void flanger_process(flanger_t *f, float *L, float *R, int n)` — in place allowed; passes the signal through untouched while the mix is and was 0
 
-## `dsp/fx/fxbus.h`
-three effects of the synth's bus and their parameter descriptors: chorus (insert), tape delay and plate reverb (their wet added to the signal). They are stages the caller runs in any order among other effects (the rack of synth.c): fxbus_begin, then fxbus_chorus, fxbus_delay and fxbus_reverb once each, fxbus_flush before anything else reads the signal and at the end. Delay and reverb memory comes from a caller-provided arena; if the arena is too small the reverb size and maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
-- types: `fxbus_t`
-- data: `const param_desc_t fxbus_params[FXB_P_COUNT]`
-- `void fxbus_init(fxbus_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — mem/mem_floats: arena for the shimmer's line, the reverb and the delay (may be NULL/0: then only the chorus is available).
-- `void fxbus_set_param(fxbus_t *f, int id, float norm)`
-- `void fxbus_set_shimmer(fxbus_t *f, float amount, float semitones)` — Shimmer: how much of the reverb's output comes back into it transposed (0 = none, 1 = a tail that keeps climbing), and by how many semitones (12 = the classic octave up; negative goes down).
-- `void fxbus_begin(fxbus_t *f)` — One block in place (n <= SYNTH_BLOCK), as stages: each at most once per block, between fxbus_begin and a last fxbus_flush. The delay leaves its echoes pending: the reverb right after it reads them itself, anything els...
-- `void fxbus_chorus(fxbus_t *f, float *L, float *R, int n)`
-- `void fxbus_delay(fxbus_t *f, float *L, float *R, int n)`
-- `void fxbus_reverb(fxbus_t *f, float *L, float *R, int n)`
-- `void fxbus_flush(fxbus_t *f, float *L, float *R, int n)`
-
 ## `dsp/fx/limiter.h`
 stereo look-ahead peak limiter for the master: an input gain, then a gain that never lets a sample past the ceiling. The gain each sample needs (ceiling / stereo peak) is held at its minimum over the look-ahead window, released exponentially, then averaged over the same window (a box filter): the averaged gain reaches the needed one exactly when the loud sample, delayed by the window, comes out, so the attack is smooth and the peak is never exceeded. Latency: LIMITER_LOOKAHEAD_S. Reference: the classic hold + moving-average look-ahead design (e.g. D. Giannoulis, M. Massberg, J. Reiss, "Digital Dynamic Range Compressor Design", JAES 2012).
 - types: `limiter_t`
@@ -434,6 +421,15 @@ stereo phaser: a chain of first-order all-pass filters (TPT, Zavalishin) whose b
 - `void phaser_reset(phaser_t *p)`
 - `void phaser_set(phaser_t *p, float mix, float rate_hz, float centre_hz, float depth, float feedback, int stages)` — mix 0..1 (0: off, 1: half dry, half phased = the deepest notches); rate_hz LFO; centre_hz of the sweep; depth 0..1 (0 to 4 octaves of sweep); feedback -0.9..0.9; stages 2..PHASER_MAX_STAGES (even)
 - `void phaser_process(phaser_t *p, float *L, float *R, int n)` — in place allowed; passes the signal through untouched while the mix is and was 0
+
+## `dsp/fx/rack.h`
+the synth's effect rack: six effects on the bus (phaser, flanger, chorus, tape delay, plate reverb with its shimmer, tape machine) run in the order of its six places, with their parameter descriptors. The delay and the reverb add their wet to the signal; the reverb takes what reaches it, the echoes too when it follows the delay. Delay, reverb, shimmer and tape memory comes from a caller-provided arena; if it is too small the reverb size and the maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
+- types: `rack_t`
+- data: `const param_desc_t rack_params[RACK_P_COUNT]`
+- `void rack_init(rack_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — mem/mem_floats: arena for the tape's and the shimmer's lines, the reverb and the delay (may be NULL/0: then only the phaser, the flanger and the chorus are available).
+- `void rack_recover(rack_t *f, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — Something went non-finite: every line and filter emptied, the settings kept.
+- `void rack_set_param(rack_t *f, int id, float norm)` — Parameter index (RACK_P_...), normalized value.
+- `void rack_process(rack_t *f, float *L, float *R, int n)` — Processes one block in place (n <= SYNTH_BLOCK): the six effects in the order of the places.
 
 ## `dsp/fx/reverb.h`
 plate reverb after J. Dattorro, "Effect Design Part 1: Reverberator and Other Filters" (JAES 45(9), 1997): predelay, input bandwidth filter, 4 input diffusers, figure-of-eight tank with two modulated allpasses and damping. Mono in, stereo out (wet only). Delays scaled from the paper's 29761 Hz to the actual rate. Memory is provided by the caller (no allocation).

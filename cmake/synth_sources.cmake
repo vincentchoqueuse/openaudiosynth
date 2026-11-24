@@ -48,7 +48,7 @@ set(SYNTH_DSP_SOURCES
   dsp/fx/phaser.c
   dsp/fx/tape.c
   dsp/fx/flanger.c
-  dsp/fx/fxbus.c
+  dsp/fx/rack.c
   dsp/synth.c
 )
 set(SYNTH_MIDI_SOURCES

@@ -14,11 +14,8 @@
 #include "filter/dcblock.h"
 #include "filter/svf_tpt.h"
 #include "fx/dist.h"
-#include "fx/fxbus.h"
-#include "fx/flanger.h"
+#include "fx/rack.h"
 #include "fx/limiter.h"
-#include "fx/phaser.h"
-#include "fx/tape.h"
 #include "mod/partmod.h"
 #include "mod/tempo.h"
 #include "global_params.h"
@@ -57,8 +54,14 @@ _Static_assert((SYNTH_EVQ_SIZE & (SYNTH_EVQ_SIZE - 1)) == 0 && SYNTH_EVQ_SIZE >=
 #endif
 
 /* the global parameter ids of synth.h mirror the effect-bus table */
-_Static_assert(SYNTH_PARAM_REVERB_FREEZE - SYNTH_PARAM_CHORUS_MODE == FXB_P_REVERB_FREEZE, "fx ids");
-_Static_assert(SYNTH_PARAM_TEMPO - SYNTH_PARAM_CHORUS_MODE == FXB_P_COUNT, "fx ids");
+_Static_assert(SYNTH_PARAM_REVERB_FREEZE - SYNTH_PARAM_CHORUS_MODE == RACK_P_REVERB_FREEZE, "rack ids");
+_Static_assert(SYNTH_PARAM_TEMPO - SYNTH_PARAM_CHORUS_MODE == RACK_P_BUS_COUNT, "rack ids");
+_Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_PHASER_MIX == RACK_P_COUNT - RACK_P_BUS_COUNT, "rack ids");
+/* a global id of the rack -> its index in rack_params */
+static inline int rack_index(int id)
+{
+    return id >= SYNTH_PARAM_PHASER_MIX ? RACK_P_BUS_COUNT + id - SYNTH_PARAM_PHASER_MIX : id - SYNTH_PARAM_CHORUS_MODE;
+}
 
 enum { EV_MIDI = 0, EV_PARAM, EV_ENGINE };
 
@@ -135,14 +138,6 @@ _Static_assert(SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_TEMPO == (int)(sizeof tempo_
 /* the output filter of every part (macros and routes can move it), then the master's saturation and limiter */
 static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
 static const char *const saturation_labels[] = {"off", "soft", "tube", "hard", NULL};
-static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
-/* the effects of the rack, by the id of their stage (synth_fx_stages) */
-enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_TAPE, RACK_COUNT };
-static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", "tape", NULL};
-static const char *const shimmer_labels[] = {"octave_up", "fifth_up", "twelfth_up", "octave_down", NULL};
-static const float shimmer_semitones[4] = {12.0f, 7.0f, 19.0f, -12.0f};
-#define RACK_SLOT(K, N) PARAM(SYNTH_PARAM_FX_SLOT_1 + K, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_COUNT - 1), (float)K, PARAM_INT, "", 0, \
-                           rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, one not named goes just before the effect that usually follows it")
 static const param_desc_t out_desc[] = {
     PARAM(SYNTH_PARAM_OUT_FILTER, "out_filter", "output.filter.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, out_filter_labels,
           "a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB)"),
@@ -168,58 +163,21 @@ static const param_desc_t out_desc[] = {
           "the highest peak out of the limiter, in dBFS"),
     PARAM(SYNTH_PARAM_LIMITER_RELEASE, "limiter_release", "master.limiter.release", 0.01f, 1.0f, 0.15f, PARAM_EXP, "s", 0, NULL,
           "time to come back after a peak: short = loud but grainy on bass, long = smooth but pumping"),
-    PARAM(SYNTH_PARAM_PHASER_MIX, "phaser_mix", "fx.phaser.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
-          "phaser amount: 0 = off, 1 = half dry, half phased (the deepest notches)"),
-    PARAM(SYNTH_PARAM_PHASER_RATE, "phaser_rate", "fx.phaser.rate", 0.02f, 10.0f, 0.3f, PARAM_EXP, "Hz", 1, NULL,
-          "speed of the sweep: 0.05-0.5 Hz = slow swirl, several Hz = a vibrato-like warble"),
-    PARAM(SYNTH_PARAM_PHASER_CENTER, "phaser_center", "fx.phaser.center", 100.0f, 5000.0f, 800.0f, PARAM_EXP, "Hz", 1, NULL,
-          "middle of the sweep: low = throaty, high = airy"),
-    PARAM(SYNTH_PARAM_PHASER_DEPTH, "phaser_depth", "fx.phaser.depth", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL,
-          "width of the sweep, up to 4 octaves (2 each side of the centre)"),
-    PARAM(SYNTH_PARAM_PHASER_FEEDBACK, "phaser_feedback", "fx.phaser.feedback", -0.9f, 0.9f, 0.5f, PARAM_LIN, "", 1, NULL,
-          "resonance of the notches: 0 = gentle, high = a sharp, singing sweep; negative = the peaks move between the notches"),
-    PARAM(SYNTH_PARAM_PHASER_STAGES, "phaser_stages", "fx.phaser.stages", 0.0f, 5.0f, 1.0f, PARAM_INT, "", 0, phaser_stage_labels,
-          "all-pass stages: 4 = the classic small phaser (2 notches), more = more notches, a denser swirl"),
-    PARAM(SYNTH_PARAM_FLANGER_MIX, "flanger_mix", "fx.flanger.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
-          "flanger amount: 0 = off, 1 = half dry, half delayed (the deepest notches, the jet)"),
-    PARAM(SYNTH_PARAM_FLANGER_RATE, "flanger_rate", "fx.flanger.rate", 0.02f, 10.0f, 0.15f, PARAM_EXP, "Hz", 1, NULL,
-          "speed of the sweep: 0.05-0.3 Hz = the slow jet, faster = a wobble"),
-    PARAM(SYNTH_PARAM_FLANGER_DELAY, "flanger_delay", "fx.flanger.delay", 0.5f, 10.0f, 4.0f, PARAM_EXP, "ms", 1, NULL,
-          "the longest delay of the sweep: short = high, metallic notches, long = lower, towards a chorus"),
-    PARAM(SYNTH_PARAM_FLANGER_DEPTH, "flanger_depth", "fx.flanger.depth", 0.0f, 1.0f, 0.8f, PARAM_LIN, "", 1, NULL,
-          "how far the sweep goes, down to a twentieth of the delay"),
-    PARAM(SYNTH_PARAM_FLANGER_FEEDBACK, "flanger_feedback", "fx.flanger.feedback", -0.9f, 0.9f, 0.6f, PARAM_LIN, "", 1, NULL,
-          "resonance: high = metallic, ringing; negative = hollow (the resonances at the odd multiples of half the delay's frequency)"),
-    RACK_SLOT(0, 1), RACK_SLOT(1, 2), RACK_SLOT(2, 3), RACK_SLOT(3, 4), RACK_SLOT(4, 5), RACK_SLOT(5, 6),
-    PARAM(SYNTH_PARAM_TAPE, "tape", "fx.tape.mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 1, param_onoff_labels,
-          "a worn tape machine on the whole signal: pitch that wanders, soft saturation, dull highs, hiss"),
-    PARAM(SYNTH_PARAM_TAPE_WOW, "tape_wow", "fx.tape.wow", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 1, NULL,
-          "wow: slow pitch wander of everything (0.2 alive, 0.5 worn cassette, 1 = about 0.5 %, seasick)"),
-    PARAM(SYNTH_PARAM_TAPE_FLUTTER, "tape_flutter", "fx.tape.flutter", 0.0f, 1.0f, 0.2f, PARAM_LIN, "", 1, NULL,
-          "flutter: fast pitch tremble (about 7 Hz), the grain of a cheap transport"),
-    PARAM(SYNTH_PARAM_TAPE_DRIVE, "tape_drive", "fx.tape.drive", 0.0f, 1.0f, 0.3f, PARAM_LIN, "", 1, NULL,
-          "level onto the tape: 0 clean, 0.3 rounded peaks and glue, 0.7 and more compressed and gritty (level kept)"),
-    PARAM(SYNTH_PARAM_TAPE_HISS, "tape_hiss", "fx.tape.hiss", 0.0f, 1.0f, 0.15f, PARAM_LIN, "", 1, NULL,
-          "tape hiss under the sound (0 = none; it stays after the notes, like a real machine left running)"),
-    PARAM(SYNTH_PARAM_TAPE_TONE, "tape_tone", "fx.tape.tone", 1000.0f, 18000.0f, 9000.0f, PARAM_EXP, "Hz", 1, NULL,
-          "loss of highs: 12 kHz and more a good machine, 6-9 kHz a cassette, 2-4 kHz a tape left in the sun"),
-    PARAM(SYNTH_PARAM_REVERB_SHIMMER, "reverb_shimmer", "fx.reverb.shimmer", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
-          "shimmer: the tail comes back into the reverb transposed, so it climbs and glows (0.3 a halo, 0.6 an organ of light, 1 = it keeps rising); needs a long decay"),
-    PARAM(SYNTH_PARAM_REVERB_SHIMMER_PITCH, "reverb_shimmer_pitch", "fx.reverb.shimmer_pitch", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, shimmer_labels,
-          "interval of the shimmer: an octave up (the classic), a fifth up (stacks into chords), a twelfth up, or an octave down (the tail sinks)"),
 };
-_Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
+_Static_assert(SYNTH_PARAM_PHASER_MIX - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
 const param_desc_t *synth_global_param(int index)
 {
     if (index == 0)
         return &master_desc;
-    if (index >= 1 && index <= FXB_P_COUNT)
-        return &fxbus_params[index - 1];
-    if (index > FXB_P_COUNT && index < SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL)
-        return &tempo_desc[index - 1 - FXB_P_COUNT];
-    if (index >= SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL && index < SYNTH_GLOBAL_COUNT)
+    if (index >= 1 && index <= RACK_P_BUS_COUNT)
+        return &rack_params[index - 1];
+    if (index > RACK_P_BUS_COUNT && index < SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL)
+        return &tempo_desc[index - 1 - RACK_P_BUS_COUNT];
+    if (index >= SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL && index < SYNTH_PARAM_PHASER_MIX - SYNTH_PARAM_GLOBAL)
         return &out_desc[index - (SYNTH_PARAM_OUT_FILTER - SYNTH_PARAM_GLOBAL)];
+    if (index >= SYNTH_PARAM_PHASER_MIX - SYNTH_PARAM_GLOBAL && index < SYNTH_GLOBAL_COUNT)
+        return &rack_params[rack_index(SYNTH_PARAM_GLOBAL + index)];
     return 0;
 }
 
@@ -289,7 +247,7 @@ struct synth {
     float outL[SYNTH_BLOCK], outR[SYNTH_BLOCK];
     int out_pos;
 
-    fxbus_t fx;
+    rack_t fx; /* the effect rack */
     tempo_t tempo;
     int delay_sync; /* division index, 0 = off */
     int tuning, tuning_root;
@@ -310,14 +268,6 @@ struct synth {
     int sat_mode, sat_run;              /* the mode chosen, and the one running (kept while fading out) */
     float sat_drive, sat_tone;
     float sat_mix, sat_mix_prev;        /* 1 while on: faded in and out over 8 blocks */
-    phaser_t phaser;
-    flanger_t flanger;
-    float ph[6], fl[5];                 /* phaser and flanger settings, physical values */
-    tape_t tape;
-    float tp[6];                        /* tape settings: on, wow, flutter, drive, hiss, tone */
-    float shim[2];                      /* shimmer: amount, index of its interval */
-    uint8_t rack_slot[RACK_COUNT];      /* the effect asked for at each place of the rack */
-    uint8_t rack[RACK_COUNT];           /* the order run: each effect once (rack_resolve) */
     limiter_t lim;
     int lim_on;
     float lim_mix, lim_mix_prev;        /* 1 while on: the limited signal, faded in and out over 8 blocks */
@@ -569,7 +519,7 @@ static void handle_midi(synth_t *s, const uint8_t *m, int len, uint32_t time)
         case 69: global_set(s, SYNTH_PARAM_REVERB_FREEZE, d2 >= 64 ? 1.0f : 0.0f); return;
         case 91: global_set(s, SYNTH_PARAM_REVERB_MIX, v); return;
         case 93:
-            if (s->fx.p[FXB_P_CHORUS_MODE] < 0.5f && d2 > 0) /* turning the chorus up switches it on */
+            if (s->fx.p[RACK_P_CHORUS_MODE] < 0.5f && d2 > 0) /* turning the chorus up switches it on */
                 global_set(s, SYNTH_PARAM_CHORUS_MODE, 0.75f /* I+II */);
             global_set(s, SYNTH_PARAM_CHORUS_MIX, v);
             return;
@@ -657,33 +607,6 @@ static int any_switching(const synth_t *s)
     return 0;
 }
 
-/* The order of the rack from what its places ask for: an effect named twice keeps its first place; an effect no
- * place names goes just before the one that follows it in the usual order (the last one: at the end). So naming
- * only the first place moves that effect to the front and leaves the others as they were, and every effect runs
- * once whatever the values are. */
-static void rack_resolve(synth_t *s)
-{
-    uint8_t used[RACK_COUNT] = {0};
-    int n = 0;
-    for (int k = 0; k < RACK_COUNT; k++) {
-        const int e = s->rack_slot[k];
-        if (e < RACK_COUNT && !used[e])
-            used[e] = 1, s->rack[n++] = (uint8_t)e;
-    }
-    for (int e = RACK_COUNT - 1; e >= 0; e--) { /* from the last: its follower is always placed already */
-        if (used[e])
-            continue;
-        int at = n;
-        for (int i = 0; i < n; i++)
-            if (s->rack[i] == e + 1)
-                at = i;
-        for (int i = n; i > at; i--)
-            s->rack[i] = s->rack[i - 1];
-        s->rack[at] = (uint8_t)e;
-        used[e] = 1, n++;
-    }
-}
-
 /* the master level or an effect parameter (id SYNTH_PARAM_MASTER_DB .. the effect bus), normalized */
 static void global_apply(synth_t *s, int id, float norm)
 {
@@ -713,21 +636,6 @@ static void global_apply(synth_t *s, int id, float norm)
         s->sat_mix = s->sat_mode > 0 ? 1.0f : 0.0f;
         for (int c = 0; c < 2; c++)
             dist_set(&s->sat[c], modes[s->sat_run], s->sat_drive, s->sat_tone, 1.0f);
-    } else if (id >= SYNTH_PARAM_PHASER_MIX && id <= SYNTH_PARAM_PHASER_STAGES) {
-        s->ph[id - SYNTH_PARAM_PHASER_MIX] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
-        phaser_set(&s->phaser, s->ph[0], s->ph[1], s->ph[2], s->ph[3], s->ph[4], 2 * ((int)s->ph[5] + 1));
-    } else if (id >= SYNTH_PARAM_FLANGER_MIX && id <= SYNTH_PARAM_FLANGER_FEEDBACK) {
-        s->fl[id - SYNTH_PARAM_FLANGER_MIX] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
-        flanger_set(&s->flanger, s->fl[0], s->fl[1], s->fl[2], s->fl[3], s->fl[4]);
-    } else if (id >= SYNTH_PARAM_TAPE && id <= SYNTH_PARAM_TAPE_TONE) {
-        s->tp[id - SYNTH_PARAM_TAPE] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
-        tape_set(&s->tape, (int)s->tp[0], s->tp[1], s->tp[2], s->tp[3], s->tp[4], s->tp[5]);
-    } else if (id == SYNTH_PARAM_REVERB_SHIMMER || id == SYNTH_PARAM_REVERB_SHIMMER_PITCH) {
-        s->shim[id - SYNTH_PARAM_REVERB_SHIMMER] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
-        fxbus_set_shimmer(&s->fx, s->shim[0], shimmer_semitones[dsp_clampi((int)s->shim[1], 0, 3)]);
-    } else if (id >= SYNTH_PARAM_FX_SLOT_1 && id <= SYNTH_PARAM_FX_SLOT_6) {
-        s->rack_slot[id - SYNTH_PARAM_FX_SLOT_1] = (uint8_t)param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
-        rack_resolve(s);
     } else if (id >= SYNTH_PARAM_LIMITER && id <= SYNTH_PARAM_LIMITER_RELEASE) {
         const float v = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
         if (id == SYNTH_PARAM_LIMITER)
@@ -741,7 +649,7 @@ static void global_apply(synth_t *s, int id, float norm)
         s->lim_mix = s->lim_on ? 1.0f : 0.0f;
         limiter_set(&s->lim, s->lim_gain, s->lim_ceiling, s->lim_release);
     } else
-        fxbus_set_param(&s->fx, id - SYNTH_PARAM_CHORUS_MODE, norm);
+        rack_set_param(&s->fx, rack_index(id), norm);
 }
 
 /* a new value for the master or an effect (event, effect CC): kept as the base, applied unless a macro holds it */
@@ -911,21 +819,12 @@ static inline int block_finite(const float *L, const float *R, int n)
 /* The effects and the master filters got a non-finite value: emptied (delay lines, reverb), settings kept. */
 static void fx_recover(synth_t *s)
 {
-    float p[FXB_P_COUNT];
-    for (int i = 0; i < FXB_P_COUNT; i++)
-        p[i] = s->fx.p[i];
-    fxbus_init(&s->fx, s->sr, s->fx_mem, SYNTH_FX_MEM_FLOATS - TAPE_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
-    for (int i = 0; i < FXB_P_COUNT; i++)
-        fxbus_set_param(&s->fx, i, param_to_norm(&fxbus_params[i], p[i]));
+    rack_recover(&s->fx, s->fx_mem, SYNTH_FX_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
     dcblock_reset(&s->dc[0]);
     dcblock_reset(&s->dc[1]);
     dist_reset(&s->sat[0]);
     dist_reset(&s->sat[1]);
     limiter_reset(&s->lim);
-    phaser_reset(&s->phaser);
-    flanger_reset(&s->flanger);
-    tape_reset(&s->tape);
-    fxbus_set_shimmer(&s->fx, s->shim[0], shimmer_semitones[dsp_clampi((int)s->shim[1], 0, 3)]);
     s->nan_count++;
 }
 
@@ -1031,8 +930,8 @@ static DSP_FAST_CODE void render_block(synth_t *s)
     tempo_advance(&s->tempo, n);
     if (s->delay_sync > 0) { /* echo time follows the tempo */
         const float sec = dsp_clampf(tempo_div_seconds(&s->tempo, s->delay_sync), 0.02f, 2.0f);
-        if (dsp_absf(sec - s->fx.p[FXB_P_DELAY_TIME]) > 1e-4f)
-            fxbus_set_param(&s->fx, FXB_P_DELAY_TIME, param_to_norm(&fxbus_params[FXB_P_DELAY_TIME], sec));
+        if (dsp_absf(sec - s->fx.p[RACK_P_DELAY_TIME]) > 1e-4f)
+            rack_set_param(&s->fx, RACK_P_DELAY_TIME, param_to_norm(&rack_params[RACK_P_DELAY_TIME], sec));
     }
 
     for (int i = 0; i < n; i++)
@@ -1042,27 +941,7 @@ static DSP_FAST_CODE void render_block(synth_t *s)
         if (s->part[k].ops)
             has_dry |= part_render(s, &s->part[k], L, R, dryL, dryR);
 
-    /* the rack: the six effects of the bus in the order of its places */
-    fxbus_begin(&s->fx);
-    for (int k = 0; k < RACK_COUNT; k++)
-        switch (s->rack[k]) {
-        case RACK_PHASER:
-            fxbus_flush(&s->fx, L, R, n);
-            phaser_process(&s->phaser, L, R, n); /* untouched while its mix is 0 */
-            break;
-        case RACK_FLANGER:
-            fxbus_flush(&s->fx, L, R, n);
-            flanger_process(&s->flanger, L, R, n);
-            break;
-        case RACK_CHORUS: fxbus_chorus(&s->fx, L, R, n); break;
-        case RACK_DELAY: fxbus_delay(&s->fx, L, R, n); break;
-        case RACK_TAPE:
-            fxbus_flush(&s->fx, L, R, n);
-            tape_process(&s->tape, L, R, n);
-            break;
-        default: fxbus_reverb(&s->fx, L, R, n); break;
-        }
-    fxbus_flush(&s->fx, L, R, n);
+    rack_process(&s->fx, L, R, n);
     if (has_dry)
         for (int i = 0; i < n; i++)
             L[i] += dryL[i], R[i] += dryR[i];
@@ -1142,7 +1021,7 @@ void synth_init(synth_t *s, float sample_rate)
     s->ev_head = s->ev_count = s->ev_dropped = 0;
     s->time_served = s->time_rendered = 0;
     s->out_pos = SYNTH_BLOCK; /* empty buffer */
-    fxbus_init(&s->fx, sample_rate, s->fx_mem, SYNTH_FX_MEM_FLOATS - TAPE_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
+    rack_init(&s->fx, sample_rate, s->fx_mem, SYNTH_FX_MEM_FLOATS, SYNTH_FX_MAX_DELAY_S, SYNTH_FX_REVERB_SIZE);
     tempo_init(&s->tempo, sample_rate, tempo_desc[0].def);
     s->delay_sync = 0;
     s->tuning = s->tuning_root = 0;
@@ -1155,15 +1034,6 @@ void synth_init(synth_t *s, float sample_rate)
         dist_init(&s->sat[c], sample_rate);
     limiter_init(&s->lim, sample_rate);
     s->lim_mix = s->lim_mix_prev = 0.0f;
-    phaser_init(&s->phaser, sample_rate);
-    flanger_init(&s->flanger, sample_rate);
-    tape_init(&s->tape, sample_rate, s->fx_mem + SYNTH_FX_MEM_FLOATS - TAPE_MEM_FLOATS); /* the arena's last floats */
-    for (int k = 0; k < 6; k++)
-        s->tp[k] = out_desc[SYNTH_PARAM_TAPE + k - SYNTH_PARAM_OUT_FILTER].def;
-    s->shim[0] = s->shim[1] = 0.0f;
-    for (int k = 0; k < RACK_COUNT; k++)
-        s->rack_slot[k] = (uint8_t)k;
-    rack_resolve(s);
     s->sat_run = 1;
     s->sat_mix = s->sat_mix_prev = 0.0f;
     for (int g = 0; g < SYNTH_GLOBAL_COUNT; g++) {
@@ -1171,7 +1041,7 @@ void synth_init(synth_t *s, float sample_rate)
         s->gbase[g] = param_to_norm(d, d->def);
         s->gapplied[g] = s->gbase[g];
         s->gheld[g] = 0;
-        if (pm_global_target(SYNTH_PARAM_GLOBAL + g) && g > FXB_P_COUNT)
+        if (pm_global_target(SYNTH_PARAM_GLOBAL + g) && g > RACK_P_BUS_COUNT)
             global_apply(s, SYNTH_PARAM_GLOBAL + g, s->gbase[g]); /* the output filter's defaults */
     }
     smooth_init(&s->master, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(s->master_db));

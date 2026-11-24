@@ -22,8 +22,8 @@ synth_render(s, L, R, n) ── split into blocks of 32 ──► render_block()
 | `dsp/osc`, `filter`, `env`, `mod`, `fx` | DSP building blocks, each `x_init / x_reset / x_set / x_process` in physical units | core |
 | `dsp/voice` | `voice_alloc` (who gets the note), `vpoly` (stealing fade, sustain, voice lifetime), `analog` (drift, tolerance, jitter of an oscillator), `voicemod` (per-note modulation) | core |
 | `dsp/engines` | engines implementing `engine_ops_t` + `registry.c` | building blocks, voice |
-| `dsp/fx/fxbus` | effect bus with its own parameter table | fx |
-| `dsp/synth.c` | public API, event queue, dispatch, master — **no engine-specific code** | engines (via registry), fxbus |
+| `dsp/fx/rack` | the effect rack: six effects, their order, their parameter table | fx |
+| `dsp/synth.c` | public API, event queue, dispatch, master — **no engine-specific code** | engines (via registry), rack |
 | `host/` | macOS players/renderers, JSON patches and songs, catalog | dsp |
 
 ## Self-description (single source of truth)

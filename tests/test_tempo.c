@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "engines/micro.h"
-#include "fx/fxbus.h"
+#include "fx/rack.h"
 #include "global_params.h"
 #include "mod/tempo.h"
 #include "synth.h"

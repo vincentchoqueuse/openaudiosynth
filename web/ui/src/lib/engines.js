@@ -1,10 +1,10 @@
 // engines.js — how the engines are presented: the order of the families and one color each, the same as on
 // the board's screen (target/h745/app/m4/app_m4.c), so an instrument looks the same everywhere.
-export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'havoc', 'micro'];
+export const ENGINE_ORDER = ['va', 'mono', 'poly', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'drone', 'havoc', 'micro'];
 
 const COLORS = {
-  va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5', poly: '#f2777a', acid: '#b8e05a',
-  drums: '#e5534b', coupled: '#7fa7ff', selfosc: '#d98cff', wt: '#56d39a', sampler: '#f08fb8', drone: '#8fc9e8',
+  va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5', poly: '#f2777a',
+  drums: '#e5534b', wt: '#56d39a', sampler: '#f08fb8', drone: '#8fc9e8',
   micro: '#e8e2d0', havoc: '#d4ff3a',
 };
 
@@ -20,7 +20,6 @@ export const engineRank = (name) => {
 // the delay and reverb sends (an entry may also be a scene: a name and several parameters). A sound without macros of its own gets them (session.defaultMacros).
 export const DEFAULT_MACROS = {
   va: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_attack', 'amp_release'],
-  acid: ['cutoff', 'resonance', 'env_mod', 'decay', 'accent', 'distortion'],
   mono: ['cutoff', 'emphasis', 'contour', 'fenv_decay', 'mixer_drive', 'glide'],
   poly: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_release', 'lfo_filter'],
   // scenes: each macro moves several settings, upwards from where they are ([name, [parameter, travel]...], the
@@ -36,8 +35,6 @@ export const DEFAULT_MACROS = {
   wt: ['a_position', 'b_position', 'a_warp', 'cutoff', 'resonance', 'amp_release'],
   modal: ['brightness', 'position', 'hardness', 'damping', 'decay', 'inharmonicity'],
   drums: ['drive', 'kick_tune', 'kick_decay', 'snare_tone', 'snare_decay', 'chat_decay'],
-  coupled: ['amp_coupling', 'phase_coupling', 'stretch', 'tilt', 'drift', 'amp_release'],
-  selfosc: ['drive', 'stiffness', 'entrain', 'cutoff', 'resonance', 'amp_release'],
   sampler: ['tune', 'resonance', 'release', 'pad1_decay', 'pad2_decay', 'pad3_decay'],
   drone: ['temperature', 'density', 'motion', 'depth', 'brightness', 'sparkle'],
   micro: ['freq', 'pitch_amount', 'pitch_time', 'amp_decay', 'drive', 'click_level'],

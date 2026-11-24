@@ -192,7 +192,7 @@ class Sequence {
   newId = () => nid++;
   clear = () => { this.notes = []; };
   random = () => {
-    if (session.engine?.name === 'acid') { // an acid line: sixteenths, rests, octave jumps, accents and slides
+    if (session.engine?.name === 'mono' && Math.round(session.getP('glide_mode')) === 1) { // a bass line with slides: sixteenths, rests, octave jumps, accents
       this.notes = withIds(acidLine(scaleRows(this.root, this.scale, Math.min(this.octave, 2), 1), this.length, Math.min(this.grid, 0.25)));
       return;
     }

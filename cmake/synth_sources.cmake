@@ -26,20 +26,16 @@ set(SYNTH_DSP_SOURCES
   dsp/engines/va.c
   dsp/engines/modal.c
   dsp/engines/drums.c
-  dsp/engines/acid.c
   dsp/engines/mono.c
   dsp/engines/poly.c
   dsp/engines/havoc.c
   dsp/engines/fm6.c
   dsp/engines/wt.c
-  dsp/engines/coupled.c
-  dsp/engines/selfosc.c
   dsp/engines/drone.c
   dsp/engines/micro.c
   dsp/engines/sampler.c
   dsp/osc/splay.c
   dsp/osc/splay_table.c
-  dsp/osc/selfosc.c
   dsp/osc/wavetable.c
   dsp/osc/wt_factory.c
   dsp/core/fft.c

@@ -592,26 +592,6 @@ Notes: 36 `kick`, 38 `snare`, 39 `clap`, 37 `rim`, 42 `chat`, 46 `ohat`, 41 `lto
 | `bass_tone` | 0 .. 1 | 0.5 | yes | `drum.bass.tone` | drive: 0 = a clean sine, 1 = a growling, saturated boom |
 | `glide` | 0 .. 0.5 s | 0.08 | yes | `drum.bass.glide` | bass drum slide: a note played while the previous one is held slides from its pitch over this time |
 
-## Engine `acid` (1 voices)
-
-monophonic acid bass (early-80s transistor bass line spirit): saw/square, resonant 18 dB ladder (2x oversampled), decaying filter envelope, accent with cumulative sweep, slide
-
-| name | range / choices | default | live | role | what it does |
-|---|---|---|---|---|---|
-| `wave` | saw, square | saw |  | `osc1.waveform` | saw = classic squelch, square = hollower, woodier line |
-| `tune` | -100 .. 100 cent | 0 | yes | `osc1.detune` | fine tuning |
-| `cutoff` | 40 .. 8000 Hz | 500 | yes | `filter.cutoff` | base cutoff, the main knob to ride live (150-400 Hz dark and rubbery, 1-3 kHz screaming) |
-| `resonance` | 0 .. 1 | 0.75 | yes | `filter.resonance` | resonance: 0.5 vocal, 0.8 squelchy, 0.95+ whistling self-oscillation |
-| `env_mod` | 0 .. 5 oct | 2.5 | yes | `filter.envelope_amount` | how far the filter envelope opens the cutoff on each note |
-| `decay` | 0.2 .. 2.5 s | 0.6 | yes | `filter_env.decay` | filter envelope decay of non-accented notes: short = plucky blips, long = wah |
-| `accent` | 0 .. 1 | 0.6 | yes | `accent.amount` | strength of accented notes (velocity >= 96, '!' in phrases): louder, brighter, shorter, and the cutoff climbs over consecutive accents |
-| `slide` | 0.01 .. 0.3 s | 0.06 | yes | `voice.glide` | slide time between overlapping notes ('~' in phrases); 60 ms is the classic |
-| `drive` | 0 .. 1 | 0.3 | yes | `filter.drive` | saturation inside the filter: rounder, then grittier, louder resonance |
-| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
-| `oversample` | 1x, 2x, 4x | 2x |  | `filter.oversample` | oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x) |
-| `distortion` | 0 .. 1 | 0 | yes | `fx.distortion.amount` | distortion after the filter, like a pedal: 0 = clean, 0.3 = warm grit, 0.6 = snarling, 1 = fuzz (level kept even) |
-| `dist_tone` | 1000 .. 12000 Hz | 5000 | yes | `fx.distortion.tone` | tone of the distortion: lower = darker, rounder; higher = fizzier |
-
 ## Engine `mono` (1 voices)
 
 classic monosynth (the early-70s portable one, panel by panel): 3 free-running oscillators with footage and 6 waveforms, osc 3 as modulator, white / pink noise, mixer that overloads and takes the output back in, 24 dB self-oscillating ladder (2x oversampled), ADS contours, modulation mix (osc 3 or filter contour, noise or LFO), glide, legato, note priority
@@ -663,6 +643,7 @@ classic monosynth (the early-70s portable one, panel by panel): 3 free-running o
 | `tolerance` | 0 .. 10 cent | 2 |  | `voice.tolerance` | static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents |
 | `drift_time` | 0.5 .. 20 s | 3 |  | `voice.drift_time` | time constant of the drift: how slowly each oscillator wanders |
 | `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
+| `glide_mode` | always, legato | always |  | `voice.glide_mode` | always = every note glides from the one before (the original); legato = only a note tied to the one before glides, the others start on pitch (the slides of a bass line) |
 
 ## Engine `poly` (8 voices)
 
@@ -961,55 +942,6 @@ wavetable synth (modern wavetable spirit): 2 wavetable oscillators with position
 | `dist_mix` | 0 .. 1 | 1 | yes | `fx.distortion.mix` | distorted signal against the clean one (parallel distortion keeps the body) |
 | `dist_place` | post, pre | post |  | `fx.distortion.place` | post: after the filter (the filter shapes, the distortion bites); pre: before it (the filter tames the distortion, classic for growling basses) |
 | `sub_route` | filter, direct | filter |  | `sub.route` | filter: the sub goes through the filter and the distortion with the oscillators; direct: it joins after them, clean and steady under a growling or vowel-filtered bass |
-
-## Engine `coupled` (8 voices)
-
-coupled-oscillator networks: each note is a network of Stuart-Landau partials whose modulus bends their pitch and whose phase relations (harmonic n:m coupling) feed or starve their modulus; random detune and drift, cooperation or competition, locking, freezing (8 voices)
-
-| name | range / choices | default | live | role | what it does |
-|---|---|---|---|---|---|
-| `partials` | 4 .. 24 | 16 |  | `network.partials` | number of partials in each note's network (cost grows with it) |
-| `stretch` | 0 .. 0.003 | 0.0003 | yes | `network.stretch` | inharmonicity B: partial h at h sqrt(1 + B h^2) (0 = harmonic, 0.001 = bell-like) |
-| `spread` | 0 .. 100 cent | 15 |  | `network.spread` | random detune of each partial, new at every note: the disorder the coupling fights with |
-| `drift` | 0 .. 60 cent | 0 | yes | `network.drift` | slow random walk of each partial's natural pitch: keeps the network searching |
-| `drift_time` | 0.5 .. 20 s | 4 | yes | `network.drift_time` | time scale of the random walk |
-| `tilt` | 0 .. 2 | 0.9 | yes | `network.tilt` | spectral tilt: partial h at level 1 / h^tilt (0 = bright and glassy, 2 = dark) |
-| `amp_coupling` | -2 .. 2 | 0.6 | yes | `network.amp_coupling` | phase -> modulus: neighbours in step feed each other (> 0) or compete (< 0: winners flicker in and out) |
-| `phase_coupling` | 0 .. 3 | 0.6 | yes | `network.phase_coupling` | phase -> pitch: partials pull each other towards the harmonic series (strong = they lock) |
-| `pitch_by_level` | 0 .. 0.15 | 0.03 | yes | `network.pitch_by_level` | modulus -> pitch: a partial gets flatter as it gets louder (0.03 ~ +/-50 cents of life, 0.1 = wild) |
-| `reach` | 1 .. 4 | 1 |  | `network.reach` | how many neighbours on each side a partial listens to |
-| `freeze` | off, on | off |  | `network.freeze` | diffusive coupling: detuned partials extinguish each other, the spectrum freezes, sparse and glassy |
-| `amp_attack` | 0.0005 .. 30 s | 0.5 | yes | `amp.attack` | amp attack |
-| `amp_decay` | 0.005 .. 30 s | 1 | yes | `amp.decay` | amp decay |
-| `amp_sustain` | 0 .. 1 | 1 | yes | `amp.sustain` | amp sustain |
-| `amp_release` | 0.005 .. 30 s | 3 | yes | `amp.release` | amp release |
-| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
-| `pan_spread` | 0 .. 1 | 0.5 |  | `voice.pan_spread` | random stereo position per note |
-| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
-
-## Engine `selfosc` (8 voices)
-
-self-oscillating nonlinear oscillators (Van der Pol / Duffing) forced by the note: drive morphs a sine into a relaxation wave, stiffness bends the pitch with the amplitude, entrain locks or lets it beat; formant / scream / state-variable filter or a resonant comb (8 voices)
-
-| name | range / choices | default | live | role | what it does |
-|---|---|---|---|---|---|
-| `drive` | 0 .. 5 | 1 | yes | `selfosc.drive` | nonlinearity: 0 = pure sine, 1 = round, 2-3 = reedy relaxation, 5 = square / pulse-like |
-| `stiffness` | 0 .. 2 | 0 | yes | `selfosc.stiffness` | Duffing term: the pitch follows the amplitude (> 0 sharper and brighter when loud); with low entrain it bends the note |
-| `entrain` | 0 .. 2 | 0.5 | yes | `selfosc.entrain` | how hard the note forces the oscillator: high = locked on the note, low + detune = it beats against the note, slips, can turn quasi-periodic |
-| `detune` | -100 .. 100 cent | 0 | yes | `selfosc.detune` | natural frequency against the note (the forcing stays on the note) |
-| `velocity_drive` | 0 .. 3 | 1 | yes | `selfosc.velocity_drive` | drive added by a hard key (soft notes rounder, hard notes reedier) |
-| `filter_type` | off, lp, bp, hp, notch, formant, scream, comb, comb_neg | off |  | `filter.type` | off, 12 dB state-variable (lp/bp/hp/notch), formant (character = vowel), scream (character = drive), or a feedback comb: cutoff = its tuning (keytrack 1 = on the note), resonance = feedback, character = damping of the repeats; comb = all harmonics, comb_neg = hollow. Tuned off the note, a wavering sine flickers through its teeth and every slide rings |
-| `cutoff` | 20 .. 20000 Hz | 4000 | yes | `filter.cutoff` | filter cutoff |
-| `resonance` | 0 .. 1 | 0.2 | yes | `filter.resonance` | filter resonance |
-| `filter_character` | 0 .. 1 | 0.5 | yes | `filter.character` | formant: vowel; scream: drive; comb: damping of the repeats (0 = bright, metallic) |
-| `keytrack` | 0 .. 1 | 0.5 | yes | `filter.keytrack` | cutoff follows the keys |
-| `amp_attack` | 0.0005 .. 30 s | 0.01 | yes | `amp.attack` | amp attack |
-| `amp_decay` | 0.005 .. 30 s | 0.5 | yes | `amp.decay` | amp decay |
-| `amp_sustain` | 0 .. 1 | 0.8 | yes | `amp.sustain` | amp sustain |
-| `amp_release` | 0.005 .. 30 s | 0.4 | yes | `amp.release` | amp release |
-| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
-| `pan_spread` | 0 .. 1 | 0.3 |  | `voice.pan_spread` | random stereo position per note |
-| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
 
 ## Engine `sampler` (12 voices)
 

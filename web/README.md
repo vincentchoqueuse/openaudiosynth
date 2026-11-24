@@ -28,7 +28,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   modulators below with dashed links to what they act on (the active part routes too); a stage that is off is
   drawn dashed. Below it, the parameters are grouped by stage, and a stage that can be switched off has an on/off
   switch in its section header (Sound and Effects tabs). The chain comes from the stage descriptors
-  (`engine_stage_t`, `dsp/engines/engine.h`): `va`, `selfosc` and the effect bus so far; other engines group
+  (`engine_stage_t`, `dsp/engines/engine.h`): `va`, `drone` and the effect bus among others; other engines group
   their parameters by name.
 - **Macros**, always in view under the player: the sound's 8 live controls with their names (the patch's
   `macros`), a knob each (drag up/down, wheel, arrows; double-click returns to the patch's value) and, under it,

@@ -1,5 +1,5 @@
 /* dist.c — voice distortion (see dist.h): input -> 2x -> drive and shaper -> 1x -> level -> tone low-pass ->
- * dry/wet mix. The order of the operations is the one the acid engine's distortion has always had (it uses this
+ * dry/wet mix. The order of the operations is the one the first distortion of the project had (it uses this
  * module), so its sound is unchanged to the bit. */
 #include "dist.h"
 #include "../core/fastmath.h"

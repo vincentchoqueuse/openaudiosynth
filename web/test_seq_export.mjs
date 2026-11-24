@@ -58,7 +58,7 @@ if (ph.length !== 28 || norm(ph.notes) !== norm([{ pitch: 45, start: 0, length: 
   { pitch: 48, start: 16, length: 7.2, velocity: 127 }, { pitch: 50, start: 24, length: 3.2, velocity: 50 }])) fail('phraseToNotes: ' + JSON.stringify(ph));
 
 // export: one track per pitch on the clip's grid, validated by tools/validate.py and rendered by synth_render
-const { audition, description, ...patch } = JSON.parse(readFileSync('patches/sine_duel_a.json', 'utf8'));
+const { audition, description, ...patch } = JSON.parse(readFileSync('patches/micro_low_pole.json', 'utf8'));
 const song = buildSong({ ...clip, name: 'seq_export_test' }, patch, 2);
 if (song.tracks.length !== 5 || song.length_beats !== 16 || !song.tracks.some((t) => t.notes.startsWith('E3 _ _ -'))) fail('song shape: ' + JSON.stringify(song.tracks.map((t) => t.notes)));
 

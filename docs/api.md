@@ -101,16 +101,6 @@ anti-aliased oscillator: saw and pulse (PWM) via 2-point polyBLEP, triangle via 
 - `float osc_blep(float t, float dt, float idt)` — polyBLEP residual of a rising unit step. idt ~= 1/dt (interpolated, hence the clamps).
 - `float osc_blamp(float t, float dt, float idt)` — polyBLAMP residual of a unit slope break (per sample).
 
-## `dsp/osc/selfosc.h`
-self-oscillating nonlinear oscillator (Van der Pol with a Duffing term), forced by a sine at the note frequency: x'' - mu (1 - x^2) x' + x + beta x^3 = F cos(phi_note), in time scaled by the natural angular frequency. mu (drive) morphs a pure sine (mu ~ 0) into a relaxation wave (square / pulse-like, mu ~ 5); beta (stiffness) makes the pitch depend on the amplitude; F (entrain) locks the oscillator onto the note. The pitch drop of the Van der Pol cycle with mu is compensated by a precomputed table. Integrated with an exact damping step between two half kicks (Strang splitting, leapfrog) at 4x the sample rate, decimated by two half-band stages. References: B. van der Pol (1926); A. Pikovsky, M. Rosenblum, J. Kurths, "Synchronization" (2001).
-- types: `selfosc_table_t`, `selfosc_t`
-- constants: `SELFOSC_MU_MAX` = 5.0f
-- data: `const selfosc_table_t selfosc_table`
-- `void selfosc_table_init(selfosc_table_t *t)` — Measures the pitch of the free Van der Pol cycle for every table entry: 1.26 million integration steps, too slow for an engine init on the board. It is the generator of selfosc_table (and its test), not runtime code.
-- `float selfosc_ratio(const selfosc_table_t *t, float mu)` — Frequency of the free cycle relative to the natural frequency, for drive mu (interpolated).
-- `void selfosc_reset(selfosc_t *s, float x0)`
-- `void selfosc_process(selfosc_t *s, float sample_rate, float f_nat, float f_force, float mu, float beta, float force, float *out, int n)` — Adds nothing: writes n samples. f_nat: natural frequency (Hz); f_force: forcing frequency (Hz); mu: drive 0..5; beta: stiffness; force: forcing amplitude; out: about +/-1.
-
 ## `dsp/osc/splay.h`
 plays a 16-bit sample at any speed, forwards or backwards, between a start and an end point, once or in a loop. Band-limited interpolation: a Kaiser-windowed sinc whose cutoff follows the speed (at speed r > 1 it drops to 1/r of the source band), so a sample played faster does not alias (J. O. Smith, "Digital Audio Resampling", bandlimited interpolation). A one-shot fades out over its last SPLAY_FADE frames, so an end point inside the sound does not click.
 - types: `splay_t`
@@ -398,7 +388,7 @@ stereo "tape" echo: fractional delay lines read with 4-point Hermite interpolati
 - `void delay_process(delay_t *d, const float *inL, const float *inR, float *outL, float *outR, int n)` — Mono-compatible stereo input, wet stereo output (outL/outR overwritten; may alias inL/inR).
 
 ## `dsp/fx/dist.h`
-a distortion for a synth voice: a drive into one of four shapers, 2x oversampled (half-band, as the ladder's), a one-pole tone low-pass after it and a dry/wet mix. The output is scaled back by the shaper's gain at a typical level, so the drive changes the colour more than the loudness. Drive and mix ramp over each block; the dry signal is delayed like the oversampled one, so a partial mix does not comb-filter. Shapers: soft (tanh), tube (biased tanh: even harmonics too; the acid engine's distortion), hard (cubic clip: flat tops, brighter), fold (sine wavefolder: the louder the input, the more the waveform folds back; metallic, vocal growls when moved). References: waveshaping and wavefolding as in J. Pakarinen & D. Yeh, "A Review of Digital Techniques for Modeling Vacuum-Tube Guitar Amplifiers" (CMJ, 2009); F. Esqueda et al., "Virtual Analog Buchla 259 Wavefolder" (DAFx 2017).
+a distortion for a synth voice: a drive into one of four shapers, 2x oversampled (half-band, as the ladder's), a one-pole tone low-pass after it and a dry/wet mix. The output is scaled back by the shaper's gain at a typical level, so the drive changes the colour more than the loudness. Drive and mix ramp over each block; the dry signal is delayed like the oversampled one, so a partial mix does not comb-filter. Shapers: soft (tanh), tube (biased tanh: even harmonics too), hard (cubic clip: flat tops, brighter), fold (sine wavefolder: the louder the input, the more the waveform folds back; metallic, vocal growls when moved). References: waveshaping and wavefolding as in J. Pakarinen & D. Yeh, "A Review of Digital Techniques for Modeling Vacuum-Tube Guitar Amplifiers" (CMJ, 2009); F. Esqueda et al., "Virtual Analog Buchla 259 Wavefolder" (DAFx 2017).
 - types: `dist_mode_t`, `dist_t`
 - constants: `DIST_DRY_N` = 16
 - `void dist_init(dist_t *d, float sample_rate)`
@@ -457,17 +447,6 @@ plate reverb after J. Dattorro, "Effect Design Part 1: Reverberator and Other Fi
 - `void reverb_set(reverb_t *r, float decay, float damping_hz, float predelay_s)` — decay 0..0.99 (tail length), damping_hz: high-frequency loss in the tank (darker when lower), predelay_s: 0..0.25 s.
 - `void reverb_set_freeze(reverb_t *r, int on)` — Freeze: the tank becomes (almost) lossless and the input is closed, so the current tail holds indefinitely; turning it off lets the tail decay normally. Transitions are smoothed (~50 ms).
 - `void reverb_process(reverb_t *r, const float *in, float *outL, float *outR, int n)` — Mono input, wet stereo output (outL/outR are overwritten).
-
-## `dsp/engines/acid.h`
-monophonic acid bass engine, in the spirit of the early-80s transistor bass line machine: one saw/square oscillator, 18 dB ladder low-pass (2x oversampled) with high resonance, a decaying filter envelope, accent (velocity >= 96: louder, shorter and brighter envelope, plus an "accent sweep" that builds up over consecutive accents) and slide (overlapping notes glide without retriggering), then a distortion stage like a pedal after it (2x oversampled, with a tone control). Behaviour reconstructed from published circuit descriptions; no code reused.
-- types: `acid_t`
-- data: `const param_desc_t acid_params[ACID_P_COUNT]`, `const engine_ops_t acid_engine`
-
-## `dsp/engines/coupled.h`
-coupled-oscillator engine: each note is a network of partials, each a Stuart-Landau oscillator (normal form of the Hopf bifurcation). Its modulus saturates by itself; the modulus bends its pitch (pitch_by_level: louder = flatter); the phase relations with its neighbours, compared on the fundamental (n:m harmonic coupling), feed or starve its modulus (amp_coupling: > 0 cooperation, < 0 competition) and pull its pitch (phase_coupling: locking onto the harmonic series). Random detune and a slow random drift keep the network moving; freeze switches to diffusive coupling, where detuned partials kill each other (amplitude death). Couplings are integrated once per block; partial phases and levels are interpolated per sample. References: Y. Kuramoto, "Chemical Oscillations, Waves, and Turbulence" (1984); A. Pikovsky, M. Rosenblum, J. Kurths, "Synchronization" (2001); the experiments in tools/experiments/.
-- types: `coupled_voice_t`, `coupled_t`
-- constants: `CPL_VOICES` = 8, `CPL_PARTIALS` = 24
-- data: `const param_desc_t coupled_params[CPL_P_COUNT]`, `const engine_ops_t coupled_engine`
 
 ## `dsp/engines/drone.h`
 drone engine: each note is a whole drone that never repeats. Four layers: partials (harmonic sines, glassy and slightly stretched when cold, with two beating twins), a body (two detuned saws in a low-pass, faded in as it warms up), air (noise in two band-passes on the note's harmonics) and sparkles (rare pings of a high harmonic). Every partial's level, pitch and place wander on smoothed random walks (no cycle to hear), and the two slow LFOs of a note have periods in the golden ratio. Seven macros move it all: temperature (glacial .. warm), density, motion, depth, brightness, sparkle, width. Envelopes up to 3 minutes. References: the Ornstein-Uhlenbeck process for the walks; additive synthesis of harmonic series (J.-C. Risset).
@@ -533,12 +512,6 @@ a drum sampler: plays the samples of a kit (core/kit.h, given by synth_part_kit)
 - types: `sampler_stage_t`, `sampler_voice_t`, `sampler_sample_t`, `sampler_t`
 - constants: `SAMPLER_VOICES` = 12, `SAMPLER_PADS` = 16, `SAMPLER_P_COUNT`
 - data: `const param_desc_t sampler_params[SAMPLER_P_COUNT]`, `const engine_ops_t sampler_engine`
-
-## `dsp/engines/selfosc.h`
-self-oscillating engine: each voice is a Van der Pol / Duffing oscillator forced by the note (dsp/osc/selfosc.h): drive morphs a sine into a relaxation wave, stiffness makes the pitch follow the amplitude, entrain locks it to the note (or lets it beat against it when detuned), velocity can add drive. Then a filter slot (vfilter: lp/bp/hp/notch, formant, scream; or a feedback comb, dsp/filter/comb) and an amp envelope.
-- types: `so_voice_t`, `selfosc_engine_t`
-- constants: `SO_VOICES` = 8
-- data: `const param_desc_t selfosc_params[SO_P_COUNT]`, `const engine_ops_t selfosc_engine`
 
 ## `dsp/engines/va.h`
 "va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators (or supersaws) + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.

@@ -40,15 +40,12 @@ static const struct {
     const char *param[6];
 } knob_targets[] = {
     {"va", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_attack", "amp_release"}},
-    {"acid", {"cutoff", "resonance", "env_mod", "decay", "accent", "distortion"}},
     {"mono", {"cutoff", "emphasis", "contour", "fenv_decay", "mixer_drive", "glide"}},
     {"poly", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_release", "lfo_filter"}},
     {"fm6", {"op2_level", "op4_level", "op6_level", "feedback", "lfo_speed", "lfo_pmd"}},
     {"wt", {"a_position", "b_position", "a_warp", "cutoff", "resonance", "amp_release"}},
     {"modal", {"brightness", "position", "hardness", "damping", "decay", "inharmonicity"}},
     {"drums", {"drive", "kick_tune", "kick_decay", "snare_tone", "snare_decay", "chat_decay"}},
-    {"coupled", {"amp_coupling", "phase_coupling", "stretch", "tilt", "drift", "amp_release"}},
-    {"selfosc", {"drive", "stiffness", "entrain", "cutoff", "resonance", "amp_release"}},
     {"sampler", {"tune", "resonance", "release", "pad1_decay", "pad2_decay", "pad3_decay"}},
     {"drone", {"temperature", "density", "motion", "depth", "brightness", "sparkle"}},
     {"havoc", {"g1_a", "g1_b", "g1_rot", "feedback", "mutate", "dark"}},

@@ -3,8 +3,6 @@
 #ifndef ENGINE_REGISTRY_H
 #define ENGINE_REGISTRY_H
 
-#include "acid.h"
-#include "coupled.h"
 #include "drone.h"
 #include "drums.h"
 #include "havoc.h"
@@ -14,7 +12,6 @@
 #include "mono.h"
 #include "poly.h"
 #include "sampler.h"
-#include "selfosc.h"
 #include "va.h"
 #include "wt.h"
 
@@ -22,13 +19,10 @@ typedef union {
     va_t va;
     modal_t modal;
     drums_t drums;
-    acid_t acid;
     mono_t mono;
     poly_t poly;
     fm6_t fm6;
     wt_t wt;
-    coupled_t coupled;
-    selfosc_engine_t selfosc;
     sampler_t sampler;
     drone_t drone;
     micro_t micro;

@@ -18,6 +18,7 @@ static const char *const range_labels[] = {"32", "16", "8", "4", "2", "lo", NULL
 static const char *const wave_labels[] = {"tri", "shark", "saw", "square", "wide", "narrow", NULL};
 static const char *const wave3_labels[] = {"tri", "rsaw", "saw", "square", "wide", "narrow", NULL};
 static const char *const mode_labels[] = {"mono", "legato", NULL};
+static const char *const glide_mode_labels[] = {"always", "legato", NULL};
 static const char *const color_labels[] = {"white", "pink", NULL};
 static const char *const mod_a_labels[] = {"osc3", "filter_eg", NULL};
 static const char *const mod_b_labels[] = {"noise", "lfo", NULL};
@@ -99,6 +100,8 @@ const param_desc_t mono_params[MONO_P_COUNT] = {
           "which held key sounds: last played, lowest (the original) or highest"),
     PARAM_OVERSAMPLE(MONO_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"),
     ANALOG_PARAMS(MONO_P_TOLERANCE, MONO_P_DRIFT_TIME, MONO_P_JITTER),
+    PARAM(MONO_P_GLIDE_MODE, "glide_mode", "voice.glide_mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, glide_mode_labels,
+          "always = every note glides from the one before (the original); legato = only a note tied to the one before glides, the others start on pitch (the slides of a bass line)"),
 };
 
 static void set_wave(osc_t *o, osc_t *o2, int w)
@@ -122,7 +125,8 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
 {
     mono_t *e = eng;
     (void)vi;
-    if (!glide_on(e->p) || !e->has_note)
+    e->slide = 0;
+    if (!glide_on(e->p) || !e->has_note || (int)e->p[MONO_P_GLIDE_MODE])
         e->pitch = (float)note;
     e->has_note = 1;
     e->vel = vel;
@@ -140,6 +144,7 @@ static void voice_legato(void *eng, int vi, int note, float vel)
 {
     mono_t *e = eng;
     (void)vi, (void)vel;
+    e->slide = 1;
     if (!glide_on(e->p))
         e->pitch = (float)note;
 }
@@ -259,7 +264,7 @@ static DSP_FAST_CODE void mono_render(void *st, float *L, float *R)
 
     /* pitch: glide, bend; osc 3 / noise as mod-wheel modulator (block rate) */
     const float target = (float)vpoly_note(&e->poly, 0);
-    if (glide_on(p) && dsp_absf(target - e->pitch) > 0.002f)
+    if (glide_on(p) && (e->slide || !(int)p[MONO_P_GLIDE_MODE]) && dsp_absf(target - e->pitch) > 0.002f)
         e->pitch += (target - e->pitch) * voice_glide_arrive_coef(p[MONO_P_GLIDE], n, e->sr);
     else
         e->pitch = target; /* arrived (a tail under a fifth of a cent is not heard) */
@@ -396,7 +401,7 @@ static const engine_stage_t mono_stages[] = {
     {"amp", "Loudness", "amp", "amp_ volume velocity", "filter", NULL, NULL, 0.0f, 0.0f},
     {"fenv", "Filter contour", "mod", "fenv_ release", "", "filter", NULL, 0.0f, 0.0f},
     {"mod", "Modulation", "mod", "mod_ lfo_", "", "osc1 osc2 filter", NULL, 0.0f, 0.0f},
-    {"voice", "Keyboard", "voice", "glide voice_mode note_priority bend_range drift drift_time tolerance jitter", "", NULL, NULL, 0.0f, 0.0f},
+    {"voice", "Keyboard", "voice", "glide glide_mode voice_mode note_priority bend_range drift drift_time tolerance jitter", "", NULL, NULL, 0.0f, 0.0f},
 };
 
 const engine_ops_t mono_engine = {

@@ -2,7 +2,7 @@
  * ladder's), a one-pole tone low-pass after it and a dry/wet mix. The output is scaled back by the shaper's gain
  * at a typical level, so the drive changes the colour more than the loudness. Drive and mix ramp over each block;
  * the dry signal is delayed like the oversampled one, so a partial mix does not comb-filter.
- * Shapers: soft (tanh), tube (biased tanh: even harmonics too; the acid engine's distortion), hard (cubic clip: flat tops, brighter), fold (sine
+ * Shapers: soft (tanh), tube (biased tanh: even harmonics too), hard (cubic clip: flat tops, brighter), fold (sine
  * wavefolder: the louder the input, the more the waveform folds back; metallic, vocal growls when moved).
  * References: waveshaping and wavefolding as in J. Pakarinen & D. Yeh, "A Review of Digital Techniques for
  * Modeling Vacuum-Tube Guitar Amplifiers" (CMJ, 2009); F. Esqueda et al., "Virtual Analog Buchla 259 Wavefolder" (DAFx 2017). */

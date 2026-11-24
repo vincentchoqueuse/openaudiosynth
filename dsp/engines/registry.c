@@ -1,14 +1,11 @@
 /* registry.c — the list of engines, indexed by synth_engine_t. Add new engines here. */
 #include "engine.h"
-#include "acid.h"
 #include "drums.h"
 #include "havoc.h"
 #include "fm6.h"
 #include "micro.h"
 #include "wt.h"
-#include "coupled.h"
 #include "drone.h"
-#include "selfosc.h"
 #include "modal.h"
 #include "mono.h"
 #include "poly.h"
@@ -19,13 +16,10 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_VA] = &va_engine,
     [SYNTH_ENGINE_MODAL] = &modal_engine,
     [SYNTH_ENGINE_DRUMS] = &drums_engine,
-    [SYNTH_ENGINE_ACID] = &acid_engine,
     [SYNTH_ENGINE_MONO] = &mono_engine,
     [SYNTH_ENGINE_POLY] = &poly_engine,
     [SYNTH_ENGINE_FM6] = &fm6_engine,
     [SYNTH_ENGINE_WT] = &wt_engine,
-    [SYNTH_ENGINE_COUPLED] = &coupled_engine,
-    [SYNTH_ENGINE_SELFOSC] = &selfosc_engine,
     [SYNTH_ENGINE_SAMPLER] = &sampler_engine,
     [SYNTH_ENGINE_DRONE] = &drone_engine,
     [SYNTH_ENGINE_MICRO] = &micro_engine,

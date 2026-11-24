@@ -816,8 +816,8 @@ static void build_descriptors(void)
             .support_url = "https://github.com/vincentchoqueuse/openaudiosynth/issues",
             .version = "0.1.0",
             .description = en ? en->description
-                              : "Every engine in one plugin (va, modal, drums, sampler, acid, mono, poly, fm6, wt, "
-                                "coupled, selfosc), chosen by the engine parameter; the state is a patch file",
+                              : "Every engine in one plugin (va, mono, poly, wt, fm6, modal, drums, sampler, "
+                                "drone, micro, havoc), chosen by the engine parameter; the state is a patch file",
             .features = (const char **)(en && (!strcmp(en->name, "drums") || !strcmp(en->name, "sampler")) ? drum_features : features),
         };
     }

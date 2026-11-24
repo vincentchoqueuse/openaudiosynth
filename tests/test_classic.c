@@ -1,11 +1,10 @@
-/* test_classic.c — acid, mono and poly engines through the public API: pitch, slide, accent, mono glide, hard
+/* test_classic.c — mono and poly engines through the public API: pitch, mono glide (always, or tied notes only), hard
  * sync (pitch locks to osc B), unison, the mono's panel (emphasis thinning the bass, note priority, output fed
  * back, pink noise, LFO through the wheel, lo range), and bounded/deterministic output under random parameters. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "engines/acid.h"
 #include "engines/mono.h"
 #include "engines/poly.h"
 #include "synth.h"
@@ -51,70 +50,20 @@ static void storm(int engine, int count, float *L, float *R, int n)
 
 void suite_classic(void)
 {
-    { /* acid distortion: off is bit-identical to no stage at all; on adds harmonics at about the same level */
-        const int n = 24000;
-        float *a = malloc(sizeof(float) * (size_t)n * 4), *b = a + n, *rr = a + 2 * n, *c = a + 3 * n;
-        for (int k = 0; k < 2; k++) {
-            synth_init(synth_default(), 48000.0f);
-            synth_set_engine(synth_default(), SYNTH_ENGINE_ACID);
-            setp(acid_params, ACID_P_DIST, k ? 0.8f : 0.0f);
-            midi3(0x90, 36, 100);
-            render(k ? c : a, rr, n);
-        }
-        synth_init(synth_default(), 48000.0f);
-        synth_set_engine(synth_default(), SYNTH_ENGINE_ACID);
-        midi3(0x90, 36, 100);
-        render(b, rr, n);
-        CHECK(memcmp(a, b, sizeof(float) * (size_t)n) == 0, "acid: distortion 0 changes the sound");
-        const float r0 = rms(a + 4800, n - 4800), r1 = rms(c + 4800, n - 4800);
-        const float crest0 = max_abs(a + 4800, n - 4800) / r0, crest1 = max_abs(c + 4800, n - 4800) / r1;
-        CHECK(all_finite_bounded(c, n, 1.0f) && fabsf(20.0f * log10f(r1 / r0)) < 6.0f && crest1 < crest0,
-              "acid distortion: level %.1f dB from clean, crest %.2f -> %.2f", (double)(20.0f * log10f(r1 / r0)),
-              (double)crest0, (double)crest1);
-        free(a);
-    }
-
     const int n = 48000 * 2;
     float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
     float *L2 = malloc(sizeof(float) * (size_t)n), *R2 = malloc(sizeof(float) * (size_t)n);
 
     /* random parameters and notes: bounded and deterministic for each engine */
     static const struct { int engine, count; const char *name; } eng[] = {
-        {SYNTH_ENGINE_ACID, ACID_P_COUNT, "acid"}, {SYNTH_ENGINE_MONO, MONO_P_COUNT, "mono"}, {SYNTH_ENGINE_POLY, POLY_P_COUNT, "poly"}};
-    for (int k = 0; k < 3; k++) {
+        {SYNTH_ENGINE_MONO, MONO_P_COUNT, "mono"}, {SYNTH_ENGINE_POLY, POLY_P_COUNT, "poly"}};
+    for (int k = 0; k < 2; k++) {
         storm(eng[k].engine, eng[k].count, L, R, n);
         storm(eng[k].engine, eng[k].count, L2, R2, n);
         CHECK(all_finite_bounded(L, n, 1.0f) && all_finite_bounded(R, n, 1.0f), "%s storm: NaN or > 0 dBFS", eng[k].name);
         CHECK(rms(L, n) > 1e-3f, "%s storm: silent", eng[k].name);
         CHECK(memcmp(L, L2, sizeof(float) * (size_t)n) == 0, "%s storm: not deterministic", eng[k].name);
     }
-
-    /* acid: pitch, slide, accent */
-    synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_ACID);
-    setp(acid_params, ACID_P_CUTOFF, 8000.0f);
-    setp(acid_params, ACID_P_RESO, 0.0f);
-    setp(acid_params, ACID_P_ENVMOD, 0.0f);
-    midi3(0x90, 36, 80); /* C2 */
-    render(L, R, 24000);
-    float f = estimate_freq(L + 4800, 19200, SR);
-    CHECK(fabsf(f - 65.41f) < 0.3f, "acid C2: %.2f Hz", (double)f);
-    midi3(0x90, 48, 80); /* overlapping C3: slide */
-    render(L, R, 24000);
-    f = estimate_freq(L + 9600, 14400, SR);
-    CHECK(fabsf(f - 130.81f) < 0.5f, "acid slide ends at %.2f Hz instead of C3", (double)f);
-    midi3(0x80, 36, 0);
-    midi3(0x80, 48, 0);
-    render(L, R, 9600);
-    float lv[2];
-    for (int a = 0; a < 2; a++) {
-        synth_init(synth_default(), SR);
-        synth_set_engine(synth_default(), SYNTH_ENGINE_ACID);
-        midi3(0x90, 36, a ? 127 : 80);
-        render(L, R, 9600);
-        lv[a] = rms(L + 480, 4800);
-    }
-    CHECK(lv[1] > 1.4f * lv[0], "acid accent not louder (%.4f vs %.4f)", (double)lv[1], (double)lv[0]);
 
     /* mono: pitch of osc 1 alone, open filter */
     synth_init(synth_default(), SR);
@@ -126,7 +75,7 @@ void suite_classic(void)
     setp(mono_params, MONO_P_DRIFT, 0.0f);
     midi3(0x90, 57, 100); /* A3 */
     render(L, R, n);
-    f = estimate_freq(L + 9600, n - 9600, SR);
+    float f = estimate_freq(L + 9600, n - 9600, SR);
     CHECK(fabsf(f - 220.0f) < 0.2f, "mono A3: %.2f Hz", (double)f);
 
     /* mono glide: from A2 to A3 in 0.1 s, legato. Halfway it is between the two; once the time is over, it has
@@ -152,6 +101,24 @@ void suite_classic(void)
         render(L, R, g);
         f = estimate_freq(L + 480, 2400, SR); /* 10..60 ms */
         CHECK(fabsf(f - 220.0f) < 1.0f, "mono glide off still glides: %.2f Hz", (double)f);
+        midi3(0x80, 57, 0);
+        midi3(0x80, 45, 0);
+        /* glide_mode legato: a note played after the last was released starts on pitch; a tied one still glides */
+        setp(mono_params, MONO_P_GLIDE, 0.1f);
+        setp(mono_params, MONO_P_GLIDE_MODE, 1.0f);
+        midi3(0x90, 45, 100);
+        render(L, R, g);
+        midi3(0x80, 45, 0);
+        midi3(0x90, 57, 100); /* detached */
+        render(L, R, g);
+        f = estimate_freq(L + 480, 2400, SR);
+        CHECK(fabsf(f - 220.0f) < 1.0f, "mono glide_mode legato glides a detached note: %.2f Hz", (double)f);
+        midi3(0x90, 45, 100); /* A2, A3 still held: tied */
+        render(L, R, g);
+        const float tied = estimate_freq(L + 960, 1440, SR);
+        CHECK(tied > 120.0f && tied < 200.0f, "mono glide_mode legato does not glide a tied note: %.1f Hz", (double)tied);
+        setp(mono_params, MONO_P_GLIDE_MODE, 0.0f);
+        setp(mono_params, MONO_P_GLIDE, 0.0f);
         midi3(0x80, 57, 0);
         midi3(0x80, 45, 0);
     }

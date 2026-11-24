@@ -47,7 +47,6 @@ settings), then the instrument's cards in the order the signal flows.*
 |---|---|
 | `va` | a two-oscillator virtual analog: noise, two filters in series or parallel (SVF, ladder, formant, screaming 2-pole), two envelopes, two LFOs, supersaw |
 | `mono` | the classic three-oscillator monosynth panel: free-running oscillators, overloading mixer with output feedback, 24 dB ladder, ADS contours, modulation mix, note priority, glide |
-| `acid` | the early-80s transistor bass line: 18 dB ladder, accent, slide |
 | `poly` | the late-70s programmable polysynth: two oscillators with sync, 24 dB ladder, poly-mod, unison |
 | `havoc` | a noise machine with a wide palette: four generators, each one of sixteen processes (feedback sine, logistic map, integer formula, dust, wind, pulsar, cellular automaton, swarm, jumping tone, rumble, bleeps, glitches, formant voice, data transmission, model neuron, aliased saw), cross-modulated, then two processors |
 | `fm6` | six-operator phase modulation: 32 algorithms, rate/level envelopes, keyboard scaling, feedback, sysex bank import |
@@ -55,8 +54,6 @@ settings), then the instrument's cards in the order the signal flows.*
 | `modal` | banks of damped resonators (strings, bars, bells, membranes, tubes) and a physical piano |
 | `drums` | a synthesized drum machine: analog, hybrid, glitch and trap kits, plus a melodic bass drum that slides between held notes |
 | `sampler` | a drum sampler: kits of your own samples, 16 pads with speed, start/end points, reverse, loop, filter, choke groups; band-limited playback |
-| `coupled` | networks of coupled Stuart-Landau oscillators |
-| `selfosc` | self-oscillating Van der Pol / Duffing oscillators driven by the note |
 | `drone` | a drone machine: wandering partials, a body, breath and sparkles, from glacial to warm |
 
 Every part has 8 macros, 2 tempo-syncable LFOs, 2 looping multi-segment envelopes (MSEG) and 8 modulation routes;
@@ -101,7 +98,7 @@ emscripten (`brew install emscripten`, wasm), the Arm GNU Toolchain (STM32 build
 just setup                 # Python venv, npm, configure every preset whose toolchain is installed
 just test                  # build, then unit tests, code rules, audio fingerprints, plugin test
 just render mono_d_bass    # render a patch to build-host/renders/ and play it
-just song duel_froid       # render a song
+just song trame_blanche    # render a song
 just play mono             # play live with a USB MIDI controller (or the computer keyboard)
 just web                   # browser prototype on http://localhost:5173
 just plugin-install        # install OASynth.clap in ~/Library/Audio/Plug-Ins/CLAP

@@ -99,8 +99,8 @@ static uint32_t engine_color(const char *e)
         const char *name;
         uint32_t rgb;
     } map[] = {{"va", 0x5AB4E0u},      {"mono", 0xE5A33Du},   {"fm6", 0x9B8CFFu},
-               {"modal", 0x4FD1C5u},   {"poly", 0xF2777Au},   {"acid", 0xB8E05Au},
-               {"drums", 0xE5534Bu},   {"coupled", 0x7FA7FFu}, {"selfosc", 0xD98CFFu},
+               {"modal", 0x4FD1C5u},   {"poly", 0xF2777Au},   
+               {"drums", 0xE5534Bu},   
                {"sampler", 0xF08FB8u}, {"drone", 0x8FC9E8u},
                {"micro", 0xE8E2D0u}, {"havoc", 0xD4FF3Au}};
     for (unsigned i = 0; i < sizeof map / sizeof map[0]; i++)
@@ -113,7 +113,7 @@ static void insts_build(void)
 {
     /* the usual families first (subtractive, then FM, physical, drums, the experimental ones), then any other
      * engine in the order of its first preset */
-    static const char *const family[] = {"va", "mono", "poly", "acid", "fm6", "modal", "drums", "sampler", "coupled", "selfosc", "drone", "havoc", "micro"};
+    static const char *const family[] = {"va", "mono", "poly", "fm6", "modal", "drums", "sampler", "drone", "havoc", "micro"};
     int n = 0, k = 0;
     for (unsigned f = 0; f < sizeof family / sizeof family[0] && n < MAX_INST; f++)
         for (int i = 0; i < preset_count; i++)

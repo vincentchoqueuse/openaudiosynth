@@ -111,15 +111,12 @@ void run_bench(void)
     bench_engine("va+fx", SYNTH_ENGINE_VA, VA_VOICES, 0, 1);
     bench_engine("va+all fx", SYNTH_ENGINE_VA, VA_VOICES, 0, 2);
     bench_engine("drums", SYNTH_ENGINE_DRUMS, DR_COUNT, 0, 0);
-    bench_engine("acid", SYNTH_ENGINE_ACID, 1, 0, 0);
     bench_engine("mono", SYNTH_ENGINE_MONO, 1, 0, 0);
     bench_engine("poly", SYNTH_ENGINE_POLY, 8, 0, 0);
     bench_engine("fm6", SYNTH_ENGINE_FM6, 16, 0, 0);
     bench_engine("havoc", SYNTH_ENGINE_HAVOC, 1, 0, 0);
     bench_engine("wt", SYNTH_ENGINE_WT, 8, 0, 0);
     bench_engine("wt-u8", SYNTH_ENGINE_WT, 8, 1, 0);
-    bench_engine("coupled", SYNTH_ENGINE_COUPLED, 8, 0, 0);
-    bench_engine("selfosc", SYNTH_ENGINE_SELFOSC, 8, 0, 0);
     bench_engine("drone", SYNTH_ENGINE_DRONE, 8, 0, 0);
     bench_engine("micro", SYNTH_ENGINE_MICRO, 8, 0, 0);
     /* the oversample setting of the nonlinear filters */

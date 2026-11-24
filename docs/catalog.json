@@ -666,25 +666,6 @@
         "glide": {"type": "float", "range": [0, 0.5], "default": 0.08, "unit": "s", "realtime": true, "role": "drum.bass.glide", "help": "bass drum slide: a note played while the previous one is held slides from its pitch over this time"}
       }
     },
-    "acid": {
-      "description": "monophonic acid bass (early-80s transistor bass line spirit): saw/square, resonant 18 dB ladder (2x oversampled), decaying filter envelope, accent with cumulative sweep, slide",
-      "voices": 1,
-      "params": {
-        "wave": {"type": "enum", "choices": ["saw", "square"], "default": "saw", "realtime": false, "role": "osc1.waveform", "help": "saw = classic squelch, square = hollower, woodier line"},
-        "tune": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": true, "role": "osc1.detune", "help": "fine tuning"},
-        "cutoff": {"type": "float", "range": [40, 8000], "default": 500, "unit": "Hz", "scale": "log", "realtime": true, "role": "filter.cutoff", "help": "base cutoff, the main knob to ride live (150-400 Hz dark and rubbery, 1-3 kHz screaming)"},
-        "resonance": {"type": "float", "range": [0, 1], "default": 0.75, "realtime": true, "role": "filter.resonance", "help": "resonance: 0.5 vocal, 0.8 squelchy, 0.95+ whistling self-oscillation"},
-        "env_mod": {"type": "float", "range": [0, 5], "default": 2.5, "unit": "oct", "realtime": true, "role": "filter.envelope_amount", "help": "how far the filter envelope opens the cutoff on each note"},
-        "decay": {"type": "float", "range": [0.2, 2.5], "default": 0.6, "unit": "s", "scale": "log", "realtime": true, "role": "filter_env.decay", "help": "filter envelope decay of non-accented notes: short = plucky blips, long = wah"},
-        "accent": {"type": "float", "range": [0, 1], "default": 0.6, "realtime": true, "role": "accent.amount", "help": "strength of accented notes (velocity >= 96, '!' in phrases): louder, brighter, shorter, and the cutoff climbs over consecutive accents"},
-        "slide": {"type": "float", "range": [0.01, 0.3], "default": 0.06, "unit": "s", "scale": "log", "realtime": true, "role": "voice.glide", "help": "slide time between overlapping notes ('~' in phrases); 60 ms is the classic"},
-        "drive": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": true, "role": "filter.drive", "help": "saturation inside the filter: rounder, then grittier, louder resonance"},
-        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
-        "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"},
-        "distortion": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "fx.distortion.amount", "help": "distortion after the filter, like a pedal: 0 = clean, 0.3 = warm grit, 0.6 = snarling, 1 = fuzz (level kept even)"},
-        "dist_tone": {"type": "float", "range": [1000, 12000], "default": 5000, "unit": "Hz", "scale": "log", "realtime": true, "role": "fx.distortion.tone", "help": "tone of the distortion: lower = darker, rounder; higher = fizzier"}
-      }
-    },
     "mono": {
       "description": "classic monosynth (the early-70s portable one, panel by panel): 3 free-running oscillators with footage and 6 waveforms, osc 3 as modulator, white / pink noise, mixer that overloads and takes the output back in, 24 dB self-oscillating ladder (2x oversampled), ADS contours, modulation mix (osc 3 or filter contour, noise or LFO), glide, legato, note priority",
       "voices": 1,
@@ -733,7 +714,8 @@
         "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"},
         "tolerance": {"type": "float", "range": [0, 10], "default": 2, "unit": "cent", "realtime": false, "role": "voice.tolerance", "help": "static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents"},
         "drift_time": {"type": "float", "range": [0.5, 20], "default": 3, "unit": "s", "scale": "log", "realtime": false, "role": "voice.drift_time", "help": "time constant of the drift: how slowly each oscillator wanders"},
-        "jitter": {"type": "float", "range": [0, 3], "default": 0.2, "unit": "cent", "realtime": false, "role": "voice.jitter", "help": "phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light)"}
+        "jitter": {"type": "float", "range": [0, 3], "default": 0.2, "unit": "cent", "realtime": false, "role": "voice.jitter", "help": "phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light)"},
+        "glide_mode": {"type": "enum", "choices": ["always", "legato"], "default": "always", "realtime": false, "role": "voice.glide_mode", "help": "always = every note glides from the one before (the original); legato = only a note tied to the one before glides, the others start on pitch (the slides of a bass line)"}
       }
     },
     "poly": {
@@ -1029,53 +1011,6 @@
         "dist_mix": {"type": "float", "range": [0, 1], "default": 1, "realtime": true, "role": "fx.distortion.mix", "help": "distorted signal against the clean one (parallel distortion keeps the body)"},
         "dist_place": {"type": "enum", "choices": ["post", "pre"], "default": "post", "realtime": false, "role": "fx.distortion.place", "help": "post: after the filter (the filter shapes, the distortion bites); pre: before it (the filter tames the distortion, classic for growling basses)"},
         "sub_route": {"type": "enum", "choices": ["filter", "direct"], "default": "filter", "realtime": false, "role": "sub.route", "help": "filter: the sub goes through the filter and the distortion with the oscillators; direct: it joins after them, clean and steady under a growling or vowel-filtered bass"}
-      }
-    },
-    "coupled": {
-      "description": "coupled-oscillator networks: each note is a network of Stuart-Landau partials whose modulus bends their pitch and whose phase relations (harmonic n:m coupling) feed or starve their modulus; random detune and drift, cooperation or competition, locking, freezing (8 voices)",
-      "voices": 8,
-      "params": {
-        "partials": {"type": "int", "range": [4, 24], "default": 16, "realtime": false, "role": "network.partials", "help": "number of partials in each note's network (cost grows with it)"},
-        "stretch": {"type": "float", "range": [0, 0.003], "default": 0.0003, "realtime": true, "role": "network.stretch", "help": "inharmonicity B: partial h at h sqrt(1 + B h^2) (0 = harmonic, 0.001 = bell-like)"},
-        "spread": {"type": "float", "range": [0, 100], "default": 15, "unit": "cent", "realtime": false, "role": "network.spread", "help": "random detune of each partial, new at every note: the disorder the coupling fights with"},
-        "drift": {"type": "float", "range": [0, 60], "default": 0, "unit": "cent", "realtime": true, "role": "network.drift", "help": "slow random walk of each partial's natural pitch: keeps the network searching"},
-        "drift_time": {"type": "float", "range": [0.5, 20], "default": 4, "unit": "s", "scale": "log", "realtime": true, "role": "network.drift_time", "help": "time scale of the random walk"},
-        "tilt": {"type": "float", "range": [0, 2], "default": 0.9, "realtime": true, "role": "network.tilt", "help": "spectral tilt: partial h at level 1 / h^tilt (0 = bright and glassy, 2 = dark)"},
-        "amp_coupling": {"type": "float", "range": [-2, 2], "default": 0.6, "realtime": true, "role": "network.amp_coupling", "help": "phase -> modulus: neighbours in step feed each other (> 0) or compete (< 0: winners flicker in and out)"},
-        "phase_coupling": {"type": "float", "range": [0, 3], "default": 0.6, "realtime": true, "role": "network.phase_coupling", "help": "phase -> pitch: partials pull each other towards the harmonic series (strong = they lock)"},
-        "pitch_by_level": {"type": "float", "range": [0, 0.15], "default": 0.03, "realtime": true, "role": "network.pitch_by_level", "help": "modulus -> pitch: a partial gets flatter as it gets louder (0.03 ~ +/-50 cents of life, 0.1 = wild)"},
-        "reach": {"type": "int", "range": [1, 4], "default": 1, "realtime": false, "role": "network.reach", "help": "how many neighbours on each side a partial listens to"},
-        "freeze": {"type": "enum", "choices": ["off", "on"], "default": "off", "realtime": false, "role": "network.freeze", "help": "diffusive coupling: detuned partials extinguish each other, the spectrum freezes, sparse and glassy"},
-        "amp_attack": {"type": "float", "range": [0.0005, 30], "default": 0.5, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "amp attack"},
-        "amp_decay": {"type": "float", "range": [0.005, 30], "default": 1, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "amp decay"},
-        "amp_sustain": {"type": "float", "range": [0, 1], "default": 1, "realtime": true, "role": "amp.sustain", "help": "amp sustain"},
-        "amp_release": {"type": "float", "range": [0.005, 30], "default": 3, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "amp release"},
-        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
-        "pan_spread": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note"},
-        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
-      }
-    },
-    "selfosc": {
-      "description": "self-oscillating nonlinear oscillators (Van der Pol / Duffing) forced by the note: drive morphs a sine into a relaxation wave, stiffness bends the pitch with the amplitude, entrain locks or lets it beat; formant / scream / state-variable filter or a resonant comb (8 voices)",
-      "voices": 8,
-      "params": {
-        "drive": {"type": "float", "range": [0, 5], "default": 1, "realtime": true, "role": "selfosc.drive", "help": "nonlinearity: 0 = pure sine, 1 = round, 2-3 = reedy relaxation, 5 = square / pulse-like"},
-        "stiffness": {"type": "float", "range": [0, 2], "default": 0, "realtime": true, "role": "selfosc.stiffness", "help": "Duffing term: the pitch follows the amplitude (> 0 sharper and brighter when loud); with low entrain it bends the note"},
-        "entrain": {"type": "float", "range": [0, 2], "default": 0.5, "realtime": true, "role": "selfosc.entrain", "help": "how hard the note forces the oscillator: high = locked on the note, low + detune = it beats against the note, slips, can turn quasi-periodic"},
-        "detune": {"type": "float", "range": [-100, 100], "default": 0, "unit": "cent", "realtime": true, "role": "selfosc.detune", "help": "natural frequency against the note (the forcing stays on the note)"},
-        "velocity_drive": {"type": "float", "range": [0, 3], "default": 1, "realtime": true, "role": "selfosc.velocity_drive", "help": "drive added by a hard key (soft notes rounder, hard notes reedier)"},
-        "filter_type": {"type": "enum", "choices": ["off", "lp", "bp", "hp", "notch", "formant", "scream", "comb", "comb_neg"], "default": "off", "realtime": false, "role": "filter.type", "help": "off, 12 dB state-variable (lp/bp/hp/notch), formant (character = vowel), scream (character = drive), or a feedback comb: cutoff = its tuning (keytrack 1 = on the note), resonance = feedback, character = damping of the repeats; comb = all harmonics, comb_neg = hollow. Tuned off the note, a wavering sine flickers through its teeth and every slide rings"},
-        "cutoff": {"type": "float", "range": [20, 20000], "default": 4000, "unit": "Hz", "scale": "log", "realtime": true, "role": "filter.cutoff", "help": "filter cutoff"},
-        "resonance": {"type": "float", "range": [0, 1], "default": 0.2, "realtime": true, "role": "filter.resonance", "help": "filter resonance"},
-        "filter_character": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "filter.character", "help": "formant: vowel; scream: drive; comb: damping of the repeats (0 = bright, metallic)"},
-        "keytrack": {"type": "float", "range": [0, 1], "default": 0.5, "realtime": true, "role": "filter.keytrack", "help": "cutoff follows the keys"},
-        "amp_attack": {"type": "float", "range": [0.0005, 30], "default": 0.01, "unit": "s", "scale": "log", "realtime": true, "role": "amp.attack", "help": "amp attack"},
-        "amp_decay": {"type": "float", "range": [0.005, 30], "default": 0.5, "unit": "s", "scale": "log", "realtime": true, "role": "amp.decay", "help": "amp decay"},
-        "amp_sustain": {"type": "float", "range": [0, 1], "default": 0.8, "realtime": true, "role": "amp.sustain", "help": "amp sustain"},
-        "amp_release": {"type": "float", "range": [0.005, 30], "default": 0.4, "unit": "s", "scale": "log", "realtime": true, "role": "amp.release", "help": "amp release"},
-        "volume": {"type": "float", "range": [-60, 24], "default": 0, "unit": "dB", "realtime": true, "role": "output.volume", "help": "volume"},
-        "pan_spread": {"type": "float", "range": [0, 1], "default": 0.3, "realtime": false, "role": "voice.pan_spread", "help": "random stereo position per note"},
-        "bend_range": {"type": "int", "range": [0, 24], "default": 2, "unit": "st", "realtime": false, "role": "voice.bend_range", "help": "pitch-bend range"}
       }
     },
     "sampler": {

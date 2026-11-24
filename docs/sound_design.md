@@ -219,27 +219,6 @@ grids, silences and pure sine drones (`sine_drone`); see `songs/microsound.json`
   parallel (two formants = two voices, lp + hp mixed = a notch-like hole). It follows filter 1's envelope,
   keytracking and modulation.
 
-## Coupled-oscillator networks (`coupled`)
-
-Each note is a network of partials (Stuart-Landau oscillators) that act on each other; the movement comes from
-inside, no LFO needed. Prototypes and measurements: `tools/experiments/` (stuart_landau.py, topologies.py).
-
-- `phase_coupling` pulls detuned partials onto the harmonic series (measured: 22 -> 7 cents with 40 cents of
-  random detune); `spread` / `drift` add the disorder it fights with.
-- `amp_coupling` > 0: neighbours in step feed each other (breathing, `coupled_breathing`); < 0: they compete,
-  partials flicker (`coupled_mosaic`).
-- `pitch_by_level`: louder partials go flat; with strong couplings partials sweep and catch (`coupled_storm`).
-- `freeze`: diffusive coupling; with little phase pull, the partials that cannot lock sink and a few ring on:
-  sparse and glassy, different at every note (`coupled_frozen_glass`).
-
-## Self-oscillating oscillators (`selfosc`)
-
-A Van der Pol / Duffing oscillator forced by the note. `drive` morphs a sine (0) into a reedy relaxation wave
-(2-3) and a square-ish one (5), in tune at any drive; `velocity_drive` makes hard notes reedier; `stiffness`
-sharpens loud notes (Duffing); `entrain` locks the oscillator on the note; low entrain with some `detune` makes
-it slip against the note: an irregular, LFO-free shimmer (`selfosc_beating`). Recipes: `selfosc_reed`
-(formant filter on "o"), `selfosc_bass` (scream). Free (entrain 0) the pitch is within ~5 cents at full drive.
-
 
 ## Precision sines (`micro`)
 

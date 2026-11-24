@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "engine": "mono",
+  "name": "mono_acid_classic",
+  "description": "The classic acid line: saw, high resonance, medium envelope, accents and slides; ride the cutoff. On the monosynth: one oscillator into the ladder, a short filter contour, slides only between tied notes (glide_mode legato), accents by velocity.",
+  "params": {
+    "osc1_range": "8",
+    "osc1_wave": "saw",
+    "osc1_level": 0.8,
+    "osc2_level": 0,
+    "osc3_level": 0,
+    "mixer_drive": 0.35,
+    "cutoff": 656,
+    "emphasis": 0.82,
+    "contour": 2.8,
+    "keytrack": 0,
+    "fenv_attack": 0.002,
+    "fenv_decay": 0.45,
+    "fenv_sustain": 0,
+    "amp_attack": 0.002,
+    "amp_decay": 2.0,
+    "amp_sustain": 0.7,
+    "glide": 0.06,
+    "glide_mode": "legato",
+    "voice_mode": "legato",
+    "velocity": 0.7,
+    "drift": 1,
+    "volume": 18.6,
+    "saturation": "soft",
+    "saturation_drive": 11.4,
+    "saturation_tone": 5000
+  },
+  "audition": {
+    "notes": "C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2",
+    "bpm": 126,
+    "step": 0.25,
+    "gate": 0.6
+  }
+}

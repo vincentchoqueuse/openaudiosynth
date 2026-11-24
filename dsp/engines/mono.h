@@ -32,6 +32,7 @@ enum {
     MONO_P_FEEDBACK, MONO_P_PRIORITY, MONO_P_OVERSAMPLE,
     /* analog imperfections of each oscillator (dsp/voice/analog.h); drift above is its walk's deviation */
     MONO_P_TOLERANCE, MONO_P_DRIFT_TIME, MONO_P_JITTER,
+    MONO_P_GLIDE_MODE, /* always, or only between tied notes (a bass line's slides) */
     MONO_P_COUNT
 };
 extern const param_desc_t mono_params[MONO_P_COUNT];
@@ -54,6 +55,7 @@ typedef struct {
     analog_t analog[3]; /* the imperfections of each oscillator */
     float pitch, vel, gain_prev, bend, modwheel;
     int has_note, env_dirty;
+    int slide; /* this note was tied to the one before (glide_mode legato glides only then) */
     uint32_t nan_count;
     vpoly_t poly;
 } mono_t;

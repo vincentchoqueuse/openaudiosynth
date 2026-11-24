@@ -62,7 +62,7 @@
     <span class="mono db">{s.volume <= -60 ? 'off' : `${s.volume.toFixed(1)} dB`}</span>
   </label>
   <span class="vsep" aria-hidden="true"></span>
-  <label class="tempo" title="Tempo of the clip and of everything synced (LFOs, delay)"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /> BPM</label>
+  <label class="tempo" title="Tempo of the clip and of everything synced (LFOs, delay)"><input type="number" min="20" max="300" bind:value={q.bpm} aria-label="Tempo" /><span class="tempo-unit">BPM</span></label>
   <span class="seqlabel">Clip</span>
   <button class="play" class:on={q.playing} onclick={q.toggle} aria-label={q.playing ? 'Stop the clip' : 'Play the clip'} title="Play / stop the clip (Space)">{q.playing ? '■' : '▶'}</button>
   </div>

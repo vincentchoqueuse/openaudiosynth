@@ -38,6 +38,7 @@
   .macrogrid .label { display: flex; flex-direction: column; line-height: 1.2; }
   .macrogrid .label small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
   .macrogrid .param { min-height: 32px; }
-  @media (max-width: 1100px) { .macrogrid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-  @media (max-width: 760px) { .macrogrid { gap: 0 14px; } .macrogrid .param { grid-template-columns: 5.5em 1fr; } .macrogrid .val { display: none; } }
+  /* a tablet keeps the four columns (the percentages go); a phone has two */
+  @media (max-width: 1180px) { .macrogrid { gap: 0 16px; } .macrogrid .param { grid-template-columns: 6em 1fr; } .macrogrid .val { display: none; } }
+  @media (max-width: 700px) { .macrogrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; } .macrogrid .param { grid-template-columns: 5.5em 1fr; } }
 </style>

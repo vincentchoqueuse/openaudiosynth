@@ -93,6 +93,8 @@ Struck notes decay by themselves even when the key is held; bowed notes sustain 
 
 `phaser_*`, `flanger_*`, `chorus_*`, `delay_*`, `reverb_*`, `saturation*` and `limiter*` can be set in any patch (and per song track via `params`).
 
+The five effects of the bus form a rack whose order is free: `fx_slot1` .. `fx_slot5` name the effect at each place (`phaser`, `flanger`, `chorus`, `delay`, `reverb`; that order by default). Each effect takes what comes out of the one before it, so the order is heard as soon as two are on: `"fx_slot1": "reverb", "fx_slot2": "delay"` puts the echoes on the reverb's tail instead of the reverb on the echoes; a phaser placed after the reverb sweeps the whole tail. Naming only the first places is enough: the effects not named follow in the usual order. There is one of each effect.
+
 | Want | Set |
 |---|---|
 | slow swirl (pads, keys) | `phaser_mix` 0.6–1, `phaser_rate` 0.1–0.3 Hz, `phaser_feedback` 0.3–0.6, 4 stages |

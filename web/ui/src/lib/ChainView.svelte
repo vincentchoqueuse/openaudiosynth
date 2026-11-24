@@ -1,5 +1,6 @@
 <!-- ChainView.svelte — the signal chain of the current engine followed by the effect bus, drawn from the stage
-     descriptors (dsp/engines/engine.h): audio stages in columns along the signal, modulators below; pointing at a
+     descriptors (dsp/engines/engine.h): audio stages in columns along the signal (the effects of the rack in the
+     order it has now), modulators below; pointing at a
      modulator draws its dashed links to what it acts on (including the active part routes: MSEG, LFO, macros...). It
      reflects the controls (a stage switched off is drawn dashed, the signal passes through it), and with `onpick`
      it is the editor's map: a click on a block or a modulator opens its settings. -->
@@ -8,7 +9,7 @@
   // for a part route); without it the diagram is display only
   import { session } from './session.svelte.js';
   let { onpick = null } = $props(); // a click on a block or a chip: onpick(stage, kind)
-  const engine = $derived(session.engine), fx = $derived(session.catalog.fx ?? []), byName = $derived(session.byName);
+  const engine = $derived(session.engine), fx = $derived(session.fxStages), byName = $derived(session.byName);
   const getP = session.getP;
 
   let W = $state(800);

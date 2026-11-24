@@ -6,7 +6,8 @@
      stage that can be switched off has a switch, and folds to its title while off (switched off, it
      remembers its value to come back to). The effects show only those in use as cards: the others wait in a row
      of small buttons under them (Add effect), and one switched off by hand stays a folded card until another sound
-     is loaded. A stage that is an oscillator, a filter, an envelope or an LFO shows a small
+     is loaded. The five effects of the bus form a rack: each shows its place and two arrows that move it earlier or
+     later in the signal (session.setRack); one added from the row goes after those already in use. A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz); an engine may name its controls itself and keep only the main ones in view,
      the others under a More button (engineui.js); an FM matrix (a stage of kind "matrix") is drawn as one (FmMatrix). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
@@ -26,7 +27,7 @@
     if (!s.engine) return [];
     if (tab === 'engine')
       return s.engine.stages?.length ? byStage(s.engine.stages, s.engine.params) : grouped(s.engine.params).map(([g, ps]) => [g, ps, null]);
-    if (tab === 'fx') return s.catalog?.fx ? byStage(s.catalog.fx, shared, false) : grouped(shared).map(([g, ps]) => [g, ps, null]);
+    if (tab === 'fx') return s.catalog?.fx ? byStage(s.fxStages, shared, false) : grouped(shared).map(([g, ps]) => [g, ps, null]);
     // settings: the part, the tempo, the tuning (the 12 custom offsets only with the custom temperament)
     const part = s.shared.filter((d) => d.id >= PART_PARAM && d.id < MOD_PARAM);
     const globals = s.catalog?.fx ? unclaimed(s.catalog.fx, shared) : [];
@@ -34,7 +35,7 @@
     const custom = s.byName.tuning?.labels?.[Math.round(s.getP('tuning'))] === 'custom';
     const tuning = globals.filter((d) => /^(tuning|a4_hz|tune_\d+)/.test(d.name) && (custom || !/^tune_\d+$/.test(d.name)));
     // the tempo itself is set in the top bar (the clip's): here only how it is followed
-    const clock = globals.filter((d) => !tuning.includes(d) && !/^tune_\d+$/.test(d.name) && d.name !== 'tempo');
+    const clock = globals.filter((d) => !tuning.includes(d) && !/^(tune_\d+|fx_slot\d+)$/.test(d.name) && d.name !== 'tempo'); // the rack's places: set in Effects
     return [
       ['Part', part.map((d) => row(d, human(d.name.replace(/^part_/, '')))), null],
       ['Clock', clock.map((d) => row(d)), null],
@@ -54,7 +55,20 @@
   let kept = $state({}); // effects switched off by hand: they stay folded cards (this sound only)
   $effect(() => { s.patchGen; kept = {}; });
   const idle = (st) => tab === 'fx' && !!st?.enable && !stageOn(st) && !kept[st.id]; // an effect not in use
+  // the rack: the bus effects whose order is free
+  const inRack = (st) => tab === 'fx' && !!st && s.rack.includes(st.id);
+  const shownRack = () => s.rack.filter((id) => !idle(s.fxStages.find((x) => x.id === id)));
+  function rackPlace(id, other, after) { // id just before or after another effect of the rack
+    const order = s.rack.filter((x) => x !== id);
+    order.splice(order.indexOf(other) + (after ? 1 : 0), 0, id);
+    s.setRack(order);
+  }
+  function move(st, dir) {
+    const shown = shownRack(), other = shown[shown.indexOf(st.id) + dir];
+    if (other) rackPlace(st.id, other, dir > 0);
+  }
   function toggle(st) {
+    if (inRack(st) && idle(st)) { const shown = shownRack(); if (shown.length) rackPlace(st.id, shown[shown.length - 1], true); }
     if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); kept[st.id] = true; s.setP(st.enable, st.off); }
     else s.setP(st.enable, lastOn[st.enable] ?? st.on);
   }
@@ -83,7 +97,14 @@
   {@const on = stageOn(st)}
   <Card class="{on ? '' : 'off'} {st && lit === st.id ? 'lit' : ''} {st?.kind === 'matrix' ? 'wide' : ''}" data-stage={st?.id}>
     <div class="stage-head">
-      <h2>{g}</h2>
+      <h2>{#if inRack(st)}<span class="place mono" title="place in the rack: the signal goes through the effects in this order">{shownRack().indexOf(st.id) + 1}</span>{/if}{g}</h2>
+      {#if inRack(st)}
+        {@const shown = shownRack()}
+        <span class="rackmove">
+          <button onclick={() => move(st, -1)} disabled={shown[0] === st.id} aria-label="{g}: earlier in the signal" title="earlier in the signal">‹</button>
+          <button onclick={() => move(st, 1)} disabled={shown[shown.length - 1] === st.id} aria-label="{g}: later in the signal" title="later in the signal">›</button>
+        </span>
+      {/if}
       {#if st?.enable}
         <Switch {on} onchange={() => toggle(st)} name="{g} on/off" />
       {/if}

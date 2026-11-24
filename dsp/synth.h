@@ -89,6 +89,9 @@ enum {
     SYNTH_PARAM_FLANGER_DELAY,   /* 0.5 .. 10 ms, the longest delay of the sweep */
     SYNTH_PARAM_FLANGER_DEPTH,   /* 0 .. 1 */
     SYNTH_PARAM_FLANGER_FEEDBACK, /* -0.9 .. 0.9 */
+    /* the effect rack: which effect sits at each place of the bus, in the order the signal goes through */
+    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb (default: in that order) */
+    SYNTH_PARAM_FX_SLOT_5 = SYNTH_PARAM_FX_SLOT_1 + 4,
     SYNTH_PARAM_GLOBAL_END
 };
 

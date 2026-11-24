@@ -3,7 +3,9 @@
  * bounded, deterministic, level held across drives, no comb filtering at a partial mix, aliasing below a threshold.
  * Phaser and flanger: untouched at mix 0, notches where the theory puts them (a static sweep), feedback moves the
  * resonances (positive: multiples of the delay's frequency, negative: odd multiples of half of it), bounded at full
- * feedback with a fast sweep, deterministic. */
+ * feedback with a fast sweep, deterministic. The rack: the default order named in full is the default, another
+ * order sounds different, the same order twice is identical, places naming an effect twice still run every effect
+ * once, every order of the five stays bounded. */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -14,6 +16,7 @@
 #include "fx/flanger.h"
 #include "fx/phaser.h"
 #include "fx/reverb.h"
+#include "synth.h"
 #include "test.h"
 
 /* Index of the largest |x| in [a, b). */
@@ -326,8 +329,80 @@ static void test_modfx(void)
     free(L), free(R), free(L2);
 }
 
+/* One note of the default instrument through a phaser, a delay and a reverb, the rack's places as given. */
+static void rack_render(const int *slots, float *L, float *R, int n)
+{
+    synth_t *s = synth_default();
+    synth_init(s, 48000.0f);
+    synth_set_engine(s, SYNTH_ENGINE_VA);
+    synth_set_param(s, SYNTH_PARAM_PHASER_MIX, 1.0f);
+    synth_set_param(s, SYNTH_PARAM_DELAY_MIX, 0.5f);
+    synth_set_param(s, SYNTH_PARAM_REVERB_MIX, 0.4f);
+    synth_set_param(s, SYNTH_PARAM_FLANGER_MIX, 0.6f);
+    synth_set_param(s, SYNTH_PARAM_CHORUS_MODE, 0.5f);
+    if (slots)
+        for (int k = 0; k < 5; k++)
+            synth_set_param(s, SYNTH_PARAM_FX_SLOT_1 + k, (float)slots[k] / 4.0f);
+    const uint8_t on[3] = {0x90, 57, 100}, off[3] = {0x80, 57, 0};
+    synth_midi(s, on, 3, 0);
+    for (int i = 0; i < n; i += 64) {
+        if (i == 24000 - 24000 % 64)
+            synth_midi(s, off, 3, 0);
+        synth_render(s, L + i, R + i, n - i < 64 ? n - i : 64);
+    }
+}
+
+static void test_rack(void)
+{
+    const int n = 48000 * 2;
+    float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
+    float *L2 = malloc(sizeof(float) * (size_t)n), *R2 = malloc(sizeof(float) * (size_t)n);
+    const size_t bytes = sizeof(float) * (size_t)n;
+    static const int usual[5] = {0, 1, 2, 3, 4};    /* phaser, flanger, chorus, delay, reverb */
+    static const int reversed[5] = {4, 3, 2, 1, 0}; /* the reverb first, its tail through everything else */
+    static const int twice[5] = {4, 4, 4, 3, 3};    /* reverb, delay, then those not named: phaser, flanger, chorus */
+    static const int same[5] = {4, 3, 0, 1, 2};
+
+    rack_render(NULL, L, R, n);
+    rack_render(usual, L2, R2, n);
+    CHECK(memcmp(L, L2, bytes) == 0 && memcmp(R, R2, bytes) == 0, "rack: the usual order named in full is not the default");
+    CHECK(max_abs(L, n) > 0.05f, "rack: silent (max %g)", (double)max_abs(L, n));
+
+    rack_render(reversed, L2, R2, n);
+    double diff = 0.0, ref = 0.0;
+    for (int i = 0; i < n; i++)
+        diff += (double)(L[i] - L2[i]) * (double)(L[i] - L2[i]), ref += (double)L[i] * (double)L[i];
+    printf("  rack reversed against the usual order: difference %.1f dB of the signal\n", 10.0 * log10(diff / ref));
+    CHECK(diff > 0.01 * ref, "rack: the reversed order sounds the same (difference %.1f dB)", 10.0 * log10(diff / ref));
+    rack_render(reversed, L, R, n);
+    CHECK(memcmp(L, L2, bytes) == 0 && memcmp(R, R2, bytes) == 0, "rack: an order is not deterministic");
+
+    rack_render(twice, L, R, n);
+    rack_render(same, L2, R2, n);
+    CHECK(memcmp(L, L2, bytes) == 0 && memcmp(R, R2, bytes) == 0, "rack: places naming an effect twice do not run every effect once");
+
+    /* every order of the five: finite and bounded */
+    int order[5], bad = 0;
+    float worst = 0.0f;
+    for (int code = 0; code < 3125; code++) {
+        int seen = 0, c = code;
+        for (int k = 0; k < 5; k++)
+            order[k] = c % 5, c /= 5, seen |= 1 << order[k];
+        if (seen != 31 || code % 7) /* the permutations, one in seven of them (18 renders) */
+            continue;
+        rack_render(order, L, R, 24000);
+        if (!all_finite_bounded(L, 24000, 2.0f) || !all_finite_bounded(R, 24000, 2.0f))
+            bad++;
+        worst = fmaxf(worst, fmaxf(max_abs(L, 24000), max_abs(R, 24000)));
+    }
+    CHECK(bad == 0, "rack: %d orders not finite or over 2 (max %g)", bad, (double)worst);
+    synth_init(synth_default(), 48000.0f);
+    free(L), free(R), free(L2), free(R2);
+}
+
 void suite_fx(void)
 {
+    test_rack();
     test_modfx();
     test_dist();
     test_delay();

@@ -136,6 +136,11 @@ static const char *const out_filter_labels[] = {"off", "lp", "hp", "bp", NULL};
 static const char *const saturation_labels[] = {"off", "soft", "tube", "hard", NULL};
 static const char *const limiter_labels[] = {"off", "on", NULL};
 static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
+/* the effects of the rack, by the id of their stage (synth_fx_stages) */
+enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_COUNT };
+static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", NULL};
+#define RACK_SLOT(K, N) PARAM(SYNTH_PARAM_FX_SLOT_1 + K, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_COUNT - 1), (float)K, PARAM_INT, "", 0, \
+                           rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, those not named follow in the usual order")
 static const param_desc_t out_desc[] = {
     PARAM(SYNTH_PARAM_OUT_FILTER, "out_filter", "output.filter.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 1, out_filter_labels,
           "a filter on the instrument's output, before the effects: off, low-pass, high-pass or band-pass (12 dB)"),
@@ -183,6 +188,7 @@ static const param_desc_t out_desc[] = {
           "how far the sweep goes, down to a twentieth of the delay"),
     PARAM(SYNTH_PARAM_FLANGER_FEEDBACK, "flanger_feedback", "fx.flanger.feedback", -0.9f, 0.9f, 0.6f, PARAM_LIN, "", 1, NULL,
           "resonance: high = metallic, ringing; negative = hollow (the resonances at the odd multiples of half the delay's frequency)"),
+    RACK_SLOT(0, 1), RACK_SLOT(1, 2), RACK_SLOT(2, 3), RACK_SLOT(3, 4), RACK_SLOT(4, 5),
 };
 _Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_OUT_FILTER == (int)(sizeof out_desc / sizeof out_desc[0]), "output filter ids");
 
@@ -289,6 +295,8 @@ struct synth {
     phaser_t phaser;
     flanger_t flanger;
     float ph[6], fl[5];                 /* phaser and flanger settings, physical values */
+    uint8_t rack_slot[RACK_COUNT];      /* the effect asked for at each place of the rack */
+    uint8_t rack[RACK_COUNT];           /* the order run: each effect once (rack_resolve) */
     limiter_t lim;
     int lim_on;
     float lim_mix, lim_mix_prev;        /* 1 while on: the limited signal, faded in and out over 8 blocks */
@@ -628,6 +636,22 @@ static int any_switching(const synth_t *s)
     return 0;
 }
 
+/* The order of the rack from what its places ask for: an effect named twice keeps its first place, and those no
+ * place names follow in the usual order, so every effect runs once whatever the five values are. */
+static void rack_resolve(synth_t *s)
+{
+    uint8_t used[RACK_COUNT] = {0};
+    int n = 0;
+    for (int k = 0; k < RACK_COUNT; k++) {
+        const int e = s->rack_slot[k];
+        if (e < RACK_COUNT && !used[e])
+            used[e] = 1, s->rack[n++] = (uint8_t)e;
+    }
+    for (int e = 0; e < RACK_COUNT; e++)
+        if (!used[e])
+            s->rack[n++] = (uint8_t)e;
+}
+
 /* the master level or an effect parameter (id SYNTH_PARAM_MASTER_DB .. the effect bus), normalized */
 static void global_apply(synth_t *s, int id, float norm)
 {
@@ -663,6 +687,9 @@ static void global_apply(synth_t *s, int id, float norm)
     } else if (id >= SYNTH_PARAM_FLANGER_MIX && id <= SYNTH_PARAM_FLANGER_FEEDBACK) {
         s->fl[id - SYNTH_PARAM_FLANGER_MIX] = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
         flanger_set(&s->flanger, s->fl[0], s->fl[1], s->fl[2], s->fl[3], s->fl[4]);
+    } else if (id >= SYNTH_PARAM_FX_SLOT_1 && id <= SYNTH_PARAM_FX_SLOT_5) {
+        s->rack_slot[id - SYNTH_PARAM_FX_SLOT_1] = (uint8_t)param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
+        rack_resolve(s);
     } else if (id >= SYNTH_PARAM_LIMITER && id <= SYNTH_PARAM_LIMITER_RELEASE) {
         const float v = param_from_norm(&out_desc[id - SYNTH_PARAM_OUT_FILTER], norm);
         if (id == SYNTH_PARAM_LIMITER)
@@ -975,9 +1002,23 @@ static DSP_FAST_CODE void render_block(synth_t *s)
         if (s->part[k].ops)
             has_dry |= part_render(s, &s->part[k], L, R, dryL, dryR);
 
-    phaser_process(&s->phaser, L, R, n); /* untouched while their mix is 0 */
-    flanger_process(&s->flanger, L, R, n);
-    fxbus_process(&s->fx, L, R, n);
+    /* the rack: the five effects of the bus in the order of its places */
+    fxbus_begin(&s->fx);
+    for (int k = 0; k < RACK_COUNT; k++)
+        switch (s->rack[k]) {
+        case RACK_PHASER:
+            fxbus_flush(&s->fx, L, R, n);
+            phaser_process(&s->phaser, L, R, n); /* untouched while its mix is 0 */
+            break;
+        case RACK_FLANGER:
+            fxbus_flush(&s->fx, L, R, n);
+            flanger_process(&s->flanger, L, R, n);
+            break;
+        case RACK_CHORUS: fxbus_chorus(&s->fx, L, R, n); break;
+        case RACK_DELAY: fxbus_delay(&s->fx, L, R, n); break;
+        default: fxbus_reverb(&s->fx, L, R, n); break;
+        }
+    fxbus_flush(&s->fx, L, R, n);
     if (has_dry)
         for (int i = 0; i < n; i++)
             L[i] += dryL[i], R[i] += dryR[i];
@@ -1072,6 +1113,9 @@ void synth_init(synth_t *s, float sample_rate)
     s->lim_mix = s->lim_mix_prev = 0.0f;
     phaser_init(&s->phaser, sample_rate);
     flanger_init(&s->flanger, sample_rate);
+    for (int k = 0; k < RACK_COUNT; k++)
+        s->rack_slot[k] = (uint8_t)k;
+    rack_resolve(s);
     s->sat_run = 1;
     s->sat_mix = s->sat_mix_prev = 0.0f;
     for (int g = 0; g < SYNTH_GLOBAL_COUNT; g++) {

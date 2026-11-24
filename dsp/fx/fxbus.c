@@ -82,6 +82,7 @@ void fxbus_init(fxbus_t *f, float sr, float *mem, size_t mem_floats, float max_d
     f->dmix_prev = f->rmix_prev = 0.0f;
     f->delay_idle_s = f->reverb_idle_s = IDLE_AFTER_S; /* idle until used */
     f->dirty = 1;
+    f->pending = 0;
 }
 
 void fxbus_set_param(fxbus_t *f, int id, float norm)
@@ -107,16 +108,36 @@ static void apply(fxbus_t *f)
     f->dirty = 0;
 }
 
-DSP_FAST_CODE void fxbus_process(fxbus_t *f, float *L, float *R, int n)
+void fxbus_begin(fxbus_t *f)
 {
-    float wl[SYNTH_BLOCK], wr[SYNTH_BLOCK], send[SYNTH_BLOCK];
     if (f->dirty)
         apply(f);
-    const float dt = (float)n / f->sr;
+    f->pending = 0;
+}
 
+DSP_FAST_CODE void fxbus_flush(fxbus_t *f, float *L, float *R, int n)
+{
+    if (!f->pending)
+        return;
+    for (int i = 0; i < n; i++) {
+        L[i] += f->pl[i];
+        R[i] += f->pr[i];
+    }
+    f->pending = 0;
+}
+
+DSP_FAST_CODE void fxbus_chorus(fxbus_t *f, float *L, float *R, int n)
+{
+    fxbus_flush(f, L, R, n);
     chorus_process(&f->chorus, L, R, L, R, n);
+}
 
-    /* delay: parallel send, wet added */
+/* delay: parallel send, its wet left pending (added by the reverb after it or by fxbus_flush) */
+DSP_FAST_CODE void fxbus_delay(fxbus_t *f, float *L, float *R, int n)
+{
+    float wl[SYNTH_BLOCK], wr[SYNTH_BLOCK];
+    fxbus_flush(f, L, R, n);
+    const float dt = (float)n / f->sr;
     const float d0 = f->dmix_prev, d1 = smooth_next(&f->sm_dmix, f->has_delay ? f->p[FXB_P_DELAY_MIX] : 0.0f);
     f->dmix_prev = d1;
     const int was_idle = f->delay_idle_s >= IDLE_AFTER_S;
@@ -124,41 +145,51 @@ DSP_FAST_CODE void fxbus_process(fxbus_t *f, float *L, float *R, int n)
     const int delay_on = f->has_delay && f->delay_idle_s < IDLE_AFTER_S;
     if (delay_on && was_idle)
         delay_snap(&f->delay); /* tape glide only while running, not when starting */
-    float dl[SYNTH_BLOCK], dr[SYNTH_BLOCK];
     if (delay_on) {
         const int muted = d1 <= 1e-5f;
         for (int i = 0; i < n; i++) {
             wl[i] = muted ? 0.0f : L[i];
             wr[i] = muted ? 0.0f : R[i];
         }
-        delay_process(&f->delay, wl, wr, dl, dr, n);
-        dsp_ramp_mul(dl, d0, d1, n);
-        dsp_ramp_mul(dr, d0, d1, n);
+        delay_process(&f->delay, wl, wr, f->pl, f->pr, n);
+        dsp_ramp_mul(f->pl, d0, d1, n);
+        dsp_ramp_mul(f->pr, d0, d1, n);
+        f->pending = 1;
     }
+}
 
-    /* reverb: send = dry + echoes, wet added */
+/* reverb: send = the signal and the echoes still pending, wet added */
+DSP_FAST_CODE void fxbus_reverb(fxbus_t *f, float *L, float *R, int n)
+{
+    float wl[SYNTH_BLOCK], wr[SYNTH_BLOCK], send[SYNTH_BLOCK] = {0.0f}; /* zeroed: n may be short */
+    const float dt = (float)n / f->sr;
     const float r0 = f->rmix_prev, r1 = smooth_next(&f->sm_rmix, f->has_reverb ? f->p[FXB_P_REVERB_MIX] : 0.0f);
     f->rmix_prev = r1;
     f->reverb_idle_s = (r0 <= 1e-5f && r1 <= 1e-5f) ? f->reverb_idle_s + dt : 0.0f;
     /* a muted reverb goes idle; if it was frozen, the frozen tail is kept for when it comes back */
     const int reverb_on = f->has_reverb && f->reverb_idle_s < IDLE_AFTER_S;
-    if (reverb_on) {
-        const int muted = r1 <= 1e-5f;
-        for (int i = 0; i < n; i++)
-            send[i] = muted ? 0.0f : 0.5f * (L[i] + R[i] + (delay_on ? dl[i] + dr[i] : 0.0f));
-        reverb_process(&f->reverb, send, wl, wr, n);
-        dsp_ramp_mul(wl, r0, r1, n);
-        dsp_ramp_mul(wr, r0, r1, n);
+    if (!reverb_on) {
+        fxbus_flush(f, L, R, n);
+        return;
     }
-
+    const int muted = r1 <= 1e-5f, echoes = f->pending;
+    for (int i = 0; i < n; i++)
+        send[i] = muted ? 0.0f : 0.5f * (L[i] + R[i] + (echoes ? f->pl[i] + f->pr[i] : 0.0f));
+    reverb_process(&f->reverb, send, wl, wr, n);
+    dsp_ramp_mul(wl, r0, r1, n);
+    dsp_ramp_mul(wr, r0, r1, n);
+    fxbus_flush(f, L, R, n);
     for (int i = 0; i < n; i++) {
-        if (delay_on) {
-            L[i] += dl[i];
-            R[i] += dr[i];
-        }
-        if (reverb_on) {
-            L[i] += wl[i];
-            R[i] += wr[i];
-        }
+        L[i] += wl[i];
+        R[i] += wr[i];
     }
+}
+
+DSP_FAST_CODE void fxbus_process(fxbus_t *f, float *L, float *R, int n)
+{
+    fxbus_begin(f);
+    fxbus_chorus(f, L, R, n);
+    fxbus_delay(f, L, R, n);
+    fxbus_reverb(f, L, R, n);
+    fxbus_flush(f, L, R, n);
 }

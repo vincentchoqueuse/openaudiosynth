@@ -7,7 +7,8 @@ host (UI / keyboard)   ──SPSC ring──┤
 synth_midi / synth_set_param / synth_set_engine ──► event queue (time-stamped, applied per block)
 synth_render(s, L, R, n) ── split into blocks of 32 ──► render_block():
     events → engine->render (voices summed into L/R) → engine-switch fade
-    → phaser → flanger (inserts, off at mix 0) → fxbus: chorus (insert) → tape delay (send) → plate reverb (send, fed by dry + echoes)
+    → the rack, five effects in the order of its places (fx_slot1..5; by default: phaser → flanger (inserts, off at mix 0)
+      → chorus (insert) → tape delay (wet added) → plate reverb (wet added, fed by what reaches it: the echoes too when it follows the delay))
     → master gain → saturation (2x oversampled, off by default) → DC blocker
     → look-ahead limiter (1.5 ms, off by default) → soft clipper
 ```

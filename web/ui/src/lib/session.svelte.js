@@ -114,6 +114,30 @@ class Session {
   // a synth parameter id: the engine's (0..255) or a shared one (master, effects...)
   paramById = (id) => (id >= 0 && id < 256 ? this.engine?.params[id] : this.shared.find((d) => d.id === id));
 
+  // ---- the effect rack: the bus effects (phaser, flanger, chorus, delay, reverb) in the order of its five places
+  // (fx_slot1..5); read as the synth does: an effect named twice keeps its first place, those not named follow ----
+  rackUnits = $derived(this.byName.fx_slot1?.labels ?? []);
+  rack = $derived.by(() => {
+    const units = this.rackUnits, out = [];
+    for (let k = 1; k <= units.length; k++) {
+      const e = units[Math.round(this.getP(`fx_slot${k}`))];
+      if (e && !out.includes(e)) out.push(e);
+    }
+    return [...out, ...units.filter((e) => !out.includes(e))];
+  });
+  setRack = (order) => order.forEach((e, k) => this.setP(`fx_slot${k + 1}`, this.rackUnits.indexOf(e)));
+  // the stages of the effect chain as the signal goes through them now: those of the rack in its order, each fed
+  // by the one before it (the others, before and after the rack, stay where they are)
+  fxStages = $derived.by(() => {
+    const all = this.catalog?.fx ?? [], order = this.rack;
+    const at = all.map((st, i) => (order.includes(st.id) ? i : -1)).filter((i) => i >= 0);
+    if (at.length !== order.length || !at.length) return all;
+    const out = all.map((st) => ({ ...st })), first = all[at[0]].inputs, last = all[at[at.length - 1]].id;
+    order.forEach((id, k) => { out[at[k]] = { ...all.find((st) => st.id === id), inputs: k ? order[k - 1] : first }; });
+    for (const st of out) if (!order.includes(st.id)) st.inputs = st.inputs.split(' ').map((x) => (x === last ? order[order.length - 1] : x)).join(' ');
+    return out;
+  });
+
   // ---- macros: 8 macros, each moving targets kept in the part's 32 map slots (dsp/mod/partmod.h) ----
   // the shared parameters a macro can move: those of the effect chain's stages (master, output filter, effects)
   #fxIds = $derived(new Set(this.shared.filter((d) => d.id >= 256 && d.id < 512 && !unclaimed(this.catalog?.fx ?? [], [d]).length).map((d) => d.id)));

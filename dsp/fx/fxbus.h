@@ -1,5 +1,7 @@
 /* fxbus.h — the synth's effect bus: chorus (insert) -> tape delay -> plate reverb (both parallel,
- * wet added to the dry signal), with its parameter descriptors. Delay and reverb memory comes from a
+ * wet added to the dry signal), with its parameter descriptors. The three are also offered as stages, so that the
+ * caller can run them in any order among other effects (the rack of synth.c): fxbus_begin, then fxbus_chorus,
+ * fxbus_delay and fxbus_reverb once each, fxbus_flush before anything else reads the signal and at the end. Delay and reverb memory comes from a
  * caller-provided arena; if the arena is too small the reverb size and maximum delay time shrink.
  * An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU). */
 #ifndef FXBUS_H
@@ -32,6 +34,8 @@ typedef struct {
     float dmix_prev, rmix_prev;
     float delay_idle_s, reverb_idle_s; /* time spent with mix 0 */
     int dirty;
+    float pl[SYNTH_BLOCK], pr[SYNTH_BLOCK]; /* echoes of this block not added to the signal yet */
+    int pending;
 } fxbus_t;
 
 /* Arena size for a delay of max_delay_s and a reverb of the given size at this sample rate. */
@@ -39,7 +43,15 @@ size_t fxbus_mem_floats(float sample_rate, float max_delay_s, float reverb_size)
 /* mem/mem_floats: arena for delay + reverb (may be NULL/0: then only the chorus is available). */
 void fxbus_init(fxbus_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size);
 void fxbus_set_param(fxbus_t *f, int id, float norm);
-/* Processes one block in place (n <= SYNTH_BLOCK). */
+/* Processes one block in place (n <= SYNTH_BLOCK): chorus, delay, reverb, in that order. */
 void fxbus_process(fxbus_t *f, float *L, float *R, int n);
+/* The same as stages, for another order (each at most once per block, between fxbus_begin and a last
+ * fxbus_flush). The delay leaves its echoes pending: the reverb right after it reads them itself, anything else
+ * calls fxbus_flush first, which adds them to the signal. */
+void fxbus_begin(fxbus_t *f);
+void fxbus_chorus(fxbus_t *f, float *L, float *R, int n);
+void fxbus_delay(fxbus_t *f, float *L, float *R, int n);
+void fxbus_reverb(fxbus_t *f, float *L, float *R, int n);
+void fxbus_flush(fxbus_t *f, float *L, float *R, int n);
 
 #endif /* FXBUS_H */

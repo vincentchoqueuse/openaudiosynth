@@ -223,6 +223,22 @@ class Session {
     let slot = 1;
     const labels = Array(8).fill('');
     names.forEach((n, k) => {
+      if (Array.isArray(n)) { // a scene: several settings, each from where it is, upwards; the macro starts at 0
+        const [name, ...targets] = n;
+        for (const [pn, travel] of targets) {
+          const t = this.byName[pn];
+          if (!t || !this.byName[`map${slot}_macro`]) continue;
+          const v = toNorm(t, this.values[t.id] ?? t.def);
+          this.setP(`map${slot}_macro`, k + 1);
+          this.setP(`map${slot}_destination`, t.id + 1);
+          this.setP(`map${slot}_from`, v);
+          this.setP(`map${slot}_to`, Math.min(1, v + travel));
+          slot++;
+        }
+        this.setP(`macro${k + 1}`, 0);
+        labels[k] = name;
+        return;
+      }
       const d = this.byName[n];
       if (!d || !this.byName[`map${slot}_macro`]) return;
       const v = toNorm(d, this.values[d.id] ?? d.def), send = k >= 6;

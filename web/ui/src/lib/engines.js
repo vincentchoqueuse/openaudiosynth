@@ -17,7 +17,7 @@ export const engineRank = (name) => {
 };
 
 // Default macros of each instrument, as on the board's knobs (target/h745/app/knobs.c): six main parameters, then
-// the delay and reverb sends. A sound without macros of its own gets them (session.defaultMacros).
+// the delay and reverb sends (an entry may also be a scene: a name and several parameters). A sound without macros of its own gets them (session.defaultMacros).
 export const DEFAULT_MACROS = {
   va: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_attack', 'amp_release'],
   acid: ['cutoff', 'resonance', 'env_mod', 'decay', 'accent', 'distortion'],
@@ -25,7 +25,15 @@ export const DEFAULT_MACROS = {
   poly: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_release', 'lfo_filter'],
   fm4: ['op2_to_op1', 'op3_to_op1', 'op4_feedback', 'op2_decay', 'cutoff', 'pitch_amount'],
   flux: ['map_pitch', 'map_time', 'fold', 'crush', 'rupture', 'violence'],
-  havoc: ['g1_a', 'g1_b', 'g2_a', 'g2_b', 'x1_p1', 'x1_p2'],
+  // scenes: each macro moves several settings, upwards from where they are ([name, [parameter, travel]...], the
+  // travel in normalized units)
+  havoc: [['Rot', ['g1_rot', 0.7], ['g2_rot', 0.7], ['g3_rot', 0.7], ['g4_rot', 0.7]],
+          ['Motion', ['g1_lfo_a', 0.25], ['g2_lfo_a', 0.25], ['g3_lfo_a', 0.25], ['g4_lfo_a', 0.25],
+                     ['g1_lfo_b', 0.25], ['g2_lfo_b', 0.25], ['g3_lfo_b', 0.25], ['g4_lfo_b', 0.25]],
+          ['Chaos', ['feedback', 0.8], ['mutate', 0.8]],
+          ['Density', ['g1_life_rate', 0.4], ['g2_life_rate', 0.4], ['g3_life_rate', 0.4], ['g4_life_rate', 0.4]],
+          ['Dark', ['dark', 1]],
+          ['Space', ['reverb_mix', 0.6]]],
   fm6: ['op2_level', 'op4_level', 'op6_level', 'feedback', 'lfo_speed', 'lfo_pmd'],
   wt: ['a_position', 'b_position', 'a_warp', 'cutoff', 'resonance', 'amp_release'],
   modal: ['brightness', 'position', 'hardness', 'damping', 'decay', 'inharmonicity'],

@@ -114,6 +114,8 @@ section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--acce
 .stage-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; }
 .stage-head h2 { margin: 0; }
 section.card.off .stage-head { margin-bottom: 0; }
+button.more { display: block; width: 100%; margin: 8px 0 2px; padding: 4px 0; background: none; border: 0; border-top: 1px solid var(--line); color: var(--muted); font: inherit; font-size: 11px; letter-spacing: .04em; text-align: left; cursor: pointer; }
+button.more:hover { color: var(--text); }
 .groups { display: flex; gap: 14px; align-items: flex-start; overflow-x: auto; padding-bottom: 10px; margin-top: 14px; scroll-snap-type: x proximity; }
 .groups > section.card { flex: 0 0 300px; scroll-snap-align: start; }
 .groups > section.card.wide { flex-basis: 340px; }

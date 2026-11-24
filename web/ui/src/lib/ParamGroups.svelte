@@ -5,7 +5,8 @@
      and voice); the effects in the order of the bus; every card one width, on one row that scrolls sideways; a
      stage that can be switched off has a switch, and folds to its title while off (switched off, it
      remembers its value to come back to). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
-     drawing of its settings (StageViz); an FM matrix (a stage of kind "matrix") is drawn as one (FmMatrix). The card the Structure diagram asks for is scrolled to and lit. -->
+     drawing of its settings (StageViz); an engine may name its controls itself and keep only the main ones in view,
+     the others under a More button (engineui.js); an FM matrix (a stage of kind "matrix") is drawn as one (FmMatrix). The card the Structure diagram asks for is scrolled to and lit. -->
 <script>
   import Card from './Card.svelte';
   import Switch from './Switch.svelte';
@@ -15,6 +16,7 @@
   import { session as s } from './session.svelte.js';
   import { MOD_PARAM, PART_PARAM } from './synth.js';
   import { grouped, byStage, unclaimed, human } from './naming.js';
+  import { ENGINE_UI } from './engineui.js';
   let { tab } = $props(); // 'engine' | 'fx' | 'settings'
 
   const shared = $derived(s.shared.filter((d) => d.id < PART_PARAM));
@@ -37,6 +39,12 @@
       ['Tuning', tuning.map((d) => row(d, d.name === 'a4_hz' ? 'A4' : /^tune_\d+$/.test(d.name) ? `Degree ${+d.name.slice(5)}` : human(d.name.replace(/^tuning_?/, '') || 'temperament'))), null],
     ].filter(([, ps]) => ps.length);
   });
+
+  // the engine's own presentation (engineui.js): names that depend on another setting, main controls and "More"
+  const ui = $derived(tab === 'engine' ? ENGINE_UI[s.engine?.name] : undefined);
+  const place = (d) => ui?.place?.(d, s) ?? 'main';
+  let open = $state({}); // card title -> its "More" is unfolded
+  $effect(() => { s.patchGen; open = {}; });
 
   let lastOn = {}; // value of a stage's switch before it was turned off (this sound only)
   $effect(() => { s.patchGen; lastOn = {}; });
@@ -79,9 +87,18 @@
       <FmMatrix params={ps.map((p) => p.d)} />
     {:else if on}
       {#if st}<StageViz {st} params={ps.map((p) => p.d)} get={s.getP} />{/if}
-      {#each ps as { d, label } (d.id)}
-        <Param {d} {label} />
+      {@const more = ps.filter(({ d }) => place(d) === 'more')}
+      {#each ps.filter(({ d }) => place(d) === 'main') as { d, label } (d.id)}
+        <Param {d} label={ui?.label?.(d, s) ?? label} />
       {/each}
+      {#if more.length}
+        <button class="more" aria-expanded={!!open[g]} onclick={() => (open[g] = !open[g])}>{open[g] ? 'Less' : `More (${more.length})`}</button>
+        {#if open[g]}
+          {#each more as { d, label } (d.id)}
+            <Param {d} label={ui?.label?.(d, s) ?? label} />
+          {/each}
+        {/if}
+      {/if}
     {/if}
   </Card>
 {/snippet}

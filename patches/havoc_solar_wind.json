@@ -45,6 +45,144 @@
     "amp_release": 3.0,
     "volume": 3
   },
+  "macros": [
+    {
+      "name": "Rot",
+      "value": 0,
+      "targets": [
+        {
+          "param": "g1_rot",
+          "from": 0,
+          "to": 0.7
+        },
+        {
+          "param": "g2_rot",
+          "from": 0,
+          "to": 0.7
+        },
+        {
+          "param": "g3_rot",
+          "from": 0,
+          "to": 0.7
+        },
+        {
+          "param": "g4_rot",
+          "from": 0,
+          "to": 0.7
+        }
+      ]
+    },
+    {
+      "name": "Motion",
+      "value": 0,
+      "targets": [
+        {
+          "param": "g1_lfo_a",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g1_lfo_b",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g2_lfo_a",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g2_lfo_b",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g3_lfo_a",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g3_lfo_b",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g4_lfo_a",
+          "from": 0,
+          "to": 0.5
+        },
+        {
+          "param": "g4_lfo_b",
+          "from": 0,
+          "to": 0.5
+        }
+      ]
+    },
+    {
+      "name": "Chaos",
+      "value": 0,
+      "targets": [
+        {
+          "param": "feedback",
+          "from": 0,
+          "to": 0.8
+        },
+        {
+          "param": "mutate",
+          "from": 0,
+          "to": 0.8
+        }
+      ]
+    },
+    {
+      "name": "Density",
+      "value": 0,
+      "targets": [
+        {
+          "param": "g1_life_rate",
+          "from": 0.2,
+          "to": 1.6
+        },
+        {
+          "param": "g2_life_rate",
+          "from": 0.13,
+          "to": 1.04
+        },
+        {
+          "param": "g3_life_rate",
+          "from": 0.3,
+          "to": 2.4
+        },
+        {
+          "param": "g4_life_rate",
+          "from": 2.0,
+          "to": 16.0
+        }
+      ]
+    },
+    {
+      "name": "Dark",
+      "value": 0,
+      "targets": [
+        {
+          "param": "dark",
+          "from": 0,
+          "to": 1.0
+        }
+      ]
+    },
+    {
+      "name": "Space",
+      "value": 0,
+      "targets": [
+        {
+          "param": "reverb_mix",
+          "from": 0.0,
+          "to": 0.6
+        }
+      ]
+    }
+  ],
   "clip": {
     "bpm": 60,
     "length": 12,

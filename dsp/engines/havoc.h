@@ -46,7 +46,7 @@ enum { HAVOC_X_TYPE = 0, HAVOC_X_P1, HAVOC_X_P2, HAVOC_X_MIX, HAVOC_X_PCOUNT };
 
 enum {
     HAVOC_P_ATTACK = 0, HAVOC_P_RELEASE, HAVOC_P_GLIDE, HAVOC_P_VELOCITY, HAVOC_P_VOLUME, HAVOC_P_BEND_RANGE,
-    HAVOC_P_WIDTH, HAVOC_P_FEEDBACK, HAVOC_P_MUTATE, HAVOC_P_MUTATE_DEPTH,
+    HAVOC_P_WIDTH, HAVOC_P_FEEDBACK, HAVOC_P_MUTATE, HAVOC_P_MUTATE_DEPTH, HAVOC_P_DARK,
     HAVOC_P_PROCS,                                             /* then HAVOC_PROC x HAVOC_X_PCOUNT */
     HAVOC_P_GENS = HAVOC_P_PROCS + HAVOC_PROC * HAVOC_X_PCOUNT, /* then HAVOC_GEN x HAVOC_G_COUNT */
     HAVOC_P_COUNT = HAVOC_P_GENS + HAVOC_GEN * HAVOC_G_COUNT
@@ -98,6 +98,7 @@ typedef struct {
     float semi, semi_target; /* glided pitch (MIDI note number) */
     float env, vel, gain_prev;
     float dc_xl, dc_yl, dc_xr, dc_yr; /* DC blocker of the output */
+    float dk[4];                      /* the dark filter: two states per side */
     int gate, fresh;
 } havoc_voice_t;
 

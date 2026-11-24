@@ -79,6 +79,7 @@
     "flux.rupture": "rate of the random events that break the machine",
     "flux.violence": "size of the ruptures",
     "flux.xor": "bitwise exclusive or of each loop with its neighbour",
+    "havoc.dark": "low-pass on the whole noise machine, after its processors",
     "havoc.feedback": "the machine's output into the frequency of every generator",
     "havoc.gen<n>.a": "first shape control of a generator",
     "havoc.gen<n>.b": "second shape control of a generator",

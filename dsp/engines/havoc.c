@@ -117,6 +117,9 @@ const param_desc_t havoc_params[HAVOC_P_COUNT] = {
     PARAM(HAVOC_P_MUTATE_DEPTH, "mutate_depth", "havoc.mutate_depth", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
           "size of the mutations: how far the shapes and the pitch (2 octaves at most) are thrown; above the "
           "middle a mutation can also change the generator's process"),
+    PARAM(HAVOC_P_DARK, "dark", "havoc.dark", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "a low-pass on the whole machine, after the processors: 0 = open, 0.5 = 1.6 kHz, 1 = 140 Hz, only the "
+          "weight is left"),
     HAVOC_PROC_PARAMS(0, "1"),
     HAVOC_PROC_PARAMS(1, "2"),
     HAVOC_GEN_PARAMS(0, "1", (float)HAVOC_T_TONE, 0.0f, 1.0f, 0.3f, 0.0f, 0.7f, 0.0f, 0.13f),
@@ -181,6 +184,7 @@ static void voice_clear(havoc_voice_t *v)
         v->fb[i] = v->ofb[i] = 0.0f;
     v->rng = dsp_seed(0x3A7E1u);
     v->dc_xl = v->dc_yl = v->dc_xr = v->dc_yr = 0.0f;
+    v->dk[0] = v->dk[1] = v->dk[2] = v->dk[3] = 0.0f;
     v->env = 0.0f;
     v->gain_prev = 0.0f;
     v->fresh = 1;
@@ -1011,6 +1015,23 @@ static DSP_FAST_CODE void voice_render(havoc_t *e, int vi, float *L, float *R)
     /* the processors, a soft bound (a resonant filter can ask for much more than full scale), the DC blocker */
     for (int x = 0; x < HAVOC_PROC; x++)
         proc_render(e, &v->proc[x], &p[HAVOC_X_P(x, 0)], xl, xr);
+    const float dark = p[HAVOC_P_DARK];
+    if (dark > 0.0f) { /* 18 kHz .. 140 Hz, 12 dB per octave, no resonance */
+        const float gg = fm_tan_pi(18000.0f * fm_exp2(-7.0f * dark) * inv_sr);
+        const float a1 = 1.0f / (1.0f + gg * (gg + 1.414f)), a2 = gg * a1, a3 = gg * a2;
+        float *const side[2] = {xl, xr};
+        for (int c = 0; c < 2; c++) {
+            float ic1 = v->dk[2 * c], ic2 = v->dk[2 * c + 1];
+            for (int i = 0; i < n; i++) {
+                const float v3 = side[c][i] - ic2, v1 = a1 * ic1 + a2 * v3, v2 = ic2 + a2 * ic1 + a3 * v3;
+                ic1 = v1 + v1 - ic1;
+                ic2 = v2 + v2 - ic2;
+                side[c][i] = v2;
+            }
+            v->dk[2 * c] = ic1;
+            v->dk[2 * c + 1] = ic2;
+        }
+    }
     const float dc = 1.0f - 125.7f * inv_sr; /* 20 Hz */
     for (int i = 0; i < n; i++) {
         const float sl = 2.0f * fm_tanh(0.5f * xl[i]), sr_ = 2.0f * fm_tanh(0.5f * xr[i]);
@@ -1070,7 +1091,7 @@ static const engine_stage_t havoc_stages[] = {
     {"proc1", "Processor 1", "filter", "x1_", "gen1 gen2 gen3 gen4", NULL, NULL, 0.0f, 0.0f},
     {"proc2", "Processor 2", "filter", "x2_", "proc1", NULL, NULL, 0.0f, 0.0f},
     {"chaos", "Chaos", "mod", "feedback mutate mutate_depth", "", "gen1 gen2 gen3 gen4", NULL, 0.0f, 0.0f},
-    {"amp", "Amp", "amp", "width amp_attack amp_release velocity volume", "proc2", NULL, NULL, 0.0f, 0.0f},
+    {"amp", "Amp", "amp", "dark width amp_attack amp_release velocity volume", "proc2", NULL, NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
 

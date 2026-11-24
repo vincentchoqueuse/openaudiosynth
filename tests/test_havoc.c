@@ -171,6 +171,13 @@ static void test_processors(void)
     CHECK(level[0] > 0.02f && level[1] < 0.03f * level[0], "havoc low-pass: rms %g before, %g after", (double)level[0],
           (double)level[1]);
 
+    /* the dark filter: 18 kHz * 2^(-7 * 0.84) = 305 Hz, the same tone at least 30 dB down */
+    solo(HAVOC_T_TONE, 0.0f, 0.0f);
+    setp(HAVOC_P_DARK, 0.84f);
+    play(105, L, N);
+    CHECK(rms(L + N / 2, N / 2) < 0.03f * level[0], "havoc dark: rms %g before, %g after", (double)level[0],
+          (double)rms(L + N / 2, N / 2));
+
     /* every processor changes the signal and keeps it bounded */
     solo(HAVOC_T_TONE, 0.5f, 0.0f);
     play(57, L2, N);

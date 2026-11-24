@@ -316,18 +316,24 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of sixteen proces
 - **Rot**: `g<n>_rot` resamples one generator at a lower rate and on fewer bits, with no filter (0.3 = a grain,
   0.6 = 2 kHz and 4 bits). It sits before the ring of modulation: a rotten generator sends its aliases into the
   frequency or the amplitude of the next.
+- **Six macros** carry every sound (and the board's knobs): Rot (the rot of the four generators), Motion (how far
+  their own oscillators move their shapes), Chaos (feedback and mutations), Density (the rates of their lives),
+  Dark (the low-pass `dark` on the whole machine: 0 = open, 1 = 140 Hz), Space (the reverb). All start at 0, where
+  the sound is as it was written. In the browser a generator's card shows its process, pitch, two shapes under
+  their real names (Feedback and Detune for `tone`, Speed and Whisper for `talk`...), life and level; the rest is
+  under More.
 - **Moving timbre**: every generator has its own slow oscillator: `g<n>_lfo_rate`, and how far it moves a
   (`g<n>_lfo_a`) and b (`g<n>_lfo_b`, at 0.62 of the rate, so the pair of shapes never repeats). Give the four
-  generators rates with no simple ratio (0.043, 0.071, 0.117, 0.19 Hz in `havoc_shapeshifter`): a held note
+  generators rates with no simple ratio (0.043, 0.071, 0.117, 0.19 Hz in): a held note
   never passes twice through the same sound. On `byte` it changes the formula, on `cell` the rule, on `pulsar`
-  the vowel (`havoc_throat`), on `tone` and `logistic` it goes from a note to noise and back.
+  the vowel, on `tone` and `logistic` it goes from a note to noise and back.
 - **Life**: `g<n>_life` is how the generator exists in time: `steady`, `bursts` (on and off at random,
   `life_rate` times a second, on for `life_shape` of the time), `pulse` (a decaying hit every period: rhythm),
   `swell` (a slow random breath). Three generators with three lives are three layers of one scene.
 - **Ring of modulation**: `g<n>_fm` and `g<n>_ring` let the generator before (the fourth for the first)
   modulate this one's frequency or amplitude. A modulator can be silent itself (`level` 0). A slow stepped
-  `logistic` into the `fm` of a `tone` is a random melody (`havoc_alarm`); a slow saw (`tone`, a 0.33) is a
-  repeated dive (`havoc_laser_tag`); a `byte` into the `ring` of anything is digital hash (`havoc_radio_drift`).
+  `logistic` into the `fm` of a `tone` is a random melody; a slow saw (`tone`, a 0.33) is a
+  repeated dive; a `byte` into the `ring` of anything is digital hash.
 - **Processors**: `x1_type` and `x2_type`, in series on the sum: `lp`, `bp`, `hp`, `comb` (a tuned pipe),
   `fold`, `crush`, `ring` (a sine multiplies the sum), `chop` (a periodic gate), `stutter` (now and then the last
   2 to 42 ms repeat as if stuck: p1 = the length, p2 = the share of the time; it makes a fault of any sound),
@@ -339,26 +345,17 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of sixteen proces
   howls, 0.85 collapses). `mutate` makes the machine change itself while it plays: at random, one generator gets
   other shapes and another pitch, and above `mutate_depth` 0.5 sometimes another process (`havoc_meltdown`: 0.8
   and 1). The same note always mutates the same way.
-- **Machines that speak**: `talk` low and slow with a `sub` is an oracle (`havoc_oracle`), on the note it sings
-  (`havoc_machine_prayer`), several at once are a crowd (`havoc_glossolalia`); with its `ring` driven by a `tone`
-  it is a voice on a radio (`havoc_ghost_station`), with its `fm` driven by a `neuron` it stammers
-  (`havoc_wetware`). `modem` against `talk` is a dialogue (`havoc_dialogue`, `havoc_handshake`). `neuron` at a
-  low pitch is single spikes (`havoc_synapse`). `alias` with its a moved slowly makes foldings that cross
-  (`havoc_nyquist`). Everything at its end: `havoc_overclock`, `havoc_total_loss`.
+- **Machines that speak**: `talk` low and slow with a `sub` is an oracle (`havoc_oracle`), on the note it sings, several at once are a crowd; with its `ring` driven by a `tone`
+  it is a voice on a radio, with its `fm` driven by a `neuron` it stammers. `modem` against `talk` is a dialogue (`havoc_handshake`). `neuron` at a
+  low pitch is single spikes. `alias` with its a moved slowly makes foldings that cross
+  (`havoc_nyquist`). Everything at its end:.
 - **Dark**: low pitches (-24 and under), `pulsar` with a low formant, `swarm` under the hearing range (beats),
   a `sub` and a low-pass, slow `swell` lives, and the long dark reverb of the bus (`reverb_decay` 0.95 and more,
-  `reverb_damping` near 2000 Hz): `havoc_descent`, `havoc_leviathan`, `havoc_void_choir`, `havoc_possessed`,
-  `havoc_nerve`, `havoc_hive_mind`, `havoc_last_transmission`.
-- **Where to start**: sparse events = `dust` at a very low pitch (`havoc_geiger`, `havoc_wind_chimes` with a long
-  ring); weather = `wind` and dense `dust` (`havoc_solar_wind`, `havoc_rainfall`); fire = `rumble` with b high
-  (`havoc_bonfire`); machines = `logistic` or `cell` with a `pulse` life into a `comb` (`havoc_pile_driver`,
-  `havoc_automaton`); computers = `computer` and `byte` (`havoc_mainframe`, `havoc_data_stream`); creatures =
-  `swarm` and `pulsar` (`havoc_insects`, `havoc_whale`, `havoc_throat`); science fiction = `bleep` for anything that talks or reports (`havoc_droid_talk`,
-  `havoc_telemetry`, `havoc_cockpit`, keyed by a `byte` through `ring` in `havoc_uplink`), `glitch` and `stutter`
-  for what breaks (`havoc_bad_memory`, `havoc_system_failure`, `havoc_short_circuit`, `havoc_stuck_voice`), a
-  slow saw into `fm` for sweeps (`havoc_scanner`); walls = `tone` with a near 1 and `fm`
-  (`havoc_scream`). `pulsar`, `tone`, `logistic` and `cell` with `track` on play in tune (`havoc_throat`,
-  `havoc_sub_engine`).
+  `reverb_damping` near 2000 Hz):, `havoc_leviathan`.
+- **Where to start**: sparse events = `dust` at a very low pitch (`havoc_wind_chimes` with a long
+  ring); weather = `wind` and dense `dust` (`havoc_solar_wind`); fire = `rumble` with b high; machines = `logistic` or `cell` with a `pulse` life into a `comb` (`havoc_automaton`); computers = `computer` and `byte`; creatures =
+  `swarm` and `pulsar` (`havoc_insects`); science fiction = `bleep` for anything that talks or reports (`havoc_droid_talk`), `glitch` and `stutter`
+  for what breaks, a slow saw into `fm` for sweeps; walls = `tone` with a near 1 and `fm`. `pulsar`, `tone`, `logistic` and `cell` with `track` on play in tune.
 - The same note always gives the same sequence of random events. `byte` and `cell` alias on purpose.
 
 ## Feedback noise machine (`flux`)

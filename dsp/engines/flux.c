@@ -53,6 +53,18 @@ const param_desc_t flux_params[FLUX_P_COUNT] = {
     PARAM(FLUX_P_CRACKLE, "crackle", "flux.crackle", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
           "random impulses exciting the loops: 0 = none, low = rare sparks, 1 = a dense crackling (about 100 a "
           "second per channel)"),
+    PARAM(FLUX_P_CRUSH, "crush", "flux.crush", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "resampling of every loop at a low rate and a few bits (each channel at its own rate): 0 = clean, "
+          "1 = 400 Hz and 2 bits; the aliases go round the loop again and pile up"),
+    PARAM(FLUX_P_XOR, "xor", "flux.xor", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "every loop mixed bit by bit (exclusive or) with its neighbour's output: digital shards that follow "
+          "both signals"),
+    PARAM(FLUX_P_RUPTURE, "rupture", "flux.rupture", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "how often a random event breaks the machine: 0 = never, 0.5 = about one a second, 1 = thirteen a second. "
+          "An event retunes some channels at once, freezes their delays into a stutter, cuts them out, overdrives "
+          "every loop, tears the delays' memory or throws the pitch away"),
+    PARAM(FLUX_P_VIOLENCE, "violence", "flux.violence", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
+          "size of the ruptures: how many channels they hit, how far they throw them, how long they last"),
     PARAM(FLUX_P_MOTION, "motion", "drone.motion", 0.0f, 1.0f, 0.4f, PARAM_LIN, "", 1, NULL,
           "speed of the random drift of every channel (a minute per swing .. several a second)"),
     PARAM(FLUX_P_DEPTH, "depth", "drone.depth", 0.0f, 1.0f, 0.4f, PARAM_LIN, "", 1, NULL,
@@ -115,6 +127,8 @@ static void voice_clear(flux_voice_t *v)
         c->ng = 1.0f;
         c->imp_at = -1;
         c->imp = 0.0f;
+        c->cph = c->hold = c->jt = c->jp = 0.0f;
+        c->frz = c->mute = c->snap = 0;
         for (int w = 0; w < FLUX_W_COUNT; w++)
             c->w[w].x = c->w[w].y = 0.6f * dsp_rand_bipolar(&v->rng);
     }
@@ -122,6 +136,8 @@ static void voice_clear(flux_voice_t *v)
     v->dc_xl = v->dc_yl = v->dc_xr = v->dc_yr = 0.0f;
     v->env = 0.0f;
     v->gain_prev = 0.0f;
+    v->surge = 0;
+    v->dive = 0.0f;
     v->fresh = 1;
 }
 
@@ -158,6 +174,48 @@ static void voice_silence(void *eng, int vi)
 
 static const vpoly_ops_t flux_poly_ops = {voice_start, voice_release, voice_level, voice_silence, voice_legato};
 
+/* Ruptures (block rate): with a probability set by `rate`, one random event of a size set by `vio`. */
+static void rupture(flux_voice_t *v, float rate, float vio, float dt)
+{
+    if (rate <= 0.001f || dsp_rand_unipolar(&v->rng) >= 0.05f * fm_exp2(8.0f * rate) * dt)
+        return;
+    const int kind = (int)(dsp_rand_unipolar(&v->rng) * 6.0f);
+    /* 30 ms .. 2 s, the longest only when violent */
+    const int blocks = 1 + (int)(0.03f * fm_exp2(6.0f * dsp_rand_unipolar(&v->rng) * (0.4f + 0.6f * vio)) / dt);
+    const int sure = (int)(dsp_rand_unipolar(&v->rng) * (float)FLUX_CH) & (FLUX_CH - 1); /* at least this channel */
+    /* the share of the channels it hits; a violent one, often, hits them all: the whole machine stutters or stops */
+    const float share = dsp_rand_unipolar(&v->rng) < 0.6f * vio ? 1.0f : 0.15f + 0.7f * vio;
+    switch (kind) {
+    case 0: /* retune: some channels thrown to another delay time and pitch, and left there */
+    case 1: /* freeze: their delays stutter */
+    case 2: /* cut: they drop out (all of them, sometimes: a hole) */
+        for (int k = 0; k < FLUX_CH; k++) {
+            flux_chan_t *c = &v->ch[k];
+            if (k != sure && dsp_rand_unipolar(&v->rng) >= share)
+                continue;
+            if (kind == 0) {
+                c->jt = 0.45f * vio * dsp_rand_bipolar(&v->rng);
+                c->jp = 0.3f * vio * dsp_rand_bipolar(&v->rng);
+                c->snap = 1;
+            } else if (kind == 1) {
+                c->frz = blocks;
+            } else {
+                c->mute = 1 + blocks / 3; /* a hole stays short: 10 ms .. 0.7 s */
+            }
+        }
+        break;
+    case 3: /* surge: every loop overdriven and folded */
+        v->surge = blocks;
+        break;
+    case 4: /* dive: the whole machine's pitch thrown away, then back */
+        v->dive = 48.0f * vio * dsp_rand_bipolar(&v->rng);
+        break;
+    default: /* tear: the delays read another place of their memory */
+        v->wr = (v->wr + (int)(dsp_rand_unipolar(&v->rng) * (float)FLUX_DELAY)) & FLUX_MASK;
+        break;
+    }
+}
+
 /* ---------------- engine_ops ---------------- */
 
 static void flux_init(void *st, float sr)
@@ -176,6 +234,7 @@ static void flux_init(void *st, float sr)
             flux_chan_t *c = &v->ch[k];
             c->inc = c->fb = c->flow = c->gl = c->gr = 0.0f;
             c->dly = 2.0f;
+            c->cinc = 1.0f;
             c->pw = 0.5f;
             c->hc = 0.99f;
             c->a1 = 1.0f;
@@ -240,14 +299,23 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
         if (dsp_absf(v->semi_target - v->semi) < 1e-3f)
             v->semi = v->semi_target;
     }
-    const float semi = v->semi + e->bend * p[FLUX_P_BEND_RANGE] + vm[VM_PITCH];
+    rupture(v, p[FLUX_P_RUPTURE], p[FLUX_P_VIOLENCE], dt);
+    const float semi = v->semi + v->dive + e->bend * p[FLUX_P_BEND_RANGE] + vm[VM_PITCH];
+    v->dive *= 1.0f - dsp_minf(4.0f * dt, 1.0f); /* back in a quarter of a second */
+    const float hot = v->surge > 0 ? p[FLUX_P_VIOLENCE] : 0.0f; /* overdrive of every loop */
+    if (v->surge > 0)
+        v->surge--;
 
     /* block-rate settings shared by the channels */
     const float e_pitch = fm_exp2(-3.0f * p[FLUX_P_MAP_PITCH]), e_cut = fm_exp2(-3.0f * p[FLUX_P_MAP_CUTOFF]);
     const float e_time = fm_exp2(-3.0f * p[FLUX_P_MAP_TIME]), e_flow = fm_exp2(-3.0f * p[FLUX_P_MAP_FLOW]);
     const float depth = p[FLUX_P_DEPTH], width = p[FLUX_P_WIDTH], norm = p[FLUX_P_NORMALIZE];
     const float kq = 2.0f - 1.94f * p[FLUX_P_RESO]; /* damping: 2 (none) .. 0.06 */
-    const float fold = p[FLUX_P_FOLD], fold_drive = 0.25f * (1.0f + 5.0f * fold);
+    const float fold = dsp_maxf(p[FLUX_P_FOLD], 0.8f * hot), fold_drive = 0.25f * (1.0f + 5.0f * fold) * (1.0f + 2.0f * hot);
+    const float target = FLUX_TARGET * (1.0f + 3.0f * hot);
+    const float crush = p[FLUX_P_CRUSH], xor_mix = p[FLUX_P_XOR];
+    const float crush_rate = fm_exp2(-7.0f * crush);             /* 48 kHz .. 375 Hz */
+    const float crush_lv = fm_exp2(15.0f - 14.0f * crush), crush_ilv = 1.0f / crush_lv; /* steps per unit */
     const float cross = p[FLUX_P_CROSS];
     const float wa = dsp_minf(dt / (60.0f * fm_exp2(-8.2f * p[FLUX_P_MOTION])), 0.25f); /* walks: 60 s .. 0.2 s */
     const float wk = 2.449f * fm_exp2(0.5f * fm_log2(wa)); /* sqrt(6 a) */
@@ -264,11 +332,13 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
         for (int j = 0; j < FLUX_W_COUNT; j++)
             w[j] = depth > 0.0f ? depth * walk_step(&c->w[j], &v->rng, wa, wk) : 0.0f;
         /* oscillator: 5 octaves below the note .. 4 above */
-        const float up = map_bar(p[FLUX_CH_P(FLUX_C_PITCH, k)], e_pitch);
+        const float up = dsp_clampf(map_bar(p[FLUX_CH_P(FLUX_C_PITCH, k)], e_pitch) + c->jp, 0.0f, 1.0f);
         const float inc = dsp_minf(fm_mtof(semi - 60.0f + 108.0f * up + 5.0f * w[FLUX_W_PITCH]) * inv_sr, 0.45f);
         c->pw = 0.03f + 0.47f * p[FLUX_CH_P(FLUX_C_PULSE, k)];
         /* delay: 0.04 .. 42 ms */
-        const float ut = map_bar(p[FLUX_CH_P(FLUX_C_TIME, k)], e_time);
+        const float ut = dsp_clampf(map_bar(p[FLUX_CH_P(FLUX_C_TIME, k)], e_time) + c->jt, 0.0f, 1.0f);
+        /* its own rate, that wanders too: the aliases do not line up and never settle */
+        c->cinc = dsp_minf(crush_rate * (1.0f + 0.09f * (float)k) * fm_exp2(1.2f * w[FLUX_W_CUTOFF]), 1.0f);
         const float dly = dsp_clampf(0.00004f * sr * fm_exp2(10.0f * ut + 0.3f * w[FLUX_W_TIME]), 1.5f, dly_max);
         /* filter: 30 Hz .. 17 kHz */
         const float uc = map_bar(p[FLUX_CH_P(FLUX_C_CUTOFF, k)], e_cut);
@@ -287,7 +357,7 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
         const float fb = dsp_clampf(p[FLUX_CH_P(FLUX_C_FEEDBACK, k)], 0.0f, 1.0f);
         const float uf = map_bar(p[FLUX_CH_P(FLUX_C_FLOW, k)], e_flow);
         const float flow = flow_max * uf * uf;
-        const float want = dsp_minf(FLUX_TARGET / (c->env + 0.01f), 8.0f);
+        const float want = dsp_minf(target / (c->env + 0.01f), 8.0f);
         const float ng = c->ng + 0.2f * (1.0f + norm * (want - 1.0f) - c->ng);
         /* level and place */
         const float lv = dsp_clampf(p[FLUX_CH_P(FLUX_C_LEVEL, k)] * (1.0f + 0.6f * w[FLUX_W_LEVEL]), 0.0f, 1.5f);
@@ -296,6 +366,14 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
         float gl, gr;
         voice_pan(pos, &gl, &gr);
         gl *= lv, gr *= lv;
+        if (c->mute > 0) {
+            c->mute--;
+            gl = gr = 0.0f;
+        }
+        if (c->snap) { /* a rupture: the channel is thrown to its new settings, with the click */
+            c->inc = inc, c->dly = dsp_minf(1.0198f * dly, dly_max);
+            c->snap = 0;
+        }
         if (v->fresh) {
             c->inc = inc, c->dly = dsp_minf(1.0198f * dly, dly_max), c->fb = fb, c->flow = flow, c->gl = gl, c->gr = gr;
             c->ng = 1.0f + norm * (want - 1.0f);
@@ -316,6 +394,12 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
         }
     }
     v->fresh = 0;
+    int frozen = 0;
+    for (int k = 0; k < FLUX_CH; k++)
+        if (v->ch[k].frz > 0) {
+            v->ch[k].frz--;
+            frozen |= 1 << k;
+        }
 
     float xl[SYNTH_BLOCK], xr[SYNTH_BLOCK];
     const float dc = 1.0f - 125.7f * inv_sr; /* DC blocker (20 Hz): asymmetric loops can hold an offset */
@@ -328,6 +412,15 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
             const float m = v->ch[(k + FLUX_CH - 1) & (FLUX_CH - 1)].y; /* the neighbour's output */
             c->inc += d_inc[k], c->dly += d_dly[k], c->fb += d_fb[k], c->flow += d_flow[k];
             c->gl += d_gl[k], c->gr += d_gr[k], c->ng += d_ng[k];
+
+            if (frozen & (1 << k)) { /* the delay recirculates as it is: a stutter of its own length */
+                const int16_t s = c->buf[(wr - (int)c->dly) & FLUX_MASK];
+                c->buf[wr] = s;
+                c->y = c->r = (float)s * (1.0f / 32767.0f);
+                sl += c->y * c->gl;
+                sr_ += c->y * c->gr;
+                continue;
+            }
 
             /* oscillator */
             float inc = c->inc;
@@ -392,6 +485,18 @@ static DSP_FAST_CODE void voice_render(flux_t *e, int vi, float *L, float *R)
                 c->ic1 = c->ic2 = c->env = c->r = c->hx = c->hy = 0.0f;
                 e->nan_count++;
             }
+            if (xor_mix > 0.0f) { /* bit by bit with the neighbour */
+                const int16_t a = (int16_t)(w * 32767.0f), b = (int16_t)(m * 32767.0f);
+                w += xor_mix * ((float)(int16_t)(a ^ b) * (1.0f / 32767.0f) - w);
+            }
+            if (crush > 0.0f) { /* resampled and quantised: held until its own clock ticks */
+                c->cph += c->cinc;
+                if (c->cph >= 1.0f) {
+                    c->cph -= 1.0f;
+                    c->hold = (float)(int32_t)(w * crush_lv + (w >= 0.0f ? 0.5f : -0.5f)) * crush_ilv;
+                }
+                w = dsp_clampf(c->hold, -1.0f, 1.0f);
+            }
             c->buf[wr] = (int16_t)(w * 32767.0f);
             c->y = w;
             sl += w * c->gl;
@@ -449,11 +554,12 @@ static const engine_stage_t flux_stages[] = {
     {"osc", "Oscillators", "source", "mode map_pitch pitch_", "", NULL, NULL, 0.0f, 0.0f},
     {"filter", "Filter", "filter", "filter_type resonance map_cutoff cutoff_", "osc", NULL, NULL, 0.0f, 0.0f},
     {"comb", "Delay", "filter", "map_time time_", "filter", NULL, NULL, 0.0f, 0.0f},
-    {"loop", "Loop", "filter", "feedback_ normalize fold cross", "comb", NULL, NULL, 0.0f, 0.0f},
+    {"loop", "Loop", "filter", "feedback_ normalize fold cross crush xor", "comb", NULL, NULL, 0.0f, 0.0f},
     {"amp", "Amp", "amp", "level_ width amp_attack amp_release velocity volume", "loop", NULL, NULL, 0.0f, 0.0f},
     {"pulse", "Pulse", "mod", "pulse_", "", "osc", NULL, 0.0f, 0.0f},
     {"flow", "Flow", "mod", "map_flow flow_", "", "osc comb", NULL, 0.0f, 0.0f},
     {"crackle", "Crackle", "mod", "crackle", "", "loop", "crackle", 0.0f, 0.3f},
+    {"rupture", "Rupture", "mod", "rupture violence", "", "osc comb loop amp", "rupture", 0.0f, 0.3f},
     {"motion", "Motion", "mod", "motion depth", "", "osc filter comb amp", NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
@@ -463,7 +569,8 @@ const engine_ops_t flux_engine = {
     .description = "feedback noise machine: eight channels (pulse or parabolic oscillator into a short feedback "
                    "delay with wavefolder, level regulator and filter in the loop) that modulate each other (flow) "
                    "and feed each other's loops (cross); four master controls reshape the eight bars of pitch, "
-                   "cutoff, delay time and flow; crackle, slow random drift; from deep atmospheres to harsh noise "
+                   "cutoff, delay time and flow; crush and xor dirty the loops, ruptures break the machine at random "
+                   "(retune, stutter, cut, surge, dive); crackle, slow random drift; from deep atmospheres to harsh noise "
                    "(1 voice, notes slide the machine)",
     .params = flux_params,
     .param_count = FLUX_P_COUNT,

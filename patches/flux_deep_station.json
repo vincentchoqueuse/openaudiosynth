@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_deep_station",
-  "description": "The hum of a vast machine room: eight parabolic oscillators far below the note feed long, heavily crossed loops through a slow drift. Dark, wide, never still.",
+  "description": "The hum of a machine room that is failing: deep coupled resonances, resampled until they grind, and now and then a channel that drops out or stutters.",
   "params": {
     "mode": "para",
     "map_pitch": -0.2,
@@ -55,7 +55,11 @@
     "level_5": 0.6,
     "level_6": 0.5,
     "level_7": 0.5,
-    "level_8": 0.9
+    "level_8": 0.9,
+    "crush": 0.38,
+    "xor": 0.15,
+    "rupture": 0.35,
+    "violence": 0.55
   },
   "clip": {
     "bpm": 60,

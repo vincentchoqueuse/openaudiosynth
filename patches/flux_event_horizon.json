@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_event_horizon",
-  "description": "A slow fall into noise: over twenty seconds an envelope pushes the master pitch, time and flow from a low calm to a folded, screaming wall.",
+  "description": "Twenty seconds from a low calm to a wall of noise: pitch, flow, fold, crush, xor and the rate of the ruptures all rise together.",
   "params": {
     "mode": "loop",
     "filter_type": "lp",
@@ -36,7 +36,18 @@
     "route3_amount": 0.8,
     "route4_source": "mseg1",
     "route4_destination": "fold",
-    "route4_amount": 0.7
+    "route4_amount": 0.7,
+    "violence": 0.9,
+    "xor": 0.1,
+    "route5_source": "mseg1",
+    "route5_destination": "crush",
+    "route5_amount": 0.7,
+    "route6_source": "mseg1",
+    "route6_destination": "rupture",
+    "route6_amount": 0.85,
+    "route7_source": "mseg1",
+    "route7_destination": "xor",
+    "route7_amount": 0.6
   },
   "clip": {
     "bpm": 60,

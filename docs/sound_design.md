@@ -310,8 +310,19 @@ character of the whole machine. A second note played while the first is held sli
 - **Noise**: raise `map_flow` (every channel modulates its neighbour), `fold` (each pass folds the wave again) and
   `crackle` (random impulses into the loops), with a high-pass (`flux_signal_lost`); high pitches and a fast
   `motion` make a swarm (`flux_swarm`).
-- **Risers and falls**: route an envelope to `map_pitch`, `map_time`, `map_flow` and `fold` together
-  (`flux_event_horizon`: twenty seconds from a low calm to a wall of noise).
+- **Dirt**: `crush` resamples every loop at a low rate and a few bits, each channel at its own wandering rate
+  (0.4 = a grind, 0.7 = a few hundred hertz and 5 bits: the note is gone, `flux_bit_rot`); the aliases go round
+  the loop again. `xor` mixes each loop bit by bit with its neighbour: harsh shards that follow both signals
+  (0.1 already adds a haze of highs; keep it at 0 for a sound that must stay dark).
+- **Surprise**: `rupture` is the rate of random events (0.3 = one every few seconds, 0.5 = one a second,
+  1 = thirteen a second), `violence` their size. An event is one of six: some channels thrown to another delay
+  time and pitch and left there, their delays frozen into a stutter, the channels cut out (a violent one cuts them
+  all: a hole of silence, 0.7 s at most), every loop overdriven and folded, the whole pitch thrown up to 4 octaves
+  away and back, or the delays' memory torn. Rare and mild on an atmosphere (`flux_glass_wind`, `flux_deep_station`),
+  dense and violent for a machine that breaks (`flux_broken_reactor`) or glitch percussion that plays itself
+  (`flux_dead_channel`). The same note always gives the same sequence of events.
+- **Risers and falls**: route an envelope to `map_pitch`, `map_time`, `map_flow`, `fold`, `crush` and `rupture`
+  together (`flux_event_horizon`: twenty seconds from a low calm to a wall of noise).
 - `motion` and `depth` set how fast and how far every channel drifts; `depth` 0 freezes the machine. The loops
   cannot exceed full scale whatever the settings (a tanh closes each loop), but levels change a lot between
   settings: keep an eye on `volume`.

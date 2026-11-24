@@ -6,7 +6,11 @@
  * time, by mode) and can feed the next one's loop (cross: the eight delays become one network). Every setting of a
  * channel is a value 0..1 (a bar); four master controls reshape the eight bars of pitch, cutoff, delay time and
  * flow at once instead of offsetting them. Random impulses excite the loops (crackle), and every channel's pitch,
- * time, cutoff, level and place wander on slow random walks, so a held note never repeats.
+ * time, cutoff, level and place wander on slow random walks, so a held note never repeats. Two processes make it
+ * dirty: every loop can be resampled at a low rate and a few bits (crush: the aliases go round the loop again), and
+ * mixed bit by bit with its neighbour (xor). One makes it unpredictable: ruptures, random events that retune some
+ * channels at once, freeze their delays into a stutter, cut them out, overdrive every loop, tear the delays' memory
+ * or throw the whole machine's pitch away.
  * References: feedback comb filters and their stability (J. O. Smith, Physical Audio Signal Processing); the
  * Ornstein-Uhlenbeck process for the walks; TPT state-variable filter (V. Zavalishin). */
 #ifndef ENGINE_FLUX_H
@@ -24,6 +28,7 @@ enum { FLUX_C_PITCH = 0, FLUX_C_PULSE, FLUX_C_CUTOFF, FLUX_C_TIME, FLUX_C_FEEDBA
 enum {
     FLUX_P_MODE = 0, FLUX_P_MAP_PITCH, FLUX_P_MAP_CUTOFF, FLUX_P_MAP_TIME, FLUX_P_MAP_FLOW,
     FLUX_P_FILTER_TYPE, FLUX_P_RESO, FLUX_P_NORMALIZE, FLUX_P_FOLD, FLUX_P_CROSS, FLUX_P_CRACKLE,
+    FLUX_P_CRUSH, FLUX_P_XOR, FLUX_P_RUPTURE, FLUX_P_VIOLENCE,
     FLUX_P_MOTION, FLUX_P_DEPTH, FLUX_P_WIDTH,
     FLUX_P_ATTACK, FLUX_P_RELEASE, FLUX_P_GLIDE, FLUX_P_VELOCITY, FLUX_P_VOLUME, FLUX_P_BEND_RANGE,
     FLUX_P_CHANNELS, /* then FLUX_C_COUNT x FLUX_CH values */
@@ -54,6 +59,9 @@ typedef struct {
     float r, y;               /* last loop signal (after the filter), last written sample */
     int imp_at;               /* sample of this block that gets an impulse (-1: none) */
     float imp;
+    float cph, cinc, hold;    /* crush: phase and rate of the resampling, held sample */
+    float jt, jp;             /* offsets of the time and pitch bars left by the last rupture */
+    int frz, mute, snap;      /* blocks left frozen, cut out; 1 = the next block jumps to its settings (no ramp) */
     flux_walk_t w[FLUX_W_COUNT];
     int16_t buf[FLUX_DELAY];
 } flux_chan_t;
@@ -65,6 +73,8 @@ typedef struct {
     float env, vel, gain_prev;
     float dc_xl, dc_yl, dc_xr, dc_yr; /* DC blocker of the output */
     int gate, fresh;
+    int surge;  /* blocks left of an overdrive of every loop */
+    float dive; /* pitch offset thrown by a rupture, falling back to 0 (semitones) */
     uint32_t rng;
 } flux_voice_t;
 

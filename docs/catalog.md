@@ -1358,7 +1358,7 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 
 ## Engine `flux` (1 voices)
 
-feedback noise machine: eight channels (pulse or parabolic oscillator into a short feedback delay with wavefolder, level regulator and filter in the loop) that modulate each other (flow) and feed each other's loops (cross); four master controls reshape the eight bars of pitch, cutoff, delay time and flow; crackle, slow random drift; from deep atmospheres to harsh noise (1 voice, notes slide the machine)
+feedback noise machine: eight channels (pulse or parabolic oscillator into a short feedback delay with wavefolder, level regulator and filter in the loop) that modulate each other (flow) and feed each other's loops (cross); four master controls reshape the eight bars of pitch, cutoff, delay time and flow; crush and xor dirty the loops, ruptures break the machine at random (retune, stutter, cut, surge, dive); crackle, slow random drift; from deep atmospheres to harsh noise (1 voice, notes slide the machine)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
@@ -1373,6 +1373,10 @@ feedback noise machine: eight channels (pulse or parabolic oscillator into a sho
 | `fold` | 0 .. 1 | 0 | yes | `flux.fold` | wavefolder in every loop: each pass folds the wave again, from a glassy edge to dense digital noise |
 | `cross` | 0 .. 1 | 0.2 | yes | `flux.cross` | how much of each loop comes from the next channel's: 0 = eight separate resonators, 1 = one ring of eight delays (a dense metallic network) |
 | `crackle` | 0 .. 1 | 0 | yes | `flux.crackle` | random impulses exciting the loops: 0 = none, low = rare sparks, 1 = a dense crackling (about 100 a second per channel) |
+| `crush` | 0 .. 1 | 0 | yes | `flux.crush` | resampling of every loop at a low rate and a few bits (each channel at its own rate): 0 = clean, 1 = 400 Hz and 2 bits; the aliases go round the loop again and pile up |
+| `xor` | 0 .. 1 | 0 | yes | `flux.xor` | every loop mixed bit by bit (exclusive or) with its neighbour's output: digital shards that follow both signals |
+| `rupture` | 0 .. 1 | 0 | yes | `flux.rupture` | how often a random event breaks the machine: 0 = never, 0.5 = about one a second, 1 = thirteen a second. An event retunes some channels at once, freezes their delays into a stutter, cuts them out, overdrives every loop, tears the delays' memory or throws the pitch away |
+| `violence` | 0 .. 1 | 0.5 | yes | `flux.violence` | size of the ruptures: how many channels they hit, how far they throw them, how long they last |
 | `motion` | 0 .. 1 | 0.4 | yes | `drone.motion` | speed of the random drift of every channel (a minute per swing .. several a second) |
 | `depth` | 0 .. 1 | 0.4 | yes | `drone.depth` | how far the channels' pitch, delay time, cutoff, level and place drift (0 = frozen) |
 | `width` | 0 .. 1 | 0.8 | yes | `drone.width` | spread of the eight channels in the stereo field |

@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_swarm",
-  "description": "Something alive and many: high pulses that modulate each other's frequency, fast restless drift, the stereo field crawling.",
+  "description": "A nervous swarm: channels that modulate and xor each other, thrown to new pitches several times a second.",
   "params": {
     "mode": "loop",
     "filter_type": "lp",
@@ -64,7 +64,11 @@
     "flow_5": 0.9,
     "flow_6": 0.6,
     "flow_7": 0.7,
-    "flow_8": 0.8
+    "flow_8": 0.8,
+    "xor": 0.6,
+    "crush": 0.2,
+    "rupture": 0.65,
+    "violence": 0.5
   },
   "clip": {
     "bpm": 60,

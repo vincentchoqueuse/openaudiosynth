@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_idle_engine",
-  "description": "A machine ticking over: very slow pulse trains (clicks) strike tuned loops, each at its own rate, like relays and pistons in a hull.",
+  "description": "An engine that will not start: slow clicks into tuned loops, crushed to a few bits, sputtering, stalling and catching again.",
   "params": {
     "mode": "pre",
     "filter_type": "lp",
@@ -63,7 +63,11 @@
     "flow_5": 0.2,
     "flow_6": 0.1,
     "flow_7": 0,
-    "flow_8": 0.2
+    "flow_8": 0.2,
+    "crush": 0.5,
+    "xor": 0.2,
+    "rupture": 0.75,
+    "violence": 0.65
   },
   "clip": {
     "bpm": 60,

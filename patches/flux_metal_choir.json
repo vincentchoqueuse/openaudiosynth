@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_metal_choir",
-  "description": "Resonant combs held at a constant level by the regulator: eight whistling metal voices in a band-pass, crossed into one shimmering body.",
+  "description": "Metallic voices on a chord, eaten bit by bit by their neighbours; ruptures retune a voice, freeze it or overdrive the whole choir.",
   "params": {
     "mode": "loop",
     "filter_type": "bp",
@@ -70,7 +70,11 @@
     "level_5": 0.7,
     "level_6": 0.7,
     "level_7": 0.7,
-    "level_8": 0.7
+    "level_8": 0.7,
+    "xor": 0.4,
+    "crush": 0.15,
+    "rupture": 0.6,
+    "violence": 0.7
   },
   "clip": {
     "bpm": 60,

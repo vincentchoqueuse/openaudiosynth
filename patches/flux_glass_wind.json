@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_glass_wind",
-  "description": "Air through glass tubes: parabolic tones folded in very short loops, a restless delay-time flow that bends them like wind.",
+  "description": "Wind in glass tubes, the cleanest of the machine: only a rare rupture retunes a tube or tears the air.",
   "params": {
     "mode": "para",
     "map_time": -0.5,
@@ -54,7 +54,10 @@
     "level_5": 0.7,
     "level_6": 0.5,
     "level_7": 0.8,
-    "level_8": 0.4
+    "level_8": 0.4,
+    "xor": 0.1,
+    "rupture": 0.3,
+    "violence": 0.35
   },
   "clip": {
     "bpm": 60,

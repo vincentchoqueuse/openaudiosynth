@@ -1,6 +1,7 @@
 /* test_flux.c — the feedback noise machine. One channel alone: the bare oscillator sits where its bar and the note
  * put it, and the master pitch reshapes the bar (u^(1/8) at +1); clicks into a loop ring at 1 / delay time; the
- * regulator holds a weak loop up. Then the whole machine: every parameter at its extremes stays finite and under
+ * regulator holds a weak loop up; the crush throws aliases above a clean tone, the xor changes it; the ruptures do
+ * nothing at rate 0, and at a high rate open holes in the sound. Then the whole machine: every parameter at its extremes stays finite and under
  * 0 dBFS, the same input gives the same output, and a released note falls silent and frees its voice.
  * Reference: the resonances of a feedback comb at k / T (J. O. Smith, Physical Audio Signal Processing). */
 #include <math.h>
@@ -133,9 +134,93 @@ static void test_machine(void)
     CHECK(max_abs(L + N / 2, N / 2) < 1e-5f, "flux release: still %g after the note", (double)max_abs(L + N / 2, N / 2));
 }
 
+/* level of the strongest component above 3 kHz, relative to the strongest of all (dB) */
+static float highs_db(const float *x)
+{
+    spectrum_db(x, N / 2, db);
+    const int k0 = (int)(3000.0f / (SR / (float)(N / 2)));
+    float top = -200.0f, high = -200.0f;
+    for (int k = 1; k < N / 4; k++) {
+        top = fmaxf(top, db[k]);
+        if (k >= k0)
+            high = fmaxf(high, db[k]);
+    }
+    return high - top;
+}
+
+static void test_dirt(void)
+{
+    /* a clean parabolic sine at 311 Hz has nothing above 3 kHz; resampled near 1 kHz and 4 bits, it does */
+    float h[2];
+    for (int dirty = 0; dirty < 2; dirty++) {
+        solo();
+        setp(FLUX_P_MODE, (float)FLUX_MODE_PARA);
+        setp(FLUX_CH_P(FLUX_C_PITCH, 0), 0.5f);
+        setp(FLUX_P_CRUSH, dirty ? 0.8f : 0.0f);
+        play(69, L, N);
+        h[dirty] = highs_db(L + N / 2);
+    }
+    CHECK(h[0] < -50.0f && h[1] > -30.0f, "flux crush: above 3 kHz %.0f dB clean, %.0f dB crushed", (double)h[0], (double)h[1]);
+
+    /* the xor with the neighbour: another signal, still bounded */
+    solo();
+    setp(FLUX_P_MODE, (float)FLUX_MODE_PARA);
+    setp(FLUX_CH_P(FLUX_C_PITCH, 0), 0.5f);
+    play(69, L2, N);
+    solo();
+    setp(FLUX_P_MODE, (float)FLUX_MODE_PARA);
+    setp(FLUX_CH_P(FLUX_C_PITCH, 0), 0.5f);
+    setp(FLUX_P_XOR, 1.0f);
+    play(69, L, N);
+    float diff = 0.0f;
+    for (int i = N / 2; i < N; i++)
+        diff = fmaxf(diff, fabsf(L[i] - L2[i]));
+    CHECK(diff > 0.01f && all_finite_bounded(L, N, 1.0f), "flux xor: changes the signal by %g at most", (double)diff);
+}
+
+static void default_machine(float rupture, float violence)
+{
+    synth_init(synth_default(), SR);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_FLUX);
+    setp(FLUX_P_ATTACK, 0.005f);
+    setp(FLUX_P_RUPTURE, rupture);
+    setp(FLUX_P_VIOLENCE, violence);
+}
+/* the quietest 12 ms of 16 buffers (22 s) of a held note, the first quarter second skipped */
+static float quietest(void)
+{
+    float q = 1.0f;
+    for (int pass = 0; pass < 16; pass++) {
+        play(48, L, N);
+        for (int i = pass ? 0 : 12000; i + 600 <= N; i += 600)
+            q = fminf(q, rms(L + i, 600));
+    }
+    return q;
+}
+
+static void test_rupture(void)
+{
+    /* at rate 0 the size of the ruptures changes nothing */
+    default_machine(0.0f, 0.0f);
+    play(48, L2, N);
+    default_machine(0.0f, 1.0f);
+    play(48, L, N);
+    CHECK(memcmp(L, L2, sizeof L) == 0, "flux: violence without ruptures changes the sound");
+
+    /* the steady machine never falls silent; with violent ruptures it has holes */
+    default_machine(0.0f, 1.0f);
+    const float steady = quietest();
+    default_machine(1.0f, 1.0f);
+    const float broken = quietest();
+    CHECK(steady > 0.003f && broken < 0.1f * steady, "flux ruptures: quietest 12 ms %g without, %g with", (double)steady,
+          (double)broken);
+}
+
 void suite_flux(void)
 {
     test_pitch();
     test_loop();
+    test_dirt();
+    test_rupture();
     test_machine();
 }

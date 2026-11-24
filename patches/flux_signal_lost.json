@@ -2,7 +2,7 @@
   "version": 1,
   "engine": "flux",
   "name": "flux_signal_lost",
-  "description": "A transmission breaking up: pulses folded and frequency-modulated by their neighbours, sparks of crackle, a high-pass that leaves only the debris.",
+  "description": "A transmission breaking up: folded pulses, bit-crushed and xored, cut by dropouts, stutters and bursts.",
   "params": {
     "mode": "loop",
     "filter_type": "hp",
@@ -64,7 +64,11 @@
     "flow_5": 0.4,
     "flow_6": 0.7,
     "flow_7": 0.6,
-    "flow_8": 0.8
+    "flow_8": 0.8,
+    "crush": 0.6,
+    "xor": 0.5,
+    "rupture": 0.78,
+    "violence": 0.8
   },
   "clip": {
     "bpm": 60,

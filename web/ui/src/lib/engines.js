@@ -24,7 +24,7 @@ export const DEFAULT_MACROS = {
   mono: ['cutoff', 'emphasis', 'contour', 'fenv_decay', 'mixer_drive', 'glide'],
   poly: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_release', 'lfo_filter'],
   fm4: ['op2_to_op1', 'op3_to_op1', 'op4_feedback', 'op2_decay', 'cutoff', 'pitch_amount'],
-  flux: ['map_pitch', 'map_time', 'map_flow', 'fold', 'cross', 'crackle'],
+  flux: ['map_pitch', 'map_time', 'fold', 'crush', 'rupture', 'violence'],
   fm6: ['op2_level', 'op4_level', 'op6_level', 'feedback', 'lfo_speed', 'lfo_pmd'],
   wt: ['a_position', 'b_position', 'a_warp', 'cutoff', 'resonance', 'amp_release'],
   modal: ['brightness', 'position', 'hardness', 'damping', 'decay', 'inharmonicity'],

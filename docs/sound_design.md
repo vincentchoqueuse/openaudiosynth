@@ -287,6 +287,44 @@ a modulation destination: an LFO on one cell moves one sideband family only.
   loop churns slowly (`fm4_cross_drone`). A link from a lower to a higher number runs a sample late (drawn dashed).
 - **Organ**: all four as carriers at 1, 2, 3, 8, feedback on the top one for a reedy edge (`fm4_reed_organ`).
 
+## Noise machine with a wide palette (`havoc`)
+
+One note runs four generators (`g1_` .. `g4_`). Each picks one of ten processes with `g<n>_type`; `g<n>_a` and
+`g<n>_b` shape it, and mean something else for each process:
+
+| type | what it is | pitch | a | b |
+|---|---|---|---|---|
+| `tone` | sine with phase feedback | frequency | feedback: sine, saw (0.33), noise (1) | a second, detuned sine |
+| `logistic` | the logistic map, one step per period | clock | 0 = a buzz an octave below the clock, 1 = chaos | stepped .. smooth |
+| `byte` | an integer formula on a counter, 8 bits | speed of the counter | which of 8 formulas | its constant (1..15) |
+| `dust` | random impulses into a resonator | impulses per second | frequency of the resonator | its ring: a click .. a second |
+| `wind` | a band of white noise | centre of the band | wide .. a whistle | gusts |
+| `pulsar` | a train of short sine bursts | rate of the train | frequency of the bursts (formant) | their length |
+| `cell` | a cellular automaton of 32 cells read as a wave | frequency | the rule, 0..255 (rule / 255) | smoothing |
+| `swarm` | eight sines wandering | centre | how far they wander | how fast |
+| `computer` | a tone that jumps to random pitches | centre | range of the jumps | jumps per second |
+| `rumble` | a leaky random walk | its speed | fold | only the peaks pass (crackle) |
+
+- **Pitch**: `g<n>_pitch` is in semitones from the note when `g<n>_track` is on, from middle C when it is off;
+  it goes down to -96 (1 Hz), where a generator is a rhythm or a slow modulator rather than a sound.
+- **Life**: `g<n>_life` is how the generator exists in time: `steady`, `bursts` (on and off at random,
+  `life_rate` times a second, on for `life_shape` of the time), `pulse` (a decaying hit every period: rhythm),
+  `swell` (a slow random breath). Three generators with three lives are three layers of one scene.
+- **Ring of modulation**: `g<n>_fm` and `g<n>_ring` let the generator before (the fourth for the first)
+  modulate this one's frequency or amplitude. A modulator can be silent itself (`level` 0). A slow stepped
+  `logistic` into the `fm` of a `tone` is a random melody (`havoc_alarm`); a slow saw (`tone`, a 0.33) is a
+  repeated dive (`havoc_laser_tag`); a `byte` into the `ring` of anything is digital hash (`havoc_radio_drift`).
+- **Processors**: `x1_type` and `x2_type`, in series on the sum: `lp`, `bp`, `hp`, `comb` (a tuned pipe),
+  `fold`, `crush`, `ring` (a sine multiplies the sum), `chop` (a periodic gate).
+- **Where to start**: sparse events = `dust` at a very low pitch (`havoc_geiger`, `havoc_wind_chimes` with a long
+  ring); weather = `wind` and dense `dust` (`havoc_solar_wind`, `havoc_rainfall`); fire = `rumble` with b high
+  (`havoc_bonfire`); machines = `logistic` or `cell` with a `pulse` life into a `comb` (`havoc_pile_driver`,
+  `havoc_automaton`); computers = `computer` and `byte` (`havoc_mainframe`, `havoc_data_stream`); creatures =
+  `swarm` and `pulsar` (`havoc_insects`, `havoc_whale`, `havoc_throat`); walls = `tone` with a near 1 and `fm`
+  (`havoc_scream`). `pulsar`, `tone`, `logistic` and `cell` with `track` on play in tune (`havoc_throat`,
+  `havoc_sub_engine`).
+- The same note always gives the same sequence of random events. `byte` and `cell` alias on purpose.
+
 ## Feedback noise machine (`flux`)
 
 One note is a whole machine: eight channels, each an oscillator into a short feedback delay, which modulate each

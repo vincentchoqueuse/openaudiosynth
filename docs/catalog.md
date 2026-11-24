@@ -1442,3 +1442,73 @@ feedback noise machine: eight channels (pulse or parabolic oscillator into a sho
 | `level_6` | 0 .. 1 | 0.7 | yes | `flux.ch6.level` | output level of this channel |
 | `level_7` | 0 .. 1 | 0.7 | yes | `flux.ch7.level` | output level of this channel |
 | `level_8` | 0 .. 1 | 0.7 | yes | `flux.ch8.level` | output level of this channel |
+
+## Engine `havoc` (1 voices)
+
+noise machine with a wide palette: four generators, each one of ten processes (feedback sine, logistic map, integer formula, dust into a resonator, band of noise, pulsar train, cellular automaton, swarm of sines, random jumping tone, clipped random walk) with its own pitch, life (steady, bursts, pulse, swell) and place, modulating each other in a ring (FM, ring), then two processors (filter, comb, fold, crush, ring, chop) (1 voice, notes slide the machine)
+
+| name | range / choices | default | live | role | what it does |
+|---|---|---|---|---|---|
+| `amp_attack` | 0.001 .. 60 s | 0.01 | yes | `amp.attack` | fade-in time |
+| `amp_release` | 0.005 .. 60 s | 0.5 | yes | `amp.release` | fade-out time |
+| `glide` | 0.001 .. 20 s | 0.05 | yes | `voice.glide` | time for the generators that follow the note to slide to a new note played while another is held |
+| `velocity` | 0 .. 1 | 0.3 | yes | `amp.velocity` | velocity to level: 0 = every note equal, 1 = full range |
+| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
+| `bend_range` | 0 .. 24 st | 12 |  | `voice.bend_range` | pitch-bend range |
+| `width` | 0 .. 1 | 1 | yes | `drone.width` | how far the generators are spread to their places (0 = all in the middle) |
+| `x1_type` | off, lp, bp, hp, comb, fold, crush, ring, chop | off |  | `havoc.proc1.type` | processor on the sum of the generators. lp, bp, hp: a filter, p1 = cutoff (30 Hz .. 17 kHz), p2 = resonance. comb: p1 = its pitch (30 Hz .. 7.7 kHz), p2 = feedback (negative below the middle). fold: a wavefolder, p1 = drive, p2 = asymmetry. crush: p1 = lower sampling rate, p2 = fewer bits. ring: multiplied by a sine, p1 = its frequency (1 Hz .. 8 kHz), p2 = phase between left and right. chop: a periodic gate, p1 = rate (0.5 .. 32 Hz), p2 = share of the time it is open |
+| `x1_p1` | 0 .. 1 | 0.5 | yes | `havoc.proc1.p1` | first control of this processor (see its type) |
+| `x1_p2` | 0 .. 1 | 0.5 | yes | `havoc.proc1.p2` | second control of this processor (see its type) |
+| `x1_mix` | 0 .. 1 | 1 | yes | `havoc.proc1.mix` | share of the processed signal |
+| `x2_type` | off, lp, bp, hp, comb, fold, crush, ring, chop | off |  | `havoc.proc2.type` | processor on the sum of the generators. lp, bp, hp: a filter, p1 = cutoff (30 Hz .. 17 kHz), p2 = resonance. comb: p1 = its pitch (30 Hz .. 7.7 kHz), p2 = feedback (negative below the middle). fold: a wavefolder, p1 = drive, p2 = asymmetry. crush: p1 = lower sampling rate, p2 = fewer bits. ring: multiplied by a sine, p1 = its frequency (1 Hz .. 8 kHz), p2 = phase between left and right. chop: a periodic gate, p1 = rate (0.5 .. 32 Hz), p2 = share of the time it is open |
+| `x2_p1` | 0 .. 1 | 0.5 | yes | `havoc.proc2.p1` | first control of this processor (see its type) |
+| `x2_p2` | 0 .. 1 | 0.5 | yes | `havoc.proc2.p2` | second control of this processor (see its type) |
+| `x2_mix` | 0 .. 1 | 1 | yes | `havoc.proc2.mix` | share of the processed signal |
+| `g1_type` | tone, logistic, byte, dust, wind, pulsar, cell, swarm, computer, rumble | tone |  | `havoc.gen1.type` | process of this generator. tone: a sine, a = phase feedback (sine, saw, noise), b = a second detuned sine. logistic: the logistic map clocked at the pitch, a = from a period-2 buzz to chaos, b = stepped to smooth. byte: an integer formula on a counter (8-bit digital melodies and noise), a = formula, b = its constant. dust: random impulses (the pitch is their number per second) into a resonator, a = its frequency, b = its ring. wind: a band of noise at the pitch, a = from wide to a whistle, b = gusts. pulsar: a train of short sine bursts, a = their frequency (a formant), b = their length. cell: a cellular automaton of 32 cells read as a wave and stepped every period, a = the rule (0..255), b = smoothing. swarm: eight sines wandering around the pitch, a = how far, b = how fast. computer: a tone that jumps to random pitches, a = range, b = speed. rumble: a random walk, a = fold, b = only the peaks pass (crackle) |
+| `g1_pitch` | -96 .. 60 st | 0 | yes | `havoc.gen1.pitch` | pitch of this generator, in semitones from the note (or from middle C when it does not track): -96 = 1 Hz, a rhythm; +60 = 8 kHz |
+| `g1_track` | off, on | on |  | `havoc.gen1.track` | on: this generator follows the note; off: it stays where its pitch puts it |
+| `g1_a` | 0 .. 1 | 0.3 | yes | `havoc.gen1.a` | first shape control of this generator (see its process) |
+| `g1_b` | 0 .. 1 | 0 | yes | `havoc.gen1.b` | second shape control of this generator (see its process) |
+| `g1_fm` | 0 .. 1 | 0 | yes | `havoc.gen1.fm` | frequency modulation of this generator by the one before it (the first by the last) |
+| `g1_ring` | 0 .. 1 | 0 | yes | `havoc.gen1.ring` | ring modulation of this generator by the one before it: at 1 it sounds only when the other does |
+| `g1_life` | steady, bursts, pulse, swell | steady |  | `havoc.gen1.life` | how this generator lives in time: steady, bursts (on and off at random), pulse (a periodic decaying hit), swell (a slow random breath) |
+| `g1_life_rate` | 0.05 .. 50 Hz | 2 | yes | `havoc.gen1.life_rate` | rate of the bursts, the pulse or the swell |
+| `g1_life_shape` | 0 .. 1 | 0.5 | yes | `havoc.gen1.life_shape` | bursts: share of the time it is on; pulse: length of the hit; swell: depth of the breath |
+| `g1_level` | 0 .. 1 | 0.7 | yes | `havoc.gen1.level` | output level of this generator (at 0 it can still modulate the next one) |
+| `g1_pan` | -1 .. 1 | 0 | yes | `havoc.gen1.pan` | place of this generator, left to right |
+| `g2_type` | tone, logistic, byte, dust, wind, pulsar, cell, swarm, computer, rumble | dust |  | `havoc.gen2.type` | process of this generator. tone: a sine, a = phase feedback (sine, saw, noise), b = a second detuned sine. logistic: the logistic map clocked at the pitch, a = from a period-2 buzz to chaos, b = stepped to smooth. byte: an integer formula on a counter (8-bit digital melodies and noise), a = formula, b = its constant. dust: random impulses (the pitch is their number per second) into a resonator, a = its frequency, b = its ring. wind: a band of noise at the pitch, a = from wide to a whistle, b = gusts. pulsar: a train of short sine bursts, a = their frequency (a formant), b = their length. cell: a cellular automaton of 32 cells read as a wave and stepped every period, a = the rule (0..255), b = smoothing. swarm: eight sines wandering around the pitch, a = how far, b = how fast. computer: a tone that jumps to random pitches, a = range, b = speed. rumble: a random walk, a = fold, b = only the peaks pass (crackle) |
+| `g2_pitch` | -96 .. 60 st | -36 | yes | `havoc.gen2.pitch` | pitch of this generator, in semitones from the note (or from middle C when it does not track): -96 = 1 Hz, a rhythm; +60 = 8 kHz |
+| `g2_track` | off, on | off |  | `havoc.gen2.track` | on: this generator follows the note; off: it stays where its pitch puts it |
+| `g2_a` | 0 .. 1 | 0.6 | yes | `havoc.gen2.a` | first shape control of this generator (see its process) |
+| `g2_b` | 0 .. 1 | 0.7 | yes | `havoc.gen2.b` | second shape control of this generator (see its process) |
+| `g2_fm` | 0 .. 1 | 0 | yes | `havoc.gen2.fm` | frequency modulation of this generator by the one before it (the first by the last) |
+| `g2_ring` | 0 .. 1 | 0 | yes | `havoc.gen2.ring` | ring modulation of this generator by the one before it: at 1 it sounds only when the other does |
+| `g2_life` | steady, bursts, pulse, swell | steady |  | `havoc.gen2.life` | how this generator lives in time: steady, bursts (on and off at random), pulse (a periodic decaying hit), swell (a slow random breath) |
+| `g2_life_rate` | 0.05 .. 50 Hz | 2 | yes | `havoc.gen2.life_rate` | rate of the bursts, the pulse or the swell |
+| `g2_life_shape` | 0 .. 1 | 0.5 | yes | `havoc.gen2.life_shape` | bursts: share of the time it is on; pulse: length of the hit; swell: depth of the breath |
+| `g2_level` | 0 .. 1 | 0 | yes | `havoc.gen2.level` | output level of this generator (at 0 it can still modulate the next one) |
+| `g2_pan` | -1 .. 1 | -0.5 | yes | `havoc.gen2.pan` | place of this generator, left to right |
+| `g3_type` | tone, logistic, byte, dust, wind, pulsar, cell, swarm, computer, rumble | wind |  | `havoc.gen3.type` | process of this generator. tone: a sine, a = phase feedback (sine, saw, noise), b = a second detuned sine. logistic: the logistic map clocked at the pitch, a = from a period-2 buzz to chaos, b = stepped to smooth. byte: an integer formula on a counter (8-bit digital melodies and noise), a = formula, b = its constant. dust: random impulses (the pitch is their number per second) into a resonator, a = its frequency, b = its ring. wind: a band of noise at the pitch, a = from wide to a whistle, b = gusts. pulsar: a train of short sine bursts, a = their frequency (a formant), b = their length. cell: a cellular automaton of 32 cells read as a wave and stepped every period, a = the rule (0..255), b = smoothing. swarm: eight sines wandering around the pitch, a = how far, b = how fast. computer: a tone that jumps to random pitches, a = range, b = speed. rumble: a random walk, a = fold, b = only the peaks pass (crackle) |
+| `g3_pitch` | -96 .. 60 st | 12 | yes | `havoc.gen3.pitch` | pitch of this generator, in semitones from the note (or from middle C when it does not track): -96 = 1 Hz, a rhythm; +60 = 8 kHz |
+| `g3_track` | off, on | off |  | `havoc.gen3.track` | on: this generator follows the note; off: it stays where its pitch puts it |
+| `g3_a` | 0 .. 1 | 0.5 | yes | `havoc.gen3.a` | first shape control of this generator (see its process) |
+| `g3_b` | 0 .. 1 | 0.3 | yes | `havoc.gen3.b` | second shape control of this generator (see its process) |
+| `g3_fm` | 0 .. 1 | 0 | yes | `havoc.gen3.fm` | frequency modulation of this generator by the one before it (the first by the last) |
+| `g3_ring` | 0 .. 1 | 0 | yes | `havoc.gen3.ring` | ring modulation of this generator by the one before it: at 1 it sounds only when the other does |
+| `g3_life` | steady, bursts, pulse, swell | steady |  | `havoc.gen3.life` | how this generator lives in time: steady, bursts (on and off at random), pulse (a periodic decaying hit), swell (a slow random breath) |
+| `g3_life_rate` | 0.05 .. 50 Hz | 2 | yes | `havoc.gen3.life_rate` | rate of the bursts, the pulse or the swell |
+| `g3_life_shape` | 0 .. 1 | 0.5 | yes | `havoc.gen3.life_shape` | bursts: share of the time it is on; pulse: length of the hit; swell: depth of the breath |
+| `g3_level` | 0 .. 1 | 0 | yes | `havoc.gen3.level` | output level of this generator (at 0 it can still modulate the next one) |
+| `g3_pan` | -1 .. 1 | 0.5 | yes | `havoc.gen3.pan` | place of this generator, left to right |
+| `g4_type` | tone, logistic, byte, dust, wind, pulsar, cell, swarm, computer, rumble | logistic |  | `havoc.gen4.type` | process of this generator. tone: a sine, a = phase feedback (sine, saw, noise), b = a second detuned sine. logistic: the logistic map clocked at the pitch, a = from a period-2 buzz to chaos, b = stepped to smooth. byte: an integer formula on a counter (8-bit digital melodies and noise), a = formula, b = its constant. dust: random impulses (the pitch is their number per second) into a resonator, a = its frequency, b = its ring. wind: a band of noise at the pitch, a = from wide to a whistle, b = gusts. pulsar: a train of short sine bursts, a = their frequency (a formant), b = their length. cell: a cellular automaton of 32 cells read as a wave and stepped every period, a = the rule (0..255), b = smoothing. swarm: eight sines wandering around the pitch, a = how far, b = how fast. computer: a tone that jumps to random pitches, a = range, b = speed. rumble: a random walk, a = fold, b = only the peaks pass (crackle) |
+| `g4_pitch` | -96 .. 60 st | -12 | yes | `havoc.gen4.pitch` | pitch of this generator, in semitones from the note (or from middle C when it does not track): -96 = 1 Hz, a rhythm; +60 = 8 kHz |
+| `g4_track` | off, on | on |  | `havoc.gen4.track` | on: this generator follows the note; off: it stays where its pitch puts it |
+| `g4_a` | 0 .. 1 | 0.5 | yes | `havoc.gen4.a` | first shape control of this generator (see its process) |
+| `g4_b` | 0 .. 1 | 0 | yes | `havoc.gen4.b` | second shape control of this generator (see its process) |
+| `g4_fm` | 0 .. 1 | 0 | yes | `havoc.gen4.fm` | frequency modulation of this generator by the one before it (the first by the last) |
+| `g4_ring` | 0 .. 1 | 0 | yes | `havoc.gen4.ring` | ring modulation of this generator by the one before it: at 1 it sounds only when the other does |
+| `g4_life` | steady, bursts, pulse, swell | steady |  | `havoc.gen4.life` | how this generator lives in time: steady, bursts (on and off at random), pulse (a periodic decaying hit), swell (a slow random breath) |
+| `g4_life_rate` | 0.05 .. 50 Hz | 2 | yes | `havoc.gen4.life_rate` | rate of the bursts, the pulse or the swell |
+| `g4_life_shape` | 0 .. 1 | 0.5 | yes | `havoc.gen4.life_shape` | bursts: share of the time it is on; pulse: length of the hit; swell: depth of the breath |
+| `g4_level` | 0 .. 1 | 0 | yes | `havoc.gen4.level` | output level of this generator (at 0 it can still modulate the next one) |
+| `g4_pan` | -1 .. 1 | 0 | yes | `havoc.gen4.pan` | place of this generator, left to right |

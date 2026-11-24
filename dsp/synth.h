@@ -27,6 +27,7 @@ typedef enum {
     SYNTH_ENGINE_MICRO,    /* precision sines: per-sample envelopes, fixed pitch, clicks, bursts, ratchets, gates */
     SYNTH_ENGINE_FM4,      /* 4-operator FM on a free modulation matrix (algorithms = matrix presets), filter */
     SYNTH_ENGINE_FLUX,     /* feedback noise machine: 8 coupled channels of oscillator + regulated feedback delay */
+    SYNTH_ENGINE_HAVOC,    /* noise machine: 4 generators of 10 processes each, cross-modulated, 2 processors */
     SYNTH_ENGINE_COUNT
 } synth_engine_t;
 

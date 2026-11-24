@@ -3,6 +3,7 @@
 #include "acid.h"
 #include "drums.h"
 #include "flux.h"
+#include "havoc.h"
 #include "fm4.h"
 #include "fm6.h"
 #include "micro.h"
@@ -32,6 +33,7 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_MICRO] = &micro_engine,
     [SYNTH_ENGINE_FM4] = &fm4_engine,
     [SYNTH_ENGINE_FLUX] = &flux_engine,
+    [SYNTH_ENGINE_HAVOC] = &havoc_engine,
 };
 
 static int same(const char *a, const char *b)

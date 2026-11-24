@@ -51,6 +51,7 @@ settings), then the instrument's cards in the order the signal flows.*
 | `poly` | the late-70s programmable polysynth: two oscillators with sync, 24 dB ladder, poly-mod, unison |
 | `fm4` | four-operator phase modulation on a free matrix: any operator modulates any other and itself, an output level each; the classic algorithms are one click; ADSR per operator, pitch envelope, filter |
 | `flux` | a feedback noise machine: eight coupled channels of oscillator and regulated feedback delay (wavefolder, filter, bit crush, xor, crackle), random ruptures, slow drift; from deep atmospheres to harsh noise |
+| `havoc` | a noise machine with a wide palette: four generators, each one of ten processes (feedback sine, logistic map, integer formula, dust, wind, pulsar, cellular automaton, swarm, jumping tone, rumble), cross-modulated, then two processors |
 | `fm6` | six-operator phase modulation: 32 algorithms, rate/level envelopes, keyboard scaling, feedback, sysex bank import |
 | `wt` | a modern wavetable synth: morphing tables, unison, warps, SVF / ladder / comb / formant filters |
 | `modal` | banks of damped resonators (strings, bars, bells, membranes, tubes) and a physical piano |

@@ -53,6 +53,7 @@ static const struct {
     {"drone", {"temperature", "density", "motion", "depth", "brightness", "sparkle"}},
     {"fm4", {"op2_to_op1", "op3_to_op1", "op4_feedback", "op2_decay", "cutoff", "pitch_amount"}},
     {"flux", {"map_pitch", "map_time", "fold", "crush", "rupture", "violence"}},
+    {"havoc", {"g1_a", "g1_b", "g2_a", "g2_b", "x1_p1", "x1_p2"}},
     {"micro", {"freq", "pitch_amount", "pitch_time", "amp_decay", "drive", "click_level"}},
 };
 /* macros 7 and 8 on every engine: the effect sends */

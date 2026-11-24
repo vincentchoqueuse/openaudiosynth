@@ -396,6 +396,22 @@ void suite_micro(void)
         CHECK(fabsf(f - want) < 0.005f * want, "micro low pitch (mode %d): %.3f Hz, expected %.3f", mode, (double)f, (double)want);
     }
 
+    /* two low sines 4 Hz apart, equal: the level falls to nothing 0.125 s after the hit and is back at 0.25 s */
+    fresh();
+    setp(MICRO_P_SINE_LEVEL, -60.0f);
+    setp(MICRO_P_LOW_LEVEL, 0.0f);
+    setp(MICRO_P_LOW_FREQ, 100.0f);
+    setp(MICRO_P_LOW_HOLD, 2.0f);
+    setp(MICRO_P_LOW_BEAT, 4.0f);
+    setp(MICRO_P_LOW_BEAT_MIX, 0.5f);
+    note_at(60, 0);
+    run(L, R, 48000, 120.0f);
+    {
+        const float node = rms(L + 6000 - 240, 480), full = rms(L + 12000 - 240, 480);
+        CHECK(full > 0.02f && node < 0.08f * full, "micro low beating at 4 Hz: rms %g at 0.125 s, %g at 0.25 s", (double)node,
+              (double)full);
+    }
+
     /* on its own gate pattern (one step in four of sixteenths at 120 bpm): a hit every 0.5 s while the note is held */
     fresh();
     beat_pos = 0.0f;

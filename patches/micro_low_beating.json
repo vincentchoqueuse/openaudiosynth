@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "engine": "micro",
+  "name": "micro_low_beating",
+  "description": "Interference as rhythm: two low sines 3 Hz apart restart together on every bar, so the swell falls on the same samples each time; a second pair higher up, split left and right, beats at another rate.",
+  "params": {
+    "pitch_mode": "fixed",
+    "freq": 196,
+    "sine_level": -14,
+    "amp_attack": 0.01,
+    "amp_sustain": 1,
+    "amp_release": 0.3,
+    "osc2_level": -14,
+    "osc2_mode": "hz",
+    "osc2_offset": 2,
+    "osc2_split": "on",
+    "low_level": 8,
+    "low_freq": 49,
+    "low_attack": 0.002,
+    "low_hold": 1.9,
+    "low_decay": 0.08,
+    "low_curve": 0,
+    "low_drive": 0.25,
+    "low_beat": 3.0,
+    "low_beat_mix": 0.5,
+    "velocity": 0,
+    "volume": 6,
+    "tempo": 120
+  },
+  "clip": {
+    "bpm": 120,
+    "length": 8,
+    "loop": true,
+    "grid": "1/4",
+    "notes": [
+      {
+        "pitch": 60,
+        "start": 0,
+        "length": 3.9,
+        "velocity": 100
+      },
+      {
+        "pitch": 60,
+        "start": 4,
+        "length": 3.9,
+        "velocity": 100
+      }
+    ]
+  }
+}

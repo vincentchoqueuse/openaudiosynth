@@ -23,7 +23,9 @@
     "low_drive": 0.2,
     "velocity": 0,
     "volume": 6,
-    "tempo": 60
+    "tempo": 60,
+    "low_beat": 0.31,
+    "low_beat_mix": 0.35
   },
   "clip": {
     "bpm": 60,

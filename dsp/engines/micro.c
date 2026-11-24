@@ -172,6 +172,11 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           "same steps as the tone, the inverse ones, or its own `low_pattern`; needs `gate_mode`"),
     PARAM(MICRO_P_LOW_PATTERN, "low_pattern", "micro.low_pattern", 0.0f, 65535.0f, 4369.0f, PARAM_INT, "", 0, NULL,
           "the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1)"),
+    PARAM(MICRO_P_LOW_BEAT, "low_beat", "micro.low_beat", -30.0f, 30.0f, 0.0f, PARAM_LIN, "Hz", 1, NULL,
+          "a second low sine this many hertz away from the first (0 = none): the two interfere, the level swells "
+          "and falls `low_beat` times a second, starting full on every hit"),
+    PARAM(MICRO_P_LOW_BEAT_MIX, "low_beat_mix", "micro.low_beat_mix", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
+          "share of the second sine: 0.5 = equal, the sound falls to silence at every beat; less = a shallower swell"),
 };
 
 /* ---------------- envelope segments ---------------- */
@@ -321,11 +326,14 @@ static void low_hit(micro_t *e, micro_voice_t *v)
     }
     if (v->low_stage != MICRO_ENV_IDLE) {
         const float dg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE];
-        v->low_tail = v->low_amp.y * fm_tanh(dg * fm_sin_pos(v->low_ph)) / fm_tanh(dg);
+        const float m = p[MICRO_P_LOW_BEAT] != 0.0f ? p[MICRO_P_LOW_BEAT_MIX] : 0.0f;
+        const float s = (1.0f - m) * fm_sin_pos(v->low_ph) + m * fm_sin_pos(v->low_ph2);
+        v->low_tail = v->low_amp.y * fm_tanh(dg * s) / fm_tanh(dg);
         v->low_tail_d = v->low_tail / (0.002f * e->sr);
     }
     v->low_ph = p[MICRO_P_LOW_PHASE] * (1.0f / 360.0f);
     v->low_ph -= (float)(int)v->low_ph;
+    v->low_ph2 = v->low_ph;
     v->low_amp.y = 0.0f;
     v->low_stage = MICRO_ENV_ATTACK;
     seg_start(&v->low_amp, 1.0f, samples_of(p[MICRO_P_LOW_ATTACK], e->sr), 0.0f);
@@ -519,7 +527,7 @@ static void micro_init(void *st, float sample_rate)
         svf_init(&v->noise_f, sample_rate);
         v->noise_rng = 0x2545F491u * (uint32_t)(i + 1);
         v->low_stage = MICRO_ENV_IDLE;
-        v->low_amp.y = v->low_tail = v->low_tail_d = v->low_ph = 0.0f;
+        v->low_amp.y = v->low_tail = v->low_tail_d = v->low_ph = v->low_ph2 = 0.0f;
         v->low_semi = 28.0f;
         v->low_pitch_on = 0;
         v->lstep = -1;
@@ -623,6 +631,7 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     const int lgate = gmode > 0 ? (int)p[MICRO_P_LOW_GATE] : 0;
     const uint32_t lpat = lgate == 1 ? gpat : lgate == 2 ? ~gpat : (uint32_t)p[MICRO_P_LOW_PATTERN];
     const float ldg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE], lnorm = 1.0f / fm_tanh(ldg), ldrop = p[MICRO_P_LOW_DROP];
+    const float lbeat = p[MICRO_P_LOW_BEAT] * inv_sr, lmix = lbeat != 0.0f ? p[MICRO_P_LOW_BEAT_MIX] : 0.0f;
     if (nfilt != e->noise_filter_set) {
         for (int i = 0; i < MICRO_VOICES; i++) {
             svf_set_mode(&e->v[i].noise_f, (svf_mode_t)(nfilt > 0 ? nfilt - 1 : 0));
@@ -818,7 +827,12 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
                         }
                     }
                     const int ended = seg_step(&v->low_amp); /* (first, as the main envelope: a hit sounds on its sample) */
-                    w = v->low_amp.y * lnorm * fm_tanh(ldg * fm_sin_pos(v->low_ph));
+                    float s = fm_sin_pos(v->low_ph);
+                    if (lmix > 0.0f) { /* the second sine, an exact number of hertz away: the two interfere */
+                        s += lmix * (fm_sin_pos(v->low_ph2) - s);
+                        v->low_ph2 = wrap1(v->low_ph2 + dsp_clampf(linc + lbeat, 0.0f, 0.45f));
+                    }
+                    w = v->low_amp.y * lnorm * fm_tanh(ldg * s);
                     v->low_ph = wrap1(v->low_ph + linc);
                     if (ended)
                         low_next(e, v);

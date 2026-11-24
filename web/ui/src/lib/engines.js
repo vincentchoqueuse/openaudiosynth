@@ -1,11 +1,11 @@
 // engines.js — how the engines are presented: the order of the families and one color each, the same as on
 // the board's screen (target/h745/app/m4/app_m4.c), so an instrument looks the same everywhere.
-export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm4', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'flux', 'havoc', 'micro'];
+export const ENGINE_ORDER = ['va', 'mono', 'poly', 'acid', 'wt', 'fm4', 'fm6', 'modal', 'drums', 'sampler', 'coupled', 'selfosc', 'drone', 'havoc', 'micro'];
 
 const COLORS = {
   va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5', poly: '#f2777a', acid: '#b8e05a',
   drums: '#e5534b', coupled: '#7fa7ff', selfosc: '#d98cff', wt: '#56d39a', sampler: '#f08fb8', drone: '#8fc9e8',
-  micro: '#e8e2d0', fm4: '#c58cff', flux: '#ff7a59', havoc: '#d4ff3a',
+  micro: '#e8e2d0', fm4: '#c58cff', havoc: '#d4ff3a',
 };
 
 export const engineColor = (name) => COLORS[name] ?? '#9aa5b1';
@@ -24,7 +24,6 @@ export const DEFAULT_MACROS = {
   mono: ['cutoff', 'emphasis', 'contour', 'fenv_decay', 'mixer_drive', 'glide'],
   poly: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_release', 'lfo_filter'],
   fm4: ['op2_to_op1', 'op3_to_op1', 'op4_feedback', 'op2_decay', 'cutoff', 'pitch_amount'],
-  flux: ['map_pitch', 'map_time', 'fold', 'crush', 'rupture', 'violence'],
   // scenes: each macro moves several settings, upwards from where they are ([name, [parameter, travel]...], the
   // travel in normalized units)
   havoc: [['Rot', ['g1_rot', 0.7], ['g2_rot', 0.7], ['g3_rot', 0.7], ['g4_rot', 0.7]],

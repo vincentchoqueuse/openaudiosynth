@@ -265,6 +265,19 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
   `noise_pattern` and panned away from the tone, sounds like a data stream (`micro_data_burst`). The stepped
   and periodic kinds are not band-limited on purpose; their high-passed steps make sharp peaks, so start low
   with `noise_level`.
+- **Low layer** (`low_level` up from its bottom): the weight, a sine between 20 and 160 Hz apart from the rest
+  (in the centre, out of the drive). Every hit restarts it at `low_phase` (0 = soft, 90 = its own click) and
+  runs its own attack / hold / decay, counted in samples: two hits are the same samples, and the decay ends on
+  its last one. `low_drop` and `low_drop_time` are the punch (24 st in 30 ms = a kick, 7 st in 15 ms = a pluck);
+  `low_curve` towards 1 leaves a tail, towards -1 holds then cuts; `low_drive` adds the harmonics small speakers
+  need. `low_mode` note brings any key into the octave above `low_freq`: a bass line that stays between 41 and
+  82 Hz (`micro_low_line`). With the gate on, `low_gate` gives it a hit on every step that opens: the tone's
+  steps, its holes, or its own `low_pattern` (`micro_low_pulse`; with the tone and the noise,
+  `micro_low_interlock`). Long attack and hold make pressure instead of hits (`micro_low_pressure`). `low_beat`
+  adds a second low sine an exact number of hertz away: the two interfere and the level swells `low_beat` times
+  a second; both restart together, so the swell falls on the same samples at every hit (`micro_low_beating`:
+  3 Hz under a higher pair split left and right at 2 Hz). `low_beat_mix` 0.5 falls to silence at every beat,
+  less is shallower.
 See `songs/grille_fine.json`.
 
 ## Four-operator FM on a matrix (`fm4`)
@@ -358,51 +371,3 @@ One note runs four generators (`g1_` .. `g4_`). Each picks one of sixteen proces
   for what breaks, a slow saw into `fm` for sweeps; walls = `tone` with a near 1 and `fm`. `pulsar`, `tone`, `logistic` and `cell` with `track` on play in tune.
 - The same note always gives the same sequence of random events. `byte` and `cell` alias on purpose.
 
-## Feedback noise machine (`flux`)
-
-One note is a whole machine: eight channels, each an oscillator into a short feedback delay, which modulate each
-other. Every channel setting is a bar from 0 to 1 (`pitch_1`..`pitch_8`, `pulse_`, `cutoff_`, `time_`, `feedback_`,
-`flow_`, `level_`); the four master controls `map_pitch`, `map_cutoff`, `map_time` and `map_flow` reshape the eight
-bars at once (to the left only the highest stay high, to the right all are pushed up), so one knob changes the
-character of the whole machine. A second note played while the first is held slides it (`glide`).
-
-- **Where the sound comes from**: a slow pulse (`pitch_` near 0: a few hertz) is a train of clicks that strikes
-  the loop, which rings at 1 / delay time (`time_` 0.5 = 781 Hz, 1 = 24 Hz); a fast one is a tone coloured by the
-  loop's comb. `feedback_` near 1 and `normalize` up make the loops ring for ever on their own.
-- **Modes**: `loop` (filter inside the loop: the filter picks which resonance wins, the flow is frequency
-  modulation, the wildest), `pre` (filter before the loop, amplitude flow), `para` (parabolic sine, no filter, the
-  flow bends the delay time: the smoothest, for drones).
-- **Deep hums**: `para`, pitches low, long `time_`, `cross` 0.6, a little `fold` so small speakers hear it
-  (`flux_deep_station`). **Metal voices**: `loop`, band-pass, `resonance` 0.8, `normalize` 1, pitches on a chord
-  (bar 0.556 = the note, 1/108 per semitone) (`flux_metal_choir`). **Wind in glass**: `para`, short times,
-  `fold` 0.45, `cross` 0.7 (`flux_glass_wind`).
-- **Machines**: thin pulses (`pulse_` 0.02) at a few hertz, each channel at its own rate, into long tuned loops
-  (`flux_idle_engine`).
-- **Noise**: raise `map_flow` (every channel modulates its neighbour), `fold` (each pass folds the wave again) and
-  `crackle` (random impulses into the loops), with a high-pass (`flux_signal_lost`); high pitches and a fast
-  `motion` make a swarm (`flux_swarm`).
-- **Low layer** (`low_level` up from its bottom): the weight, a sine between 20 and 160 Hz apart from the rest
-  (in the centre, out of the drive). Every hit restarts it at `low_phase` (0 = soft, 90 = its own click) and
-  runs its own attack / hold / decay, counted in samples: two hits are the same samples, and the decay ends on
-  its last one. `low_drop` and `low_drop_time` are the punch (24 st in 30 ms = a kick, 7 st in 15 ms = a pluck);
-  `low_curve` towards 1 leaves a tail, towards -1 holds then cuts; `low_drive` adds the harmonics small speakers
-  need. `low_mode` note brings any key into the octave above `low_freq`: a bass line that stays between 41 and
-  82 Hz (`micro_low_line`). With the gate on, `low_gate` gives it a hit on every step that opens: the tone's
-  steps, its holes, or its own `low_pattern` (`micro_low_pulse`; with the tone and the noise,
-  `micro_low_interlock`). Long attack and hold make pressure instead of hits (`micro_low_pressure`).
-- **Dirt**: `crush` resamples every loop at a low rate and a few bits, each channel at its own wandering rate
-  (0.4 = a grind, 0.7 = a few hundred hertz and 5 bits: the note is gone, `flux_bit_rot`); the aliases go round
-  the loop again. `xor` mixes each loop bit by bit with its neighbour: harsh shards that follow both signals
-  (0.1 already adds a haze of highs; keep it at 0 for a sound that must stay dark).
-- **Surprise**: `rupture` is the rate of random events (0.3 = one every few seconds, 0.5 = one a second,
-  1 = thirteen a second), `violence` their size. An event is one of six: some channels thrown to another delay
-  time and pitch and left there, their delays frozen into a stutter, the channels cut out (a violent one cuts them
-  all: a hole of silence, 0.7 s at most), every loop overdriven and folded, the whole pitch thrown up to 4 octaves
-  away and back, or the delays' memory torn. Rare and mild on an atmosphere (`flux_glass_wind`, `flux_deep_station`),
-  dense and violent for a machine that breaks (`flux_broken_reactor`) or glitch percussion that plays itself
-  (`flux_dead_channel`). The same note always gives the same sequence of events.
-- **Risers and falls**: route an envelope to `map_pitch`, `map_time`, `map_flow`, `fold`, `crush` and `rupture`
-  together (`flux_event_horizon`: twenty seconds from a low calm to a wall of noise).
-- `motion` and `depth` set how fast and how far every channel drifts; `depth` 0 freezes the machine. The loops
-  cannot exceed full scale whatever the settings (a tanh closes each loop), but levels change a lot between
-  settings: keep an eye on `volume`.

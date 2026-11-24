@@ -29,7 +29,6 @@ set(SYNTH_DSP_SOURCES
   dsp/engines/acid.c
   dsp/engines/mono.c
   dsp/engines/poly.c
-  dsp/engines/flux.c
   dsp/engines/havoc.c
   dsp/engines/fm4.c
   dsp/engines/fm6.c

@@ -8,7 +8,8 @@
  * the inverse ones (noise in the tone's holes) or its own pattern, retriggered on every step it opens; and a low
  * layer, the weight: a sine between 20 and 160 Hz at a fixed frequency or on the note's pitch folded into that octave,
  * restarted at a set phase on every hit (or every step of its own gate), with its own pitch drop and its own
- * attack / hold / decay counted in samples, a drive for harmonics small speakers can play, always in the centre. References: exponential envelope segments as in analog contour generators (an RC charge
+ * attack / hold / decay counted in samples, a second sine a set number of hertz away (both restart together, so the beating is the same on every hit), a
+ * drive for harmonics small speakers can play, always in the centre. References: exponential envelope segments as in analog contour generators (an RC charge
  * toward a target past the end level); binaural beating of two pure tones (H. W. Dove, 1839). */
 #ifndef ENGINE_MICRO_H
 #define ENGINE_MICRO_H
@@ -40,7 +41,7 @@ enum {
     MICRO_P_NOISE_PAN,
     MICRO_P_LOW_LEVEL, MICRO_P_LOW_MODE, MICRO_P_LOW_FREQ, MICRO_P_LOW_PHASE, MICRO_P_LOW_DROP, MICRO_P_LOW_DROP_TIME,
     MICRO_P_LOW_ATTACK, MICRO_P_LOW_HOLD, MICRO_P_LOW_DECAY, MICRO_P_LOW_CURVE, MICRO_P_LOW_DRIVE, MICRO_P_LOW_GATE,
-    MICRO_P_LOW_PATTERN,
+    MICRO_P_LOW_PATTERN, MICRO_P_LOW_BEAT, MICRO_P_LOW_BEAT_MIX,
     MICRO_P_COUNT
 };
 extern const param_desc_t micro_params[MICRO_P_COUNT];
@@ -81,6 +82,7 @@ typedef struct {
     micro_seg_t low_amp, low_pitch; /* the low layer: its envelope (0..1), its pitch drop (1 -> 0) */
     int low_stage, low_pitch_on;    /* MICRO_ENV_IDLE / ATTACK / HOLD / DECAY */
     float low_ph, low_semi;         /* its phase (cycles), its pitch (MIDI note number) */
+    float low_ph2;                  /* phase of its second sine, a few hertz away (the beating) */
     float low_tail, low_tail_d;     /* what the last hit was still playing when this one cut it: fades in 2 ms */
     int lstep;                      /* the step its gate was on at the last sample */
     float vm_gain;

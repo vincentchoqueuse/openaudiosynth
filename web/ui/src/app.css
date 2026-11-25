@@ -169,9 +169,15 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .ptable .param .sp-input { padding: 4px 8px; }
 
 /* the Synth table's finder: a search, then a tag per family */
-.finder { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 22px 0 12px; }
-.finder .search { flex: 1 1 280px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; }
-.finder .search:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.finder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 18px 0 12px; }
+.finder .search { flex: 1 1 260px; display: flex; align-items: center; gap: 8px; min-width: 0; height: 30px; padding: 0 4px 0 10px;
+  border: 1px solid var(--line); border-radius: 7px; background: var(--surface); color: var(--muted); cursor: text; }
+.finder .search:focus-within { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); color: var(--text); }
+.finder .search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; }
+.finder .search input::-webkit-search-cancel-button { display: none; }
+.finder .search .iconbtn { width: 22px; height: 22px; }
+.finder .found { font-size: 11.5px; white-space: nowrap; margin-right: 4px; }
+.finder .seg button { padding: 4px 10px; }
 .dt .tag { display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 10.5px; letter-spacing: .03em; background: var(--faint); color: var(--text); }
 .dt .tag-engine { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .dt .tag-effect { background: color-mix(in srgb, #3e8ed0 20%, transparent); }

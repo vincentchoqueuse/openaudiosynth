@@ -10,7 +10,7 @@
   import DataTable from './DataTable.svelte';
   import Switch from './Switch.svelte';
   import Select from './Select.svelte';
-  import Pills from './Pills.svelte';
+  import Icon from './Icon.svelte';
   import { session as s } from './session.svelte.js';
   import { engineStages, fxStages, summary, stageOn, toggleStage } from './stages.js';
   import { modRows } from './mods.js';
@@ -116,8 +116,13 @@
 </script>
 
 <div class="finder">
-  <input class="search" type="search" placeholder="Search a module or a setting (cutoff, delay, velocity…)" bind:value={s.synthQuery} aria-label="Search" />
-  <Pills items={TAGS.map((t) => ({ ...t, label: `${t.label} ${count(t.id)}` }))} value={s.synthTag} onpick={(id) => (s.synthTag = id)} label="Tags" />
+  <label class="search">
+    <Icon name="search" size={14} />
+    <input type="search" placeholder="Search" bind:value={s.synthQuery} aria-label="Search modules and settings" spellcheck="false" />
+    {#if s.synthQuery}<button class="iconbtn" onclick={() => (s.synthQuery = '')} aria-label="Clear the search" title="Clear"><Icon name="close" size={11} /></button>{/if}
+  </label>
+  <span class="found muted">{shown.filter((r) => r.kind !== 'slot').length} of {count('all')}</span>
+  <Seg items={TAGS.map((t) => ({ ...t, label: `${t.label} ${count(t.id)}` }))} value={s.synthTag} onpick={(id) => (s.synthTag = id)} label="Tags" />
   <Seg items={[{ id: 'all', label: 'All' }, { id: 'on', label: 'On', title: 'only what is on' }, { id: 'off', label: 'Off', title: 'only what is off' }]}
        value={s.synthState} onpick={(id) => (s.synthState = id)} label="On or off" />
 </div>

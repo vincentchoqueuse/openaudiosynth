@@ -15,10 +15,19 @@ export function drives(src, kind) {
   return false;
 }
 
-// the modulators as rows of the Modulation page and of the side panel: the six above, then Wander (it moves the macros)
+// every source of modulation as a row of the Synth table and of the side panel: the six above, Wander (it moves
+// the macros), then the controllers a route can read (velocity, note, wheels, pressure...), each with the kinds of
+// route it feeds: 'part' (the whole sound's 8) and / or 'voice' (each note's 4)
+const CTL = ['velocity', 'note', 'random', 'mod_wheel', 'aftertouch', 'pitch_bend', 'pressure', 'slide'];
+const CTL_LABEL = { velocity: 'Velocity', note: 'Key tracking', random: 'Random per note', mod_wheel: 'Mod wheel', aftertouch: 'Aftertouch',
+  pitch_bend: 'Pitch bend', pressure: 'Note pressure', slide: 'Note slide' };
 export function modRows() {
+  const part = s.byName.route1_source?.labels ?? [], voice = s.byName.vroute1_source?.labels ?? [];
   return [
-    ...MODS.map(([label, prefix, src, kind, ed], i) => ({ key: 'mod' + i, label, prefix, src, kind, type: ed === 'env' ? 'Envelope' : 'LFO' })),
-    ...(s.byName.wander ? [{ key: 'wander', label: 'Wander', src: 'wander', kind: 'part', type: 'Random walk' }] : []),
+    ...MODS.map(([label, prefix, src, kind, ed], i) => ({ key: 'mod' + i, label, prefix, src, kinds: [kind], type: ed === 'env' ? 'Envelope' : 'LFO' })),
+    ...(s.byName.wander ? [{ key: 'wander', label: 'Wander', src: 'wander', kinds: ['part'], type: 'Random walk' }] : []),
+    ...CTL.map((src) => ({ key: 'ctl:' + src, label: CTL_LABEL[src], src, ctl: true, type: 'Controller',
+                          kinds: [...(part.includes(src) ? ['part'] : []), ...(voice.includes(src) ? ['voice'] : [])] }))
+      .filter((r) => r.kinds.length),
   ];
 }

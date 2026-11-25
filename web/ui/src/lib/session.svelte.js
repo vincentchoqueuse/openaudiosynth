@@ -34,15 +34,16 @@ class Session {
   #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
   picks = $state(0); // sounds picked in the library (the name flashes)
-  // the Synth view's page open (summary, engine, fx, mod, macros)
-  editorTab = $state('summary');
   constructor() {
     if (typeof matchMedia === 'function') matchMedia('(max-width: 760px)').addEventListener('change', (e) => (this.phone = e.matches));
   }
-  goTo = (tab) => { this.editorTab = tab; };
   // the side panel of the Synth view: what a row's Configure opened ({kind, id}: kind 'stage' | 'mod' | 'route' |
   // 'macro'), or null; it stays open from page to page and closes with Escape or its cross
   panel = $state(null);
+  synthQuery = $state(''); // the Synth table's search
+  synthTag = $state('all'); // and its tag (all, engine, effect, modulation, macro)
+  tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
+  panelTab = $state('settings'); // the side panel's tab: settings or about
   openPanel = (kind, id) => { this.panel = { kind, id }; };
   closePanel = () => { this.panel = null; };
   shortcutsOpen = $state(false); // the shortcuts sheet

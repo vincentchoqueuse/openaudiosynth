@@ -1,10 +1,13 @@
 <!-- SidePanel.svelte — the panel that opens on the right of the Synth view when a row's Configure is pressed: a head
-     (the item's name, what it is, the arrows to the previous and next row of the same table, a cross), then
-     everything about the item, scrolling on its own. The page stays in view and playable beside it; on a narrow
-     window it covers the page. Escape closes it. Placed between the top bar and the keyboard, measured from them. -->
+     (the item's name, what it is; the previous and next rows of the table, and close, as icon buttons), two tabs
+     (Settings: everything to set, About: what the module does and what each setting means), then the tab's content,
+     scrolling on its own; a body may end with a footer of actions (`.sp-foot`), which stays in view. It lies over the
+     page, which stays playable beside it, between the top bar and the keyboard (measured from them). Escape closes it. -->
 <script>
   import { onMount } from 'svelte';
-  let { title, sub = '', onclose, onprev = null, onnext = null, wide = false, head = null, children } = $props();
+  import Icon from './Icon.svelte';
+  import Tabs from './Tabs.svelte';
+  let { title, sub = '', onclose, onprev = null, onnext = null, wide = false, tab = $bindable('settings'), children } = $props();
   let top = $state(60), bottom = $state(0);
   function measure() {
     const bar = document.querySelector('header.topbar'), foot = document.querySelector('.app > footer');
@@ -29,12 +32,12 @@
 <aside class="sidepanel" class:wide style="top:{top}px; bottom:{bottom}px" aria-label={title}>
   <div class="sp-head">
     <div class="sp-title"><h2>{title}</h2>{#if sub}<span class="sp-sub">{sub}</span>{/if}</div>
-    {#if head}{@render head()}{/if}
     <span class="sp-nav">
-      <button onclick={onprev} disabled={!onprev} aria-label="Previous" title="Previous row">↑</button>
-      <button onclick={onnext} disabled={!onnext} aria-label="Next" title="Next row">↓</button>
-      <button onclick={onclose} aria-label="Close" title="Close (Escape)">×</button>
+      <button class="iconbtn" onclick={onprev} disabled={!onprev} aria-label="Previous" title="Previous row"><Icon name="up" size={14} /></button>
+      <button class="iconbtn" onclick={onnext} disabled={!onnext} aria-label="Next" title="Next row"><Icon name="down" size={14} /></button>
+      <button class="iconbtn" onclick={onclose} aria-label="Close" title="Close (Escape)"><Icon name="close" size={13} /></button>
     </span>
   </div>
+  <div class="sp-tabs"><Tabs items={[{ id: 'settings', label: 'Settings' }, { id: 'about', label: 'About' }]} value={tab} onpick={(id) => (tab = id)} label="Panel" /></div>
   <div class="sp-body">{@render children()}</div>
 </aside>

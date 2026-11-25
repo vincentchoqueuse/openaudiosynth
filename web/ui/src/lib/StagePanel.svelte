@@ -1,6 +1,7 @@
-<!-- StagePanel.svelte — the side panel's body for a stage of the instrument or of the effect chain: its drawing
-     (StageViz: a wave, a filter's response, an envelope, an LFO) and every one of its settings, all in view (the
-     engine's main ones first, then the others; those its present choices do not use are hidden: engineui.js). -->
+<!-- StagePanel.svelte — the Settings tab of the side panel for a stage of the instrument or of the effect chain: its
+     drawing (StageViz: a wave, a filter's response, an envelope, an LFO), then every one of its settings as a table
+     (setting, control, value), the engine's main ones first (those its present choices do not use are hidden:
+     engineui.js). -->
 <script>
   import Param from './Param.svelte';
   import StageViz from './StageViz.svelte';
@@ -13,4 +14,7 @@
 </script>
 
 {#if row.st}<div class="sp-viz"><StageViz st={row.st} params={row.ps.map((p) => p.d)} get={s.getP} /></div>{/if}
-{#each shown as { d, label } (d.id)}<Param {d} label={engine ? labelOf(s, d, label) : label} />{/each}
+<div class="ptable">
+  <div class="ptable-head"><span>Setting</span><span>Value</span></div>
+  {#each shown as { d, label } (d.id)}<Param {d} label={engine ? labelOf(s, d, label) : label} />{/each}
+</div>

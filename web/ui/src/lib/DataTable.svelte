@@ -4,11 +4,13 @@
      anywhere on a row opens it too, but for its own controls (a switch, a list). Rows may carry a `group`: a heading
      row is drawn where it changes. The row open in the panel is lit.
      columns: [{id, label, w? (a CSS width), cls?}]; rows: [{key, group?, dim?, open? (false: no Configure)}];
-     cell(row, column) draws a cell. -->
+     cell(row, column) draws a cell. With `drag` ({can(row), move(from, to)}), the rows it allows are dragged by their
+     handle (⠿, in the first cell) onto one another to reorder them. -->
 <script>
   import Icon from './Icon.svelte';
-  let { columns, rows, cell, selected = null, onopen, label = '', empty = '' } = $props();
-  const control = (e) => e.target.closest('button, input, select, label, a, .select, [role="switch"]');
+  let { columns, rows, cell, selected = null, onopen, label = '', empty = '', drag = null } = $props();
+  let from = $state(null), over = $state(null); // the row dragged, the row under it
+  const control = (e) => e.target.closest('button, input, select, label, a, .select, .grip, [role="switch"]');
   function click(e, r) { if (r.open !== false && !control(e)) onopen(r); }
 </script>
 
@@ -20,8 +22,16 @@
       {#if r.group && r.group !== rows[i - 1]?.group}
         <tr class="dt-group"><td colspan={columns.length + 1}>{r.group}</td></tr>
       {/if}
-      <tr class:sel={selected === r.key} class:dim={r.dim} class:openable={r.open !== false} onclick={(e) => click(e, r)}>
-        {#each columns as c (c.id)}<td class={c.cls ?? ''}>{@render cell(r, c)}</td>{/each}
+      {@const dr = !!drag?.can(r)}
+      <tr class:sel={selected === r.key} class:dim={r.dim} class:openable={r.open !== false} class:over={over === r.key && from?.key !== r.key}
+          class:dragging={from?.key === r.key} onclick={(e) => click(e, r)}
+          ondragover={(e) => { if (from && dr) { e.preventDefault(); over = r.key; } }}
+          ondragleave={() => { if (over === r.key) over = null; }}
+          ondrop={(e) => { e.preventDefault(); if (from && dr) drag.move(from, r); from = over = null; }}>
+        {#each columns as c, ci (c.id)}<td class={c.cls ?? ''}>
+          {#if ci === 0 && dr}<span class="grip" draggable="true" title="Drag to move it in the chain" role="button" tabindex="-1" aria-label="Move"
+                ondragstart={(e) => { from = r; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', r.key); }}
+                ondragend={() => (from = over = null)}>⠿</span>{/if}{@render cell(r, c)}</td>{/each}
         <td class="dt-cog">
           {#if r.open !== false}
             <button class="cog" onclick={() => onopen(r)} aria-label="Configure" title="Configure"><Icon name="settings" size={14} /></button>

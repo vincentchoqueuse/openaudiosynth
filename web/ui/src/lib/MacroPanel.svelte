@@ -1,7 +1,7 @@
 <!-- MacroPanel.svelte — the side panel's body for one macro: its name, its value, the MIDI CC that turns it, then the
      settings it moves (any that moves live: the instrument's, the master or an effect), each with its value with the
      macro at 0 and at 1, sliders over the setting's travel read in its units; Add setting takes one of the 32 slots
-     the macros share (session.macroMaps). -->
+     the macros share (session.macroMaps), in the footer. Routes that read the macro as a source are shown too. -->
 <script>
   import { fromNorm, toNorm, format } from './synth.js';
   import { human } from './naming.js';
@@ -9,6 +9,9 @@
   import Select from './Select.svelte';
   import Param from './Param.svelte';
   import { precise } from './slider.js';
+  import Icon from './Icon.svelte';
+  import RouteList from './RouteList.svelte';
+  import * as R from './routes.js';
   let { k } = $props(); // 0..7
 
   const rows = $derived(s.macroMaps.filter((r) => r.macro === k && r.dst));
@@ -29,35 +32,43 @@
   }
   function remove(r) { s.setP(`map${r.slot}_macro`, 0); s.setP(`map${r.slot}_destination`, 0); }
   const shown = (d, n) => format(d, fromNorm(d, n));
+  // routes that read this macro as their source (set in a sound's file, or before): kept in view here
+  const hasRoutes = $derived(R.keys('part').some((key) => { const x = R.get(s, key); return x.src && x.srcLabel === `macro${k + 1}`; }));
 </script>
 
-<div class="sp-form">
-  <span class="sp-label">Name</span>
-  <input class="sp-input" placeholder="Macro {k + 1}" value={s.macroNames[k]} oninput={(e) => (s.macroNames[k] = e.target.value)} aria-label="Name" />
+<div class="ptable">
+  <div class="ptable-head"><span>Setting</span><span>Value</span></div>
+  <div class="param"><span class="label">Name</span><input class="sp-input cell" placeholder="Macro {k + 1}" value={s.macroNames[k]} oninput={(e) => (s.macroNames[k] = e.target.value)} aria-label="Name" /></div>
   {#if !s.phone}
-    <span class="sp-label">MIDI CC</span>
-    <input class="sp-input" type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC (0 = none)"
-           onchange={(e) => s.setP(`macro${k + 1}_cc`, Math.max(0, Math.min(119, Math.round(+e.target.value || 0))))} />
+    <div class="param"><span class="label">MIDI CC</span><input class="sp-input cell" type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC (0 = none)"
+           onchange={(e) => s.setP(`macro${k + 1}_cc`, Math.max(0, Math.min(119, Math.round(+e.target.value || 0))))} /></div>
   {/if}
+  <Param d={s.byName[`macro${k + 1}`]} label="Value" />
 </div>
-<Param d={s.byName[`macro${k + 1}`]} label="Value" />
 
 <h3 class="sub">What it moves</h3>
-{#each rows as r (r.slot)}
-  <div class="sp-target">
-    <span class="sp-target-head">
-      <Select value={r.dst.id} onchange={(v) => retarget(r, v)} label="Setting" options={settings} />
-      <button class="x" onclick={() => remove(r)} aria-label="Remove this setting" title="remove">×</button>
-    </span>
-    <label class="sp-range"><span class="sp-label">At 0</span>
-      <input type="range" min="0" max="1" step="0.001" value={r.from} style="--p:{r.from * 100}%"
-             use:precise={{ value: () => r.from, set: (v) => s.setP(`map${r.slot}_from`, v) }} aria-label="Value at 0" />
-      <span class="mono muted">{shown(r.dst, r.from)}</span></label>
-    <label class="sp-range"><span class="sp-label">At 1</span>
-      <input type="range" min="0" max="1" step="0.001" value={r.to} style="--p:{r.to * 100}%"
-             use:precise={{ value: () => r.to, set: (v) => s.setP(`map${r.slot}_to`, v) }} aria-label="Value at 1" />
-      <span class="mono muted">{shown(r.dst, r.to)}</span></label>
-  </div>
-{:else}<p class="hint">Nothing yet.</p>{/each}
-<button class="btn ghost" disabled={!free} onclick={add}>+ Add setting</button>
-<p class="hint">The macros share {s.macroMaps.length} settings; {s.macroMaps.filter((r) => r.macro >= 0 && r.dst).length} in use.</p>
+{#if rows.length}
+  <table class="ptable routes">
+    <colgroup><col style="width:36%" /><col /><col style="width:5.5em" /><col /><col style="width:5.5em" /><col style="width:30px" /></colgroup>
+    <thead><tr><th>Setting</th><th>At 0</th><th></th><th>At 1</th><th></th><th></th></tr></thead>
+    <tbody>
+      {#each rows as r (r.slot)}
+        <tr>
+          <td><Select value={r.dst.id} onchange={(v) => retarget(r, v)} label="Setting" options={settings} /></td>
+          <td><input type="range" min="0" max="1" step="0.001" value={r.from} style="--p:{r.from * 100}%"
+                     use:precise={{ value: () => r.from, set: (v) => s.setP(`map${r.slot}_from`, v) }} aria-label="Value at 0" /></td>
+          <td class="mono muted num">{shown(r.dst, r.from)}</td>
+          <td><input type="range" min="0" max="1" step="0.001" value={r.to} style="--p:{r.to * 100}%"
+                     use:precise={{ value: () => r.to, set: (v) => s.setP(`map${r.slot}_to`, v) }} aria-label="Value at 1" /></td>
+          <td class="mono muted num">{shown(r.dst, r.to)}</td>
+          <td><button class="iconbtn" onclick={() => remove(r)} aria-label="Remove this setting" title="Remove"><Icon name="close" size={12} /></button></td>
+        </tr>
+      {/each}
+    </tbody>
+  </table>
+{:else}<p class="hint">It moves nothing yet.</p>{/if}
+{#if hasRoutes}<h3 class="sub">Its routes</h3><RouteList src="macro{k + 1}" kinds={['part']} />{/if}
+<div class="sp-foot">
+  <button class="btn ghost" disabled={!free} onclick={add}><Icon name="plus" size={12} /> Add a setting</button>
+  <span class="muted">{s.macroMaps.filter((r) => r.macro >= 0 && r.dst).length} of {s.macroMaps.length} in use</span>
+</div>

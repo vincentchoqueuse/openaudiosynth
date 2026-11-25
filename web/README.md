@@ -60,17 +60,21 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   and Preset with the sound's name; on the right the
   CPU load (time spent rendering over the audio's time, measured in the worklet) and the output level as meters,
   the volume and Sequencer ▶, each set apart by a rule (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
-  (tempo, loop, position, piano roll). **Synth**: five pills of one width with an icon: Overview (the sound's
-  description, its instrument, the signal path of what is active, whose blocks open their settings), Instrument (its stages in the
-  order the signal flows; the sampler shows its kit), Effects (input, the six blocks of the rack, output),
-  Modulation (the modulators, then the routes) and Macros (the eight macros). Every page but Overview is a table
-  (`DataTable`): one row per item, saying what it is and does, and a Configure cog that opens everything about it
-  in the side panel on the right (`SidePanel`: StagePanel, ModulatorPanel, RoutePanel, MacroPanel), like a
-  database editor. The panel stays open from page to page, steps through its table with its arrows, closes with
-  Escape; it lies over the page, whose table never changes width. Init and Randomize, in
-  the top bar after the views, act on the view open: the clip's notes in Sequence (cleared, or drawn at random in
-  its scale), the sound in Synth (a new sound on the same instrument, or every setting of the instrument thrown
-  somewhere else). **Code**: the sound (the patch file) or the clip, in an editor as tall as
+  (tempo, loop, position, piano roll). **Synth**: what the sound is (its description, its instrument), its signal path drawn (only what is active; a
+  click on a block opens it), then every module of the sound in one table (`SynthTable` on `DataTable`): the
+  instrument's stages in the order its signal flows (the sampler: its kit, then its pads), the effect chain (input,
+  the rack's six blocks, output), the sources of modulation (envelopes, LFOs, Wander, the controllers: velocity,
+  key tracking, wheels, pressure...) and the eight macros. A search above it looks in the modules' names, their
+  settings' names and what they move; a tag per family filters it (Engine, Effect, Modulation, Macro). Each row says
+  in one line what the module is and does; its cog, or a click on it, opens it in the side panel on the right
+  (`SidePanel`), the same way for everything, with two tabs: Settings (a stage's settings as a table, a modulator's
+  editor and the routes it drives, set right there; a macro's targets; the kit) and About (what the module does,
+  where its signal comes from and goes, what each setting does, from the descriptors' help). The panel lies over
+  the page, steps through the rows as shown with its arrows, closes with Escape; actions sit in its footer. The
+  rack's blocks keep their places (an empty block may sit anywhere) and move by dragging their handle; a sound just
+  loaded shows its effects in use first. Init and Randomize, in the top bar after the views, act on the view open:
+  the clip's notes in Sequence (cleared, or drawn at random in its scale), the sound in Synth (a new sound on the same
+  instrument, or every setting of the instrument thrown somewhere else). **Code**: the sound (the patch file) or the clip, in an editor as tall as
   the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (the sound, the tempo, play, the menu), the live display,
   the macros and the keyboard, with the library in its drawer; no Synth or Code view, no piano roll (the clip plays
   from the top bar), no macro CC, no shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
@@ -84,15 +88,15 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
     underlined), `Seg` (a mode or a value among a few words: one shot / loop held / loop free, Hz / beats, the sampler's pads), `Switch` (every on / off), `Icon` (every icon, named in `lib/icons.js`), `Param`
     (a parameter row, reading and writing the session unless told otherwise);
   - three levels of navigation, each its own look: the views as pills in the top bar (Sequence, Synth, Code); then
-    the Synth view's pills (Overview, Instrument, Effects, Modulation, Macros); then a row of a table opened in the
-    side panel;
+    the Synth view's table, searched and filtered by tag; then a row opened in the side panel, in two tabs;
   - one toolbar (`.toolbar`): settings on the left as a label then its control, actions on the right as plain
     text buttons, one height; a help line, when there is one, under the content in small muted text;
   - a choice of waveforms or shapes is a row of drawn buttons (`lib/waves.js`: oscillators, LFOs, envelope starting
     shapes); the envelope editor shows a playhead while the envelope runs (`synth_probe.h`, `w_mseg`);
-  - every list is a table (`DataTable`, `.dt`): a row reads in one line (its name, its role, its switch, the line
-    of its main settings, `lib/stages.js`), the cog at its end opens it in the side panel, where every setting is;
-  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its row; Empty takes the effect out (switched off), and an effect another block holds swaps places with this one (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
+  - every list is a table (`DataTable`, `.dt`), in the page and in the panel (`.ptable`): a row reads in one line
+    (its name, its tag, its switch, the line of its main settings or what it moves, `lib/stages.js`), the cog at its
+    end opens it in the side panel, where every setting is; routes are set in the panel of their source;
+  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its row; Empty takes the effect out (switched off), an effect another block holds swaps places with this one, and a block is dragged by its handle to another place (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
   - in the panel, parameters are rows (label without the stage's own words, control, value in its unit), one stage
     of the engine at a time (every engine with stages gives each parameter to one, tested), all in view, the main
     ones first (`lib/engineui.js`, which also hides what the present choices do not use); a dot after a label: moved since the sound was loaded,
@@ -150,7 +154,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 | `ui/public/synth-worklet.js` | AudioWorkletProcessor: instantiates the module, handles port messages, renders each quantum |
 | `ui/src/lib/synth.js` | AudioContext, loading, normalized/physical conversions, Web MIDI |
 | `ui/vite.config.js` | serves `synth.wasm` from `build-wasm` and the sounds from `patches/` (index generated), no copies; `POST /api/patches` saves a sound (dev only) |
-| `ui/src/App.svelte` | the page: `Sidebar` + `Library`, `TopBar`, the views `ClipTab` (Scope, SequenceTab + PianoRoll), `SynthTab` (InfoPanel, ChainView; the tables InstrumentTable / KitPanel, EffectsTable, ModTable, MacroTable on `DataTable`; the `SidePanel` and its bodies StagePanel, ModulatorPanel (MsegEditor, LfoView), RoutePanel, MacroPanel; `lib/stages.js`, `lib/routes.js`), `CodeView`; `MacroStrip` and `Keyboard` at the bottom; the dialogs |
+| `ui/src/App.svelte` | the page: `Sidebar` + `Library`, `TopBar`, the views `ClipTab` (Scope, SequenceTab + PianoRoll), `SynthTab` (InfoPanel, ChainView; SynthTable on `DataTable`; the `SidePanel` and its bodies StagePanel, ModulatorPanel (MsegEditor, LfoView, RouteList), MacroPanel, KitPanel, AboutPanel; `lib/stages.js`, `lib/routes.js`, `lib/about.js`), `CodeView`; `MacroStrip` and `Keyboard` at the bottom; the dialogs |
 | `ui/src/lib/*.svelte.js`, `*.js` | state (`session`, `sequence`, `history`, `theme`), data (`engines`, `icons`, `waves`, `mseg`, `kit`, `naming`, `seqExport`), browser storage (`prefs`) |
 
 - The main thread compiles the module and hands it to the worklet. Every API call goes through the worklet's

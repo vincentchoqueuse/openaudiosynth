@@ -86,7 +86,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   - a choice of waveforms or shapes is a row of drawn buttons (`lib/waves.js`: oscillators, LFOs, envelope starting
     shapes); the envelope editor shows a playhead while the envelope runs (`synth_probe.h`, `w_mseg`);
   - the cards fill a grid of equal columns that wraps (`.groups`); what is not in use (an effect off, an empty route or macro row) waits behind an Add button (`.addrow`);
-  - Effects is a rack: the six effects of the bus show their place and two arrows that move them along the signal (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
+  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its head and shows its settings; Empty takes the effect out (switched off), and an effect another block holds swaps places with this one (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
   - parameters are cards of rows (label without the card's own words, control, value in its unit), one card per
     stage of the engine (every engine with stages gives each parameter to one, tested); a dot after a label: moved
     since the sound was loaded, double-click puts it back; on / off is always a switch; a stage switched off folds;

@@ -4,15 +4,16 @@
      prefix. The engine's cards all one width, in the order its signal flows (sources, filters, amp, then modulators
      and voice); the effects in the order of the bus; the cards fill a grid of equal columns that wraps; a
      stage that can be switched off has a switch, and folds to its title while off (switched off, it
-     remembers its value to come back to). The effects show only those in use as cards: the others wait in a row
-     of small buttons under them (Add effect), and one switched off by hand stays a folded card until another sound
-     is loaded. The five effects of the bus form a rack: each shows its place and two arrows that move it earlier or
-     later in the signal (session.setRack); one added from the row goes after those already in use. A stage that is an oscillator, a filter, an envelope or an LFO shows a small
+     remembers its value to come back to). The effects page reads as the signal: Input (output filter, crush), six
+     blocks, Output (master, saturation, limiter). Each block holds one effect type, picked from the list in its head
+     (Empty takes it out and switches it off; an effect another block holds swaps places with this one), and shows its
+     settings; the blocks' order is the rack's (session.setRack). A stage that is an oscillator, a filter, an envelope or an LFO shows a small
      drawing of its settings (StageViz); an engine may name its controls itself and keep only the main ones in view,
      the others under a More button (engineui.js). The card the signal path asks for (a click on a block in Summary) is scrolled to and lit. -->
 <script>
   import Card from './Card.svelte';
   import Switch from './Switch.svelte';
+  import Select from './Select.svelte';
   import Param from './Param.svelte';
   import StageViz from './StageViz.svelte';
   import { session as s } from './session.svelte.js';
@@ -51,33 +52,59 @@
   let lastOn = {}; // value of a stage's switch before it was turned off (this sound only)
   $effect(() => { s.patchGen; lastOn = {}; });
   const stageOn = (st) => !st?.enable || Math.abs(s.getP(st.enable) - st.off) > 1e-6;
-  // effects that have been on, or that a macro moves, since this sound was loaded: they stay cards (folded when
-  // switched off, and never leaving while a slider is dragged down to 0); the others wait under Add effect
-  let kept = $state({});
-  $effect(() => { s.patchGen; kept = {}; });
-  $effect(() => {
-    if (tab !== 'fx') return;
-    for (const [, ps, st] of groups)
-      if (st?.enable && !kept[st.id] && (stageOn(st) || ps.some(({ d }) => s.macrosOf[d.id]))) kept[st.id] = true;
-  });
-  const idle = (st) => tab === 'fx' && !!st?.enable && !kept[st.id]; // an effect not in use
-  // the rack: the bus effects whose order is free
-  const inRack = (st) => tab === 'fx' && !!st && s.rack.includes(st.id);
-  const shownRack = () => s.rack.filter((id) => !idle(s.fxStages.find((x) => x.id === id)));
-  function rackPlace(id, other, after) { // id just before or after another effect of the rack
-    const order = s.rack.filter((x) => x !== id);
-    order.splice(order.indexOf(other) + (after ? 1 : 0), 0, id);
-    s.setRack(order);
-  }
-  function move(st, dir) {
-    const shown = shownRack(), other = shown[shown.indexOf(st.id) + dir];
-    if (other) rackPlace(st.id, other, dir > 0);
-  }
   function toggle(st) {
-    if (inRack(st) && idle(st)) { const shown = shownRack(); if (shown.length) rackPlace(st.id, shown[shown.length - 1], true); }
     if (stageOn(st)) { lastOn[st.enable] = s.getP(st.enable); s.setP(st.enable, st.off); }
     else s.setP(st.enable, lastOn[st.enable] ?? st.on);
   }
+
+  // ---- the rack: six blocks in the order of the signal, each holding one effect type or none. An effect is in a
+  // block when it is on, or a macro moves it, or it was loaded since this sound came (so a mix dragged to 0 does not
+  // empty its block); "Empty" switches it off and takes it out. Loading an effect another block holds swaps the two.
+  const inRack = (st) => tab === 'fx' && !!st && s.rack.includes(st.id);
+  let loaded = $state({}), emptied = $state({});
+  $effect(() => { s.patchGen; loaded = {}; emptied = {}; });
+  $effect(() => {
+    if (tab !== 'fx') return;
+    for (const [, ps, st] of groups) {
+      if (!inRack(st) || loaded[st.id]) continue;
+      if (stageOn(st)) { loaded[st.id] = true; delete emptied[st.id]; }
+      else if (!emptied[st.id] && ps.some(({ d }) => s.macrosOf[d.id])) loaded[st.id] = true;
+    }
+  });
+  const slots = $derived.by(() => {
+    const used = s.rack.filter((id) => loaded[id]);
+    return Array.from({ length: s.rackUnits.length }, (_, k) => used[k] ?? null);
+  });
+  const fxStage = (id) => s.fxStages.find((x) => x.id === id);
+  // the list of block k: Empty, then each effect (one another block holds says which)
+  const slotOptions = (k) => [{ value: '', label: 'Empty' },
+    ...s.rack.map((id) => { const at = slots.indexOf(id); return { value: id, label: fxStage(id)?.label + (at >= 0 && at !== k ? ` (block ${at + 1})` : '') }; })];
+  function load(k, id) {
+    const A = [...slots], old = A[k];
+    if (old === id) return;
+    const j = id ? A.indexOf(id) : -1;
+    if (j >= 0) A[j] = old; // the effect leaves its block for this one: the two swap
+    A[k] = id || null;
+    const used = A.filter(Boolean);
+    s.setRack([...used, ...s.rack.filter((x) => !used.includes(x))]);
+    if (old && !used.includes(old)) { // the effect that was here goes out: switched off
+      const st = fxStage(old);
+      if (stageOn(st)) toggle(st);
+      delete loaded[old];
+      emptied[old] = true;
+    }
+    if (id) {
+      const st = fxStage(id);
+      loaded[id] = true;
+      delete emptied[id];
+      if (!stageOn(st)) toggle(st);
+    }
+  }
+  // the fixed stages before the rack (output filter, crush) and after it (master, saturation, limiter)
+  const firstRack = $derived(groups.findIndex(([, , st]) => inRack(st)));
+  const before = $derived(tab === 'fx' && firstRack >= 0 ? groups.filter(([, , st], i) => i < firstRack && !inRack(st)) : []);
+  const after = $derived(tab === 'fx' && firstRack >= 0 ? groups.filter(([, , st], i) => i > firstRack && !inRack(st)) : []);
+  const rackGroup = (id) => groups.find(([, , st]) => st?.id === id);
   // the engine's cards in the order its signal flows: sources, filters, amp, modulators, voice, the rest
   const ordered = $derived.by(() => {
     if (tab !== 'engine' || !s.engine?.stages?.length) return groups;
@@ -100,21 +127,17 @@
 
 {#snippet card(g, ps, st)}
   {@const on = stageOn(st)}
-  <Card class="{on ? '' : 'off'} {st && lit === st.id ? 'lit' : ''}" data-stage={st?.id}>
+  <Card class="{on || inRack(st) ? '' : 'off'} {st && lit === st.id ? 'lit' : ''}" data-stage={st?.id}>
     <div class="stage-head">
-      <h2>{#if inRack(st)}<span class="place mono" title="place in the rack: the signal goes through the effects in this order">{shownRack().indexOf(st.id) + 1}</span>{/if}{g}</h2>
       {#if inRack(st)}
-        {@const shown = shownRack()}
-        <span class="rackmove">
-          <button onclick={() => move(st, -1)} disabled={shown[0] === st.id} aria-label="{g}: earlier in the signal" title="earlier in the signal">‹</button>
-          <button onclick={() => move(st, 1)} disabled={shown[shown.length - 1] === st.id} aria-label="{g}: later in the signal" title="later in the signal">›</button>
-        </span>
-      {/if}
-      {#if st?.enable}
-        <Switch {on} onchange={() => toggle(st)} name="{g} on/off" />
+        <span class="place mono" title="place in the signal: the effects go one after the other, from block 1">{slots.indexOf(st.id) + 1}</span>
+        <Select class="fxpick" value={st.id} options={slotOptions(slots.indexOf(st.id))} label="Block {slots.indexOf(st.id) + 1}" onchange={(v) => load(slots.indexOf(st.id), v)} />
+      {:else}
+        <h2>{g}</h2>
+        {#if st?.enable}<Switch {on} onchange={() => toggle(st)} name="{g} on/off" />{/if}
       {/if}
     </div>
-    {#if on}
+    {#if on || inRack(st)}
       {#if st}<StageViz {st} params={ps.map((p) => p.d)} get={s.getP} />{/if}
       {@const more = ps.filter(({ d }) => place(d) === 'more')}
       {#each ps.filter(({ d }) => place(d) === 'main') as { d, label } (d.id)}
@@ -133,12 +156,28 @@
 {/snippet}
 
 <div bind:this={host}>
-  <div class="groups">
-    {#each ordered.filter(([, , st]) => !idle(st)) as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}
-  </div>
-  {#if ordered.some(([, , st]) => idle(st))}
-    <div class="addrow"><span class="tag">Add effect</span>
-      {#each ordered.filter(([, , st]) => idle(st)) as [g, , st] (g)}<button class="add" onclick={() => toggle(st)}>{g}</button>{/each}
+  {#if tab === 'fx' && firstRack >= 0}
+    {#if before.length}<h3 class="fxsec">Input</h3><div class="groups">{#each before as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}</div>{/if}
+    <h3 class="fxsec">Effects</h3>
+    <div class="groups">
+      {#each slots as id, k (id ?? 'empty' + k)}
+        {#if id}
+          {@const [g, ps, st] = rackGroup(id)}
+          {@render card(g, ps, st)}
+        {:else}
+          <Card class="emptyblock">
+            <div class="stage-head">
+              <span class="place mono">{k + 1}</span>
+              <Select class="fxpick" value="" options={slotOptions(k)} label="Block {k + 1}" onchange={(v) => load(k, v)} />
+            </div>
+          </Card>
+        {/if}
+      {/each}
+    </div>
+    {#if after.length}<h3 class="fxsec">Output</h3><div class="groups">{#each after as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}</div>{/if}
+  {:else}
+    <div class="groups">
+      {#each ordered as [g, ps, st] (g)}{@render card(g, ps, st)}{/each}
     </div>
   {/if}
 </div>

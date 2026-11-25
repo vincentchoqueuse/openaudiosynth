@@ -1,6 +1,6 @@
 <!-- SynthTable.svelte — every module of the sound in one table: the instrument's stages in the order its signal
      flows (the sampler: its kit), the effect chain (input, the rack's six blocks, output), the sources of modulation
-     (envelopes, LFOs, Wander, the controllers) and the eight macros. Above it, a search (in the modules' names, their
+     (envelopes, LFOs, Wander, the controllers) and the eight macros, one flat list (the tag says the family). Above it, a search (in the modules' names, their
      settings' names and what they move), a tag per family and On / Off (every row has a switch: onoff.js). Each row: its name, its tag, its switch, the line of
      its main settings (or what it moves); its cog, or a click on it, opens it in the side panel.
      A block of the rack holds one effect type, picked from the list in its row: Empty takes it out (switched off),
@@ -75,21 +75,21 @@
   const movesOf = (m) => m.kinds.flatMap((kind) => R.keys(kind).map((k) => R.get(s, k))).filter((x) => x.src && x.srcLabel === m.src);
   const rows = $derived.by(() => {
     const out = [];
-    if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'engine', group: 'Engine', words: 'kit pads samples' });
-    for (const r of engineStages(s)) out.push({ ...r, kind: 'stage', tag: 'engine', group: 'Engine' });
+    if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'engine', words: 'kit pads samples' });
+    for (const r of engineStages(s)) out.push({ ...r, kind: 'stage', tag: 'engine' });
     const first = fx.findIndex((r) => inRack(r.key));
-    fx.forEach((r, i) => { if (i < first && !inRack(r.key)) out.push({ ...r, kind: 'stage', tag: 'effect', group: 'Effects' }); });
-    slots.forEach((id, k) => out.push(id ? { ...fxRow(id), k, kind: 'stage', tag: 'effect', group: 'Effects' }
-                                          : { key: 'slot:' + k, k, kind: 'slot', title: 'Empty', tag: 'effect', group: 'Effects', open: false, dim: true }));
-    fx.forEach((r, i) => { if (i > first && !inRack(r.key)) out.push({ ...r, kind: 'stage', tag: 'effect', group: 'Effects' }); });
+    fx.forEach((r, i) => { if (i < first && !inRack(r.key)) out.push({ ...r, kind: 'stage', tag: 'effect' }); });
+    slots.forEach((id, k) => out.push(id ? { ...fxRow(id), k, kind: 'stage', tag: 'effect' }
+                                          : { key: 'slot:' + k, k, kind: 'slot', title: 'Empty', tag: 'effect', open: false, dim: true }));
+    fx.forEach((r, i) => { if (i > first && !inRack(r.key)) out.push({ ...r, kind: 'stage', tag: 'effect' }); });
     for (const m of modRows()) {
       const moves = movesOf(m).map((x) => R.dstName(s, x));
       const idle = m.key === 'wander' ? !(s.getP('wander') > 0) : !moves.length;
-      out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', group: 'Modulation', moves, dim: m.ctl && idle, idle });
+      out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', moves, dim: m.ctl && idle, idle });
     }
     s.macroNames.forEach((name, k) => {
       const targets = s.macroMaps.filter((r) => r.macro === k && r.dst).map((r) => human(r.dst.name));
-      out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', group: 'Macros', targets, dim: !name && !targets.length });
+      out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', targets, dim: !name && !targets.length });
     });
     return out;
   });

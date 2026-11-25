@@ -1,7 +1,7 @@
 <!-- SequenceTab.svelte — the clip in the Clip view's Sequencer (it belongs to the sound: Save in the Menu keeps
-     both): a toolbar (loop, position, grid; the tempo is in the top bar; Random, Clear, Settings), then the piano roll
+     both): a toolbar (loop, position, grid, Settings; the tempo, Init and Randomize are in the top bar), then the piano roll
      with its editing tools. What is set once goes in the Clip settings dialog: the clip's length, its key and scale,
-     the octave of Random, the loops of an exported song. -->
+     the octave of Randomize, the loops of an exported song. -->
 <script>
   import PianoRoll from './PianoRoll.svelte';
   import Switch from './Switch.svelte';
@@ -19,8 +19,6 @@
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <label>Grid <Select bind:value={q.grid} label="Grid" options={GRIDS.map(([l, v]) => ({ value: v, label: l }))} /></label>
   <span class="spacer"></span>
-  <button class="ghost" onclick={q.random}>Random</button>
-  <button class="ghost" onclick={q.clear}>Clear</button>
   <button class="ghost set" onclick={() => (s.clipSettingsOpen = true)} title="Clip settings: {summary}"><Icon name="settings" weight={1.2} /> Settings</button>
 </div>
 {#if q.message}<p class="message">{q.message}</p>{/if}
@@ -34,9 +32,9 @@
                   ...BARS.map((b) => ({ value: b * 4, label: `${b} bar${b > 1 ? 's' : ''}` }))]} /></label>
       <label>Key <span class="pair"><Select bind:value={q.root} label="Key" options={NAMES.map((n, i) => ({ value: i, label: n }))} />
         <Select bind:value={q.scale} label="Scale" options={Object.keys(SCALES).map((sc) => ({ value: sc, label: sc }))} /></span>
-        <small>The notes outside the scale are shaded in the piano roll; Random stays in it.</small></label>
+        <small>The notes outside the scale are shaded in the piano roll; Randomize stays in it.</small></label>
       <label>Octave <Select bind:value={q.octave} label="Octave" options={OCTAVES.map((o) => ({ value: o, label: String(o) }))} />
-        <small>Where the piano roll opens and where Random writes its notes.</small></label>
+        <small>Where the piano roll opens and where Randomize writes its notes.</small></label>
       <label>Song <Select bind:value={q.loops} label="Times the clip plays in the exported song (Menu, Export song)" options={LOOPS.map((n) => ({ value: n, label: `× ${n}` }))} />
         <small>Times the clip plays in the exported song (Menu, Export song).</small></label>
     </div>

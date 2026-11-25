@@ -1,0 +1,34 @@
+<!-- DataTable.svelte — every list of the Synth view as one kind of table (stages of the instrument, effects,
+     modulators, routes, macros): a head, one row per item with a few columns that say what it is and what it does,
+     and a Configure button (the cog) at the end that opens the item in the side panel (SidePanel.svelte). A click
+     anywhere on a row opens it too, but for its own controls (a switch, a list). Rows may carry a `group`: a heading
+     row is drawn where it changes. The row open in the panel is lit.
+     columns: [{id, label, w? (a CSS width), cls?}]; rows: [{key, group?, dim?, open? (false: no Configure)}];
+     cell(row, column) draws a cell. -->
+<script>
+  import Icon from './Icon.svelte';
+  let { columns, rows, cell, selected = null, onopen, label = '', empty = '' } = $props();
+  const control = (e) => e.target.closest('button, input, select, label, a, .select, [role="switch"]');
+  function click(e, r) { if (r.open !== false && !control(e)) onopen(r); }
+</script>
+
+<table class="dt" aria-label={label}>
+  <colgroup>{#each columns as c (c.id)}<col style={c.w ? `width:${c.w}` : ''} />{/each}<col style="width:44px" /></colgroup>
+  <thead><tr>{#each columns as c (c.id)}<th class={c.cls ?? ''}>{c.label}</th>{/each}<th></th></tr></thead>
+  <tbody>
+    {#each rows as r, i (r.key)}
+      {#if r.group && r.group !== rows[i - 1]?.group}
+        <tr class="dt-group"><td colspan={columns.length + 1}>{r.group}</td></tr>
+      {/if}
+      <tr class:sel={selected === r.key} class:dim={r.dim} class:openable={r.open !== false} onclick={(e) => click(e, r)}>
+        {#each columns as c (c.id)}<td class={c.cls ?? ''}>{@render cell(r, c)}</td>{/each}
+        <td class="dt-cog">
+          {#if r.open !== false}
+            <button class="cog" onclick={() => onopen(r)} aria-label="Configure" title="Configure"><Icon name="settings" size={14} /></button>
+          {/if}
+        </td>
+      </tr>
+    {/each}
+    {#if !rows.length && empty}<tr class="dt-empty"><td colspan={columns.length + 1}>{empty}</td></tr>{/if}
+  </tbody>
+</table>

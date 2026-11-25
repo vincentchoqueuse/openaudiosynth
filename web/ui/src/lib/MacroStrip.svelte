@@ -1,6 +1,6 @@
 <!-- MacroStrip.svelte — the macros to play, above the keyboard: the part's 8 macros as rows shaped like every other
      parameter (name, slider, value in percent; double-click: back to the sound's value; Shift and the arrows as on every slider), 2 rows of 4 on a wide
-     screen; under each name, what it moves (its MIDI CC is in the tooltip). They are set up (names, CC, targets) in the Synth tab (MacroMatrix); a macro's
+     screen; under each name, what it moves (its MIDI CC is in the tooltip). They are set up (names, CC, targets) in the Synth view (Macros: MacroTable, MacroPanel); a macro's
      CC turns it in the synth. -->
 <script>
   import { human } from './naming.js';

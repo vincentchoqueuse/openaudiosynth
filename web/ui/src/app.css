@@ -106,34 +106,77 @@ input[type=range]::-moz-range-track { height: 3px; background: var(--track); }
 input[type=range]::-moz-range-progress { height: 3px; background: var(--accent); }
 input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: var(--text); }
 
-/* ---- cards: a grid of equal columns that fills the width and wraps (.groups) ---- */
+/* ---- cards ---- */
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }
 section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; }
-section.card.lit { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); transition: box-shadow .3s, border-color .3s; }
 .picker { margin: 0 0 10px; } /* what a card shows (a modulator, a pad), chosen above it */
-.stage-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 6px; }
-.stage-head h2 { margin: 0; }
-/* an effect of the rack: its place, and the arrows that move it along the signal */
-.stage-head .place { display: inline-block; min-width: 1.5em; margin-right: 6px; padding: 0 4px; border-radius: 5px; background: var(--faint); color: var(--muted); text-align: center; }
-section.card.off .stage-head { margin-bottom: 0; }
-/* the effects page: Input, the six blocks of the rack, Output; a block's head is its place and the effect it holds */
-h3.fxsec { margin: 18px 0 -6px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-h3.fxsec:first-child { margin-top: 4px; }
-.stage-head .fxpick { flex: 1; min-width: 0; font-weight: 600; }
-section.card.emptyblock { border-style: dashed; background: none; }
-section.card.emptyblock .stage-head { margin-bottom: 0; }
-section.card.emptyblock .fxpick { font-weight: 400; color: var(--muted); }
 button.more { display: block; width: 100%; margin: 8px 0 2px; padding: 4px 0; background: none; border: 0; border-top: 1px solid var(--line); color: var(--muted); font: inherit; font-size: 11px; letter-spacing: .04em; text-align: left; cursor: pointer; }
 button.more:hover { color: var(--text); }
-.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; margin-top: 14px; }
-.groups > section.card { min-width: 0; scroll-margin: 70px 0 20px; }
-/* what is not in use, as a row of small buttons under the cards (effects switched off, an empty route) */
-.addrow { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 14px 0 0; font-size: 11.5px; color: var(--muted); }
-.addrow .tag { margin-right: 4px; letter-spacing: .04em; }
-button.add { padding: 3px 10px; border: 1px dashed var(--line); border-radius: 999px; background: none; color: var(--muted); font: inherit; font-size: 11.5px; cursor: pointer; }
-button.add::before { content: '+ '; }
-button.add:hover:not(:disabled) { border-style: solid; border-color: var(--accent); color: var(--text); }
-button.add:disabled { opacity: .45; cursor: default; }
+
+/* ---- the Synth view's tables (DataTable.svelte): what each item is, a Configure cog at the end ---- */
+.dt { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12.5px; margin: 0 0 6px; }
+.dt th { text-align: left; font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; padding: 0 10px 8px; border-bottom: 1px solid var(--line); }
+.dt td { padding: 0 10px; height: 40px; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: middle; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dt tr.openable { cursor: pointer; }
+.dt tbody tr.openable:hover td { background: var(--faint); }
+.dt tr.sel td { background: var(--accent-soft); }
+.dt tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.dt tr.dim td { color: var(--muted); }
+.dt tr.dt-group td { height: auto; padding: 16px 10px 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: none; cursor: default; }
+.dt tr.dt-empty td { height: auto; padding: 14px 10px; color: var(--muted); white-space: normal; font-size: 12px; }
+.dt .strong { font-weight: 600; color: var(--text); }
+.dt td.sum { color: var(--muted); font-size: 12px; }
+.dt .off { color: var(--muted); opacity: .6; }
+.dt td.dt-cog { padding: 0 4px; text-align: right; }
+.dt .cog { width: 28px; height: 28px; border-radius: 7px; color: var(--muted); display: inline-grid; place-items: center; }
+.dt .cog:hover, .dt tr.sel .cog { background: var(--surface); color: var(--accent); box-shadow: 0 0 0 1px var(--line); }
+.dt .select { width: 100%; max-width: 15em; }
+.dt .fxpick { font-weight: 600; }
+.dt tr.dim .fxpick { font-weight: 400; color: var(--muted); }
+.dt-bar { display: inline-block; width: 100%; max-width: 110px; height: 4px; border-radius: 2px; background: var(--track); vertical-align: middle; overflow: hidden; }
+.dt-bar span { display: block; height: 100%; background: var(--accent); }
+.sub-head { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; }
+.sub-head h3.sub { margin: 0; }
+.sub-head .btn { padding: 4px 12px; font-size: 12px; }
+.synthpage > .pills { margin-bottom: 16px; }
+
+/* ---- the side panel (SidePanel.svelte): fixed on the right, between the top bar and the keyboard ---- */
+.sidepanel { position: fixed; right: 0; z-index: 4; width: min(460px, 100vw); display: flex; flex-direction: column;
+  background: var(--surface); border-left: 1px solid var(--line); box-shadow: -12px 0 32px rgba(0, 0, 0, .18); animation: slidein .16s ease-out; }
+.sidepanel.wide { width: min(640px, 100vw); }
+@keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
+.sp-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 12px; border-bottom: 1px solid var(--line); }
+.sp-title { flex: 1; min-width: 0; }
+.sp-title h2 { margin: 0; font-size: 14px; text-transform: none; letter-spacing: 0; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-sub { font-size: 11.5px; color: var(--muted); }
+.sp-nav { display: inline-flex; gap: 2px; }
+.sp-nav button { width: 28px; height: 28px; border-radius: 7px; color: var(--muted); font-size: 15px; }
+.sp-nav button:hover:not(:disabled) { background: var(--faint); color: var(--text); }
+.sp-nav button:disabled { opacity: .3; }
+.sp-body { flex: 1; overflow-y: auto; padding: 14px 18px 24px; }
+.sp-viz { margin: 0 0 10px; }
+.sp-form { display: grid; grid-template-columns: 6.5em minmax(0, 1fr); gap: 8px 12px; align-items: center; margin: 0 0 12px; }
+.sp-label { font-size: 11.5px; color: var(--muted); }
+.sp-input { width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--text); font: inherit; font-size: 12.5px; }
+.sp-amt { display: grid; grid-template-columns: minmax(0, 1fr) 6em; gap: 10px; align-items: center; }
+.sp-amt span { text-align: right; font-size: 11.5px; }
+.sp-link { display: flex; justify-content: space-between; width: 100%; padding: 8px 10px; margin: 0 0 4px; border: 1px solid var(--line); border-radius: 8px; font-size: 12.5px; color: var(--text); text-align: left; }
+.sp-link:hover { border-color: var(--accent); }
+.sp-target { padding: 10px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.sp-target-head { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; }
+.sp-target-head .select { flex: 1; min-width: 0; }
+.sp-range { display: grid; grid-template-columns: 3.5em minmax(0, 1fr) 6em; gap: 10px; align-items: center; min-height: 26px; }
+.sp-range .mono { text-align: right; font-size: 11.5px; }
+.sidepanel .x { width: 22px; height: 22px; border-radius: 50%; color: var(--muted); }
+.sidepanel .x:hover { background: var(--faint); color: var(--text); }
+.sidepanel .btn { margin-top: 10px; }
+.btn.ghost.danger { color: var(--warn); }
+.btn.ghost.danger:hover { border-color: var(--warn); }
+/* the page keeps clear of the panel where there is room for both, else the panel covers it */
+@media (min-width: 1180px) {
+  .synthpage.paneled { margin-right: 444px; }
+  .synthpage.paneled.widepanel { margin-right: 624px; }
+}
 
 /* ---- parameter row (Param.svelte): label, control, value ---- */
 .param { display: grid; grid-template-columns: 8.5em 1fr 5.2em; gap: 10px; align-items: center; min-height: 27px; }
@@ -150,41 +193,12 @@ button.add:disabled { opacity: .45; cursor: default; }
 .param span.val.editable:hover { color: var(--text); }
 .param input.val { width: 100%; min-width: 0; padding: 1px 4px; border: 1px solid var(--accent); border-radius: 5px; background: var(--bg); color: var(--text); font: inherit; font-size: 11.5px; }
 
-/* ---- matrix tables (macro targets, modulation routes) ---- */
-/* columns of fixed width (each table's <colgroup>): a choice with a longer name never moves the others */
-.matrix { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-.matrix col.c-num { width: 2.4em; } .matrix col.c-x { width: 2.6em; } .matrix col.c-val { width: 7em; }
-.matrix col.c-src { width: 17%; } .matrix col.c-dst { width: 23%; } .matrix col.c-via { width: 15%; }
-.matrix col.c-cc { width: 6em; } .matrix col.c-count { width: 9em; }
-.matrix td { overflow: hidden; }
-.matrix th { text-align: left; font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; padding: 0 6px 6px; border-bottom: 1px solid var(--line); }
-.matrix td { padding: 4px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); vertical-align: middle; }
-/* an empty row is dimmed control by control, never as a cell: an opacity on the cell would trap the open list of
-   its Select under the rows below, and dim it too */
-.matrix tr.empty .select, .matrix tr.empty input, .matrix tr.empty .num, .matrix tr.empty .muted { opacity: .55; }
-.matrix .num { color: var(--muted); }
-.matrix .select, .matrix input { width: 100%; }
-.matrix input.name { border: 0; background: var(--faint); border-radius: 6px; padding: 3px 6px; font-size: 12px; }
-.matrix .amt input { width: 100%; }
-.matrix .val { text-align: right; color: var(--muted); white-space: nowrap; font-size: 11.5px; }
-.matrix .x { width: 20px; height: 20px; border-radius: 50%; color: var(--muted); }
-.matrix .x:hover { background: var(--faint); color: var(--text); }
 
-/* a heading between two cards of the same page (Modulation) */
 /* above the macros to play: what is playing, in one line */
 .playing { display: flex; align-items: baseline; gap: 14px; margin: 0 0 6px; min-width: 0; }
 .playing h2 { margin: 0; flex: none; }
 .playing span { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 h3.sub { margin: 18px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
-/* the macros table: a group row per macro (its name, its CC, Add setting), its settings under it */
-.matrix.macros tr.group td { border-bottom: 0; padding-top: 10px; }
-.matrix.macros tr.group .ghead { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
-.matrix.macros tr.group .cc { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); }
-.matrix.macros tr.group .cc input { width: 4.2em; }
-/* Wander, above the macros: two settings side by side, then what they do */
-.drift { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 300px) 1fr; gap: 4px 26px; align-items: center; margin: 0 0 14px; }
-.drift .hint { margin: 0; }
-@media (max-width: 1100px) { .drift { grid-template-columns: 1fr; } }
 
 /* ---- toolbar: settings on the left (a label, then its control), actions on the right, one height ---- */
 .toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 30px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
@@ -260,6 +274,9 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
   border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .topbar .tb-left, .topbar .tb-right { flex: 1 1 0; display: flex; align-items: center; gap: 14px; min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; }
+.topbar .tb-acts { display: inline-flex; flex: none; gap: 2px; padding-left: 10px; border-left: 1px solid var(--line); }
+.topbar .tb-act { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; color: var(--muted); }
+.topbar .tb-act:hover { background: var(--faint); color: var(--text); }
 .topbar .tb-mid { flex: 0 1 auto; }
 .topbar .btn { padding: 5px 12px; }
 .topbar .namebox { display: flex; align-items: center; gap: 4px; min-width: 0; }
@@ -364,11 +381,12 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 /* ---- a narrower top bar: the meters go first (a 13-inch laptop), then the views become icons and the tempo loses
    its unit (a tablet), so the bar always keeps one line ---- */
 .topbar { container: topbar / inline-size; }
-@container topbar (max-width: 1280px) {
+@container topbar (max-width: 1560px) {
   .topbar .tb-right .meter { display: none; }
 }
 @container topbar (max-width: 860px) {
   .topbar .pills.lg button { width: 38px; padding: 6px 0; font-size: 0; gap: 0; }
+  .topbar .tb-acts { padding-left: 6px; }
   .topbar .tempo-unit { display: none; }
   .topbar .tb-left, .topbar .tb-right { gap: 8px; }
   .topbar .tempo input { width: 3.6em; }

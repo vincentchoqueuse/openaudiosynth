@@ -14,3 +14,11 @@ export function drives(src, kind) {
   for (let r = 1; r <= n; r++) if (labels[Math.round(s.getP(`${pre}${r}_source`))] === src && s.getP(`${pre}${r}_amount`) !== 0) return true;
   return false;
 }
+
+// the modulators as rows of the Modulation page and of the side panel: the six above, then Wander (it moves the macros)
+export function modRows() {
+  return [
+    ...MODS.map(([label, prefix, src, kind, ed], i) => ({ key: 'mod' + i, label, prefix, src, kind, type: ed === 'env' ? 'Envelope' : 'LFO' })),
+    ...(s.byName.wander ? [{ key: 'wander', label: 'Wander', src: 'wander', kind: 'part', type: 'Random walk' }] : []),
+  ];
+}

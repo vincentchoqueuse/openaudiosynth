@@ -34,13 +34,17 @@ class Session {
   #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
   picks = $state(0); // sounds picked in the library (the name flashes)
-  // the Synth tab's editor: which tab is open, and the stage the diagram asked to show (scrolled to, lit)
+  // the Synth view's page open (summary, engine, fx, mod, macros)
   editorTab = $state('summary');
-  focus = $state(null); // {id, n}: n changes at every request, so the same stage can be asked again
   constructor() {
     if (typeof matchMedia === 'function') matchMedia('(max-width: 760px)').addEventListener('change', (e) => (this.phone = e.matches));
   }
-  goTo = (tab, id = null) => { this.editorTab = tab; this.focus = id ? { id, n: (this.focus?.n ?? 0) + 1 } : null; };
+  goTo = (tab) => { this.editorTab = tab; };
+  // the side panel of the Synth view: what a row's Configure opened ({kind, id}: kind 'stage' | 'mod' | 'route' |
+  // 'macro'), or null; it stays open from page to page and closes with Escape or its cross
+  panel = $state(null);
+  openPanel = (kind, id) => { this.panel = { kind, id }; };
+  closePanel = () => { this.panel = null; };
   shortcutsOpen = $state(false); // the shortcuts sheet
   cpu = $state(0); // share of the audio time spent rendering, 0..1 (the worklet measures it)
   msegPos = $state([-1, -1, -1]); // where the part's envelopes and the newest note's are, 0..1 (-1: idle)

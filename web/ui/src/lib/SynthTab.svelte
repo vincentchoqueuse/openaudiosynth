@@ -2,7 +2,7 @@
      the sound is, and its signal path drawn), Instrument (its stages; the sampler shows its kit), Effects (the
      chain: input, six blocks, output), Modulation (the modulators and the routes) and Macros. Each page is a table
      (DataTable) whose rows say what an item is and does; Configure on a row, or a click on a block of the signal
-     path, opens everything about the item in the side panel on the right (SidePanel), which stays open from page to
+     path, opens everything about the item in the side panel on the right (SidePanel), which lies over the page (the table never changes width), stays open from page to
      page and steps through its table's rows with its arrows. The page open lives in the session. -->
 <script>
   import ChainView from './ChainView.svelte';
@@ -66,7 +66,7 @@
   const step = (d) => { const i = P.keys.indexOf(s.panel.id), k = P.keys[i + d]; return k ? () => s.openPanel(s.panel.kind, k) : null; };
 </script>
 
-<div class="synthpage" class:paneled={!!P} class:widepanel={P?.wide}>
+<div class="synthpage">
   <Pills items={PAGES} value={page} onpick={(id) => s.goTo(id)} tabs label="Synth" />
 
   {#if page === 'summary'}

@@ -61,13 +61,13 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   CPU load (time spent rendering over the audio's time, measured in the worklet) and the output level as meters,
   the volume and Sequencer ▶, each set apart by a rule (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
   (tempo, loop, position, piano roll). **Synth**: five pills of one width with an icon: Overview (the sound's
-  description, its instrument, the signal path whose blocks open their settings), Instrument (its stages in the
+  description, its instrument, the signal path of what is active, whose blocks open their settings), Instrument (its stages in the
   order the signal flows; the sampler shows its kit), Effects (input, the six blocks of the rack, output),
   Modulation (the modulators, then the routes) and Macros (the eight macros). Every page but Overview is a table
   (`DataTable`): one row per item, saying what it is and does, and a Configure cog that opens everything about it
   in the side panel on the right (`SidePanel`: StagePanel, ModulatorPanel, RoutePanel, MacroPanel), like a
   database editor. The panel stays open from page to page, steps through its table with its arrows, closes with
-  Escape; the page keeps clear of it on a wide screen and it covers the page on a narrow one. Init and Randomize, in
+  Escape; it lies over the page, whose table never changes width. Init and Randomize, in
   the top bar after the views, act on the view open: the clip's notes in Sequence (cleared, or drawn at random in
   its scale), the sound in Synth (a new sound on the same instrument, or every setting of the instrument thrown
   somewhere else). **Code**: the sound (the patch file) or the clip, in an editor as tall as
@@ -94,8 +94,8 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
     of its main settings, `lib/stages.js`), the cog at its end opens it in the side panel, where every setting is;
   - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its row; Empty takes the effect out (switched off), and an effect another block holds swaps places with this one (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
   - in the panel, parameters are rows (label without the stage's own words, control, value in its unit), one stage
-    of the engine at a time (every engine with stages gives each parameter to one, tested), the main ones in view
-    and the others under More (`lib/engineui.js`); a dot after a label: moved since the sound was loaded,
+    of the engine at a time (every engine with stages gives each parameter to one, tested), all in view, the main
+    ones first (`lib/engineui.js`, which also hides what the present choices do not use); a dot after a label: moved since the sound was loaded,
     double-click puts it back; on / off is always a switch;
   - text on the accent color is dark or white by the accent's brightness; everything is in English.
 - **Top bar**: a click on the sound's name opens its description; **?** (or the ? key) the sheet of shortcuts.

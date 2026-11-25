@@ -110,8 +110,6 @@ input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; bord
 section.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px 10px; box-shadow: var(--shadow); margin: 0; }
 section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; }
 .picker { margin: 0 0 10px; } /* what a card shows (a modulator, a pad), chosen above it */
-button.more { display: block; width: 100%; margin: 8px 0 2px; padding: 4px 0; background: none; border: 0; border-top: 1px solid var(--line); color: var(--muted); font: inherit; font-size: 11px; letter-spacing: .04em; text-align: left; cursor: pointer; }
-button.more:hover { color: var(--text); }
 
 /* ---- the Synth view's tables (DataTable.svelte): what each item is, a Configure cog at the end ---- */
 .dt { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 12.5px; margin: 0 0 6px; }
@@ -172,11 +170,6 @@ button.more:hover { color: var(--text); }
 .sidepanel .btn { margin-top: 10px; }
 .btn.ghost.danger { color: var(--warn); }
 .btn.ghost.danger:hover { border-color: var(--warn); }
-/* the page keeps clear of the panel where there is room for both, else the panel covers it */
-@media (min-width: 1180px) {
-  .synthpage.paneled { margin-right: 444px; }
-  .synthpage.paneled.widepanel { margin-right: 624px; }
-}
 
 /* ---- parameter row (Param.svelte): label, control, value ---- */
 .param { display: grid; grid-template-columns: 8.5em 1fr 5.2em; gap: 10px; align-items: center; min-height: 27px; }
@@ -357,15 +350,12 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 .chain .scroll { overflow-x: auto; overflow-y: hidden; padding-bottom: 4px; }
 .chain svg { display: block; overflow: visible; }
 .chain .wire { fill: none; stroke: var(--muted); stroke-width: 1.5; }
-.chain .wire.dim { stroke-dasharray: 3 4; opacity: .5; }
 .chain .modwire { fill: none; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 4 3; opacity: .9; }
 .chain .modwire.route { stroke: var(--warn); }
 .chain .block rect { fill: var(--surface); stroke: var(--track); stroke-width: 1.2; }
 .chain .block.source rect { fill: var(--accent-soft); }
 .chain .block.fx rect { fill: var(--bg); }
 .chain .block text { fill: var(--text); font: 500 11.5px var(--sans); pointer-events: none; }
-.chain .block.off rect { fill: none; stroke-dasharray: 4 3; }
-.chain .block.off text { fill: var(--muted); text-decoration: line-through; }
 .chain .block.target rect { stroke: var(--accent); stroke-width: 2; }
 .chain .block.pick, .chain .chip.pick { cursor: pointer; outline: none; }
 .chain .block.pick:hover rect, .chain .block.pick:focus-visible rect { stroke: var(--accent); }

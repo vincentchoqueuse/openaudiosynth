@@ -1,13 +1,14 @@
 <!-- ChainView.svelte — the signal chain of the current engine followed by the effect bus, drawn from the stage
      descriptors (dsp/engines/engine.h): audio stages in columns along the signal (the effects of the rack in the
      order it has now), modulators below; pointing at a
-     modulator draws its dashed links to what it acts on (including the active part routes: MSEG, LFO, macros...). It
-     reflects the controls (a stage switched off is drawn dashed, the signal passes through it), and with `onpick`
+     modulator draws its dashed links to what it acts on (including the active part routes: MSEG, LFO, macros...). Only
+     what is active is drawn (a stage switched off or an effect not in use is left out, the signal joins around it), and with `onpick`
      it is the editor's map: a click on a block or a modulator opens its settings. -->
 <script>
   // onpick(stage, kind): a block or modulator clicked ('audio' for the signal's stages, 'mod' for a modulator, 'route'
   // for a part route); without it the diagram is display only
   import { session } from './session.svelte.js';
+  import { srcName } from './routes.js';
   let { onpick = null } = $props(); // a click on a block or a chip: onpick(stage, kind)
   const engine = $derived(session.engine), fx = $derived(session.fxStages), byName = $derived(session.byName);
   const getP = session.getP;
@@ -25,8 +26,19 @@
     const bus = fx.map((s) => ({ ...s, inputs: s.inputs === 'engine' ? sinks.join(' ') : s.inputs }));
     return { eng, bus };
   });
-  const audio = $derived([...parts.eng, ...parts.bus]);
-  const mods = $derived((engine?.stages ?? []).filter((s) => s.kind === 'mod' || s.kind === 'voice'));
+  // only what is active is drawn: a stage switched off (an effect not in use, an oscillator off) leaves the
+  // picture, and the signal goes straight from what feeds it to what it fed
+  const isOn = (s) => !s.enable || Math.abs(getP(s.enable) - s.off) > 1e-6;
+  const audio = $derived.by(() => {
+    const all = [...parts.eng, ...parts.bus], byId = Object.fromEntries(all.map((s) => [s.id, s]));
+    const feeds = (id, seen = new Set()) => { // the active stages a stage's signal comes from
+      if (seen.has(id) || !byId[id]) return [];
+      seen.add(id);
+      return isOn(byId[id]) ? [id] : byId[id].inputs.split(' ').filter(Boolean).flatMap((x) => feeds(x, seen));
+    };
+    return all.filter(isOn).map((s) => ({ ...s, inputs: [...new Set(s.inputs.split(' ').filter(Boolean).flatMap((x) => feeds(x)))].join(' ') }));
+  });
+  const mods = $derived((engine?.stages ?? []).filter((s) => (s.kind === 'mod' || s.kind === 'voice') && isOn(s)));
 
   // columns by longest path from the sources: the engine's stages and the bus on one line, which scrolls sideways
   // when the blocks would get narrower than MINW
@@ -66,7 +78,7 @@
       const src = Math.round(getP(`route${r}_source`));
       const dst = session.paramById(Math.round(getP(`route${r}_destination`)) - 1); // the engine's or an effect's
       if (src <= 0 || !dst || !getP(`route${r}_amount`)) continue;
-      const name = byName[`route${r}_source`]?.labels?.[src] ?? 'route';
+      const name = srcName(byName[`route${r}_source`]?.labels?.[src]);
       const st = stageOf(dst.name);
       if (!st) continue;
       if (!out.has(name)) out.set(name, new Set());
@@ -85,7 +97,6 @@
     for (const s of [...(engine?.stages ?? []), ...fx]) if (s.kind !== 'mod' && s.kind !== 'voice' && matches(s.params, paramName)) return s.id;
     return engine?.stages?.length ? null : 'engine'; // no description: the engine is drawn as one block
   }
-  const isOn = (s) => !s.enable || Math.abs(getP(s.enable) - s.off) > 1e-6;
   function edge(a, b) { // from the right side of a to the left side of b
     const p = layout.xy[a], q = layout.xy[b];
     const x1 = p.x + p.w, y1 = p.y + BH / 2, x2 = q.x, y2 = q.y + BH / 2, mx = (x1 + x2) / 2;
@@ -104,7 +115,7 @@
   <svg width={layout.cw} height={H}>
     {#each audio as s}
       {#each s.inputs.split(' ').filter((x) => layout.xy[x]) as from}
-        <path class="wire" class:dim={!isOn(audio.find((t) => t.id === from))} d={edge(from, s.id)} />
+        <path class="wire" d={edge(from, s.id)} />
       {/each}
     {/each}
     {#each chips as c, i}

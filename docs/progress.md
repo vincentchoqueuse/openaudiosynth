@@ -200,3 +200,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the Synth table's search is a compact toolbar field (a magnifier, Clear, the count of rows found), and the tags use the same segmented control as On / Off.
 
 - Web: the Synth table is one flat list, without headings between the families: each row's tag says what it is.
+- Web: the Synth table's search, tags and On / Off share one height and one line (a label's default margin pushed the search up).

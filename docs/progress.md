@@ -201,3 +201,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 
 - Web: the Synth table is one flat list, without headings between the families: each row's tag says what it is.
 - Web: the Synth table's search, tags and On / Off share one height and one line (a label's default margin pushed the search up).
+- Web: a module opens in the side panel on its Settings, always (even after General was looked at on another), and Settings is the first tab, in the panel and in the Synth view.

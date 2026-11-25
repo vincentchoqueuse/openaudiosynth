@@ -68,7 +68,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   the controllers) and the eight macros, with a search (names, settings, what a module moves), a tag per family and
   On / Off. Every row has a switch (`lib/onoff.js`: a stage its own, the amp or the master fixed on; a source mutes its
   routes, a macro detaches its settings, both kept to come back). A row's cog, or a click on it, opens the module in
-  the side panel (`SidePanel`) with the same two tabs: General (what it does, its tag and role, on or off, where its
+  the side panel (`SidePanel`) with the same two tabs, opening on Settings: General (what it does, its tag and role, on or off, where its
   signal comes from and goes, what it moves and what moves it, then each setting with its help: `ModuleGeneral`) and
   Settings (a stage's settings, each with what modulates it and + Mod: `ParamMods`; a modulator's editor and its
   routes, set there; a macro's targets; the kit), with its actions in a footer. Every table, in the page and in the

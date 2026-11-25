@@ -38,6 +38,6 @@
       <button class="iconbtn" onclick={onclose} aria-label="Close" title="Close (Escape)"><Icon name="close" size={13} /></button>
     </span>
   </div>
-  <div class="sp-tabs"><Tabs items={[{ id: 'general', label: 'General' }, { id: 'settings', label: 'Settings' }]} value={tab} onpick={(id) => (tab = id)} label="Panel" /></div>
+  <div class="sp-tabs"><Tabs items={[{ id: 'settings', label: 'Settings' }, { id: 'general', label: 'General' }]} value={tab} onpick={(id) => (tab = id)} label="Panel" /></div>
   <div class="sp-body">{@render children()}</div>
 </aside>

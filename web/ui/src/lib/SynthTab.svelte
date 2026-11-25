@@ -80,7 +80,7 @@
   };
 </script>
 
-<Tabs items={[{ id: 'general', label: 'General' }, { id: 'settings', label: 'Settings' }]} value={s.synthTab} onpick={(id) => (s.synthTab = id)} label="Sound" />
+<Tabs items={[{ id: 'settings', label: 'Settings' }, { id: 'general', label: 'General' }]} value={s.synthTab} onpick={(id) => (s.synthTab = id)} label="Sound" />
 {#if s.synthTab === 'general'}<SoundGeneral onpick={pick} />{:else}<SynthTable />{/if}
 
 {#if P}

@@ -46,7 +46,7 @@ class Session {
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
   panelTab = $state('settings'); // the side panel's tab: general or settings
   synthTab = $state('settings'); // the Synth view's tab: general (the sound as a record) or settings (its modules)
-  openPanel = (kind, id) => { this.panel = { kind, id }; };
+  openPanel = (kind, id) => { this.panel = { kind, id }; this.panelTab = 'settings'; }; // an item opens on its settings
   closePanel = () => { this.panel = null; };
   shortcutsOpen = $state(false); // the shortcuts sheet
   cpu = $state(0); // share of the audio time spent rendering, 0..1 (the worklet measures it)

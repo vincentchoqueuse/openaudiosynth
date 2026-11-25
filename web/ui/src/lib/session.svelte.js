@@ -44,7 +44,8 @@ class Session {
   synthState = $state('all'); // and on / off: all, on, off
   synthTag = $state('all'); // and its tag (all, engine, effect, modulation, macro)
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
-  panelTab = $state('settings'); // the side panel's tab: settings or about
+  panelTab = $state('settings'); // the side panel's tab: general or settings
+  synthTab = $state('settings'); // the Synth view's tab: general (the sound as a record) or settings (its modules)
   openPanel = (kind, id) => { this.panel = { kind, id }; };
   closePanel = () => { this.panel = null; };
   shortcutsOpen = $state(false); // the shortcuts sheet

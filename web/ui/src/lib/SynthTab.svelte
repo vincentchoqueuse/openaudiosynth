@@ -1,19 +1,21 @@
-<!-- SynthTab.svelte — the Synth view: what the sound is (InfoPanel), its signal path drawn (ChainView: only what is
-     active; a click on a block opens it), then every module of the sound in one table with a search and tags
-     (SynthTable). Configure on a row opens the module in the side panel (SidePanel), the same way for everything:
-     Settings (a stage's settings, a modulator's editor and what it moves, a macro's targets, the sampler's kit) and
-     About (what it does, where its signal goes, what each setting means). The panel lies over the page, stays open
-     while the table is searched, and its arrows step through the rows as they are shown. -->
+<!-- SynthTab.svelte — the Synth view, a record with two tabs like every record of the page: General (the sound as
+     fields, and its signal path: SoundGeneral) and Settings (every module of the sound in one table with a search,
+     tags and On / Off: SynthTable). Configure on a row, or a click on a block of the signal path, opens the module in
+     the side panel (SidePanel) with the same two tabs: General (what it is and does, where its signal goes, what it
+     moves and what moves it, each setting's help: ModuleGeneral) and Settings (a stage's settings, a modulator's
+     editor and what it moves, a macro's targets, the sampler's kit). The panel lies over the page, and its arrows
+     step through the table's rows as they are shown. -->
 <script>
-  import ChainView from './ChainView.svelte';
   import KitPanel from './KitPanel.svelte';
-  import InfoPanel from './InfoPanel.svelte';
+  import SoundGeneral from './SoundGeneral.svelte';
+  import Tabs from './Tabs.svelte';
   import SidePanel from './SidePanel.svelte';
   import SynthTable from './SynthTable.svelte';
   import StagePanel from './StagePanel.svelte';
   import ModulatorPanel from './ModulatorPanel.svelte';
   import MacroPanel from './MacroPanel.svelte';
-  import AboutPanel from './AboutPanel.svelte';
+  import ModuleGeneral from './ModuleGeneral.svelte';
+  import { isOn } from './onoff.js';
   import { session as s } from './session.svelte.js';
   import { modRows } from './mods.js';
   import { engineStages, fxStages, ROLE } from './stages.js';
@@ -30,7 +32,7 @@
   }
 
   const routesOf = (m) => m.kinds.flatMap((kind) => R.keys(kind).map((k) => R.get(s, k))).filter((x) => x.src && x.srcLabel === m.src);
-  // what the panel shows: its title, what it is, and for About its links and settings
+  // what the panel shows: its title, what it is, and for General its fields and settings
   const P = $derived.by(() => {
     const p = s.panel;
     if (!p) return null;
@@ -41,8 +43,12 @@
       const name = (id) => all.find((x) => x.key === id)?.title ?? (id === 'engine' ? 'the instrument' : id);
       const from = row.st?.inputs?.split(' ').filter(Boolean).map(name).join(', ');
       const to = all.filter((x) => x.st?.inputs?.split(' ').includes(row.key)).map((x) => x.title).join(', ');
+      const by = R.keys('part').map((k) => R.get(s, k)).filter((x) => x.src && row.ps.some(({ d }) => x.dst === d.id + 1))
+        .map((x) => `${R.srcName(x.srcLabel)} → ${R.dstName(s, x)}`);
       return { title: row.title, sub: inEng ? `${s.engine.name} · ${(ROLE[row.st?.kind] ?? 'stage').toLowerCase()}` : 'effect', row, engine: inEng,
-               params: row.ps, links: [...(from ? [['From', from]] : []), ...(to ? [['To', to]] : [])] };
+               params: row.ps, fields: [['Tag', inEng ? 'engine' : 'effect'], ['Role', ROLE[row.st?.kind] ?? (inEng ? 'stage' : 'effect')],
+                                        ['State', isOn(s, { kind: 'stage', st: row.st }) ? 'on' : 'off'], ...(from ? [['From', from]] : []), ...(to ? [['To', to]] : []),
+                                        ['Modulated by', by.join(', ') || 'nothing'], ['Settings', String(row.ps.length)]] };
     }
     if (p.kind === 'mod') {
       const m = modRows().find((x) => x.key === p.id);
@@ -52,14 +58,19 @@
                                  .map((d) => ({ d, label: human(d.name.slice(m.prefix.length)) }))
                     : m.key === 'wander' ? [{ d: s.byName.wander, label: 'Amount' }, { d: s.byName.wander_rate, label: 'Rate' }] : [];
       return { title: m.label, sub: `${m.type.toLowerCase()} · ${m.kinds.map((k) => (k === 'part' ? 'whole sound' : 'each note')).join(' and ')}`,
-               m, row: m, wide: !m.ctl && m.key !== 'wander', params, links: [['Moves', moves.join(', ') || 'nothing yet']] };
+               m, row: m, wide: !m.ctl && m.key !== 'wander', params,
+               fields: [['Tag', 'modulation'], ['Type', m.type], ['Scope', m.kinds.map((k) => (k === 'part' ? 'the whole sound' : 'each note')).join(' and ')],
+                        ['State', isOn(s, { ...m, kind: 'mod' }) ? 'on' : 'off'], ['Moves', moves.join(', ') || 'nothing yet']] };
     }
     if (p.kind === 'macro') {
       const k = +p.id.slice(1);
       const t = s.macroMaps.filter((r) => r.macro === k && r.dst).map((r) => human(r.dst.name));
-      return { title: s.macroName(k), sub: `macro ${k + 1}`, k, row: {}, wide: true, params: [], links: [['Moves', t.join(', ') || 'nothing yet']] };
+      return { title: s.macroName(k), sub: `macro ${k + 1}`, k, row: {}, wide: true, params: [],
+               fields: [['Tag', 'macro'], ['Value', `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`], ['MIDI CC', String(Math.round(s.getP(`macro${k + 1}_cc`)) || 'none')],
+                        ['State', t.length ? 'on' : 'off'], ['Moves', t.join(', ') || 'nothing yet']] };
     }
-    if (p.kind === 'kit') return { title: 'Kit', sub: 'sampler', row: {}, wide: true, params: [], links: [] };
+    if (p.kind === 'kit') return { title: 'Kit', sub: 'sampler', row: {}, wide: true, params: [],
+                                   fields: [['Tag', 'engine'], ['Kit', s.kitName || 'dropped files'], ['Samples', String(s.kit?.entries?.length ?? 0)]] };
     return null;
   });
   $effect(() => { if (s.panel && !P) s.closePanel(); }); // its item is gone (another instrument, an effect taken out)
@@ -69,14 +80,13 @@
   };
 </script>
 
-<InfoPanel />
-<ChainView onpick={pick} />
-<SynthTable />
+<Tabs items={[{ id: 'general', label: 'General' }, { id: 'settings', label: 'Settings' }]} value={s.synthTab} onpick={(id) => (s.synthTab = id)} label="Sound" />
+{#if s.synthTab === 'general'}<SoundGeneral onpick={pick} />{:else}<SynthTable />{/if}
 
 {#if P}
   <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)} bind:tab={s.panelTab}>
     {#key s.panel.kind + s.panel.id}
-      {#if s.panelTab === 'about'}<AboutPanel kind={s.panel.kind} row={P.row} params={P.params} links={P.links} />
+      {#if s.panelTab === 'general'}<ModuleGeneral kind={s.panel.kind} row={P.row} params={P.params} fields={P.fields} />
       {:else if s.panel.kind === 'stage'}<StagePanel row={P.row} engine={P.engine} />
       {:else if s.panel.kind === 'mod'}<ModulatorPanel m={P.m} />
       {:else if s.panel.kind === 'kit'}<KitPanel />

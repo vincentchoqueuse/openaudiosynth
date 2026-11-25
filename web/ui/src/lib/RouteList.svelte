@@ -25,7 +25,7 @@
 </script>
 
 {#if rows.length}
-  <table class="ptable routes">
+  <table class="dt routes">
     <colgroup><col style="width:38%" /><col /><col style="width:5.5em" />{#if kinds.includes('part')}<col style="width:22%" />{/if}<col style="width:30px" /></colgroup>
     <thead><tr><th>Setting</th><th>Amount</th><th></th>{#if kinds.includes('part')}<th>Via</th>{/if}<th></th></tr></thead>
     <tbody>

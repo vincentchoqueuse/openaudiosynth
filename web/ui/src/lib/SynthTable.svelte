@@ -69,12 +69,7 @@
     delete emptied[id];
     if (!stageOn(s, st)) toggleStage(s, st);
   }
-  function move(from, to) { // a block dragged onto another: it takes that place, the others close up behind it
-    if (from === to) return;
-    const o = [...order], [id] = o.splice(from, 1);
-    o.splice(to, 0, id);
-    arrange(o);
-  }
+
 
   // ---- every row ----
   const movesOf = (m) => m.kinds.flatMap((kind) => R.keys(kind).map((k) => R.get(s, k))).filter((x) => x.src && x.srcLabel === m.src);
@@ -127,14 +122,13 @@
        value={s.synthState} onpick={(id) => (s.synthState = id)} label="On or off" />
 </div>
 <DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
-           drag={{ can: (r) => r.tag === 'effect' && r.k !== undefined, move: (a, b) => move(a.k, b.k) }}
            empty="Nothing matches.">
   {#snippet cell(r, c)}
     {#if c.id === 'name'}
       {#if r.k !== undefined && r.tag === 'effect'}<span class="dt-slot"><span class="muted mono">{r.k + 1}</span>
         <Select class="fxpick" value={r.st?.id ?? ''} options={options(r.k)} label="Block {r.k + 1}" onchange={(v) => load(r.k, v)} /></span>
       {:else}<span class="strong">{r.title}</span>{/if}
-    {:else if c.id === 'tag'}<span class="tag tag-{r.tag}">{r.tag}</span>{#if r.type}<span class="muted"> · {r.type.toLowerCase()}</span>{/if}
+    {:else if c.id === 'tag'}<span class="tag tag-{r.tag}">{r.tag}</span>
     {:else if c.id === 'on'}{#if r.kind !== 'slot'}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"
         title={locked(s, r) ? (isOn(s, r) ? 'always on' : 'moves nothing yet: open it to give it something to move') : isOn(s, r) ? 'on' : 'off'} />{/if}
     {:else}<span class:off={r.kind !== 'slot' && !isOn(s, r)}>{line(r)}</span>{/if}

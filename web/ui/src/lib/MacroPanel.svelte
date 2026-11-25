@@ -48,7 +48,7 @@
 
 <h3 class="sub">What it moves</h3>
 {#if rows.length}
-  <table class="ptable routes">
+  <table class="dt routes">
     <colgroup><col style="width:36%" /><col /><col style="width:5.5em" /><col /><col style="width:5.5em" /><col style="width:30px" /></colgroup>
     <thead><tr><th>Setting</th><th>At 0</th><th></th><th>At 1</th><th></th><th></th></tr></thead>
     <tbody>

@@ -60,19 +60,21 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   and Preset with the sound's name; on the right the
   CPU load (time spent rendering over the audio's time, measured in the worklet) and the output level as meters,
   the volume and Sequencer ▶, each set apart by a rule (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
-  (tempo, loop, position, piano roll). **Synth**: what the sound is (its description, its instrument), its signal path drawn (only what is active; a
-  click on a block opens it), then every module of the sound in one table (`SynthTable` on `DataTable`): the
-  instrument's stages in the order its signal flows (the sampler: its kit, then its pads), the effect chain (input,
-  the rack's six blocks, output), the sources of modulation (envelopes, LFOs, Wander, the controllers: velocity,
-  key tracking, wheels, pressure...) and the eight macros. A search above it looks in the modules' names, their
-  settings' names and what they move; a tag per family filters it (Engine, Effect, Modulation, Macro), and so does On / Off. Every row has a switch (`lib/onoff.js`): a stage its own (one always there, the amp or the master, fixed on), a source of modulation mutes its routes (their amounts kept to come back), Wander its amount, a macro detaches its settings (kept to come back). Each row says
-  in one line what the module is and does; its cog, or a click on it, opens it in the side panel on the right
-  (`SidePanel`), the same way for everything, with two tabs: Settings (a stage's settings as a table, each with what modulates it under it and + Mod to add a source: `ParamMods`; a modulator's
-  editor and the routes it drives, set right there; a macro's targets; the kit) and About (what the module does,
-  where its signal comes from and goes, what each setting does, from the descriptors' help). The panel lies over
-  the page, steps through the rows as shown with its arrows, closes with Escape; actions sit in its footer. The
-  rack's blocks keep their places (an empty block may sit anywhere) and move by dragging their handle; a sound just
-  loaded shows its effects in use first. Init and Randomize, in the top bar after the views, act on the view open:
+  (tempo, loop, position, piano roll). **Synth**: a record with two tabs, like every record of the page. General: the sound as fields (`FieldTable`:
+  name, description, instrument, voices, the effects, modulation and macros in use, the settings moved) and its signal
+  path drawn (only what is active; a click on a block opens it). Settings: every module of the sound in one table
+  (`SynthTable` on `DataTable`): the instrument's stages in the order its signal flows (the sampler: its kit, then its
+  pads), the effect chain (input, the rack's six blocks, output), the sources of modulation (envelopes, LFOs, Wander,
+  the controllers) and the eight macros, with a search (names, settings, what a module moves), a tag per family and
+  On / Off. Every row has a switch (`lib/onoff.js`: a stage its own, the amp or the master fixed on; a source mutes its
+  routes, a macro detaches its settings, both kept to come back). A row's cog, or a click on it, opens the module in
+  the side panel (`SidePanel`) with the same two tabs: General (what it does, its tag and role, on or off, where its
+  signal comes from and goes, what it moves and what moves it, then each setting with its help: `ModuleGeneral`) and
+  Settings (a stage's settings, each with what modulates it and + Mod: `ParamMods`; a modulator's editor and its
+  routes, set there; a macro's targets; the kit), with its actions in a footer. Every table, in the page and in the
+  panel, is one style (`.dt`). The panel lies over the page and its arrows step through the rows as shown. A block of
+  the rack holds the effect picked from the list in its row (an effect another block holds swaps with it); a sound
+  just loaded shows its effects in use first. Init and Randomize, in the top bar after the views, act on the view open:
   the clip's notes in Sequence (cleared, or drawn at random in its scale), the sound in Synth (a new sound on the same
   instrument, or every setting of the instrument thrown somewhere else). **Code**: the sound (the patch file) or the clip, in an editor as tall as
   the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (the sound, the tempo, play, the menu), the live display,
@@ -96,7 +98,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   - every list is a table (`DataTable`, `.dt`), in the page and in the panel (`.ptable`): a row reads in one line
     (its name, its tag, its switch, the line of its main settings or what it moves, `lib/stages.js`), the cog at its
     end opens it in the side panel, where every setting is; routes are set in the panel of their source;
-  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its row; Empty takes the effect out (switched off), an effect another block holds swaps places with this one, and a block is dragged by its handle to another place (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
+  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its row; Empty takes the effect out (switched off), an effect another block holds swaps places with this one, (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
   - in the panel, parameters are rows (label without the stage's own words, control, value in its unit), one stage
     of the engine at a time (every engine with stages gives each parameter to one, tested), all in view, the main
     ones first (`lib/engineui.js`, which also hides what the present choices do not use); a dot after a label: moved since the sound was loaded,

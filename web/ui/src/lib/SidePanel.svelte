@@ -1,6 +1,6 @@
 <!-- SidePanel.svelte — the panel that opens on the right of the Synth view when a row's Configure is pressed: a head
-     (the item's name, what it is; the previous and next rows of the table, and close, as icon buttons), two tabs
-     (Settings: everything to set, About: what the module does and what each setting means), then the tab's content,
+     (the item's name, what it is; the previous and next rows of the table, and close, as icon buttons), the two tabs
+     of every record of the page (General: what the module is and does, as fields; Settings: everything to set), then the tab's content,
      scrolling on its own; a body may end with a footer of actions (`.sp-foot`), which stays in view. It lies over the
      page, which stays playable beside it, between the top bar and the keyboard (measured from them). Escape closes it. -->
 <script>
@@ -38,6 +38,6 @@
       <button class="iconbtn" onclick={onclose} aria-label="Close" title="Close (Escape)"><Icon name="close" size={13} /></button>
     </span>
   </div>
-  <div class="sp-tabs"><Tabs items={[{ id: 'settings', label: 'Settings' }, { id: 'about', label: 'About' }]} value={tab} onpick={(id) => (tab = id)} label="Panel" /></div>
+  <div class="sp-tabs"><Tabs items={[{ id: 'general', label: 'General' }, { id: 'settings', label: 'Settings' }]} value={tab} onpick={(id) => (tab = id)} label="Panel" /></div>
   <div class="sp-body">{@render children()}</div>
 </aside>

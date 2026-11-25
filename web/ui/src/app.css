@@ -149,6 +149,25 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .sp-viz { margin: 0 0 10px; }
 .sp-input { width: 100%; padding: 5px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--text); font: inherit; font-size: 12.5px; }
 
+/* every table of the page is one style (.dt): the module table, the settings of a module (.ptable: rows of Param
+   drawn as .dt rows), the routes and macro targets (.dt.routes), and the records of the General tabs (.dt.kv) */
+.dt.kv td { height: auto; padding: 11px 10px; white-space: normal; line-height: 1.5; vertical-align: top; }
+.dt.kv td:not(.strong) { color: var(--muted); }
+.dt.kv tr.kv-wide td { padding: 14px 0 6px; }
+.dt + .dt { margin-top: 18px; }
+.dt.routes td { padding: 0 6px; }
+.dt.routes .select, .dt.routes input[type=range] { width: 100%; }
+.dt.routes .num { text-align: right; font-size: 11.5px; }
+.dt.routes small { display: block; font-size: 10.5px; line-height: 1; }
+.ptable { margin: 0 0 6px; font-size: 12.5px; }
+.ptable-head { display: grid; grid-template-columns: 8.5em 1fr; gap: 10px; padding: 0 10px 8px; border-bottom: 1px solid var(--line);
+  font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
+.ptable .prow, .ptable > .param { padding: 0 10px; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.ptable .prow:hover, .ptable > .param:hover { background: var(--faint); }
+.ptable .param { min-height: 40px; }
+.ptable .param .label { font-weight: 600; }
+.ptable .param .sp-input { padding: 4px 8px; }
+
 /* the Synth table's finder: a search, then a tag per family */
 .finder { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 22px 0 12px; }
 .finder .search { flex: 1 1 280px; min-width: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: 9px; background: var(--surface); color: var(--text); font: inherit; font-size: 13px; }
@@ -159,23 +178,12 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .dt .tag-modulation { background: color-mix(in srgb, var(--warn) 20%, transparent); }
 .dt .tag-macro { background: color-mix(in srgb, var(--ok) 20%, transparent); }
 .dt-slot { display: inline-flex; align-items: center; gap: 8px; width: 100%; }
-.dt .grip { display: inline-block; width: 14px; margin-right: 6px; color: var(--muted); cursor: grab; user-select: none; }
-.dt .grip:hover { color: var(--text); }
-.dt tr.dragging td { opacity: .45; }
-.dt tr.over td { box-shadow: inset 0 2px 0 var(--accent); }
 .iconbtn { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); }
 .iconbtn:hover:not(:disabled) { background: var(--faint); color: var(--text); }
 .iconbtn:disabled { opacity: .3; }
 /* the side panel's tabs, its tables of settings, its footer */
 .sp-tabs { padding: 0 18px; border-bottom: 1px solid var(--line); }
 .sp-tabs .tabs { margin: 0; border: 0; }
-.sp-about { margin: 0 0 14px; font-size: 13px; line-height: 1.55; color: var(--text); }
-.ptable { width: 100%; margin: 0 0 14px; border-collapse: collapse; table-layout: fixed; font-size: 12.5px; }
-.ptable-head, .ptable th { text-align: left; font-weight: 500; font-size: 10.5px; color: var(--muted); letter-spacing: .04em; text-transform: uppercase; }
-.ptable-head { display: grid; grid-template-columns: 8.5em 1fr; gap: 10px; padding: 0 0 6px; border-bottom: 1px solid var(--line); }
-.ptable .param { min-height: 38px; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
-.ptable .prow { border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
-.ptable .prow .param { border-bottom: 0; }
 /* what modulates a setting (ParamMods): its sources under the control, "+ Mod" when the row is pointed at */
 .pmods { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: -4px 0 6px calc(8.5em + 10px); }
 .pmods:not(.has) { display: none; }
@@ -184,15 +192,6 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .pmod .mono { color: var(--muted); }
 .pmod:hover { box-shadow: 0 0 0 1px var(--warn); }
 .pmods .pmod-add { width: auto; min-width: 0; padding: 1px 8px; font-size: 11px; border-style: dashed; color: var(--muted); }
-.ptable .param .sp-input { padding: 4px 8px; }
-.ptable th, .ptable td { padding: 6px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent); vertical-align: middle; }
-.ptable thead th { padding-bottom: 6px; border-bottom-color: var(--line); }
-.ptable.kv th { width: 34%; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--text); font-weight: 600; vertical-align: top; }
-.ptable.kv thead th { text-transform: uppercase; font-size: 10.5px; color: var(--muted); font-weight: 500; }
-.ptable.kv td { color: var(--muted); line-height: 1.5; }
-.ptable.routes .select, .ptable.routes input[type=range] { width: 100%; }
-.ptable.routes .num { text-align: right; font-size: 11.5px; white-space: nowrap; }
-.ptable.routes small { display: block; font-size: 10.5px; margin-top: 2px; }
 .sp-foot { position: sticky; bottom: -24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px -18px -24px; padding: 12px 18px 14px;
   border-top: 1px solid var(--line); background: var(--surface); font-size: 11.5px; }
 .sp-foot .btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 12px; }

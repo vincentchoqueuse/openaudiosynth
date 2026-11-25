@@ -65,9 +65,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   instrument's stages in the order its signal flows (the sampler: its kit, then its pads), the effect chain (input,
   the rack's six blocks, output), the sources of modulation (envelopes, LFOs, Wander, the controllers: velocity,
   key tracking, wheels, pressure...) and the eight macros. A search above it looks in the modules' names, their
-  settings' names and what they move; a tag per family filters it (Engine, Effect, Modulation, Macro). Each row says
+  settings' names and what they move; a tag per family filters it (Engine, Effect, Modulation, Macro), and so does On / Off. Every row has a switch (`lib/onoff.js`): a stage its own (one always there, the amp or the master, fixed on), a source of modulation mutes its routes (their amounts kept to come back), Wander its amount, a macro detaches its settings (kept to come back). Each row says
   in one line what the module is and does; its cog, or a click on it, opens it in the side panel on the right
-  (`SidePanel`), the same way for everything, with two tabs: Settings (a stage's settings as a table, a modulator's
+  (`SidePanel`), the same way for everything, with two tabs: Settings (a stage's settings as a table, each with what modulates it under it and + Mod to add a source: `ParamMods`; a modulator's
   editor and the routes it drives, set right there; a macro's targets; the kit) and About (what the module does,
   where its signal comes from and goes, what each setting does, from the descriptors' help). The panel lies over
   the page, steps through the rows as shown with its arrows, closes with Escape; actions sit in its footer. The

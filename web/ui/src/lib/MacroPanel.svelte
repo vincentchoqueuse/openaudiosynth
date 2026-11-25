@@ -15,7 +15,7 @@
   let { k } = $props(); // 0..7
 
   const rows = $derived(s.macroMaps.filter((r) => r.macro === k && r.dst));
-  const free = $derived(s.macroMaps.find((r) => !(r.macro >= 0 && r.dst)));
+  const free = $derived(s.macroMaps.find((r) => !r.dst) ?? s.macroMaps.find((r) => !(r.macro >= 0 && r.dst))); // an empty slot first: a detached one is kept for its macro's switch
   const settings = $derived([{ heading: s.engine?.name ?? 'instrument' }, ...s.macroTargets.engine.map((d) => ({ value: d.id, label: human(d.name) })),
                              { heading: 'master and effects' }, ...s.macroTargets.fx.map((d) => ({ value: d.id, label: human(d.name) }))]);
   function retarget(r, id) { // a new setting starts where it is now, going a third of its travel up

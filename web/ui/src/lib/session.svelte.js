@@ -41,6 +41,7 @@ class Session {
   // 'macro'), or null; it stays open from page to page and closes with Escape or its cross
   panel = $state(null);
   synthQuery = $state(''); // the Synth table's search
+  synthState = $state('all'); // and on / off: all, on, off
   synthTag = $state('all'); // and its tag (all, engine, effect, modulation, macro)
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
   panelTab = $state('settings'); // the side panel's tab: settings or about

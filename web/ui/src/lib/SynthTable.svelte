@@ -1,7 +1,7 @@
 <!-- SynthTable.svelte — every module of the sound in one table: the instrument's stages in the order its signal
      flows (the sampler: its kit), the effect chain (input, the rack's six blocks, output), the sources of modulation
      (envelopes, LFOs, Wander, the controllers) and the eight macros. Above it, a search (in the modules' names, their
-     settings' names and what they move) and a tag per family. Each row: its name, its tag, its switch, the line of
+     settings' names and what they move), a tag per family and On / Off (every row has a switch: onoff.js). Each row: its name, its tag, its switch, the line of
      its main settings (or what it moves); its cog, or a click on it, opens it in the side panel.
      A block of the rack holds one effect type, picked from the list in its row: Empty takes it out (switched off),
      an effect another block holds swaps places with this one (fx_slot1..6, session.setRack). An effect stays in its
@@ -16,6 +16,8 @@
   import { modRows } from './mods.js';
   import { human } from './naming.js';
   import * as R from './routes.js';
+  import Seg from './Seg.svelte';
+  import { isOn, locked, toggle } from './onoff.js';
 
   const TAGS = [{ id: 'all', label: 'All' }, { id: 'engine', label: 'Engine' }, { id: 'effect', label: 'Effect' },
                 { id: 'modulation', label: 'Modulation' }, { id: 'macro', label: 'Macro' }];
@@ -108,7 +110,8 @@
   const text = (r) => [r.title, r.tag, r.type ?? '', line(r), r.words ?? '', ...(r.ps ?? []).map(({ d, label }) => `${label} ${human(d.name)}`)].join(' ').toLowerCase();
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
-    return rows.filter((r) => (s.synthTag === 'all' || r.tag === s.synthTag) && (!words.length || (r.kind !== 'slot' && words.every((w) => text(r).includes(w)))));
+    const state = (r) => s.synthState === 'all' || (r.kind !== 'slot' && isOn(s, r) === (s.synthState === 'on'));
+    return rows.filter((r) => (s.synthTag === 'all' || r.tag === s.synthTag) && state(r) && (!words.length || (r.kind !== 'slot' && words.every((w) => text(r).includes(w)))));
   });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.filter((r) => r.open !== false).map((r) => ({ kind: r.kind, key: r.key })); });
@@ -120,6 +123,8 @@
 <div class="finder">
   <input class="search" type="search" placeholder="Search a module or a setting (cutoff, delay, velocity…)" bind:value={s.synthQuery} aria-label="Search" />
   <Pills items={TAGS.map((t) => ({ ...t, label: `${t.label} ${count(t.id)}` }))} value={s.synthTag} onpick={(id) => (s.synthTag = id)} label="Tags" />
+  <Seg items={[{ id: 'all', label: 'All' }, { id: 'on', label: 'On', title: 'only what is on' }, { id: 'off', label: 'Off', title: 'only what is off' }]}
+       value={s.synthState} onpick={(id) => (s.synthState = id)} label="On or off" />
 </div>
 <DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
            drag={{ can: (r) => r.tag === 'effect' && r.k !== undefined, move: (a, b) => move(a.k, b.k) }}
@@ -130,7 +135,8 @@
         <Select class="fxpick" value={r.st?.id ?? ''} options={options(r.k)} label="Block {r.k + 1}" onchange={(v) => load(r.k, v)} /></span>
       {:else}<span class="strong">{r.title}</span>{/if}
     {:else if c.id === 'tag'}<span class="tag tag-{r.tag}">{r.tag}</span>{#if r.type}<span class="muted"> · {r.type.toLowerCase()}</span>{/if}
-    {:else if c.id === 'on'}{#if r.st?.enable}<Switch on={stageOn(s, r.st)} onchange={() => toggleStage(s, r.st)} name="{r.title} on/off" />{/if}
-    {:else}<span class:off={line(r) === 'off' || line(r) === '—'}>{line(r)}</span>{/if}
+    {:else if c.id === 'on'}{#if r.kind !== 'slot'}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"
+        title={locked(s, r) ? (isOn(s, r) ? 'always on' : 'moves nothing yet: open it to give it something to move') : isOn(s, r) ? 'on' : 'off'} />{/if}
+    {:else}<span class:off={r.kind !== 'slot' && !isOn(s, r)}>{line(r)}</span>{/if}
   {/snippet}
 </DataTable>

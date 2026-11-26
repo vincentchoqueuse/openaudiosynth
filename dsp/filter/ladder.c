@@ -62,50 +62,93 @@ void ladder_set(ladder_t *l, float cutoff_hz, float resonance, float drive)
     }
 }
 
-/* One sample of the ladder at the internal rate. */
-static inline float tick(ladder_t *l, float x, float G, float k, float d)
+/* What a tick reads that does not change within a block, held in locals so the compiler keeps it in registers. */
+typedef struct {
+    float drive, inv_drive, comp;
+    int mode;
+} blk_t;
+
+static inline blk_t blk_of(const ladder_t *l) { return (blk_t){l->drive, l->inv_drive, l->comp, l->mode}; }
+
+/* One sample of the ladder at the internal rate; s: the four stage states (the caller's locals). */
+static inline float tick(float *restrict s, const blk_t *c, float x, float G, float k, float d)
 {
     const float b = 1.0f - G, G2 = G * G;
-    const float S = b * (G2 * G * l->s[0] + G2 * l->s[1] + G * l->s[2] + l->s[3]);
-    float u = (x * l->drive - k * S) * d;
+    const float S = b * (G2 * G * s[0] + G2 * s[1] + G * s[2] + s[3]);
+    float u = (x * c->drive - k * S) * d;
     u = 2.0f * fm_tanh(0.5f * u); /* saturating input stage */
     float y[4], v = u;
     for (int i = 0; i < 4; i++) {
-        y[i] = G * v + b * l->s[i];
-        l->s[i] = 2.0f * y[i] - l->s[i];
+        y[i] = G * v + b * s[i];
+        s[i] = 2.0f * y[i] - s[i];
         v = y[i];
     }
-    const float out = l->mode == LADDER_LP24 ? y[3] : l->mode == LADDER_LP18 ? y[2] : y[1];
-    return out * l->inv_drive * l->comp;
+    const float out = c->mode == LADDER_LP24 ? y[3] : c->mode == LADDER_LP18 ? y[2] : y[1];
+    return out * c->inv_drive * c->comp;
 }
 
-/* One input sample through the filter at the oversampling factor. */
-static inline float run(ladder_t *l, float x, float G, float k, float d)
+/* One input sample through the filter at the oversampling factor (the feedback path, which cannot run in passes). */
+static inline float run(ladder_t *l, float *restrict s, const blk_t *c, float x, float G, float k, float d)
 {
     if (l->oversample == 1)
-        return tick(l, x, G, k, d);
+        return tick(s, c, x, G, k, d);
     if (l->oversample == 2) {
         float a, b;
         hb2x_up(&l->hb.outer, x, &a, &b);
-        const float ya = tick(l, a, G, k, d), yb = tick(l, b, G, k, d);
+        const float ya = tick(s, c, a, G, k, d), yb = tick(s, c, b, G, k, d);
         return hb2x_down(&l->hb.outer, ya, yb);
     }
     float u[4], y[4];
     hb4x_up(&l->hb, x, u);
     for (int j = 0; j < 4; j++)
-        y[j] = tick(l, u[j], G, k, d);
+        y[j] = tick(s, c, u[j], G, k, d);
     return hb4x_down(&l->hb, y);
 }
 
+/* Without feedback, the block's state in locals; at 2x three passes over the block (all the upsampling, all the
+ * ticks, all the downsampling: the half-band's input and output histories are separate, so this is the same
+ * arithmetic in the same order as sample by sample, in tight loops). */
 DSP_FAST_CODE void ladder_process(ladder_t *l, const float *in, float *out, int n)
 {
     const float inv_n = 1.0f / (float)n;
     const float dG = (l->tG - l->G) * inv_n, dk = (l->tk - l->k) * inv_n, dd = (l->td - l->d) * inv_n;
     float G = l->G, k = l->k, d = l->d;
-    for (int i = 0; i < n; i++) {
-        G += dG, k += dk, d += dd;
-        out[i] = run(l, in[i], G, k, d);
+    float s[4] = {l->s[0], l->s[1], l->s[2], l->s[3]};
+    const blk_t c = blk_of(l);
+    const int os = l->oversample;
+    for (int i0 = 0; i0 < n; i0 += SYNTH_BLOCK) {
+        const int m = n - i0 < SYNTH_BLOCK ? n - i0 : SYNTH_BLOCK;
+        const float *x = in + i0;
+        float *y = out + i0;
+        if (os == 1) {
+            for (int i = 0; i < m; i++) {
+                G += dG, k += dk, d += dd;
+                y[i] = tick(s, &c, x[i], G, k, d);
+            }
+        } else if (os == 2) {
+            float ua[SYNTH_BLOCK], ub[SYNTH_BLOCK];
+            for (int i = 0; i < m; i++)
+                hb2x_up(&l->hb.outer, x[i], &ua[i], &ub[i]);
+            for (int i = 0; i < m; i++) {
+                G += dG, k += dk, d += dd;
+                ua[i] = tick(s, &c, ua[i], G, k, d);
+                ub[i] = tick(s, &c, ub[i], G, k, d);
+            }
+            for (int i = 0; i < m; i++)
+                y[i] = hb2x_down(&l->hb.outer, ua[i], ub[i]);
+        } else { /* 4x: sample by sample (three passes measured slower here: 75 vs 68 ns per poly voice) */
+            for (int i = 0; i < m; i++) {
+                G += dG, k += dk, d += dd;
+                float u[4];
+                hb4x_up(&l->hb, x[i], u);
+                for (int j = 0; j < 4; j++)
+                    u[j] = tick(s, &c, u[j], G, k, d);
+                y[i] = hb4x_down(&l->hb, u);
+            }
+        }
     }
+    for (int i = 0; i < 4; i++)
+        l->s[i] = s[i];
     l->G = l->tG, l->k = l->tk, l->d = l->td;
 }
 
@@ -118,14 +161,18 @@ DSP_FAST_CODE void ladder_process_fb(ladder_t *l, const float *in, const float *
     const float dG = (l->tG - l->G) * inv_n, dk = (l->tk - l->k) * inv_n, dd = (l->td - l->d) * inv_n;
     float G = l->G, k = l->k, d = l->d;
     float last = state[0], hp = state[1];
+    float s[4] = {l->s[0], l->s[1], l->s[2], l->s[3]};
+    const blk_t c = blk_of(l);
     for (int i = 0; i < n; i++) {
         G += dG, k += dk, d += dd;
         hp += (last - hp) * hp_coef;
         const float x = in[i] + fb * (last - hp);
-        const float y = run(l, x, G, k, d);
+        const float y = run(l, s, &c, x, G, k, d);
         out[i] = y;
         last = y * post[i];
     }
+    for (int i = 0; i < 4; i++)
+        l->s[i] = s[i];
     state[0] = last, state[1] = hp;
     l->G = l->tG, l->k = l->tk, l->d = l->td;
 }

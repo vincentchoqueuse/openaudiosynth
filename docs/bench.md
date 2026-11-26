@@ -30,6 +30,11 @@ with `DWT->CYCCNT` on the board (M7).
 | 2026-11-22 | Apple Silicon (host) | micro worst case (held, two sines, sub, drive, free gate, pitch envelope, noise click) | 8 | 15.0 | 0.58 % |
 | 2026-11-23 | Apple Silicon (host) | va + whole chain: phaser (4 stages), flanger, chorus, delay, reverb, master saturation (soft) and limiter (va+fx: 13.1) | 8 | 28.4 | 1.09 % |
 | 2026-11-24 | Apple Silicon (host) | havoc default (one generator sounding; up to four, plus two processors) | 1 | 21 | 0.10 % |
+| 2026-11-26 | Apple Silicon (host) | modal, 12 voices: modes two at a time (was 28.9) | 12 | 18.0 | 1.03 % |
+| 2026-11-26 | Apple Silicon (host) | drone, 8 voices: sounding sines in pairs (was 39.2) | 8 | 32.8 | 1.26 % |
+| 2026-11-26 | Apple Silicon (host) | va + whole chain: phaser channels in one loop (was 27.9) | 8 | 20.8 | 0.80 % |
+| 2026-11-26 | Apple Silicon (host) | poly, ladder 1x: block state in locals (was 24.5) | 8 | 22.2 | 0.85 % |
+| 2026-11-26 | Apple Silicon (host) | mono, ladder 1x: block state in locals (was 29.1) | 1 | 26.5 | 0.13 % |
 
 Cross build (arm-none-eabi-gcc, cortex-m7, -O2, `libsynth_dsp.a`): text ~77 KB (help strings
 included; `-DDSP_PARAM_TEXT=0` removes them), state ~340 KB with 8 parts (~40 KB per part: lower `SYNTH_PARTS` on a board), plus the effect arena (default 1.3 MB,

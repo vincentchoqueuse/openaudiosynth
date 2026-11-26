@@ -338,8 +338,15 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .monitor canvas { display: block; width: 100%; height: 100%; }
 
 /* footer: the macros to play, the keyboard */
-footer .macrocard { margin-bottom: 16px; }
-footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 12px; background: var(--side); min-width: 0; }
+footer .macrocard { margin-bottom: 14px; }
+/* the dock's own strip: Macros, Keyboard, each folds its part; folded, the dock is this strip alone */
+.dockbar { display: flex; gap: 4px; margin: 0 -8px 6px; }
+.docktab { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-radius: 6px; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
+.docktab.on { color: var(--text); }
+.docktab:hover { background: var(--faint); color: var(--text); }
+footer.closed { padding-bottom: 3px; }
+footer.closed .dockbar { margin-bottom: 0; }
+footer { grid-area: foot; border-top: 1px solid var(--line); padding: 3px 32px 12px; background: var(--side); min-width: 0; }
 .keys-wrap { display: flex; gap: 14px; align-items: stretch; }
 .oct { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; color: var(--muted); }
 .oct button { width: 22px; height: 18px; border-radius: 4px; color: var(--muted); }
@@ -436,5 +443,5 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
   .topbar .tb-right { flex: none; gap: 8px; }
   .topbar .meter, .topbar .vsep, .topbar .volume, .topbar .ab { display: none; }
   .pills.lg button { width: auto; padding: 5px 12px; }
-  footer { padding: 12px 16px 10px; }
+  footer { padding: 3px 16px 10px; }
 }

@@ -76,7 +76,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   view's toolbar has the clip's own Init and Randomize. **Code**: the sound (the patch file) or the clip, in an editor as tall as
   the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (the sound, the tempo, play, the menu), the live display,
   the macros and the keyboard, with the library in its drawer; no Synth or Code view, no piano roll (the clip plays
-  from the top bar), no macro CC, no shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
+  from the top bar), no macro CC, no shortcuts sheet. Along the bottom, a dock whose two tabs (Macros, Keyboard) fold each part (remembered): the 8 macros to play on one line above the
   keyboard, which lights the notes the clip plays.
 - **Address**: `?sound=NAME` opens a preset, `?q=TEXT` fills the library search, `?view=sequence|synth|code` opens a
   view (e.g. `/?sound=drone_glacial&view=synth`); the address bar follows the sound playing, and Share's QR code

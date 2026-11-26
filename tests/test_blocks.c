@@ -1,6 +1,8 @@
 /* test_blocks.c — the shared building blocks that had no direct test: the half-band oversampler (passband flat,
  * images and aliases at least 50 dB down), the resonator (frequency within 1 %, -60 dB at its T60, two modes in a
- * pair exactly as one by one) and the parameter smoother (63 % of a step after one time constant). */
+ * pair exactly as one by one), the parameter smoother (63 % of a step after one time constant) and the orthogonal
+ * generator (a sine at amount 0, the sine's level at every amount and kind, a band of noise centred on the note and of
+ * the width asked, deterministic). */
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +10,7 @@
 #include "core/smooth.h"
 #include "filter/halfband.h"
 #include "filter/resonator.h"
+#include "osc/ortho.h"
 #include "test.h"
 
 #define SR 48000.0f
@@ -118,9 +121,87 @@ static void smoother(void)
     CHECK(fabsf(y - 1.0f) < 1e-5f, "smoother does not settle on its target: %.6f", (double)y);
 }
 
+/* share of the power of x within [lo, hi] Hz, from averaged spectra of 8192 samples */
+static float band_share(const float *x, int n, float lo, float hi)
+{
+    const int N = 8192;
+    static float db[8192 / 2 + 1];
+    double in = 0.0, all = 0.0;
+    for (int f0 = 0; f0 + N <= n; f0 += N) {
+        spectrum_db(x + f0, N, db);
+        for (int k = 1; k <= N / 2; k++) {
+            const double pw = pow(10.0, (double)db[k] / 10.0), hz = (double)k * (double)SR / N;
+            all += pw;
+            if (hz >= (double)lo && hz <= (double)hi)
+                in += pw;
+        }
+    }
+    return (float)(in / all);
+}
+
+static void orthogonal(void)
+{
+    const int n = 1 << 17;
+    float *x = malloc(sizeof(float) * (size_t)n), *y = malloc(sizeof(float) * (size_t)n);
+    const float f = 4000.0f, inc = f / SR;
+    ortho_t o;
+    /* amount 0: the sine itself, to the bit */
+    ortho_reset(&o, 1);
+    ortho_blk_t k = ortho_block(0.0f, ORTHO_SMOOTH, SR);
+    float ph = 0.0f;
+    int same = 1;
+    for (int i = 0; i < 4096; i++) {
+        same &= ortho_next(&o, &k, ph) == fm_sin_pos(ph);
+        ph += inc, ph -= (float)(int)ph;
+    }
+    CHECK(same, "ortho at amount 0 is not the sine");
+    /* the sine's level at every amount and kind */
+    const char *kind[3] = {"smooth", "stepped", "sparse"};
+    for (int m = 0; m < ORTHO_MODE_COUNT; m++)
+        for (int a = 1; a <= 4; a++) {
+            ortho_reset(&o, 3);
+            k = ortho_block(0.25f * (float)a, m, SR);
+            ph = 0.0f;
+            for (int i = 0; i < n; i++) {
+                x[i] = ortho_next(&o, &k, ph);
+                ph += inc, ph -= (float)(int)ph;
+            }
+            const float db = 20.0f * log10f(rms(x, n) / 0.70710678f);
+            if (m == ORTHO_SPARSE && a < 4) /* a thin crackle is quieter by design, never louder */
+                CHECK(db < 0.5f, "ortho sparse at amount %.2f: %.2f dB above the sine's level", 0.25 * a, (double)db);
+            else
+                CHECK(fabsf(db) < 1.0f, "ortho %s at amount %.2f: %.2f dB from the sine's level", kind[m], 0.25 * a, (double)db);
+            CHECK(all_finite_bounded(x, n, 4.0f), "ortho %s: NaN or |x| = %.2f", kind[m], (double)max_abs(x, n));
+        }
+    /* smooth, noise alone, half-width 200 Hz around 4 kHz: about 65 % of the power within +-W (two one-poles in
+     * series: the integral of 1 / (1 + u^2)^2 to 0.6436 over the whole), and centred */
+    ortho_reset(&o, 5);
+    k = ortho_block_at(1.0f, 200.0f, ORTHO_SMOOTH, SR);
+    ph = 0.0f;
+    for (int i = 0; i < n; i++) {
+        x[i] = ortho_next(&o, &k, ph);
+        ph += inc, ph -= (float)(int)ph;
+    }
+    const float in = band_share(x, n, f - 200.0f, f + 200.0f);
+    const float low = band_share(x, n, f - 2000.0f, f), high = band_share(x, n, f, f + 2000.0f);
+    CHECK(fabsf(in - 0.654f) < 0.06f, "ortho smooth W 200 Hz: %.3f of the power within +-W (expected 0.654)", (double)in);
+    CHECK(fabsf(low - high) < 0.05f, "ortho band not centred on the note: %.3f below, %.3f above", (double)low, (double)high);
+    /* the same draws every note */
+    ortho_reset(&o, 5);
+    ph = 0.0f;
+    for (int i = 0; i < n; i++) {
+        y[i] = ortho_next(&o, &k, ph);
+        ph += inc, ph -= (float)(int)ph;
+    }
+    CHECK(memcmp(x, y, sizeof(float) * (size_t)n) == 0, "ortho not deterministic");
+    free(x);
+    free(y);
+}
+
 void suite_blocks(void)
 {
     halfband();
     resonator();
     smoother();
+    orthogonal();
 }

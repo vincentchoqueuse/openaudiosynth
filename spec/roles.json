@@ -205,6 +205,8 @@
     "micro.low_beat_mix": "share of the low layer's second sine",
     "micro.lock": "frequencies on the tempo grid: whole cycles in a length of the tempo",
     "micro.space": "stereo: free, hard sides, or alternating sides at each hit",
+    "micro.ortho.amount": "the main sine turned toward a band of noise around the note (0 = a pure sine)",
+    "micro.ortho.mode": "the kind of that noise: smooth, stepped or sparse",
     "micro.space_delay": "one channel late by this many samples",
     "micro.pulse<n>.depth": "how far a pulse closes its layers",
     "micro.pulse<n>.div": "length of a pulse step on the beat",

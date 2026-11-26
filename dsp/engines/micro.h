@@ -9,7 +9,8 @@
  * layer, the weight: a sine between 20 and 160 Hz at a fixed frequency or on the note's pitch folded into that octave,
  * restarted at a set phase on every hit (or every step of its own gate), with its own pitch drop and its own
  * attack / hold / decay counted in samples, a second sine a set number of hertz away (both restart together, so the beating is the same on every hit), a
- * drive for harmonics small speakers can play, always in the centre. References: exponential envelope segments as in analog contour generators (an RC charge
+ * drive for harmonics small speakers can play, always in the centre. The main sine can turn into a band of noise around
+ * the note by quadrature modulation (ortho: smooth, stepped or sparse), from a pure sine to broad noise. References: exponential envelope segments as in analog contour generators (an RC charge
  * toward a target past the end level); binaural beating of two pure tones (H. W. Dove, 1839). */
 #ifndef ENGINE_MICRO_H
 #define ENGINE_MICRO_H
@@ -17,6 +18,7 @@
 #include "../core/smooth.h"
 #include "../filter/svf_tpt.h"
 #include "../fx/dist.h"
+#include "../osc/ortho.h"
 #include "engine.h"
 
 #define MICRO_VOICES 8
@@ -50,6 +52,8 @@ enum {
     /* the grid: frequencies a whole number of cycles per length of the tempo; space: hard sides, sides that
      * alternate at every hit, the two channels an exact number of samples apart */
     MICRO_P_LOCK, MICRO_P_SPACE, MICRO_P_SPACE_DELAY,
+    /* the main sine turned toward noise: a band around the note, from a pure sine to broad noise (dsp/osc/ortho.h) */
+    MICRO_P_ORTHO, MICRO_P_ORTHO_MODE,
     /* four pulses: on / off rhythms exact to the sample, each opening and closing the layers it targets */
     MICRO_P_PULSE,
     MICRO_P_COUNT = MICRO_P_PULSE + MICRO_PULSES * MICRO_PU_COUNT
@@ -100,6 +104,7 @@ typedef struct {
     float vm_gain;
     int vm_fresh;
     float side; /* space alternate: the side of the current hit, -1 left, +1 right */
+    ortho_t ortho; /* the main sine's random part (ortho) */
     float pu_g[MICRO_PULSES];  /* each pulse's gain, slewed (-1: set on the first sample) */
     int32_t pu_n[MICRO_PULSES];  /* free pulses: samples since the note */
     int32_t pu_q[MICRO_PULSES];  /* free pulses: steps since the note */

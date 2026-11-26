@@ -23,6 +23,7 @@ static const char *const low_mode_labels[] = {"fixed", "note", NULL};
 static const char *const lock_labels[] = {"off", "1/64", "1/32", "1/16", "1/8", "1/4", "1/2", "bar", NULL};
 static const float lock_beats[] = {0.0f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f};
 static const char *const space_labels[] = {"free", "hard", "alternate", NULL};
+static const char *const ortho_labels[] = {"smooth", "stepped", "sparse", NULL};
 /* what a pulse opens and closes, as a mask: 1 the main sine (with sub and click), 2 the second sine, 4 the noise, 8 the low layer */
 static const char *const pulse_target_labels[] = {"main", "sine2", "sines", "noise", "low", "tone_noise", "all", NULL};
 static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15};
@@ -213,6 +214,12 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_SPACE_DELAY, "space_delay", "micro.space_delay", -96.0f, 96.0f, 0.0f, PARAM_INT, "samples", 0, NULL,
           "one channel this many samples late: positive = the right, negative = the left (a few samples widen, "
           "tens of samples split a click into two)"),
+    PARAM(MICRO_P_ORTHO, "ortho", "micro.ortho.amount", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "the main sine turned toward noise: 0 = a pure sine; up = a band of noise around the note, from 2 Hz wide "
+          "(a sine that breathes) to 12 kHz (noise), the level kept; centred on the note whatever the amount"),
+    PARAM(MICRO_P_ORTHO_MODE, "ortho_mode", "micro.ortho.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, ortho_labels,
+          "the noise's kind: smooth (a breath), stepped (held values, a digital grain at twice the band's width) or "
+          "sparse (impulses of random sign: a dry crackle, quieter while thin)"),
     PULSE(1), PULSE(2), PULSE(3), PULSE(4),
 };
 
@@ -520,6 +527,7 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         v->gate = 0;
         v->ph1 = v->ph2 = e->p[MICRO_P_PHASE] * (1.0f / 360.0f);
         v->phs = 0.0f;
+        ortho_reset(&v->ortho, 0x0A70u + (uint32_t)note); /* each key its own draws, the same every time */
         v->click_amp = v->click_imp = 0.0f;
         v->click_live = 0;
         svf_reset(&v->click_f);
@@ -622,6 +630,7 @@ static void micro_init(void *st, float sample_rate)
         svf_init(&v->click_f, sample_rate);
         dist_init(&v->dist, sample_rate);
         svf_init(&v->noise_f, sample_rate);
+        ortho_reset(&v->ortho, 0x0A70u);
         v->noise_rng = 0x2545F491u * (uint32_t)(i + 1);
         v->low_stage = MICRO_ENV_IDLE;
         v->low_amp.y = v->low_tail = v->low_tail_d = v->low_ph = v->low_ph2 = 0.0f;
@@ -699,6 +708,7 @@ typedef struct {
     float inv_sr;
     float vol0, vol1;                         /* engine volume at the start and the end of the block */
     float l1, l2, ls;                         /* levels of the main sine, the second sine and the sub (0 = off) */
+    ortho_blk_t ortho;                        /* the main sine's turn toward noise */
     int split, o2hz, o2penv;
     float o2ratio, o2off, sub_mul, pamt, glide_c;
     int cm, drive_on;
@@ -931,7 +941,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
         /* sines */
         float a = 0.0f, b = 0.0f;
         if (v->tone_on) {
-            a = l1 * fm_sin_pos(v->ph1);
+            a = l1 * ortho_next(&v->ortho, &blk->ortho, v->ph1); /* the sine itself while ortho is 0 */
             if (ls > 0.0f)
                 a += ls * fm_sin_pos(v->phs);
             if (l2 > 0.0f) {
@@ -1145,6 +1155,7 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
 
     /* block-rate settings */
     b.l1 = p[MICRO_P_SINE_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_SINE_LEVEL]);
+    b.ortho = ortho_block(p[MICRO_P_ORTHO], (int)p[MICRO_P_ORTHO_MODE], e->sr);
     b.l2 = p[MICRO_P_OSC2_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_OSC2_LEVEL]);
     b.ls = p[MICRO_P_SUB_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_SUB_LEVEL]);
     b.split = (int)p[MICRO_P_OSC2_SPLIT], b.o2hz = (int)p[MICRO_P_OSC2_MODE] == 1;
@@ -1250,7 +1261,7 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
 }
 
 static const engine_stage_t micro_stages[] = {
-    {"sine", "Sine", "source", "sine_level pitch_mode freq transpose fine phase phase_reset burst", "", NULL, NULL, 0.0f, 0.0f},
+    {"sine", "Sine", "source", "sine_level pitch_mode freq transpose fine phase phase_reset burst ortho ortho_mode", "", NULL, NULL, 0.0f, 0.0f},
     {"osc2", "Sine 2", "source", "osc2_", "", NULL, "osc2_level", -60.0f, -12.0f},
     {"sub", "Sub", "source", "sub_", "", NULL, "sub_level", -60.0f, -6.0f},
     {"click", "Click", "source", "click_", "", NULL, "click_mode", 0.0f, 1.0f},

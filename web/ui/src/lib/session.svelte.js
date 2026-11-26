@@ -45,7 +45,7 @@ class Session {
   panel = $state(null);
   panelTitle = $state(''); // the name of what the panel shows, for the path above the view
   synthQuery = $state(''); // the Synth table's search
-  synthState = $state('all'); // and on / off: all, on, off
+  synthState = $state('on'); // and on / off: all, on, off (what is on, unless asked)
   synthTag = $state('all'); // and its type filter (all, source, transform, modulation, macro)
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
   panelTab = $state('settings'); // the side panel's tab: general or settings

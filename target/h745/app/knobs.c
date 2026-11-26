@@ -41,7 +41,6 @@ static const struct {
 } knob_targets[] = {
     {"va", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_attack", "amp_release"}},
     {"mono", {"cutoff", "emphasis", "contour", "fenv_decay", "mixer_drive", "glide"}},
-    {"poly", {"cutoff", "resonance", "fenv_amount", "fenv_decay", "amp_release", "lfo_filter"}},
     {"fm6", {"op2_level", "op4_level", "op6_level", "feedback", "lfo_speed", "lfo_pmd"}},
     {"wt", {"a_position", "b_position", "a_warp", "cutoff", "resonance", "amp_release"}},
     {"modal", {"brightness", "position", "hardness", "damping", "decay", "inharmonicity"}},

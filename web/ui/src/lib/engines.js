@@ -1,9 +1,9 @@
 // engines.js — how the engines are presented: the order of the families and one color each, the same as on
 // the board's screen (target/h745/app/m4/app_m4.c), so an instrument looks the same everywhere.
-export const ENGINE_ORDER = ['va', 'mono', 'poly', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'drone', 'havoc', 'micro'];
+export const ENGINE_ORDER = ['va', 'mono', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'drone', 'havoc', 'micro'];
 
 const COLORS = {
-  va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5', poly: '#f2777a',
+  va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5',
   drums: '#e5534b', wt: '#56d39a', sampler: '#f08fb8', drone: '#8fc9e8',
   micro: '#e8e2d0', havoc: '#d4ff3a',
 };
@@ -21,7 +21,6 @@ export const engineRank = (name) => {
 export const DEFAULT_MACROS = {
   va: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_attack', 'amp_release'],
   mono: ['cutoff', 'emphasis', 'contour', 'fenv_decay', 'mixer_drive', 'glide'],
-  poly: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_release', 'lfo_filter'],
   // scenes: each macro moves several settings, upwards from where they are ([name, [parameter, travel]...], the
   // travel in normalized units)
   havoc: [['Rot', ['g1_rot', 0.7], ['g2_rot', 0.7], ['g3_rot', 0.7], ['g4_rot', 0.7]],

@@ -28,7 +28,6 @@ set(SYNTH_DSP_SOURCES
   dsp/engines/modal.c
   dsp/engines/drums.c
   dsp/engines/mono.c
-  dsp/engines/poly.c
   dsp/engines/havoc.c
   dsp/engines/fm6.c
   dsp/engines/wt.c

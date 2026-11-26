@@ -12,11 +12,10 @@
 
 typedef enum {
     SYNTH_ENGINE_NONE = -1, /* a part with no engine (off) */
-    SYNTH_ENGINE_VA = 0,   /* subtractive: 2 oscillators (incl. supersaw) + noise, SVF, 2 ADSR, LFOs */
+    SYNTH_ENGINE_VA = 0,   /* subtractive: 2 oscillators (unison, sync, poly-mod) + noise, SVF / ladder / formant, 2 ADSR, LFOs */
     SYNTH_ENGINE_MODAL,    /* physical modelling: struck/bowed resonator banks (bells, bars, glass, piano) */
     SYNTH_ENGINE_DRUMS,    /* drum machine: analog, hybrid and glitch kits, GM drum notes */
     SYNTH_ENGINE_MONO,     /* classic monosynth: 3 oscillators, 24 dB ladder, contours, glide */
-    SYNTH_ENGINE_POLY,     /* classic polysynth: sync, poly-mod, 24 dB ladder, unison */
     SYNTH_ENGINE_FM6,      /* 6-operator FM: 32 algorithms, rate/level envelopes, sysex import */
     SYNTH_ENGINE_WT,       /* wavetable: 2 morphing wavetable oscillators, warps, unison, mod matrix */
     SYNTH_ENGINE_SAMPLER,  /* drum sampler: a kit of samples (synth_part_kit), 16 pads with their own settings */

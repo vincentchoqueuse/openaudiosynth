@@ -175,10 +175,7 @@ grids, silences and pure sine drones (`va_sine_drone`); see `songs/microsound.js
 - `mono` (early-70s monosynth spirit): footage `16`/`32` for basses, push `mixer_drive` for the fat
   overdriven ladder, `emphasis` ~0.95 self-oscillates, `release` on = notes ring with the decay time,
   `osc3_keytrack` off + range `32` = osc 3 as LFO for the mod wheel. Patches `mono_bass`, `mono_d_lead`.
-- `poly` (late-70s polysynth spirit): `osca_sync` + `pm_fenv` + `pm_freq_a` = the sync lead;
-  `pm_oscb` + `pm_freq_a` = FM bells; pulses + `lfo_pwm` = strings; `unison` = giant mono sounds;
-  `drift` = analog slop. Patches `poly_brass`, `poly_strings`, `poly_sync_lead`, `poly_bell`,
-  `poly_unison_bass`; song `synthwave_drive`.
+- `va`, what was `poly` (late-70s polysynth spirit): `osc1_sync` + `polymod_env` (target pitch) = the sync lead; `polymod_osc2` = audio-rate clangs and bells; `filter_mode` ladder = the round 24 dB low-pass; `osc1_unison` / `osc2_unison` with a width = the old voice-stacking unison, `drift` = analog slop. Sounds `va_brass`, `va_strings`, `va_sync_lead`, `va_polymod_bell`, `va_unison_bass`; song `synthwave_drive`.
 - Drum machines: `drums` kits `analog` and `hybrid` (see above).
 
 ## Wavetable (`wt`)

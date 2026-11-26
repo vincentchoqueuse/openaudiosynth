@@ -1,4 +1,4 @@
-/* test_classic.c — mono and poly engines through the public API: pitch, mono glide (always, or tied notes only), hard
+/* test_classic.c — mono and va (with what poly had: sync, unison) engines through the public API: pitch, mono glide (always, or tied notes only), hard
  * sync (pitch locks to osc B), unison, the mono's panel (emphasis thinning the bass, note priority, output fed
  * back, pink noise, LFO through the wheel, lo range), and bounded/deterministic output under random parameters. */
 #include <math.h>
@@ -6,7 +6,7 @@
 #include <string.h>
 
 #include "engines/mono.h"
-#include "engines/poly.h"
+#include "engines/va.h"
 #include "synth.h"
 #include "test.h"
 
@@ -56,7 +56,7 @@ void suite_classic(void)
 
     /* random parameters and notes: bounded and deterministic for each engine */
     static const struct { int engine, count; const char *name; } eng[] = {
-        {SYNTH_ENGINE_MONO, MONO_P_COUNT, "mono"}, {SYNTH_ENGINE_POLY, POLY_P_COUNT, "poly"}};
+        {SYNTH_ENGINE_MONO, MONO_P_COUNT, "mono"}, {SYNTH_ENGINE_VA, VA_P_COUNT, "va"}};
     for (int k = 0; k < 2; k++) {
         storm(eng[k].engine, eng[k].count, L, R, n);
         storm(eng[k].engine, eng[k].count, L2, R2, n);
@@ -256,22 +256,25 @@ void suite_classic(void)
         CHECK(hz > 2.5f && hz < 4.5f, "mono osc 3 lo range: %.2f Hz (3.44 expected)", (double)hz);
     }
 
-    /* poly: pitch, then hard sync locks the period to osc B even with osc A an octave + fifth up */
+    /* va's sync (what poly had): pitch, then hard sync locks the period to osc 2 even with osc 1 an octave + fifth up */
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_POLY);
-    setp(poly_params, POLY_P_MIX_B, 0.0f);
-    setp(poly_params, POLY_P_DRIFT, 0.0f);
-    setp(poly_params, POLY_P_OSCB_FINE, 0.0f);
-    setp(poly_params, POLY_P_CUTOFF, 18000.0f);
-    setp(poly_params, POLY_P_RESO, 0.0f);
-    setp(poly_params, POLY_P_FENV_AMT, 0.0f);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_VA);
+    setp(va_params, VA_P_OSC2_LEVEL, 0.0f);
+    setp(va_params, VA_P_DRIFT, 0.0f);
+    setp(va_params, VA_P_TOLERANCE, 0.0f);
+    setp(va_params, VA_P_JITTER, 0.0f);
+    setp(va_params, VA_P_OSC2_DETUNE, 0.0f);
+    setp(va_params, VA_P_CUTOFF, 18000.0f);
+    setp(va_params, VA_P_FENV_AMT, 0.0f);
+    setp(va_params, VA_P_AMP_S, 1.0f);
     midi3(0x90, 57, 100);
     render(L, R, n);
     f = estimate_freq(L + 9600, n - 9600, SR);
-    CHECK(fabsf(f - 220.0f) < 0.3f, "poly A3: %.2f Hz", (double)f);
+    CHECK(fabsf(f - 220.0f) < 0.3f, "va A3: %.2f Hz", (double)f);
     midi3(0x80, 57, 0);
-    setp(poly_params, POLY_P_OSCA_SYNC, 1.0f);
-    setp(poly_params, POLY_P_OSCA_SEMI, 19.0f);
+    setp(va_params, VA_P_OSC1_SYNC, 1.0f);
+    setp(va_params, VA_P_OSC1_OCT, 1.0f);
+    setp(va_params, VA_P_OSC1_SEMI, 7.0f);
     render(L, R, n);
     midi3(0x90, 57, 100);
     render(L, R, n);
@@ -287,23 +290,24 @@ void suite_classic(void)
             e220 = fmaxf(e220, db[k]);
         for (int k = (int)k330 - 3; k <= (int)k330 + 3; k++)
             e330 = fmaxf(e330, db[k]);
-        CHECK(e220 - e330 > 30.0f, "poly sync: 330 Hz only %.1f dB below the 220 Hz fundamental", (double)(e220 - e330));
-        CHECK(all_finite_bounded(L, n, 1.0f), "poly sync: NaN or > 0 dBFS");
+        CHECK(e220 - e330 > 30.0f, "va sync: 330 Hz only %.1f dB below the 220 Hz fundamental", (double)(e220 - e330));
+        CHECK(all_finite_bounded(L, n, 1.0f), "va sync: NaN or > 0 dBFS");
         free(db);
     }
 
-    /* poly unison: one note, all voices, wider than a single voice */
+    /* va's unison with a width (what poly's unison gave): one note, wider than a single voice */
     synth_init(synth_default(), SR);
-    synth_set_engine(synth_default(), SYNTH_ENGINE_POLY);
-    setp(poly_params, POLY_P_UNISON, 1.0f);
-    setp(poly_params, POLY_P_SPREAD, 1.0f);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_VA);
+    setp(va_params, VA_P_OSC1_UNISON, 7.0f);
+    setp(va_params, VA_P_OSC1_UNI_WIDTH, 1.0f);
+    setp(va_params, VA_P_AMP_S, 1.0f);
     midi3(0x90, 45, 100);
     render(L, R, n);
     double lr = 0, ll = 0, rr = 0;
     for (int i = 9600; i < n; i++)
         lr += (double)L[i] * (double)R[i], ll += (double)L[i] * (double)L[i], rr += (double)R[i] * (double)R[i];
-    CHECK(lr / sqrt(ll * rr) < 0.95, "poly unison: not wide (corr %.3f)", lr / sqrt(ll * rr));
-    CHECK(rms(L + 9600, n - 9600) > 0.01f, "poly unison: silent");
+    CHECK(lr / sqrt(ll * rr) < 0.95, "va unison: not wide (corr %.3f)", lr / sqrt(ll * rr));
+    CHECK(rms(L + 9600, n - 9600) > 0.01f, "va unison: silent");
 
     free(L);
     free(R);

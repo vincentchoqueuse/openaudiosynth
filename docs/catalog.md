@@ -665,64 +665,6 @@ classic monosynth (the early-70s portable one, panel by panel): 3 free-running o
 | `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
 | `glide_mode` | always, legato | always |  | `voice.glide_mode` | always = every note glides from the one before (the original); legato = only a note tied to the one before glides, the others start on pitch (the slides of a bass line) |
 
-## Engine `poly` (8 voices)
-
-classic polysynth (late-70s 5-voice spirit): osc A saw/pulse with hard sync, osc B saw/tri/pulse with low-freq mode, poly-mod (filter env and osc B -> freq A, PW A, filter), 24 dB ladder, 2 ADSR, LFO + wheel, glide, unison, analog slop (8 voices)
-
-| name | range / choices | default | live | role | what it does |
-|---|---|---|---|---|---|
-| `osca_semi` | -24 .. 24 st | 0 |  | `osc1.semitone` | osc A transposition (with sync on: sweep it, or poly-mod it, for the sync lead) |
-| `osca_saw` | off, on | on |  | `osc1.wave_saw` | osc A sawtooth on/off |
-| `osca_pulse` | off, on | off |  | `osc1.wave_pulse` | osc A pulse on/off (both = saw + pulse summed) |
-| `osca_pw` | 0.05 .. 0.95 | 0.5 | yes | `osc1.pulse_width` | osc A pulse width |
-| `osca_sync` | off, on | off |  | `osc1.sync` | osc A hard-synced to osc B: tearing, vocal harmonics |
-| `oscb_semi` | -24 .. 24 st | 0 |  | `osc2.semitone` | osc B transposition |
-| `oscb_fine` | -50 .. 50 cent | 7 | yes | `osc2.detune` | osc B fine tune against A: 5-10 cents = the classic warm beating |
-| `oscb_saw` | off, on | on |  | `osc2.wave_saw` | osc B sawtooth on/off |
-| `oscb_tri` | off, on | off |  | `osc2.wave_triangle` | osc B triangle on/off |
-| `oscb_pulse` | off, on | off |  | `osc2.wave_pulse` | osc B pulse on/off |
-| `oscb_pw` | 0.05 .. 0.95 | 0.5 | yes | `osc2.pulse_width` | osc B pulse width |
-| `oscb_lofreq` | off, on | off |  | `osc2.low_freq` | osc B in sub-audio range: a per-voice LFO for poly-mod (wobbles, slow PWM) |
-| `oscb_keytrack` | off, on | on |  | `osc2.keytrack` | osc B follows the keyboard (off = drone / fixed modulator) |
-| `mix_a` | 0 .. 1 | 0.8 | yes | `osc1.level` | osc A level |
-| `mix_b` | 0 .. 1 | 0.6 | yes | `osc2.level` | osc B level (0 with sync = pure sync lead) |
-| `noise` | 0 .. 1 | 0 | yes | `noise.level` | noise level |
-| `cutoff` | 20 .. 18000 Hz | 1400 | yes | `filter.cutoff` | filter cutoff |
-| `resonance` | 0 .. 1 | 0.2 | yes | `filter.resonance` | resonance (self-oscillates near 1) |
-| `fenv_amount` | -4 .. 6 oct | 2 | yes | `filter.envelope_amount` | filter envelope amount (negative = inverted) |
-| `keytrack` | 0 .. 1 | 0.5 | yes | `filter.keytrack` | filter keyboard tracking |
-| `fenv_attack` | 0.001 .. 10 s | 0.005 | yes | `filter_env.attack` | filter envelope attack |
-| `fenv_decay` | 0.005 .. 10 s | 0.5 | yes | `filter_env.decay` | filter envelope decay |
-| `fenv_sustain` | 0 .. 1 | 0.3 | yes | `filter_env.sustain` | filter envelope sustain |
-| `fenv_release` | 0.005 .. 10 s | 0.4 | yes | `filter_env.release` | filter envelope release |
-| `amp_attack` | 0.001 .. 10 s | 0.005 | yes | `amp.attack` | amp envelope attack |
-| `amp_decay` | 0.005 .. 10 s | 0.4 | yes | `amp.decay` | amp envelope decay |
-| `amp_sustain` | 0 .. 1 | 0.8 | yes | `amp.sustain` | amp envelope sustain |
-| `amp_release` | 0.005 .. 10 s | 0.4 | yes | `amp.release` | amp envelope release |
-| `pm_fenv` | 0 .. 1 | 0 | yes | `polymod.source_filter_env` | poly-mod: filter envelope -> destinations (with sync and freq A: the sweeping sync scream) |
-| `pm_oscb` | 0 .. 1 | 0 | yes | `polymod.source_osc2` | poly-mod: osc B -> destinations at audio rate (freq A = FM bells and clangs) |
-| `pm_freq_a` | off, on | off |  | `polymod.to_freq1` | poly-mod modulates osc A frequency |
-| `pm_pw_a` | off, on | off |  | `polymod.to_pw1` | poly-mod modulates osc A pulse width |
-| `pm_filter` | off, on | off |  | `polymod.to_cutoff` | poly-mod modulates the filter cutoff |
-| `lfo_rate` | 0.05 .. 30 Hz | 5 | yes | `lfo.rate` | LFO rate |
-| `lfo_wave` | tri, saw, square | tri |  | `lfo.waveform` | LFO shape |
-| `lfo_amount` | 0 .. 1 | 0 | yes | `lfo.amount` | initial LFO amount; the mod wheel adds to it |
-| `lfo_pitch` | 0 .. 2 st | 0.2 | yes | `lfo.to_pitch` | LFO -> both oscillators pitch (vibrato) |
-| `lfo_pwm` | 0 .. 0.45 | 0 | yes | `lfo.to_pulse_width` | LFO -> both pulse widths |
-| `lfo_filter` | 0 .. 3 oct | 0 | yes | `lfo.to_cutoff` | LFO -> cutoff |
-| `glide` | 0 .. 2 s | 0 | yes | `voice.glide` | portamento |
-| `unison` | off, on | off |  | `voice.unison` | all voices on one note: huge mono leads and basses |
-| `unison_detune` | 0 .. 50 cent | 12 | yes | `voice.unison_detune` | detune spread of the unison voices |
-| `drift` | 0 .. 15 cent | 4 |  | `voice.drift` | analog drift: slow random wander of each oscillator (standard deviation, cents): voices never quite agree |
-| `velocity` | 0 .. 1 | 0 |  | `amp.velocity` | velocity -> loudness and filter (the original had none) |
-| `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | volume |
-| `pan_spread` | 0 .. 1 | 0.4 |  | `voice.pan_spread` | stereo spread of the voices |
-| `bend_range` | 0 .. 24 st | 2 |  | `voice.bend_range` | pitch-bend range |
-| `oversample` | 1x, 2x, 4x | 1x |  | `filter.oversample` | oversampling of the filters: 1x (default, lightest for 8 voices), 2x (clean drive and resonance, ~2.5x the filter cost), 4x (cleanest, ~5x) |
-| `tolerance` | 0 .. 10 cent | 2 |  | `voice.tolerance` | static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents |
-| `drift_time` | 0.5 .. 20 s | 3 |  | `voice.drift_time` | time constant of the drift: how slowly each oscillator wanders |
-| `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
-
 ## Engine `fm6` (16 voices)
 
 6-operator FM (1983 digital FM spirit): 32 algorithms, rate/level envelopes, ratio/fixed frequencies, keyboard level/rate scaling, velocity, feedback, pitch envelope, LFO; imports the instrument's documented sysex voices (16 voices)

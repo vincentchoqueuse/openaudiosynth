@@ -20,8 +20,8 @@ The web version, dark theme. Each link opens the same sound in your browser.
 *Sequence: [drone_pt_saint_mathieu](https://vincentchoqueuse.github.io/openaudiosynth/?sound=drone_pt_saint_mathieu), the live display above its piano roll, the
 macros above the keyboard.*
 
-![Synth view: signal chain and the oscillator cards of a poly pad](docs/screenshots/03-synth-engine-poly.png)
-*Synth: the signal chain of [poly_hazy_tape](https://vincentchoqueuse.github.io/openaudiosynth/?sound=poly_hazy_tape&view=synth) (a click on a block opens its
+![Synth view: signal chain and the oscillator cards of a va pad](docs/screenshots/03-synth-engine-poly.png)
+*Synth: the signal chain of [va_hazy_tape](https://vincentchoqueuse.github.io/openaudiosynth/?sound=va_hazy_tape&view=synth) (a click on a block opens its
 settings), then the instrument's cards in the order the signal flows.*
 
 ![The envelope editor with its drawn starting shapes](docs/screenshots/04-modulation-envelope.png)

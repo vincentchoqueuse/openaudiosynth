@@ -8,7 +8,6 @@
 #include "drone.h"
 #include "modal.h"
 #include "mono.h"
-#include "poly.h"
 #include "sampler.h"
 #include "va.h"
 
@@ -17,7 +16,6 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_MODAL] = &modal_engine,
     [SYNTH_ENGINE_DRUMS] = &drums_engine,
     [SYNTH_ENGINE_MONO] = &mono_engine,
-    [SYNTH_ENGINE_POLY] = &poly_engine,
     [SYNTH_ENGINE_FM6] = &fm6_engine,
     [SYNTH_ENGINE_WT] = &wt_engine,
     [SYNTH_ENGINE_SAMPLER] = &sampler_engine,

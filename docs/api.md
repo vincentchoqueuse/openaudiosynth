@@ -513,12 +513,6 @@ classic monophonic synthesizer modelled on the early-70s portable modular-derive
 - types: `mono_t`
 - data: `const param_desc_t mono_params[MONO_P_COUNT]`, `const engine_ops_t mono_engine`
 
-## `dsp/engines/poly.h`
-classic programmable polysynth in the spirit of the late-70s 5-voice instrument: per voice osc A (saw + pulse, hard-synced to B on demand) and osc B (saw + triangle + pulse, low-frequency mode, keytrack switch), noise, 24 dB ladder, filter and amp ADSR, and POLY-MOD: filter envelope and osc B modulate osc A frequency and pulse width (osc B at audio rate) and the cutoff. Global LFO with initial amount + mod wheel, glide, unison, analog "slop". Behaviour reconstructed from public documentation; no code reused.
-- types: `poly_voice_t`, `poly_t`
-- constants: `POLY_VOICES` = 8
-- data: `const param_desc_t poly_params[POLY_P_COUNT]`, `const engine_ops_t poly_engine`
-
 ## `dsp/engines/registry.h`
 storage able to hold the state of any engine (one per part). Included by synth.c only; everything else uses engine.h.
 - types: `engine_state_t`

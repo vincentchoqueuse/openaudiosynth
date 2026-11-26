@@ -10,7 +10,6 @@
 #include "micro.h"
 #include "modal.h"
 #include "mono.h"
-#include "poly.h"
 #include "sampler.h"
 #include "va.h"
 #include "wt.h"
@@ -20,7 +19,6 @@ typedef union {
     modal_t modal;
     drums_t drums;
     mono_t mono;
-    poly_t poly;
     fm6_t fm6;
     wt_t wt;
     sampler_t sampler;

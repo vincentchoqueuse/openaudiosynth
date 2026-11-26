@@ -339,7 +339,7 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 
 /* footer: the macros to play, the keyboard */
 footer .macrocard { margin-bottom: 14px; }
-/* the dock's own strip: Macros, Keyboard, each folds its part; folded, the dock is this strip alone */
+/* the Live player's bar: folds the macros and the keyboard together; folded, the player is this bar alone */
 .dockbar { display: flex; gap: 4px; margin: 0 -8px 6px; }
 .docktab { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 8px; border-radius: 6px; color: var(--muted); font-size: 11px; letter-spacing: .04em; text-transform: uppercase; font-weight: 600; }
 .docktab.on { color: var(--text); }

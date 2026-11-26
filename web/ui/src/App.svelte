@@ -1,7 +1,7 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left (Sidebar);
      the top bar (Menu, the three views, the preset; level, volume and the sequencer's play); the view open:
      Sequence (Live, then the sequencer), Synth (Summary, then the editors) or Code (the instrument's or the clip's
-     JSON), each under its title; the macros to play and the keyboard in a dock along the bottom, each folded from its tab. State and actions live in
+     JSON), each under its title; the Live player along the bottom (the macros to play and the keyboard), folded or shown as one. State and actions live in
      lib/session.svelte.js and lib/sequence.svelte.js; the page takes the color of the instrument playing. Space
      plays / stops the clip; Cmd+Z / Shift+Cmd+Z undo / redo; ? opens the shortcuts. -->
 <script>
@@ -34,8 +34,8 @@
   let main = $state(urlParams.view ?? remembered('synth.main', 'clip')); // ?view= in the address first
   $effect(() => { if (!VIEWS.some((v) => v.id === main)) main = 'clip'; });
   $effect(() => remember('synth.main', main));
-  let dock = $state(remembered('synth.dock', { macros: true, keys: true })); // what the dock at the bottom shows
-  $effect(() => remember('synth.dock', { macros: dock.macros, keys: dock.keys }));
+  let live = $state(remembered('synth.live', true)); // the Live player at the bottom shown (or folded to its bar)
+  $effect(() => remember('synth.live', live));
   $effect(() => { if (s.started) showSound(s.current ? s.title : null); }); // the address names the sound playing
   const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
@@ -89,18 +89,18 @@
       {#if main === 'code'}<ViewTitle {...ALL_VIEWS[2]} /><CodeView />{/if}
     </main>
 
-    <footer class:closed={!dock.macros && !dock.keys}>
-      <!-- the dock: the macros and the keyboard, each folded or shown from its own tab (remembered); folded, the page
-           gets their room, the macros still follow their CC and the computer's keys still play -->
-      <div class="dockbar" role="toolbar" aria-label="Macros and keyboard">
-        {#each [['macros', 'Macros'], ['keys', 'Keyboard']] as [id, label]}
-          <button class="docktab" class:on={dock[id]} aria-expanded={dock[id]} onclick={() => (dock[id] = !dock[id])}
-                  title="{dock[id] ? 'Hide' : 'Show'} the {label.toLowerCase()}">
-            <Icon name={dock[id] ? 'down' : 'up'} size={11} />{label}</button>
-        {/each}
+    <footer class:closed={!live}>
+      <!-- the Live player: the macros and the keyboard, folded or shown together from its bar (remembered); folded,
+           the page gets their room, the macros still follow their CC and the computer's keys still play -->
+      <div class="dockbar" role="toolbar" aria-label="Live player">
+        <button class="docktab" class:on={live} aria-expanded={live} onclick={() => (live = !live)}
+                title="{live ? 'Hide' : 'Show'} the Live player (macros and keyboard)">
+          <Icon name={live ? 'down' : 'up'} size={11} />Live player</button>
       </div>
-      <div hidden={!dock.macros}><Card plain class="macrocard"><MacroStrip /></Card></div>
-      <div hidden={!dock.keys}><Keyboard synth={s.synth} held={lit} /></div>
+      <div hidden={!live}>
+        <Card plain class="macrocard"><MacroStrip /></Card>
+        <Keyboard synth={s.synth} held={lit} />
+      </div>
     </footer>
 
     {#if s.toast}<div class="toast {s.toast.kind}" role="status">{s.toast.text}</div>{/if}

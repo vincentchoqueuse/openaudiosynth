@@ -1,6 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left (Sidebar);
      the top bar (Menu, the three views, the preset; level, volume and the sequencer's play); the view open:
-     Sequence (the clip and its code) or Synth (the sound's modules, graph, code and record), each under its title; the Live player along the bottom (the macros to play and the keyboard), folded or shown as one. State and actions live in
+     Sequence (the clip and its code) or Synth (the sound's modules, graph, code and record), each under its title; the Live player along the bottom (the macros to play, the scope and the keyboard), folded or shown as one. State and actions live in
      lib/session.svelte.js and lib/sequence.svelte.js; the page takes the color of the instrument playing. Space
      plays / stops the clip; Cmd+Z / Shift+Cmd+Z undo / redo; ? opens the shortcuts. -->
 <script>
@@ -24,6 +24,8 @@
   import SettingsDialog from './lib/SettingsDialog.svelte';
   import ShortcutsDialog from './lib/ShortcutsDialog.svelte';
   import ShareDialog from './lib/ShareDialog.svelte';
+  import Scope from './lib/Scope.svelte';
+  import Seg from './lib/Seg.svelte';
 
   // the three main views (kept in the browser)
   const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }];
@@ -34,6 +36,10 @@
   $effect(() => remember('synth.main', main));
   let live = $state(remembered('synth.player', true)); // the Live player at the bottom shown (or folded to its bar)
   $effect(() => remember('synth.player', live));
+  let scope = $state(remembered('synth.scope', false)); // the scope strip of the Live player (folded by default)
+  $effect(() => remember('synth.scope', scope));
+  let scopeView = $state(remembered('synth.scopeview', 'wave') === 'spectrum' ? 'spectrum' : 'wave'); // wave or spectrum
+  $effect(() => remember('synth.scopeview', scopeView));
   $effect(() => { if (s.started) showSound(s.current ? s.title : null); }); // the address names the sound playing
   const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
@@ -81,21 +87,33 @@
 
     <main>
       <TopBar bind:view={main} views={VIEWS} />
-      <!-- Clip stays mounted: its scope measures the level of the top bar -->
       <div hidden={main !== 'clip'}>{#if !s.phone}<ViewTitle {...ALL_VIEWS[0]} />{/if}<ClipTab /></div>
       {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} crumbs={[{ label: s.engine?.name ?? '' }, { label: s.label, onclick: s.closePanel }, ...(s.panelTitle ? [{ label: s.panelTitle }] : [])]} /><SynthTab />{/if}
     </main>
 
     <footer class:closed={!live}>
-      <!-- the Live player: the macros and the keyboard, folded or shown together from its bar (remembered); folded,
-           the page gets their room, the macros still follow their CC, the computer's keys no longer play -->
+      <!-- the Live player: the macros, the scope and the keyboard, folded or shown together from its bar (remembered);
+           the scope folds on its own (Scope, folded by default). Folded, the page gets their room, the macros still
+           follow their CC, the computer's keys no longer play; the scope is not drawn, but still measures the level
+           of the top bar's meter. -->
       <div class="dockbar" role="toolbar" aria-label="Live player">
         <button class="docktab" class:on={live} aria-expanded={live} onclick={() => (live = !live)}
                 title="{live ? 'Hide' : 'Show'} the Live player (macros and keyboard)">
           <Icon name={live ? 'down' : 'up'} size={11} />Live player</button>
+        {#if live}
+          <button class="docktab" class:on={scope} aria-expanded={scope} onclick={() => (scope = !scope)}
+                  title="{scope ? 'Hide' : 'Show'} the scope (wave or spectrum)">
+            <Icon name={scope ? 'down' : 'up'} size={11} />Scope</button>
+        {/if}
       </div>
       <div hidden={!live}>
         <Card plain class="macrocard"><MacroStrip /></Card>
+      </div>
+      <div class="scopestrip" hidden={!(live && scope)}>
+        <Scope analyser={s.synth.analyser} view={scopeView} shown={live && scope} />
+        <div class="scopesw"><Seg items={[{ id: 'wave', label: 'Wave' }, { id: 'spectrum', label: 'Spectrum' }]} value={scopeView} onpick={(v) => (scopeView = v)} label="Scope view" /></div>
+      </div>
+      <div hidden={!live}>
         <Keyboard synth={s.synth} held={lit} active={live} />
       </div>
     </footer>

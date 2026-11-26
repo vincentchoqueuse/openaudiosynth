@@ -1,10 +1,10 @@
 <!-- Scope.svelte — the output, from a Web Audio AnalyserNode, like the board's audio view: waveform triggered
      on a rising zero crossing with an automatic gain (a quiet sound still fills the panel), log-frequency
      spectrum 30 Hz .. 20 kHz with falling peaks and a grid; one at a time (`view`), at full width. It also measures the level (peak with hold) for the
-     meter in the transport (session.meter). -->
+     meter in the transport (session.meter), whether it is shown or not: folded (`shown` false), it draws nothing. -->
 <script>
   import { session } from './session.svelte.js';
-  let { analyser, view = 'wave' } = $props(); // 'wave' or 'spectrum': the one shown, at full width
+  let { analyser, view = 'wave', shown = true } = $props(); // 'wave' or 'spectrum': the one shown, at full width
   let wave, spec;
   const DB_FLOOR = -90;
 
@@ -13,7 +13,7 @@
     const time = new Float32Array(analyser.fftSize);
     const freq = new Float32Array(analyser.frequencyBinCount);
     const sr = analyser.context.sampleRate;
-    let raf, gain = 4, shown = null, held = -Infinity;
+    let raf, gain = 4, peaks = null, held = -Infinity; // peaks: the spectrum's, falling
     const size = (c) => {
       const dpr = devicePixelRatio;
       const W = Math.round(c.clientWidth * dpr), H = Math.round(c.clientHeight * dpr);
@@ -24,10 +24,17 @@
       const css = getComputedStyle(wave);
       const accent = css.getPropertyValue('--accent'), grid = css.getPropertyValue('--line'), dim = css.getPropertyValue('--muted');
       analyser.getFloatTimeDomainData(time);
-      analyser.getFloatFrequencyData(freq);
+      if (shown && view === 'spectrum') analyser.getFloatFrequencyData(freq);
+
+      // level: peak of the whole buffer, held then falling
+      let pk = 0;
+      for (const v of time) pk = Math.max(pk, Math.abs(v));
+      const db = 20 * Math.log10(pk + 1e-9);
+      held = Math.max(db, held - 0.5);
+      session.meter = { level: Math.max(0, Math.min(1, (db - DB_FLOOR) / -DB_FLOOR)), hold: held };
 
       // waveform: 20 ms after the last rising zero crossing that leaves room
-      {
+      if (shown && view === 'wave') {
         const [ctx, W, H, dpr] = size(wave);
         ctx.clearRect(0, 0, W, H);
         const span = 960;
@@ -49,16 +56,10 @@
           i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
         }
         ctx.stroke();
-        // level: peak of the whole buffer, held then falling
-        let pk = 0;
-        for (const v of time) pk = Math.max(pk, Math.abs(v));
-        const db = 20 * Math.log10(pk + 1e-9);
-        held = Math.max(db, held - 0.5);
-        session.meter = { level: Math.max(0, Math.min(1, (db - DB_FLOOR) / -DB_FLOOR)), hold: held };
       }
 
       // spectrum on a log axis, peaks falling 1.2 dB per frame
-      {
+      if (shown && view === 'spectrum') {
         const [ctx, W, H, dpr] = size(spec);
         ctx.clearRect(0, 0, W, H);
         const lo = 30, hi = 20000, ls = Math.log(hi / lo);
@@ -71,7 +72,7 @@
           ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
           ctx.fillText(t, x + 4 * dpr, H - 4 * dpr);
         }
-        if (!shown || shown.length !== W) shown = new Float32Array(W).fill(DB_FLOOR);
+        if (!peaks || peaks.length !== W) peaks = new Float32Array(W).fill(DB_FLOOR);
         ctx.beginPath();
         ctx.moveTo(0, H);
         for (let x = 0; x < W; x++) {
@@ -83,8 +84,8 @@
             const fb = (0.5 * (f0 + f1) * analyser.fftSize) / sr, k = Math.floor(fb), t = fb - k;
             v = (freq[k] ?? DB_FLOOR) * (1 - t) + (freq[k + 1] ?? DB_FLOOR) * t;
           }
-          shown[x] = Math.max(Math.max(DB_FLOOR, Math.min(0, v)), shown[x] - 1.2);
-          ctx.lineTo(x, H * (shown[x] / DB_FLOOR));
+          peaks[x] = Math.max(Math.max(DB_FLOOR, Math.min(0, v)), peaks[x] - 1.2);
+          ctx.lineTo(x, H * (peaks[x] / DB_FLOOR));
         }
         ctx.lineTo(W, H);
         ctx.closePath();
@@ -101,8 +102,8 @@
   });
 </script>
 
-<!-- both stay drawn (the level is measured either way); the one not chosen is hidden -->
-<div class="monitor">
+<!-- the one not chosen is hidden and not drawn; the level is measured either way -->
+<div class="monitor" hidden={!shown}>
   <div class="panel" hidden={view !== 'wave'}><canvas bind:this={wave}></canvas></div>
   <div class="panel" hidden={view !== 'spectrum'}><canvas bind:this={spec}></canvas></div>
 </div>

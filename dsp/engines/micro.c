@@ -734,6 +734,19 @@ static inline void hard_pan(float x, float *l, float *r)
     *r = x > 0.33f ? 1.0f : x < -0.33f ? 0.0f : VOICE_CENTER;
 }
 
+/* A gate's gain one sample further toward its target, by at most `slew` (its edge); a gain below 0 has just
+ * started and takes the target at once. The gate, the noise gate and the pulses all move this way. */
+static inline float gate_slew(float g, float target, float slew)
+{
+    if (g < 0.0f)
+        return target;
+    if (g < target)
+        return dsp_minf(g + slew, target);
+    if (g > target)
+        return dsp_maxf(g - slew, target);
+    return g;
+}
+
 /* sd: with space alternate, the side of each sample of the block (-1 left, +1 right; it changes on the sample of a
  * hit), else NULL */
 static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, int low_live, float *xa, float *xb,
@@ -950,13 +963,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                     v->gate_phase -= (float)gsteps;
             }
             const float target = (gpat >> step) & 1u ? 1.0f : gfloor;
-            if (v->gate_g < 0.0f)
-                v->gate_g = target;
-            else if (v->gate_g < target)
-                v->gate_g = dsp_minf(v->gate_g + gslew, target);
-            else if (v->gate_g > target)
-                v->gate_g = dsp_maxf(v->gate_g - gslew, target);
-            gg = v->gate_g;
+            gg = v->gate_g = gate_slew(v->gate_g, target, gslew);
         }
 
         const float g = env * gg;
@@ -988,13 +995,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                 if (ngate > 0) {
                     open = (int)((npat >> step) & 1u);
                     const float target = open ? 1.0f : gfloor;
-                    if (v->ngate_g < 0.0f)
-                        v->ngate_g = target;
-                    else if (v->ngate_g < target)
-                        v->ngate_g = dsp_minf(v->ngate_g + gslew, target);
-                    else if (v->ngate_g > target)
-                        v->ngate_g = dsp_maxf(v->ngate_g - gslew, target);
-                    ng = v->ngate_g;
+                    ng = v->ngate_g = gate_slew(v->ngate_g, target, gslew);
                 }
                 if (step != v->nstep) { /* a new step: a tick if the noise opens on it and the note is held */
                     if (nenv == 2 && open && v->gate)
@@ -1083,14 +1084,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                     v->pu_n[k]++;
                 }
                 const float target = (blk->pu_pat[k] >> ps) & 1u ? 1.0f : blk->pu_floor[k];
-                float pg = v->pu_g[k];
-                if (pg < 0.0f)
-                    pg = target;
-                else if (pg < target)
-                    pg = dsp_minf(pg + blk->pu_slew[k], target);
-                else if (pg > target)
-                    pg = dsp_maxf(pg - blk->pu_slew[k], target);
-                v->pu_g[k] = pg;
+                const float pg = v->pu_g[k] = gate_slew(v->pu_g[k], target, blk->pu_slew[k]);
                 for (int t = 0; t < 4; t++)
                     if (blk->pu_mask[k] & (1u << t))
                         m[t] *= pg;

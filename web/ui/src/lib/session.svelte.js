@@ -6,10 +6,12 @@
 import { PATCH_VERSION, putRole, dumps } from './patchjson.js';
 import { Synth, fromNorm, toNorm } from './synth.js';
 import { parseKit, filesToKit } from './kit.js';
-import { engineColor, engineRank, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
+import { engineColor, engineRank, DEFAULT_MACROS, DEFAULT_MACRO_SENDS, BARE } from './engines.js';
 import { human, unclaimed } from './naming.js';
 import { urlParams } from './urlparams.js';
 import { remembered, remember } from './prefs.js';
+import { engineStages, fxStages, stageOn } from './stages.js';
+import { keys as routeKeys, inUse as routeInUse, clear as clearRoute } from './routes.js';
 
 const FIRST_SOUND = 'wt_drifting_glass'; // what a first visit opens on
 
@@ -311,10 +313,32 @@ class Session {
     const r = await this.applyPatch(JSON.stringify({ version: PATCH_VERSION, engine, name: `${engine}_new`,
                                                      audition: { notes: 'C3 _ _ _', bpm: 90, step: 1 } }));
     if (!r?.ok) { if (r) [this.current, this.info] = prev; return false; }
+    this.#bare();
     this.baseline = { ...this.values };
     this.picks++;
     if (wasPlaying) this.clipHook?.play();
     return true;
+  };
+
+  // A new sound starts bare: the instrument's first source alone; every other module and every effect switched off,
+  // no modulation route (part or voice), Wander still, no macro (its targets, names and values cleared), and what
+  // still moves or adds at its default set still (engines.js, BARE).
+  #bare = () => {
+    let kept = false;
+    for (const r of engineStages(this)) {
+      const st = r.st;
+      if (!kept && st?.kind === 'source') { // the main oscillator, on
+        kept = true;
+        if (st.enable && !stageOn(this, st)) this.setP(st.enable, st.on);
+      } else if (st?.enable && stageOn(this, st)) this.setP(st.enable, st.off);
+    }
+    for (const r of fxStages(this)) if (r.st?.enable && stageOn(this, r.st)) this.setP(r.st.enable, r.st.off);
+    for (const kind of ['part', 'voice']) for (const k of routeKeys(kind)) if (routeInUse(this, k)) clearRoute(this, k);
+    if (this.byName.wander) this.setP('wander', 0);
+    for (let m = 1; m <= 32; m++) if (this.byName[`map${m}_macro`] && this.getP(`map${m}_macro`)) this.setP(`map${m}_macro`, 0);
+    for (let k = 1; k <= 8; k++) if (this.byName[`macro${k}`]) this.setP(`macro${k}`, 0);
+    this.macroNames = Array(8).fill('');
+    for (const [name, v] of Object.entries(BARE[this.engine?.name] ?? {})) if (this.byName[name]) this.setP(name, v);
   };
 
   // a sound of the library; returns true when it is the current one

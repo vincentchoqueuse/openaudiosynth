@@ -452,7 +452,7 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of 
 | `osc2_pw` | 0.05 .. 0.95 | 0.5 | yes | `osc2.pulse_width` | osc 2 pulse width |
 | `osc2_level` | 0 .. 1 | 0.6 | yes | `osc2.level` | osc 2 level (0 = single oscillator, cleaner) |
 | `noise_level` | 0 .. 1 | 0 | yes (CC 16) | `noise.level` | white noise level: breath, air, percussive transients (with short amp envelope) |
-| `filter_mode` | lp, bp, hp, notch, formant, scream | lp |  | `filter.type` | filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive) |
+| `filter_mode` | lp, bp, hp, notch, formant, scream, ladder | lp |  | `filter.type` | filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive), ladder = 24 dB low-pass of the classic ladder, round and fat (filter_character = drive) |
 | `cutoff` | 20 .. 20000 Hz | 2000 | yes (CC 74) | `filter.cutoff` | filter cutoff (base, before envelope/keytrack/velocity/LFO): main brightness control |
 | `resonance` | 0.5 .. 25 Q | 1 | yes (CC 71) | `filter.resonance` | filter Q: 0.7 neutral, 2-5 vocal peak, 8-25 squelchy/whistling (acid) |
 | `fenv_amount` | -8 .. 8 oct | 2.5 | yes (CC 76) | `filter.envelope_amount` | filter envelope depth in octaves (+4 = big 'pew', negative = inverted sweep) |
@@ -501,8 +501,8 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of 
 | `voice_mode` | poly, mono, legato | poly |  | `voice.mode` | poly = chords; mono = one voice, last note wins, every note retriggers the envelopes; legato = one voice, overlapping notes slide without retriggering (acid lines, leads, basses) |
 | `glide` | 0 .. 2 s | 0 | yes | `voice.glide` | portamento time (constant time, like an RC glide): 0.03-0.08 s = acid slide, 0.2-0.5 s = lazy lead |
 | `glide_mode` | always, legato | legato |  | `voice.glide_mode` | always = every note glides from the previous one; legato = only overlapping (tied) notes glide |
-| `filter_character` | 0 .. 1 | 0.5 | yes | `filter.character` | filter_mode formant: the vowel (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u); scream: drive into the screaming feedback |
-| `filter2_mode` | off, lp, bp, hp, notch, formant, scream | off |  | `filter2.type` | second filter: off, or a type like filter 1 (follows the same envelope, keytracking and modulation) |
+| `filter_character` | 0 .. 1 | 0.5 | yes | `filter.character` | filter_mode formant: the vowel (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u); scream: drive into the screaming feedback; ladder: drive into its input |
+| `filter2_mode` | off, lp, bp, hp, notch, formant, scream, ladder | off |  | `filter2.type` | second filter: off, or a type like filter 1 (follows the same envelope, keytracking and modulation) |
 | `filter2_cutoff` | 20 .. 20000 Hz | 1000 | yes | `filter2.cutoff` | second filter cutoff (formant: 1 kHz = adult voice) |
 | `filter2_resonance` | 0 .. 1 | 0.2 | yes | `filter2.resonance` | second filter resonance |
 | `filter2_character` | 0 .. 1 | 0.5 | yes | `filter2.character` | second filter: vowel (formant) or drive (scream) |

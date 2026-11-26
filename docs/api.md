@@ -219,11 +219,11 @@ complex one-pole resonator: z <- (c + i s) z + g x, output = Im(z). A rotation b
 - `void svf_process(svf_t *s, const float *in, float *out, int n)` — in and out may be the same. Normalized band-pass: unity gain at center.
 
 ## `dsp/filter/vfilter.h`
-one filter slot of a voice, several characters behind one interface: 12 dB state-variable (low-pass, band-pass, high-pass, notch), vowel formant filter and 2-pole screaming low-pass with saturating feedback (oversampled 2x by default, or 1x / 4x). An engine keeps one vfilter_t per filter slot and per voice.
+one filter slot of a voice, several characters behind one interface: 12 dB state-variable (low-pass, band-pass, high-pass, notch), vowel formant filter, 2-pole screaming low-pass with saturating feedback and 24 dB ZDF ladder with a driven input (both nonlinear ones oversampled 2x by default, or 1x / 4x; they share one place in memory, as a slot plays one of them at a time). An engine keeps one vfilter_t per filter slot and per voice.
 - types: `vf_type_t`, `vfilter_t`
 - `void vfilter_init(vfilter_t *f, float sample_rate)`
 - `void vfilter_reset(vfilter_t *f)`
-- `void vfilter_set_oversampling(vfilter_t *f, int factor)` — Oversampling of the nonlinear characters (scream): 1, 2 (default) or 4; the others are linear.
+- `void vfilter_set_oversampling(vfilter_t *f, int factor)` — Oversampling of the nonlinear characters (scream, ladder): 1, 2 (default) or 4; the others are linear.
 - `void vfilter_set(vfilter_t *f, int type, float cutoff_hz, float q, float reso, float character)`
 - `void vfilter_process(vfilter_t *f, const float *in, float *out, int n)`
 

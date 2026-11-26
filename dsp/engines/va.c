@@ -9,8 +9,8 @@
 #define VA_SMOOTH_S 0.005f
 
 static const char *const osc_wave_labels[] = {"sine", "saw", "pulse", "tri", NULL};
-static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", NULL};
-static const char *const filter2_labels[] = {"off", "lp", "bp", "hp", "notch", "formant", "scream", NULL};
+static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", "ladder", NULL};
+static const char *const filter2_labels[] = {"off", "lp", "bp", "hp", "notch", "formant", "scream", "ladder", NULL};
 static const char *const routing_labels[] = {"series", "parallel", NULL};
 
 const param_desc_t va_params[VA_P_COUNT] = {
@@ -27,7 +27,7 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_OSC2_PW, "osc2_pw", "osc2.pulse_width", 0.05f, 0.95f, 0.5f, PARAM_LIN, "", 1, NULL, "osc 2 pulse width"),
     PARAM(VA_P_OSC2_LEVEL, "osc2_level", "osc2.level", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL, "osc 2 level (0 = single oscillator, cleaner)"),
     PARAM(VA_P_NOISE_LEVEL, "noise_level", "noise.level", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, "white noise level: breath, air, percussive transients (with short amp envelope)"),
-    PARAM(VA_P_FILTER_MODE, "filter_mode", "filter.type", 0.0f, 5.0f, 0.0f, PARAM_INT, "", 0, filter_mode_labels, "filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive)"),
+    PARAM(VA_P_FILTER_MODE, "filter_mode", "filter.type", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0, filter_mode_labels, "filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive), ladder = 24 dB low-pass of the classic ladder, round and fat (filter_character = drive)"),
     PARAM(VA_P_CUTOFF, "cutoff", "filter.cutoff", 20.0f, 20000.0f, 2000.0f, PARAM_EXP, "Hz", 1, NULL, "filter cutoff (base, before envelope/keytrack/velocity/LFO): main brightness control"),
     PARAM(VA_P_RESO, "resonance", "filter.resonance", 0.5f, 25.0f, 1.0f, PARAM_EXP, "Q", 1, NULL, "filter Q: 0.7 neutral, 2-5 vocal peak, 8-25 squelchy/whistling (acid)"),
     PARAM(VA_P_FENV_AMT, "fenv_amount", "filter.envelope_amount", -8.0f, 8.0f, 2.5f, PARAM_LIN, "oct", 1, NULL, "filter envelope depth in octaves (+4 = big 'pew', negative = inverted sweep)"),
@@ -85,8 +85,8 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_GLIDE_MODE, "glide_mode", "voice.glide_mode", 0.0f, 1.0f, 1.0f, PARAM_INT, "", 0, param_glide_mode_labels,
           "always = every note glides from the previous one; legato = only overlapping (tied) notes glide"),
     PARAM(VA_P_F1_CHAR, "filter_character", "filter.character", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
-          "filter_mode formant: the vowel (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u); scream: drive into the screaming feedback"),
-    PARAM(VA_P_F2_MODE, "filter2_mode", "filter2.type", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0, filter2_labels,
+          "filter_mode formant: the vowel (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u); scream: drive into the screaming feedback; ladder: drive into its input"),
+    PARAM(VA_P_F2_MODE, "filter2_mode", "filter2.type", 0.0f, 7.0f, 0.0f, PARAM_INT, "", 0, filter2_labels,
           "second filter: off, or a type like filter 1 (follows the same envelope, keytracking and modulation)"),
     PARAM(VA_P_F2_CUTOFF, "filter2_cutoff", "filter2.cutoff", 20.0f, 20000.0f, 1000.0f, PARAM_EXP, "Hz", 1, NULL,
           "second filter cutoff (formant: 1 kHz = adult voice)"),

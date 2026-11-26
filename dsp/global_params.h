@@ -1,11 +1,13 @@
 /* global_params.h — descriptors of the global parameters (SYNTH_PARAM_GLOBAL and above): master
- * level and effect bus. For hosts, catalogs and agents; the audio path does not need it. */
+ * level, effect bus, tempo, tuning, output filter, master saturation and limiter, a part's strip (the tables are
+ * in global_params.c). The audio path decodes its parameters through them. */
 #ifndef GLOBAL_PARAMS_H
 #define GLOBAL_PARAMS_H
 
 #include "engines/engine.h"
 #include "mod/params.h"
 #include "synth.h"
+#include "fx/rack.h"
 
 #define SYNTH_GLOBAL_COUNT (SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_GLOBAL)
 
@@ -33,5 +35,15 @@ const param_desc_t *synth_part_param_info(int index);
 extern const int synth_mod_count;
 #define SYNTH_MOD_COUNT synth_mod_count
 const param_desc_t *synth_mod_param_info(int index);
+
+/* the global parameter ids of synth.h mirror the effect-bus table */
+_Static_assert(SYNTH_PARAM_REVERB_FREEZE - SYNTH_PARAM_CHORUS_MODE == RACK_P_REVERB_FREEZE, "rack ids");
+_Static_assert(SYNTH_PARAM_TEMPO - SYNTH_PARAM_CHORUS_MODE == RACK_P_BUS_COUNT, "rack ids");
+_Static_assert(SYNTH_PARAM_GLOBAL_END - SYNTH_PARAM_PHASER_MIX == RACK_P_COUNT - RACK_P_BUS_COUNT, "rack ids");
+/* a global id of the rack -> its index in rack_params */
+static inline int rack_index(int id)
+{
+    return id >= SYNTH_PARAM_PHASER_MIX ? RACK_P_BUS_COUNT + id - SYNTH_PARAM_PHASER_MIX : id - SYNTH_PARAM_CHORUS_MODE;
+}
 
 #endif /* GLOBAL_PARAMS_H */

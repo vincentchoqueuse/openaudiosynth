@@ -21,6 +21,7 @@ set(SYNTH_DSP_SOURCES
   dsp/env/mseg.c
   dsp/voice/voicemod.c
   dsp/mod/params.c
+  dsp/global_params.c
   dsp/voice/voice_alloc.c
   dsp/voice/vpoly.c
   dsp/engines/va.c

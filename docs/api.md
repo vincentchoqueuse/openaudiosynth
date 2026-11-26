@@ -189,6 +189,7 @@ complex one-pole resonator: z <- (c + i s) z + g x, output = Im(z). A rotation b
 - `void reso_ring(reso_t *r, float *restrict out, int n)` — Free ringing: adds n samples to out.
 - `void reso_drive(reso_t *r, const float *restrict x, float g, float *restrict out, int n)` — Driven by g x[i]: adds n samples to out.
 - `void reso_drive2(reso_t *r, const float *restrict x1, float g1, const float *restrict x2, float g2, float *restrict out, int n)` — Driven by two inputs (e.g. strike and bow): g1 x1[i] + g2 x2[i].
+- `void reso_pair(reso_t *a, reso_t *b, const float *restrict x1, float g1a, float g1b, const float *restrict x2, float g2a, float g2b, float *restrict out, int n)` — Two modes in one pass: the same as one mode then the other (each mode's arithmetic is unchanged, and they are added to out in that order), but their two chains overlap in the FPU. g1/g2: each mode's gain on x1 and x2 ...
 
 ## `dsp/filter/scream.h`
 2-pole low-pass in the spirit of late-70s semi-modular monosynth filters, with a screaming resonance: two one-pole TPT low-passes with a high-pass in the feedback path, resonance K up to self-oscillation, and a saturating feedback node that gives the aggressive, screaming character; optional 2x oversampling around the nonlinearity (halfband.h). Zero-delay feedback solved per sample. References: V. Zavalishin, "The Art of VA Filter Design" (TPT one-poles, ZDF feedback); W. Pirkle, "Designing Software Synthesizer Plugins in C++" (Korg 35 filter structure).
@@ -531,13 +532,14 @@ wavetable synthesizer in the spirit of modern wavetable instruments: two wavetab
 - data: `const param_desc_t wt_params[WT_P_COUNT]`, `const engine_ops_t wt_engine`
 
 ## `dsp/global_params.h`
-descriptors of the global parameters (SYNTH_PARAM_GLOBAL and above): master level and effect bus. For hosts, catalogs and agents; the audio path does not need it.
+descriptors of the global parameters (SYNTH_PARAM_GLOBAL and above): master level, effect bus, tempo, tuning, output filter, master saturation and limiter, a part's strip (the tables are in global_params.c). The audio path decodes its parameters through them.
 - types: `synth_cc_doc_t`
 - constants: `SYNTH_MOD_COUNT`
 - data: `const synth_cc_doc_t synth_midi_cc[]`, `const int synth_midi_cc_count`, `const engine_stage_t synth_fx_stages[]`, `const int synth_fx_stage_count`, `const int synth_mod_count`
 - `const param_desc_t *synth_global_param(int index)` — Descriptor of global parameter SYNTH_PARAM_GLOBAL + index, or NULL.
 - `const param_desc_t *synth_part_param_info(int index)` — Descriptor of part parameter SYNTH_PART_PARAM + index, or NULL.
 - `const param_desc_t *synth_mod_param_info(int index)`
+- `int rack_index(int id)` — a global id of the rack -> its index in rack_params
 
 ## `dsp/synth_debug.h`
 diagnostics of an instance, for tests and for a board's status screen; not part of the public API (dsp/synth.h), and free to change.

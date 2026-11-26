@@ -446,6 +446,20 @@ static DSP_FAST_CODE void wt_render(void *st, float *L, float *R)
 }
 
 /* the signal chain for interfaces (engine_stage_t): sources, then filter and amp, modulators below */
+/* a frame of an oscillator's table at its full band (mip level 0, 2048 samples), decimated to n points: for displays */
+static int wt_probe_table(const void *st, int osc, int frame, float *out, int n)
+{
+    const wt_t *e = st;
+    if (!e->bank || e->bank_count <= 0 || osc < 0 || osc > 1)
+        return 0;
+    if (out && frame >= 0 && frame < WT_FRAMES && n > 0 && n <= 2048) {
+        const float *f = wt_factory_table(e->bank, e->bank_count, (int)e->p[WT_OSC(osc, WT_O_TABLE)]) + (size_t)frame * WT_FRAME_FLOATS;
+        for (int i = 0; i < n; i++)
+            out[i] = f[(i * 2048) / n];
+    }
+    return WT_FRAMES;
+}
+
 static const engine_stage_t wt_stages[] = {
     {"osca", "Osc A", "source", "a_", "", NULL, "a_level", 0.0f, 1.0f},
     {"oscb", "Osc B", "source", "b_", "", NULL, "b_level", 0.0f, 0.5f},
@@ -478,6 +492,7 @@ const engine_ops_t wt_engine = {
     .shared_floats = WT_FACTORY_FLOATS,
     .shared_build = wt_shared_build,
     .shared_attach = wt_shared_attach,
+    .probe_table = wt_probe_table,
     .stages = wt_stages,
     .stage_count = (int)(sizeof wt_stages / sizeof wt_stages[0]),
 };

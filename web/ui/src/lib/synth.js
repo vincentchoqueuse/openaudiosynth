@@ -130,6 +130,11 @@ export class Synth {
   }
   // a song (songs/ format) with its patches inline, played live one part per track: resolves {length, error, warning}
   song(json, loop = false) { return this.request('song', { json, loop }); }
+  // the frames of the table oscillator osc (0, 1) of `wt` plays: resolves {count, n, frames (Float32Array count x n)}
+  async wavetable(osc, n = 128) {
+    const r = await this.request('wavetable', { osc, n });
+    return { count: r.count, n: r.n, frames: new Float32Array(r.frames) };
+  }
 
   async enableMidi(onChange) {
     if (!navigator.requestMIDIAccess) throw new Error('Web MIDI unavailable (use Chrome or Edge)');

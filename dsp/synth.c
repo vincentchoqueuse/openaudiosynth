@@ -1005,6 +1005,13 @@ DSP_FAST_CODE void synth_render(synth_t *s, float *L, float *R, int n)
 
 /* ---- read-only views for displays (synth_probe.h) ---- */
 
+int synth_probe_wavetable(const synth_t *s, int part, int osc, int frame, float *out, int n)
+{
+    if (!s || part < 0 || part >= SYNTH_PARTS || !s->part[part].ops || !s->part[part].ops->probe_table)
+        return 0;
+    return s->part[part].ops->probe_table(&s->part[part].eng, osc, frame, out, n);
+}
+
 float synth_probe_mseg(const synth_t *s, int part, int which)
 {
     if (!s || part < 0 || part >= SYNTH_PARTS)

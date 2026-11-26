@@ -129,6 +129,18 @@ class SynthProcessor extends AudioWorkletProcessor {
           warning: this.str(w.w_warning()) });
         break;
       }
+      case 'wavetable': { // the frames of the table an oscillator of `wt` plays, n points each (none for other engines)
+        const n = m.n | 0, count = w.w_wavetable ? w.w_wavetable(m.osc, -1, 0, n) : 0;
+        const frames = new Float32Array(count * n), p = count ? w.w_alloc(n * 4) : 0;
+        try {
+          for (let f = 0; f < count && p; f++) {
+            w.w_wavetable(m.osc, f, p, n);
+            frames.set(new Float32Array(w.memory.buffer, p, n), f * n);
+          }
+        } finally { if (p) w.w_free(p); }
+        this.port.postMessage({ type: 'wavetable', req: m.req, count, n, frames: frames.buffer }, [frames.buffer]);
+        break;
+      }
       case 'sequence': {
         const len = this.withString(m.rows || '', (p) => w.w_sequence(p, m.bpm, m.step, m.gate, m.swing || 0, m.loop ? 1 : 0));
         this.port.postMessage({ type: 'sequence', req: m.req, length: len, error: len < 0 ? this.str(w.w_error()) : '' });

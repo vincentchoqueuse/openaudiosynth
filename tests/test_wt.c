@@ -9,6 +9,7 @@
 #include "engines/wt.h"
 #include "osc/wt_factory.h"
 #include "synth.h"
+#include "synth_probe.h"
 #include "test.h"
 
 #define SR 48000.0f
@@ -66,8 +67,30 @@ static float centroid(const float *x, float *db)
     return (float)(num / den) * SR / (float)N_FFT;
 }
 
+/* the display probe: a wt part shows its frames (the first and the last differ, each one cycle in [-1.5, 1.5]); a va
+ * part has none */
+static void probe(void)
+{
+    synth_t *s = synth_default();
+    synth_init(s, 48000.0f);
+    synth_set_engine(s, SYNTH_ENGINE_WT);
+    float a[256], b[256], l[32], r[32];
+    synth_render(s, l, r, 32); /* the engine switch */
+    const int frames = synth_probe_wavetable(s, 0, 0, 0, a, 256);
+    synth_probe_wavetable(s, 0, 0, frames - 1, b, 256);
+    float d = 0.0f;
+    for (int i = 0; i < 256; i++)
+        d = fmaxf(d, fabsf(a[i] - b[i]));
+    CHECK(frames == WT_FRAMES && d > 0.01f && all_finite_bounded(a, 256, 1.5f), "wt probe: %d frames, first and last %g apart",
+          frames, (double)d);
+    synth_set_engine(s, SYNTH_ENGINE_VA);
+    synth_render(s, l, r, 32);
+    CHECK(synth_probe_wavetable(s, 0, 0, 0, a, 256) == 0, "va has no wavetable to show");
+}
+
 void suite_wt(void)
 {
+    probe();
     const int n = 48000;
     float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
     float *L2 = malloc(sizeof(float) * (size_t)n), *R2 = malloc(sizeof(float) * (size_t)n);

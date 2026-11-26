@@ -10,4 +10,9 @@
  * envelopes (MSEG 1 and 2), 2 = the per-note envelope of the most recent note still running. */
 float synth_probe_mseg(const synth_t *s, int part, int which);
 
+/* Frame `frame` of the wavetable that oscillator `osc` (0, 1) of a part plays, as n samples of one cycle (n <= 2048)
+ * into out, at its full band; returns the table's frame count (a frame out of range leaves out untouched: ask frame
+ * -1 for the count alone), 0 when the part's engine has no wavetable. */
+int synth_probe_wavetable(const synth_t *s, int part, int osc, int frame, float *out, int n);
+
 #endif /* SYNTH_PROBE_H */

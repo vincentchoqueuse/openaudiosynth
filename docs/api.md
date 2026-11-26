@@ -558,6 +558,7 @@ diagnostics of an instance, for tests and for a board's status screen; not part 
 ## `dsp/synth_probe.h`
 read-only views of an instance's state for displays (the web page, the board's screen): where the modulation envelopes are. Nothing here changes the sound; call it from the interface thread between renders (the value can be one block old). Kept apart from synth.h, the control API.
 - `float synth_probe_mseg(const synth_t *s, int part, int which)` — Position of an envelope along its shape, 0..1, or -1 when it is not running. which: 0 and 1 = the part's envelopes (MSEG 1 and 2), 2 = the per-note envelope of the most recent note still running.
+- `int synth_probe_wavetable(const synth_t *s, int part, int osc, int frame, float *out, int n)` — Frame `frame` of the wavetable that oscillator `osc` (0, 1) of a part plays, as n samples of one cycle (n <= 2048) into out, at its full band; returns the table's frame count (a frame out of range leaves out untouched...
 
 ## `midi/link.h`
 the board link: how a host (the Mac, later the Pi hub) drives a synth board over Ethernet with UDP datagrams. One datagram = a 12-byte header + one message: MIDI, parameter values, a preset, the choice of a built-in preset, or a chunk of a large transfer (a sample kit). Specified in docs/link.md. Encoding and decoding only (no sockets, no allocation, little-endian fields), shared by the board and the host tools; the transport is udpip.h on the board and BSD sockets on the host.

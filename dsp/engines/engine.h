@@ -75,6 +75,11 @@ typedef struct {
     /* Optional: the tempo (BPM) and the beat position at the end of the block about to be rendered, called by
      * synth.c once per block before render, for engines with tempo-synced parts of their own. */
     void (*tempo)(void *state, float bpm, float beat);
+
+    /* Optional, for displays (synth_probe.h): frame `frame` of the wavetable oscillator `osc` plays, as n samples of one
+     * cycle (n <= 2048) into out; returns the table's frame count (out untouched when frame is out of range), 0 when
+     * the engine has no table to show. Never called from the audio path. */
+    int (*probe_table)(const void *state, int osc, int frame, float *out, int n);
 } engine_ops_t;
 
 /* Registry, indexed by synth_engine_t. */

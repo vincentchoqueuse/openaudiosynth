@@ -65,7 +65,7 @@
     "feedback": 0.85,
     "mutate": 0.8,
     "mutate_depth": 1.0,
-    "volume": -4,
+    "volume": 1.9,
     "reverb_mix": 0.2,
     "reverb_decay": 0.85,
     "reverb_damping": 3000,

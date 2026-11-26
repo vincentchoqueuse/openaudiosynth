@@ -4,7 +4,7 @@
   "name": "drums_glitch",
   "description": "Digital microsound kit: gated sub sine pulses, single-sample clicks, pure high beeps, white and decimated 2-bit data noise, modem chirps. For precise, minimal, glitch grids.",
   "params": {
-    "volume": 1.8,
+    "volume": -4.4,
     "kit": "glitch",
     "stereo": 0.8,
     "accent": 0.3

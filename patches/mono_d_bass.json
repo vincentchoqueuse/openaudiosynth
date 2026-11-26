@@ -32,7 +32,8 @@
     "bend_range": 7,
     "drift": 3,
     "volume": 9.5,
-    "master": 3
+    "master": 3,
+    "velocity": 0.4
   },
   "audition": {
     "notes": "E3 _ E4 E3 - G3 A3 _ E3 _ E4 D4 - B2 D3 _",

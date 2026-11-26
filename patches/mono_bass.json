@@ -21,7 +21,8 @@
     "amp_decay": 0.6,
     "amp_sustain": 0.8,
     "keytrack": 0.33,
-    "volume": 14.6
+    "volume": 10.7,
+    "velocity": 0.4
   },
   "audition": {
     "notes": "C3 - C3 C4 - C3 - D#3 F3 - F3 F4 - F3 G3 A#2",

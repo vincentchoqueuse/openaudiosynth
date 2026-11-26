@@ -31,7 +31,8 @@
     "note_priority": "low",
     "bend_range": 7,
     "volume": 4,
-    "master": 4
+    "master": 4,
+    "velocity": 0.4
   },
   "audition": {
     "notes": "E3 _ _ E3 G3 _ A3 _ E3 _ _ D4 E4 _ B2 _",

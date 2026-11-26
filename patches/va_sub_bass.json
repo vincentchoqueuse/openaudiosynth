@@ -4,10 +4,27 @@
   "name": "va_sub_bass",
   "description": "Clean round sub bass: triangle + sine one octave down, closed filter, no resonance.",
   "params": {
-    "volume": 9.9,
-    "osc1_wave": "tri", "osc2_wave": "sine", "osc2_oct": -1, "osc2_detune": 0, "osc2_level": 0.8,
-    "cutoff": 300, "resonance": 0.7, "fenv_amount": 0.5, "fenv_decay": 0.1, "keytrack": 0,
-    "amp_attack": 0.004, "amp_decay": 0.3, "amp_sustain": 0.9, "amp_release": 0.08, "pan_spread": 0, "drift": 1
+    "volume": 13.6,
+    "osc1_wave": "tri",
+    "osc2_wave": "sine",
+    "osc2_oct": -1,
+    "osc2_detune": 0,
+    "osc2_level": 0.8,
+    "cutoff": 300,
+    "resonance": 0.7,
+    "fenv_amount": 0.5,
+    "fenv_decay": 0.1,
+    "keytrack": 0,
+    "amp_attack": 0.004,
+    "amp_decay": 0.3,
+    "amp_sustain": 0.9,
+    "amp_release": 0.08,
+    "pan_spread": 0,
+    "drift": 1
   },
-  "audition": { "notes": "E1 _ _ E1 - E1 G1 _ A1 _ _ A1 - G1 E1 D1", "bpm": 90, "gate": 0.85 }
+  "audition": {
+    "notes": "E1 _ _ E1 - E1 G1 _ A1 _ _ A1 - G1 E1 D1",
+    "bpm": 90,
+    "gate": 0.85
+  }
 }

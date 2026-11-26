@@ -24,11 +24,21 @@
     "gate_div": "1/16",
     "gate_pattern": 46774,
     "gate_edge": 0.0005,
-    "volume": 6,
+    "volume": 12.6,
     "tempo": 120
   },
   "macros": [
-    {"name": "Sine to noise", "value": 0.42, "targets": [{"param": "ortho", "from": 0.0, "to": 1.0}]}
+    {
+      "name": "Sine to noise",
+      "value": 0.42,
+      "targets": [
+        {
+          "param": "ortho",
+          "from": 0.0,
+          "to": 1.0
+        }
+      ]
+    }
   ],
   "audition": {
     "notes": "A4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _",

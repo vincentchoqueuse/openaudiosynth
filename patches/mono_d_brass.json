@@ -31,7 +31,8 @@
     "volume": 8.6,
     "mod_a": "filter_eg",
     "mod_mix": 0.0,
-    "mod_pitch": 0.6
+    "mod_pitch": 0.6,
+    "velocity": 0.4
   },
   "audition": {
     "notes": "C4 _ _ E4 G4 _ _ _ F4 _ _ A4 G4 _ _ -",

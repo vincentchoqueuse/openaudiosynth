@@ -27,7 +27,7 @@
     "gate_mode": "sync",
     "gate_div": "1/16",
     "gate_pattern": 65535,
-    "volume": 8,
+    "volume": 17.0,
     "tempo": 120
   },
   "audition": {

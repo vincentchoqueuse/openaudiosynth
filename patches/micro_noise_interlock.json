@@ -28,7 +28,7 @@
     "noise_gate": "inverse",
     "noise_pan": 0.35,
     "velocity": 0,
-    "volume": 10,
+    "volume": 9.0,
     "tempo": 120
   },
   "clip": {

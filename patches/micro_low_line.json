@@ -23,7 +23,7 @@
     "low_curve": -0.4,
     "low_drive": 0.55,
     "velocity": 0.3,
-    "volume": 6,
+    "volume": 1.2,
     "tempo": 120
   },
   "clip": {

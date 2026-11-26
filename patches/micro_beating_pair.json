@@ -15,7 +15,7 @@
     "osc2_offset": 1.5,
     "osc2_split": "on",
     "velocity": 0,
-    "volume": -2,
+    "volume": 0.2,
     "tempo": 120
   },
   "clip": {

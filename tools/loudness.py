@@ -1,24 +1,43 @@
-# loudness.py — the level of every patch, to keep them even: renders each (its clip, or its audition) with
-# synth_render and prints its gated RMS (the louder half of 400 ms windows, so a sparse pluck and a held drone compare)
-# and its peak. Patches aim at -18 dBFS gated, held back where their peak would pass -3 dBFS.
-# Usage: python tools/loudness.py OUTDIR [patch names...]
-import json, subprocess, sys, glob, os, numpy as np, scipy.io.wavfile as w
-OUT = sys.argv[1]
-names = sys.argv[2:] or sorted(os.path.basename(p)[:-5] for p in glob.glob('patches/*.json'))
-res = {}
+# loudness.py — the level of every patch, to keep the library even: renders each (synth_render) and measures its
+# K-weighted loudness (ITU-R BS.1770 weighting, LUFS-like, gated to the 50 ms windows within 20 dB of its loudest) and
+# its peak; with --fix, moves the volume of each patch more than 3 dB from the library's median toward it, its peak
+# kept under -1 dBFS. Usage: python tools/loudness.py <repo> <tmpdir> [--fix]
+import json, os, subprocess, sys
+import numpy as np, scipy.io.wavfile as wavfile
+from scipy.signal import lfilter
+# K-weighting (ITU-R BS.1770) at 48 kHz: a high shelf, then a high-pass
+KB1, KA1 = [1.53512485958697, -2.69169618940638, 1.19839281085285], [1.0, -1.69065929318241, 0.73248077421585]
+KB2, KA2 = [1.0, -2.0, 1.0], [1.0, -1.99004745483398, 0.99007225036621]
+R, T = sys.argv[1], sys.argv[2]
+os.makedirs(T, exist_ok=True)
+
+def measure(path):
+    wav = f'{T}/x.wav'
+    subprocess.run([f'{R}/build-host/host/synth_render', '--patch', path, '--out', wav, '--tail', '1.5'], capture_output=True, cwd=R)
+    sr, x = wavfile.read(wav); x = x.astype(np.float64)
+    if np.abs(x).max() > 2: x /= 32768.0
+    k = lfilter(KB2, KA2, lfilter(KB1, KA1, x, axis=0), axis=0)  # K-weighted, per channel
+    n = int(0.05 * sr)
+    e = (k[: len(k) // n * n] ** 2).sum(axis=1)                 # channel powers summed, as BS.1770
+    p = e.reshape(-1, n).mean(axis=1)
+    g = p[p > p.max() * 0.01]
+    return -0.691 + 10 * np.log10(g.mean()), 20 * np.log10(np.abs(x).max())
+
+names = sorted(f for f in os.listdir(f'{R}/patches') if f.endswith('.json'))
+lv = {n: measure(f'{R}/patches/{n}') for n in names}
+med = float(np.median([v[0] for v in lv.values()]))
+print(f'median {med:.1f} dB')
 for n in names:
-    wav = f'{OUT}/{n}.wav'
-    subprocess.run(['./build-host/host/synth_render', '--patch', f'patches/{n}.json', '--out', wav, '--tail', '2'], capture_output=True)
-    sr, x = w.read(wav)
-    x = x.astype(np.float64)
-    if np.abs(x).max() > 2: x /= 32768
-    m = np.sqrt((x ** 2).mean(axis=1)) if x.ndim > 1 else np.abs(x)
-    win = int(0.4 * sr); k = len(m) // win
-    r = np.sqrt((m[:k * win].reshape(k, win) ** 2).mean(axis=1))
-    r = np.sort(r)[k // 2:]
-    g = 20 * np.log10(np.sqrt((r ** 2).mean()) + 1e-12)
-    pk = 20 * np.log10(np.abs(x).max() + 1e-12)
-    vol = json.load(open(f'patches/{n}.json'))['params'].get('volume', 0)
-    res[n] = (round(g, 1), round(pk, 1), vol)
-    print(f'{n:28s} gated {g:6.1f}  peak {pk:5.1f}  volume {vol}', flush=True)
-json.dump(res, open(f'{OUT}/loud.json', 'w'))
+    L, pk = lv[n]
+    if abs(L - med) <= 3.0:
+        continue
+    gain = min(med - L, -1.0 - pk)  # toward the median, never a peak above -1 dBFS
+    if '--fix' in sys.argv and abs(gain) > 0.5:
+        path = f'{R}/patches/{n}'; p = json.load(open(path))
+        v0 = float(p['params'].get('volume', 0.0))
+        p['params']['volume'] = round(max(-60.0, min(24.0, v0 + gain)), 1)
+        json.dump(p, open(path, 'w'), indent=2); open(path, 'a').write('\n')
+        L2, pk2 = measure(path)
+        print(f'{n[:-5]:30s} {L:6.1f} -> {L2:6.1f} dB (volume {v0:+.1f} -> {p["params"]["volume"]:+.1f}, peak {pk2:5.1f})')
+    else:
+        print(f'{n[:-5]:30s} {L:6.1f} dB, peak {pk:5.1f}: would move {gain:+.1f}')

@@ -24,7 +24,7 @@
     "low_beat": 3.0,
     "low_beat_mix": 0.5,
     "velocity": 0,
-    "volume": 6,
+    "volume": -0.5,
     "tempo": 120
   },
   "clip": {

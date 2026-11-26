@@ -33,7 +33,7 @@
     "route2_source": "mlfo2",
     "route2_destination": "volume",
     "route2_amount": 0.07,
-    "volume": 3.7
+    "volume": 5.8
   },
   "clip": {
     "bpm": 126,

@@ -68,7 +68,7 @@
     "x2_mix": 0.5,
     "amp_attack": 4.0,
     "amp_release": 6.0,
-    "volume": -1,
+    "volume": 2.6,
     "reverb_mix": 0.5,
     "reverb_decay": 0.97,
     "reverb_damping": 1500,

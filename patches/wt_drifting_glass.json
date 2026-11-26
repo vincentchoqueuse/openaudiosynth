@@ -4,7 +4,7 @@
   "name": "wt_drifting_glass",
   "description": "Drifting glass: the crystal pad left to itself. Six macros (table position, warp, cutoff, resonance, delay, reverb) each follow their own slow random walk (wander), so a held chord keeps changing colour and place and never passes twice through the same sound.",
   "params": {
-    "volume": 5.5,
+    "volume": 0.4,
     "a_table": "harmonics",
     "a_position": 0.75,
     "a_warp_mode": "sync",
@@ -132,8 +132,8 @@
       "targets": [
         {
           "param": "cutoff",
-          "from": 0.25,
-          "to": 0.9
+          "from": 112.5,
+          "to": 10023.7
         }
       ]
     },

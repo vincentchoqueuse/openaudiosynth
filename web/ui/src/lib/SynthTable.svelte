@@ -3,7 +3,7 @@
      output filter and the crush, the effects added to the rack, the master, the saturation, the limiter), the sources
      of modulation (envelopes, LFOs, Wander, the controllers) and the eight macros. A toolbar: a search (names,
      settings, what a module moves), a tag per family, On / Off, then the actions: Add effect (one not yet in the
-     rack: rack.svelte.js), Init and Randomize. Columns are fields: Name, Tag, Type, On (a switch: onoff.js; a lock
+     rack: rack.svelte.js), Init and Randomize. Columns are fields: Name, Type (a chip coloured by what it does: makes the sound, shapes it, sets its level, moves it, colours it after, plays it), On (a switch: onoff.js; a lock
      when the module is always on), Summary (its main settings) and Moves (what a source or a macro moves); a click on
      a head sorts. A row's cog, or a click on it, opens the record in the side panel. Under the table, the count. -->
 <script>
@@ -69,7 +69,7 @@
   // the search: every word of the query in the row's name, tag, type, its settings' names, its summary or what it moves
   const text = (r) => [r.title, r.tag, r.type, r.sum, r.moves, r.words ?? '', ...(r.ps ?? []).map(({ d, label }) => `${label} ${human(d.name)}`)].join(' ').toLowerCase();
   let sort = $state(null); // {id, dir}: a head clicked; null: the order of the signal
-  const SORT = { name: (r) => r.title.toLowerCase(), tag: (r) => r.tag, type: (r) => r.type, on: (r) => (isOn(s, r) ? 0 : 1) };
+  const SORT = { name: (r) => r.title.toLowerCase(), type: (r) => r.tag + ' ' + r.type, on: (r) => (isOn(s, r) ? 0 : 1) };
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     const state = (r) => s.synthState === 'all' || isOn(s, r) === (s.synthState === 'on');
@@ -80,9 +80,14 @@
   });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
+  // the colour of a type: what it does in the sound (makes it, shapes it, sets its level, moves it, colours it after,
+  // plays it), whatever the family it belongs to
+  const KIND = { source: 'src', samples: 'src', filter: 'flt', amp: 'amp', voice: 'amp', input: 'fx', insert: 'fx', output: 'fx',
+                 control: 'mac' };
+  const kindOf = (type) => KIND[type] ?? 'mod'; // modulator, envelope, lfo, random walk, controller
   const count = (id) => rows.filter((r) => id === 'all' || r.tag === id).length;
   const foot = $derived(`${shown.length === rows.length ? rows.length : `${shown.length} of ${rows.length}`} modules · ${rows.filter((r) => isOn(s, r)).length} on`);
-  const columns = [{ id: 'name', label: 'Name', w: '19%', sort: true }, { id: 'tag', label: 'Tag', w: '112px', sort: true }, { id: 'type', label: 'Type', w: '104px', cls: 'muted', sort: true },
+  const columns = [{ id: 'name', label: 'Name', w: '19%', sort: true }, { id: 'type', label: 'Type', w: '132px', sort: true },
                    { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' }, { id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }];
 </script>
 
@@ -105,8 +110,7 @@
            empty="Nothing matches." bind:sort {foot}>
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
-    {:else if c.id === 'tag'}<span class="tag tag-{r.tag}">{r.tag}</span>
-    {:else if c.id === 'type'}{r.type}
+    {:else if c.id === 'type'}<span class="tag kind-{kindOf(r.type)}" title={r.tag}>{r.type}</span>
     {:else if c.id === 'on'}
       {#if locked(s, r) && isOn(s, r)}<span class="lock" title="always on"><Icon name="lock" size={13} /></span>
       {:else}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"

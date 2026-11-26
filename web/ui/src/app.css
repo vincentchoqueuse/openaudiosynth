@@ -199,6 +199,12 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .finder .seg { box-sizing: border-box; height: 30px; align-items: stretch; } /* one height with the search */
 .finder .seg button { display: inline-flex; align-items: center; padding: 0 10px; }
 .dt .tag { display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 10.5px; letter-spacing: .03em; background: var(--faint); color: var(--text); }
+.dt .kind-src { background: color-mix(in srgb, var(--ok) 22%, transparent); }
+.dt .kind-flt { background: color-mix(in srgb, #3e8ed0 24%, transparent); }
+.dt .kind-amp { background: color-mix(in srgb, #c9a227 24%, transparent); }
+.dt .kind-mod { background: color-mix(in srgb, #9b6bd6 24%, transparent); }
+.dt .kind-fx { background: color-mix(in srgb, #2bb3a3 22%, transparent); }
+.dt .kind-mac { background: color-mix(in srgb, var(--warn) 24%, transparent); }
 .dt .tag-engine { background: color-mix(in srgb, var(--accent) 18%, transparent); }
 .dt .tag-effect { background: color-mix(in srgb, #3e8ed0 20%, transparent); }
 .dt .tag-modulation { background: color-mix(in srgb, var(--warn) 20%, transparent); }

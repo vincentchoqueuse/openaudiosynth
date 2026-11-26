@@ -221,6 +221,9 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
     float xl[SYNTH_BLOCK], xr[SYNTH_BLOCK], tmp[SYNTH_BLOCK], tmp2[SYNTH_BLOCK];
     for (int i = 0; i < n; i++)
         xl[i] = xr[i] = 0.0f;
+    /* the sines that sound go in pairs through one loop: two independent phase chains the FPU overlaps, added
+     * into the mix in the same order as one by one (ascending k), so the output is unchanged */
+    int on[DRN_SINES], n_snd = 0;
     for (int k = 0; k < DRN_SINES; k++) {
         if (v->fresh)
             v->inc[k] = inc1[k], v->al[k] = al1[k], v->ar[k] = ar1[k];
@@ -230,6 +233,33 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
             v->inc[k] = inc1[k];
             continue;
         }
+        on[n_snd++] = k;
+    }
+    int j = 0;
+    for (; j + 1 < n_snd; j += 2) {
+        const int a = on[j], b = on[j + 1];
+        const float dia = (inc1[a] - v->inc[a]) * inv_n, dla = (al1[a] - v->al[a]) * inv_n, dra = (ar1[a] - v->ar[a]) * inv_n;
+        const float dib = (inc1[b] - v->inc[b]) * inv_n, dlb = (al1[b] - v->al[b]) * inv_n, drb = (ar1[b] - v->ar[b]) * inv_n;
+        float pha = v->phase[a], inca = v->inc[a], gla = v->al[a], gra = v->ar[a];
+        float phb = v->phase[b], incb = v->inc[b], glb = v->al[b], grb = v->ar[b];
+        for (int i = 0; i < n; i++) {
+            inca += dia, gla += dla, gra += dra;
+            incb += dib, glb += dlb, grb += drb;
+            pha += inca;
+            phb += incb;
+            pha -= (float)(int)pha;
+            phb -= (float)(int)phb;
+            const float sa = fm_sin_pos(pha), sb = fm_sin_pos(phb);
+            xl[i] += gla * sa;
+            xr[i] += gra * sa;
+            xl[i] += glb * sb;
+            xr[i] += grb * sb;
+        }
+        v->phase[a] = pha, v->inc[a] = inc1[a], v->al[a] = al1[a], v->ar[a] = ar1[a];
+        v->phase[b] = phb, v->inc[b] = inc1[b], v->al[b] = al1[b], v->ar[b] = ar1[b];
+    }
+    if (j < n_snd) { /* an odd one left */
+        const int k = on[j];
         const float di = (inc1[k] - v->inc[k]) * inv_n;
         const float dl = (al1[k] - v->al[k]) * inv_n, dr = (ar1[k] - v->ar[k]) * inv_n;
         float ph = v->phase[k], inc = v->inc[k], gl = v->al[k], gr = v->ar[k];

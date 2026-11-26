@@ -1,6 +1,6 @@
-<!-- SynthTab.svelte — the Synth view, a record with two tabs like every record of the page: General (the sound as
-     fields, and its signal path: SoundGeneral) and Settings (every module of the sound in one table with a search,
-     tags and On / Off: SynthTable). Configure on a row, or a click on a block of the signal path, opens the module in
+<!-- SynthTab.svelte — the Synth view, a record with its tabs: Settings (every module of the sound in one table with
+     a search, tags and On / Off: SynthTable), Graph (its signal path drawn from the same data: ChainView, only what is
+     active), Code (the sound's patch file: CodeView) and General (the sound as fields: SoundGeneral). Configure on a row, or a click on a block of the signal path, opens the module in
      the side panel (SidePanel) with the same two tabs: General (what it is and does, where its signal goes, what it
      moves and what moves it, each setting's help: ModuleGeneral) and Settings (a stage's settings, a modulator's
      editor and what it moves, a macro's targets, the sampler's kit). The panel lies over the page, and its arrows
@@ -8,6 +8,8 @@
 <script>
   import KitPanel from './KitPanel.svelte';
   import SoundGeneral from './SoundGeneral.svelte';
+  import ChainView from './ChainView.svelte';
+  import CodeView from './CodeView.svelte';
   import Tabs from './Tabs.svelte';
   import SidePanel from './SidePanel.svelte';
   import SynthTable from './SynthTable.svelte';
@@ -80,10 +82,14 @@
     const i = s.tableRows.findIndex((r) => r.key === s.panel?.id), r = i >= 0 ? s.tableRows[i + d] : null;
     return r ? () => s.openPanel(r.kind, r.key) : null;
   };
+  const TABS = [{ id: 'settings', label: 'Settings' }, { id: 'graph', label: 'Graph' }, { id: 'code', label: 'Code' }, { id: 'general', label: 'General' }];
 </script>
 
-<Tabs items={[{ id: 'settings', label: 'Settings' }, { id: 'general', label: 'General' }]} value={s.synthTab} onpick={(id) => (s.synthTab = id)} label="Sound" />
-{#if s.synthTab === 'general'}<SoundGeneral onpick={pick} />{:else}<SynthTable />{/if}
+<Tabs items={TABS} value={s.synthTab} onpick={(id) => (s.synthTab = id)} label="Sound" />
+{#if s.synthTab === 'general'}<SoundGeneral />
+{:else if s.synthTab === 'graph'}<div class="graph"><ChainView onpick={pick} /></div>
+{:else if s.synthTab === 'code'}<CodeView doc="sound" />
+{:else}<SynthTable />{/if}
 
 {#if P}
   <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)} bind:tab={s.panelTab}>
@@ -96,3 +102,7 @@
     {/key}
   </SidePanel>
 {/if}
+
+<style>
+  .graph { padding: 8px 0; }
+</style>

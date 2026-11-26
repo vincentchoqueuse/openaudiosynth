@@ -1,7 +1,6 @@
 <!-- App.svelte — web prototype of the synth, put together from its parts: the sound library on the left (Sidebar);
      the top bar (Menu, the three views, the preset; level, volume and the sequencer's play); the view open:
-     Sequence (Live, then the sequencer), Synth (Summary, then the editors) or Code (the instrument's or the clip's
-     JSON), each under its title; the Live player along the bottom (the macros to play and the keyboard), folded or shown as one. State and actions live in
+     Sequence (the clip and its code) or Synth (the sound's modules, graph, code and record), each under its title; the Live player along the bottom (the macros to play and the keyboard), folded or shown as one. State and actions live in
      lib/session.svelte.js and lib/sequence.svelte.js; the page takes the color of the instrument playing. Space
      plays / stops the clip; Cmd+Z / Shift+Cmd+Z undo / redo; ? opens the shortcuts. -->
 <script>
@@ -15,7 +14,6 @@
   import { urlParams, showSound } from './lib/urlparams.js';
   import ClipTab from './lib/ClipTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
-  import CodeView from './lib/CodeView.svelte';
   import { remembered, remember } from './lib/prefs.js';
   import { sequence } from './lib/sequence.svelte.js';
   import { history } from './lib/history.svelte.js';
@@ -28,14 +26,14 @@
   import ShareDialog from './lib/ShareDialog.svelte';
 
   // the three main views (kept in the browser)
-  const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }, { id: 'code', label: 'Code', icon: 'code' }];
+  const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }];
   // a phone plays: the clip, the macros and the keyboard only (no editing views)
   const VIEWS = $derived(s.phone ? ALL_VIEWS.slice(0, 1) : ALL_VIEWS);
   let main = $state(urlParams.view ?? remembered('synth.main', 'clip')); // ?view= in the address first
   $effect(() => { if (!VIEWS.some((v) => v.id === main)) main = 'clip'; });
   $effect(() => remember('synth.main', main));
-  let live = $state(remembered('synth.live', true)); // the Live player at the bottom shown (or folded to its bar)
-  $effect(() => remember('synth.live', live));
+  let live = $state(remembered('synth.player', true)); // the Live player at the bottom shown (or folded to its bar)
+  $effect(() => remember('synth.player', live));
   $effect(() => { if (s.started) showSound(s.current ? s.title : null); }); // the address names the sound playing
   const lit = $derived(new Set([...s.held, ...sequence.sounding])); // played on the keys, or by the clip
   // text on the accent: dark on a light accent (the drone's pale blue), white on a dark one
@@ -86,7 +84,6 @@
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
       <div hidden={main !== 'clip'}>{#if !s.phone}<ViewTitle {...ALL_VIEWS[0]} />{/if}<ClipTab /></div>
       {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} crumbs={[{ label: s.engine?.name ?? '' }, { label: s.label, onclick: s.closePanel }, ...(s.panelTitle ? [{ label: s.panelTitle }] : [])]} /><SynthTab />{/if}
-      {#if main === 'code'}<ViewTitle {...ALL_VIEWS[2]} /><CodeView />{/if}
     </main>
 
     <footer class:closed={!live}>

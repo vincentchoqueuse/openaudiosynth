@@ -1,17 +1,14 @@
-<!-- CodeView.svelte — the Code view: the instrument (the sound's patch file) or the sequencer (the clip), chosen
-     with a pill, in a code editor as tall as the page (CodeEditor: line numbers, colors, errors underlined). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader for the sound, fromDoc for the clip,
+<!-- CodeView.svelte — a record's Code tab: the instrument (the sound's patch file, in Synth) or the sequencer (the
+     clip, in Sequence), in a code editor as tall as the page (CodeEditor: line numbers, colors, errors underlined). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader for the sound, fromDoc for the clip,
      whose message says what is wrong. Reload writes it again from what plays; the text follows what plays until
      it is typed in. -->
 <script>
-  import Seg from './Seg.svelte';
   import { untrack } from 'svelte';
   import { session as s } from './session.svelte.js';
   import { sequence as q } from './sequence.svelte.js';
   import { SCALES, GRIDS } from './seqExport.js';
   const editor = import('./CodeEditor.svelte'); // the code editor stays out of the main bundle
-  import { remembered, remember } from './prefs.js';
-  let doc = $state(remembered('synth.code', 'sound'));
-  $effect(() => remember('synth.code', doc));
+  let { doc } = $props(); // 'sound' or 'clip'
 
   const DOCS = {
     sound: { text: () => JSON.stringify(s.currentPatch(), null, 2) + '\n',
@@ -36,13 +33,11 @@
     busy = false;
     if (!error) text = shown;
   }
-  function pick(v) { doc = v; error = ''; text = shown = DOCS[v].text(); } // another document: its text as it plays
   function reload() { error = ''; text = shown; }
 </script>
 
 <div class="codeview">
   <div class="toolbar">
-    <Seg items={[{ id: 'sound', label: 'Sound' }, { id: 'clip', label: 'Clip' }]} value={doc} onpick={pick} label="Document" />
     <span class="status" class:bad={syntax || error}>
       {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : '')}
     </span>

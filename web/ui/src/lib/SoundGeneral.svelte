@@ -1,14 +1,12 @@
 <!-- SoundGeneral.svelte — the General tab of the Synth view: the sound as a record (FieldTable): its name, its
      description, its instrument and what that is, how many voices, what is in use (the effects, the sources of
-     modulation, the macros), then its signal path drawn (ChainView: only what is active; a click on a block opens it). -->
+     modulation, the macros). Its signal path is the Graph tab. -->
 <script>
   import FieldTable from './FieldTable.svelte';
-  import ChainView from './ChainView.svelte';
   import { session as s } from './session.svelte.js';
   import { modRows } from './mods.js';
   import { fxStages, stageOn } from './stages.js';
   import { isOn } from './onoff.js';
-  let { onpick } = $props();
 
   const fields = $derived.by(() => {
     const fx = fxStages(s).filter((r) => r.st?.enable && stageOn(s, r.st)).map((r) => r.title);
@@ -29,4 +27,4 @@
   });
 </script>
 
-<FieldTable label="The sound" {fields}><ChainView {onpick} /></FieldTable>
+<FieldTable label="The sound" {fields} />

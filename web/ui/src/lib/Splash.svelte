@@ -11,7 +11,7 @@
   <p class="quote" lang="fr">« Le silicium calcule, l'artisan incarne. »</p>
   <p>The DSP engine of the boards, compiled to WebAssembly, playing in your browser.</p>
   <button class="primary" onclick={s.start} disabled={s.starting}>{s.starting ? 'Loading…' : 'Start audio'}</button>
-  <p class="muted">Space plays the clip. The Z row of your keyboard plays notes.</p>
+  <p class="muted">Space plays the clip. The Z row of your keyboard plays notes while the Live player is open.</p>
   {#if s.toast}<p class="error">{s.toast.text}</p>{/if}
   <ProjectLinks />
 </main>

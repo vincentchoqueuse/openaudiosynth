@@ -88,7 +88,7 @@
 
     <footer class:closed={!live}>
       <!-- the Live player: the macros and the keyboard, folded or shown together from its bar (remembered); folded,
-           the page gets their room, the macros still follow their CC and the computer's keys still play -->
+           the page gets their room, the macros still follow their CC, the computer's keys no longer play -->
       <div class="dockbar" role="toolbar" aria-label="Live player">
         <button class="docktab" class:on={live} aria-expanded={live} onclick={() => (live = !live)}
                 title="{live ? 'Hide' : 'Show'} the Live player (macros and keyboard)">
@@ -96,7 +96,7 @@
       </div>
       <div hidden={!live}>
         <Card plain class="macrocard"><MacroStrip /></Card>
-        <Keyboard synth={s.synth} held={lit} />
+        <Keyboard synth={s.synth} held={lit} active={live} />
       </div>
     </footer>
 

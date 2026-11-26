@@ -14,6 +14,7 @@ void vfilter_init(vfilter_t *f, float sample_rate)
     scream_set_oversampling(&f->scream, 2);
     f->nl = VF_SCREAM;
     f->type = VF_LP;
+    f->mpos = f->mfb = f->mfollow = 0.0f;
 }
 
 void vfilter_set_oversampling(vfilter_t *f, int factor)
@@ -21,7 +22,7 @@ void vfilter_set_oversampling(vfilter_t *f, int factor)
     f->oversample = factor;
     if (f->nl == VF_LADDER)
         ladder_set_oversampling(&f->ladder, factor);
-    else
+    else if (f->nl == VF_SCREAM)
         scream_set_oversampling(&f->scream, factor);
 }
 
@@ -31,6 +32,8 @@ void vfilter_reset(vfilter_t *f)
     formant_reset(&f->fmt);
     if (f->nl == VF_LADDER)
         ladder_reset(&f->ladder);
+    else if (f->nl == VF_MORPH)
+        morph_reset(&f->morph);
     else
         scream_reset(&f->scream);
 }
@@ -41,6 +44,8 @@ static void take_nl(vfilter_t *f, int type)
     if (type == VF_LADDER) {
         ladder_init(&f->ladder, f->sr);
         ladder_set_oversampling(&f->ladder, f->oversample);
+    } else if (type == VF_MORPH) {
+        morph_init(&f->morph, f->sr);
     } else {
         scream_init(&f->scream, f->sr);
         scream_set_oversampling(&f->scream, f->oversample);
@@ -54,13 +59,16 @@ void vfilter_set(vfilter_t *f, int type, float cutoff_hz, float q, float reso, f
     if (type != f->type && (type >= VF_FORMANT || f->type >= VF_FORMANT)) { /* another filter takes over */
         if (type == VF_FORMANT)
             formant_reset(&f->fmt);
-        else if (type == VF_SCREAM || type == VF_LADDER) {
-            if (f->nl != type)
-                take_nl(f, type);
-            else if (type == VF_SCREAM)
+        else if (type >= VF_SCREAM) {
+            const int nl = type == VF_GROWL ? VF_MORPH : type; /* both morph tables are one filter */
+            if (f->nl != nl)
+                take_nl(f, nl);
+            else if (nl == VF_SCREAM)
                 scream_reset(&f->scream);
-            else
+            else if (nl == VF_LADDER)
                 ladder_reset(&f->ladder);
+            else
+                morph_reset(&f->morph);
         } else
             svf_reset(&f->svf);
     }
@@ -71,6 +79,9 @@ void vfilter_set(vfilter_t *f, int type, float cutoff_hz, float q, float reso, f
         scream_set(&f->scream, cutoff_hz, reso, character);
     } else if (type == VF_LADDER) {
         ladder_set(&f->ladder, cutoff_hz, reso, character);
+    } else if (type >= VF_MORPH) {
+        morph_set(&f->morph, type == VF_GROWL ? MORPH_GROWL : MORPH_CLASSIC, cutoff_hz, f->mpos, reso, character, f->mfb,
+                  f->mfollow);
     } else {
         svf_set_mode(&f->svf, (svf_mode_t)type);
         svf_set(&f->svf, cutoff_hz, q);
@@ -85,6 +96,8 @@ void vfilter_process(vfilter_t *f, const float *in, float *out, int n)
         scream_process(&f->scream, in, out, n);
     else if (f->type == VF_LADDER)
         ladder_process(&f->ladder, in, out, n);
+    else if (f->type >= VF_MORPH)
+        morph_process(&f->morph, in, out, n);
     else
         svf_process(&f->svf, in, out, n);
 }

@@ -1,8 +1,10 @@
 /* test_filter.c — TPT SVF: cutoff within +/-5 % (LP/HP, Q = 0.707), band-pass gain, stability under
  * fast modulation at high resonance, determinism; DC blocker; the ladder, the formant and screaming filters and
- * the common filter slot (vfilter). */
+ * the common filter slot (vfilter); the morphing filter table (its frames' shapes and resonances, stable and bounded
+ * under fast random morphing and feedback, deterministic). */
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "engines/va.h"
 #include "filter/dcblock.h"
@@ -10,6 +12,7 @@
 #include "filter/scream.h"
 #include "synth.h"
 #include "filter/ladder.h"
+#include "filter/morph.h"
 #include "filter/svf_tpt.h"
 #include "filter/vfilter.h"
 #include "test.h"
@@ -208,8 +211,111 @@ static void formant_noise(float vowel, float shift)
     spectrum_db(fx + 16384, 32768, fdb);
 }
 
+/* gain (dB) of the morph filter for a sine of f, steady state, processed in blocks of 32 */
+static float morph_gain_db(int table, float fc, float pos, float reso, float f)
+{
+    const int n = 24000, skip = 12000;
+    morph_t m;
+    morph_init(&m, SR);
+    morph_set(&m, table, fc, pos, reso, 0.0f, 0.0f, 0.0f);
+    float *x = malloc(sizeof(float) * (size_t)n);
+    for (int i = 0; i < n; i++)
+        x[i] = 0.1f * (float)sin(2.0 * M_PI * (double)f * i / (double)SR);
+    const float rin = rms(x + skip, n - skip);
+    for (int i = 0; i < n; i += 32)
+        morph_process(&m, x + i, x + i, 32);
+    const float rout = rms(x + skip, n - skip);
+    free(x);
+    return 20.0f * log10f(rout / rin);
+}
+
+/* the frequency (searched on a 1/48-octave grid from fc / 8 to fc x 8) where the response is highest */
+static float morph_peak(int table, float fc, float pos, float reso, float lo, float hi)
+{
+    float best = -1e9f, at = lo;
+    for (float f = lo; f <= hi; f *= 1.0145f) {
+        const float g = morph_gain_db(table, fc, pos, reso, f);
+        if (g > best)
+            best = g, at = f;
+    }
+    return at;
+}
+
+static void test_morph(void)
+{
+    /* Classic: low-pass at 0 (24 dB/oct), high-pass at 2/3, band-pass between; unity pass band */
+    const float fc = 1000.0f;
+    float g = morph_gain_db(MORPH_CLASSIC, fc, 0.0f, 0.0f, 100.0f);
+    CHECK(fabsf(g) < 0.5f, "morph classic LP pass band: %.2f dB", (double)g);
+    g = morph_gain_db(MORPH_CLASSIC, fc, 0.0f, 0.0f, 4000.0f);
+    CHECK(g < -40.0f, "morph classic LP two octaves up: %.1f dB (24 dB/oct expected)", (double)g);
+    g = morph_gain_db(MORPH_CLASSIC, fc, 0.0f, 0.0f, fc);
+    CHECK(fabsf(g + 3.0f) < 0.6f, "morph classic LP at the cutoff: %.2f dB (-3 expected)", (double)g);
+    g = morph_gain_db(MORPH_CLASSIC, fc, 2.0f / 3.0f, 0.0f, 250.0f);
+    CHECK(g < -40.0f, "morph classic HP two octaves down: %.1f dB", (double)g);
+    g = morph_gain_db(MORPH_CLASSIC, fc, 2.0f / 3.0f, 0.0f, 10000.0f);
+    CHECK(fabsf(g) < 0.5f, "morph classic HP pass band: %.2f dB", (double)g);
+    const float bp_lo = morph_gain_db(MORPH_CLASSIC, fc, 1.0f / 3.0f, 0.0f, 125.0f);
+    const float bp_hi = morph_gain_db(MORPH_CLASSIC, fc, 1.0f / 3.0f, 0.0f, 8000.0f);
+    CHECK(bp_lo < -30.0f && bp_hi < -30.0f, "morph classic BP: %.1f dB 3 octaves down, %.1f up", (double)bp_lo,
+          (double)bp_hi);
+    /* resonance: a peak at the cutoff, the level held */
+    const float pk = morph_peak(MORPH_CLASSIC, fc, 0.0f, 1.0f, 500.0f, 2000.0f);
+    CHECK(fabsf(pk / fc - 1.0f) < 0.05f, "morph classic resonance at %.0f Hz (1000 expected)", (double)pk);
+    g = morph_gain_db(MORPH_CLASSIC, fc, 0.0f, 1.0f, pk);
+    CHECK(g > 3.0f && g < 12.0f, "morph classic resonant peak %.1f dB", (double)g);
+    /* Growl: the frame's peaks where the table puts them */
+    morph_section_t sec[MORPH_SECTIONS];
+    for (int fr = 0; fr < MORPH_FRAMES; fr++) {
+        const float pos = (float)fr / (float)(MORPH_FRAMES - 1);
+        morph_frame(MORPH_GROWL, pos, sec);
+        const float f1 = 500.0f * sec[1].pole;
+        const float p = morph_peak(MORPH_GROWL, 500.0f, pos, 0.0f, f1 * 0.8f, f1 * 1.25f);
+        CHECK(fabsf(p / f1 - 1.0f) < 0.05f, "morph growl frame %d: first formant at %.0f Hz (%.0f expected)", fr,
+              (double)p, (double)f1);
+    }
+    /* fast random morphing, resonance, drive and feedback, on a loud saw: finite, bounded, deterministic */
+    const int n = 48000;
+    float *x = malloc(sizeof(float) * (size_t)n), *y = malloc(sizeof(float) * (size_t)n),
+          *z = malloc(sizeof(float) * (size_t)n);
+    for (int i = 0; i < n; i++)
+        x[i] = 0.5f * (2.0f * (float)fmod(55.0 * i / (double)SR, 1.0) - 1.0f);
+    for (int pass = 0; pass < 2; pass++) {
+        morph_t m;
+        morph_init(&m, SR);
+        uint32_t r = 7u;
+        float *o = pass ? z : y;
+        for (int i = 0; i < n; i += 32) {
+            const int t = (i / 4800) % MORPH_TABLE_COUNT;
+            morph_set(&m, t, 40.0f * powf(400.0f, dsp_rand_unipolar(&r)), dsp_rand_unipolar(&r),
+                      dsp_rand_unipolar(&r), dsp_rand_unipolar(&r), dsp_rand_bipolar(&r), dsp_rand_unipolar(&r));
+            morph_process(&m, x + i, o + i, 32);
+        }
+    }
+    CHECK(all_finite_bounded(y, n, 200.0f), "morph under random morphing: NaN, Inf or runaway");
+    CHECK(memcmp(y, z, sizeof(float) * (size_t)n) == 0, "morph not deterministic");
+    /* feedback at its top rings by itself after the input stops, bounded */
+    morph_t m;
+    morph_init(&m, SR);
+    morph_set(&m, MORPH_GROWL, 300.0f, 0.5f, 0.6f, 0.3f, 1.0f, 0.0f);
+    for (int i = 0; i < n; i += 32)
+        morph_process(&m, i < 480 ? x + i : z, y + i, 32), memset(z, 0, sizeof(float) * 32);
+    CHECK(all_finite_bounded(y, n, 200.0f), "morph feedback: NaN, Inf or runaway");
+    const float ring = rms(y + n / 2, n / 2);
+    CHECK(ring > 0.01f, "morph feedback 1: does not ring by itself after the input stops (rms %.4f)", (double)ring);
+    morph_set(&m, MORPH_GROWL, 300.0f, 0.5f, 0.6f, 0.3f, 0.3f, 0.0f);
+    for (int i = 0; i < n; i += 32)
+        morph_process(&m, z, y + i, 32);
+    const float dies = rms(y + n / 2, n / 2);
+    CHECK(dies < 1e-4f, "morph feedback 0.3: still rings without input (rms %.5f)", (double)dies);
+    free(x);
+    free(y);
+    free(z);
+}
+
 void suite_filter(void)
 {
+    test_morph();
     test_ladder();
     static const float fcs[] = {50.0f, 200.0f, 1000.0f, 5000.0f, 15000.0f, 20000.0f};
     for (size_t i = 0; i < sizeof fcs / sizeof fcs[0]; i++) {

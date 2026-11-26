@@ -55,6 +55,8 @@ enum {
     /* osc 1 driven by osc 2: hard sync, and poly-mod (osc 2 at audio rate and the filter envelope move osc 1's pitch
      * or pulse width) */
     VA_P_OSC1_SYNC, VA_P_PM_OSC2, VA_P_PM_ENV, VA_P_PM_TARGET,
+    /* filter 1 as a morphing table (filter_mode morph, growl): its position, the loop around it, the level's push */
+    VA_P_F1_MORPH, VA_P_F1_FEEDBACK, VA_P_F1_FOLLOW,
     VA_P_COUNT
 };
 extern const param_desc_t va_params[VA_P_COUNT];

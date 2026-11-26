@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "engine": "va",
+  "name": "va_morph_growl",
+  "description": "Talking bass: saw + sub square through the growl filter table, its mouth opened by an eighth-note LFO and by how hard the note hits, the filter's own feedback grunting under it.",
+  "params": {
+    "volume": 10.5,
+    "osc1_wave": "saw", "osc1_unison": 3, "osc1_unison_detune": 12, "osc1_unison_blend": 0.6,
+    "osc2_wave": "pulse", "osc2_pw": 0.5, "osc2_oct": -1, "osc2_level": 0.6,
+    "filter_mode": "growl", "cutoff": 420, "resonance": 3, "keytrack": 0.5, "filter_character": 0.45,
+    "filter_morph": 0.15, "filter_feedback": 0.35, "filter_follow": 0.5,
+    "fenv_amount": 1.5, "fenv_attack": 0.001, "fenv_decay": 0.2, "fenv_sustain": 0.3, "vel_cutoff": 1,
+    "amp_attack": 0.002, "amp_decay": 0.3, "amp_sustain": 0.8, "amp_release": 0.06,
+    "mlfo1_sync": "1/8", "mlfo1_wave": "tri", "route1_source": "mlfo1", "route1_destination": "filter_morph",
+    "route1_amount": 0.35,
+    "pan_spread": 0, "drift": 2
+  },
+  "macros": [
+    { "name": "Mouth", "value": 0.15, "targets": [ { "param": "filter_morph", "from": 0, "to": 1 } ] },
+    { "name": "Grunt", "value": 0.4, "targets": [
+        { "param": "filter_feedback", "from": 0, "to": 0.9 },
+        { "param": "filter_character", "from": 0.2, "to": 0.8 } ] },
+    { "name": "Push", "value": 0.5, "targets": [ { "param": "filter_follow", "from": 0, "to": 1 } ] },
+    { "name": "Cutoff", "value": 0.5, "targets": [ { "param": "cutoff", "from": 150, "to": 1200 } ] }
+  ],
+  "audition": { "notes": "E1! E1 E2 E1 G1! E1 D2 E1 E1! B1 E1 A1 E1 E2! G1 D1", "bpm": 140, "gate": 0.7 }
+}

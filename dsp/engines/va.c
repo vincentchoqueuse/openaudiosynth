@@ -9,7 +9,7 @@
 #define VA_SMOOTH_S 0.005f
 
 static const char *const osc_wave_labels[] = {"sine", "saw", "pulse", "tri", NULL};
-static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", "ladder", NULL};
+static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", "ladder", "morph", "growl", NULL};
 static const char *const filter2_labels[] = {"off", "lp", "bp", "hp", "notch", "formant", "scream", "ladder", NULL};
 static const char *const routing_labels[] = {"series", "parallel", NULL};
 static const char *const pm_target_labels[] = {"pitch", "pw", "both", NULL};
@@ -28,7 +28,7 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_OSC2_PW, "osc2_pw", "osc2.pulse_width", 0.05f, 0.95f, 0.5f, PARAM_LIN, "", 1, NULL, "osc 2 pulse width"),
     PARAM(VA_P_OSC2_LEVEL, "osc2_level", "osc2.level", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL, "osc 2 level (0 = single oscillator, cleaner)"),
     PARAM(VA_P_NOISE_LEVEL, "noise_level", "noise.level", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, "white noise level: breath, air, percussive transients (with short amp envelope)"),
-    PARAM(VA_P_FILTER_MODE, "filter_mode", "filter.type", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0, filter_mode_labels, "filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive), ladder = 24 dB low-pass of the classic ladder, round and fat (filter_character = drive)"),
+    PARAM(VA_P_FILTER_MODE, "filter_mode", "filter.type", 0.0f, 8.0f, 0.0f, PARAM_INT, "", 0, filter_mode_labels, "filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive), ladder = 24 dB low-pass of the classic ladder, round and fat (filter_character = drive), morph = a table of filters, low-pass to band-pass to high-pass by filter_morph, growl = a table of dark formants, oo oh ah ee by filter_morph (both: filter_character = drive between the sections, filter_feedback, filter_follow)"),
     PARAM(VA_P_CUTOFF, "cutoff", "filter.cutoff", 20.0f, 20000.0f, 2000.0f, PARAM_EXP, "Hz", 1, NULL, "filter cutoff (base, before envelope/keytrack/velocity/LFO): main brightness control"),
     PARAM(VA_P_RESO, "resonance", "filter.resonance", 0.5f, 25.0f, 1.0f, PARAM_EXP, "Q", 1, NULL, "filter Q: 0.7 neutral, 2-5 vocal peak, 8-25 squelchy/whistling (acid)"),
     PARAM(VA_P_FENV_AMT, "fenv_amount", "filter.envelope_amount", -8.0f, 8.0f, 2.5f, PARAM_LIN, "oct", 1, NULL, "filter envelope depth in octaves (+4 = big 'pew', negative = inverted sweep)"),
@@ -109,6 +109,14 @@ const param_desc_t va_params[VA_P_COUNT] = {
           "poly-mod from the filter envelope: osc 1 up by up to 2 octaves at its peak (with sync: the sweeping lead)"),
     PARAM(VA_P_PM_TARGET, "polymod_target", "polymod.target", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, pm_target_labels,
           "what poly-mod moves on osc 1: its pitch, its pulse width, or both"),
+    PARAM(VA_P_F1_MORPH, "filter_morph", "filter.morph", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "filter_mode morph and growl: the position in the table of filters (morph: 0 low-pass, 0.33 band-pass, "
+          "0.67 high-pass; growl: 0 oo, 0.33 oh, 0.67 ah, 1 ee)"),
+    PARAM(VA_P_F1_FEEDBACK, "filter_feedback", "filter.feedback", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "filter_mode morph and growl: the output, saturated, fed back into the input; high, the filter rings by "
+          "itself on its resonances like a struck body (negative: the other phase, other resonances)"),
+    PARAM(VA_P_F1_FOLLOW, "filter_follow", "filter.follow", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "filter_mode morph and growl: how far the sound's own level pushes filter_morph up (harder = further)"),
 };
 
 static const vpoly_ops_t va_poly_ops;
@@ -412,10 +420,13 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
                       p[VA_P_KEYTRACK] * (v->pitch - 60.0f) * (1.0f / 12.0f) + v->vel_cut + b->lfo_cut +
                       an[0] * 0.005f + vm[VM_BRIGHT];
     const float reso01 = param_to_norm(&va_params[VA_P_RESO], b->res); /* formant and scream take 0..1 */
+    vfilter_set_morph(&v->f1, p[VA_P_F1_MORPH], p[VA_P_F1_FEEDBACK], p[VA_P_F1_FOLLOW]);
     vfilter_set(&v->f1, (int)p[VA_P_FILTER_MODE], fm_exp2(cut), b->res, reso01, p[VA_P_F1_CHAR]);
 #if VA_STEREO
-    if (stereo)
+    if (stereo) {
+        vfilter_set_morph(&v->f1r, p[VA_P_F1_MORPH], p[VA_P_F1_FEEDBACK], p[VA_P_F1_FOLLOW]);
         vfilter_set(&v->f1r, (int)p[VA_P_FILTER_MODE], fm_exp2(cut), b->res, reso01, p[VA_P_F1_CHAR]);
+    }
 #endif
     const int mode2 = (int)p[VA_P_F2_MODE];
     if (mode2 > 0) { /* filter 2 follows the same envelope, keytracking and modulation as filter 1 */
@@ -531,7 +542,7 @@ static const engine_stage_t va_stages[] = {
     {"osc1", "Osc 1", "source", "osc1_ unison_ polymod_", "", NULL, "osc1_level", 0.0f, 1.0f},
     {"osc2", "Osc 2", "source", "osc2_", "", NULL, "osc2_level", 0.0f, 0.6f},
     {"noise", "Noise", "source", "noise_level", "", NULL, "noise_level", 0.0f, 0.2f},
-    {"filter1", "Filter", "filter", "filter_mode cutoff resonance keytrack vel_cutoff filter_character oversample", "osc1 osc2 noise",
+    {"filter1", "Filter", "filter", "filter_mode cutoff resonance keytrack vel_cutoff filter_character filter_morph filter_feedback filter_follow oversample", "osc1 osc2 noise",
      NULL, NULL, 0.0f, 0.0f},
     {"filter2", "Filter 2", "filter", "filter2_ filter_routing", "filter1", NULL, "filter2_mode", 0.0f, 1.0f},
     {"amp", "Amp", "amp", "amp_ volume pan_spread", "filter2", NULL, NULL, 0.0f, 0.0f},

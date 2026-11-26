@@ -12,6 +12,7 @@ set(SYNTH_DSP_SOURCES
   dsp/filter/formant.c
   dsp/filter/scream.c
   dsp/filter/vfilter.c
+  dsp/filter/morph.c
   dsp/filter/dcblock.c
   dsp/env/adsr.c
   dsp/env/env_rl.c

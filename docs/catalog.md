@@ -452,7 +452,7 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of 
 | `osc2_pw` | 0.05 .. 0.95 | 0.5 | yes | `osc2.pulse_width` | osc 2 pulse width |
 | `osc2_level` | 0 .. 1 | 0.6 | yes | `osc2.level` | osc 2 level (0 = single oscillator, cleaner) |
 | `noise_level` | 0 .. 1 | 0 | yes (CC 16) | `noise.level` | white noise level: breath, air, percussive transients (with short amp envelope) |
-| `filter_mode` | lp, bp, hp, notch, formant, scream, ladder | lp |  | `filter.type` | filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive), ladder = 24 dB low-pass of the classic ladder, round and fat (filter_character = drive) |
+| `filter_mode` | lp, bp, hp, notch, formant, scream, ladder, morph, growl | lp |  | `filter.type` | filter type: lp = classic subtractive, bp = nasal/vocal, hp = thin, notch = phasey, formant = vowels (cutoff 1 kHz = adult voice, filter_character = vowel a..u), scream = screaming 2-pole low-pass (filter_character = drive), ladder = 24 dB low-pass of the classic ladder, round and fat (filter_character = drive), morph = a table of filters, low-pass to band-pass to high-pass by filter_morph, growl = a table of dark formants, oo oh ah ee by filter_morph (both: filter_character = drive between the sections, filter_feedback, filter_follow) |
 | `cutoff` | 20 .. 20000 Hz | 2000 | yes (CC 74) | `filter.cutoff` | filter cutoff (base, before envelope/keytrack/velocity/LFO): main brightness control |
 | `resonance` | 0.5 .. 25 Q | 1 | yes (CC 71) | `filter.resonance` | filter Q: 0.7 neutral, 2-5 vocal peak, 8-25 squelchy/whistling (acid) |
 | `fenv_amount` | -8 .. 8 oct | 2.5 | yes (CC 76) | `filter.envelope_amount` | filter envelope depth in octaves (+4 = big 'pew', negative = inverted sweep) |
@@ -515,6 +515,9 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of 
 | `polymod_osc2` | 0 .. 1 | 0 | yes | `polymod.source_osc2` | poly-mod from osc 2 at audio rate: osc 1's pitch moves by up to 2 octaves with osc 2's wave (polymod_target): clangs, bells, growls |
 | `polymod_env` | 0 .. 1 | 0 | yes | `polymod.source_filter_env` | poly-mod from the filter envelope: osc 1 up by up to 2 octaves at its peak (with sync: the sweeping lead) |
 | `polymod_target` | pitch, pw, both | pitch |  | `polymod.target` | what poly-mod moves on osc 1: its pitch, its pulse width, or both |
+| `filter_morph` | 0 .. 1 | 0 | yes | `filter.morph` | filter_mode morph and growl: the position in the table of filters (morph: 0 low-pass, 0.33 band-pass, 0.67 high-pass; growl: 0 oo, 0.33 oh, 0.67 ah, 1 ee) |
+| `filter_feedback` | -1 .. 1 | 0 | yes | `filter.feedback` | filter_mode morph and growl: the output, saturated, fed back into the input; high, the filter rings by itself on its resonances like a struck body (negative: the other phase, other resonances) |
+| `filter_follow` | 0 .. 1 | 0 | yes | `filter.follow` | filter_mode morph and growl: how far the sound's own level pushes filter_morph up (harder = further) |
 
 ## Engine `modal` (12 voices)
 

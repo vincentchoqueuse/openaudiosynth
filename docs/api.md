@@ -189,6 +189,16 @@ vowel filter: three band-pass TPT state-variable filters in parallel at the form
 - `void ladder_process(ladder_t *l, const float *in, float *out, int n)` — in and out may be the same buffer. Coefficients are interpolated over the call (one block).
 - `void ladder_process_fb(ladder_t *l, const float *in, const float *post, float fb, float hp_coef, float *state, float *out, int n)` — The same with the output fed back into the input, one sample late, through the caller's post gain (the amplifier that follows the filter): in[i] + fb * hp(out[i-1] * post[i-1]). hp is a one-pole high-pass (hp_coef = 1...
 
+## `dsp/filter/morph.h`
+a table of filters, morphed: like a wavetable, but each frame is a filter, a cascade of MORPH_SECTIONS second-order sections, each a pole pair (a resonance: its frequency relative to the cutoff and its Q) and a zero pair (a notch or the corner of a low- or high-pass). The position moves between frames by interpolating the poles' frequency (in octaves) and Q and the zeros, never the coefficients, so every point between two frames is a real, stable filter and the position can move fast. Each section is scaled to a set gain at its resonance, so the level stays near when Q rises (the peak rises at a third of Q's rate). After each section but the last a drive saturates (soft, fm_tanh, its ceiling relative to the section's gain): the resonance grunts and breaks. The position can follow the input's level (an envelope follower): the harder it is played, the further it moves. Around the whole cascade a feedback loop, as in a physical model: the output, saturated, goes back to the input with a gain (-1..1, scaled by the table's own gain so that near 1 the loop rings by itself on the table's resonances: a body excited rather than a filter). Coefficients are computed at each block's end and ramped across it. References: pole-zero morphing filters (R. Rossum, "Making digital filters sound analog", ICMC 1992); RBJ biquad cookbook for the section forms.
+- types: `morph_section_t`, `morph_t`
+- constants: `MORPH_SECTIONS` = 4, `MORPH_FRAMES` = 4, `MORPH_NYQ` = 1000.0f
+- `void morph_init(morph_t *m, float sample_rate)`
+- `void morph_reset(morph_t *m)`
+- `void morph_set(morph_t *m, int table, float cutoff_hz, float position, float reso, float drive, float feedback, float follow)` — table (MORPH_CLASSIC, MORPH_GROWL), cutoff in Hz (what a ratio of 1 means), position 0..1 across the frames, reso 0..1 (the sections' Q up to x8), drive 0..1 (0 = linear), feedback -1..1 (the saturated output back int...
+- `void morph_process(morph_t *m, const float *in, float *out, int n)`
+- `void morph_frame(int table, float position, morph_section_t *out)` — The frames' sections of a table at a position (for displays and tests): MORPH_SECTIONS sections into out.
+
 ## `dsp/filter/resonator.h`
 complex one-pole resonator: z <- (c + i s) z + g x, output = Im(z). A rotation by the mode frequency times a decay radius per sample, so frequency and T60 are exact and it never goes unstable (|c + i s| < 1). One mode of a struck or bowed object; banks of them make bells, bars, strings, drums. Reference: J.-M. Adrien, "The missing link: modal synthesis" (1991); M. Mathews & J. Smith, "Methods for synthesizing very high Q parametrically well behaved two pole filters" (SMAC 2003).
 - types: `reso_t`
@@ -220,11 +230,12 @@ complex one-pole resonator: z <- (c + i s) z + g x, output = Im(z). A rotation b
 - `void svf_process(svf_t *s, const float *in, float *out, int n)` — in and out may be the same. Normalized band-pass: unity gain at center.
 
 ## `dsp/filter/vfilter.h`
-one filter slot of a voice, several characters behind one interface: 12 dB state-variable (low-pass, band-pass, high-pass, notch), vowel formant filter, 2-pole screaming low-pass with saturating feedback and 24 dB ZDF ladder with a driven input (both nonlinear ones oversampled 2x by default, or 1x / 4x; they share one place in memory, as a slot plays one of them at a time). An engine keeps one vfilter_t per filter slot and per voice.
+one filter slot of a voice, several characters behind one interface: 12 dB state-variable (low-pass, band-pass, high-pass, notch), vowel formant filter, 2-pole screaming low-pass with saturating feedback and 24 dB ZDF ladder with a driven input (both nonlinear ones oversampled 2x by default, or 1x / 4x), and the morphing filter tables (morph.h: classic and growl), which move between filter shapes by a position. The nonlinear ones and the morph share one place in memory, as a slot plays one of them at a time. An engine keeps one vfilter_t per filter slot and per voice.
 - types: `vf_type_t`, `vfilter_t`
 - `void vfilter_init(vfilter_t *f, float sample_rate)`
 - `void vfilter_reset(vfilter_t *f)`
 - `void vfilter_set_oversampling(vfilter_t *f, int factor)` — Oversampling of the nonlinear characters (scream, ladder): 1, 2 (default) or 4; the others are linear.
+- `void vfilter_set_morph(vfilter_t *f, float position, float feedback, float follow)` — The morph's position 0..1, feedback -1..1 and follow 0..1, taken by the next vfilter_set of a morph type.
 - `void vfilter_set(vfilter_t *f, int type, float cutoff_hz, float q, float reso, float character)`
 - `void vfilter_process(vfilter_t *f, const float *in, float *out, int n)`
 

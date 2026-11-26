@@ -46,7 +46,8 @@
       const by = R.keys('part').map((k) => R.get(s, k)).filter((x) => x.src && row.ps.some(({ d }) => x.dst === d.id + 1))
         .map((x) => `${R.srcName(x.srcLabel)} → ${R.dstName(s, x)}`);
       return { title: row.title, sub: inEng ? `${s.engine.name} · ${(ROLE[row.st?.kind] ?? 'stage').toLowerCase()}` : 'effect', row, engine: inEng,
-               params: row.ps, fields: [['Tag', inEng ? 'engine' : 'effect'], ['Role', ROLE[row.st?.kind] ?? (inEng ? 'stage' : 'effect')],
+               params: row.ps, fields: [['Type', inEng ? ({ source: 'source', voice: 'source', filter: 'transform', amp: 'transform', mod: 'modulation' })[row.st?.kind] ?? 'source' : 'transform'],
+                                        ['Role', ROLE[row.st?.kind] ?? (inEng ? 'stage' : 'effect')],
                                         ['State', isOn(s, { kind: 'stage', st: row.st }) ? 'on' : 'off'], ...(from ? [['From', from]] : []), ...(to ? [['To', to]] : []),
                                         ['Modulated by', by.join(', ') || 'nothing'], ['Settings', String(row.ps.length)]] };
     }
@@ -59,18 +60,18 @@
                     : m.key === 'wander' ? [{ d: s.byName.wander, label: 'Amount' }, { d: s.byName.wander_rate, label: 'Rate' }] : [];
       return { title: m.label, sub: `${m.type.toLowerCase()} · ${m.kinds.map((k) => (k === 'part' ? 'whole sound' : 'each note')).join(' and ')}`,
                m, row: m, wide: !m.ctl && m.key !== 'wander', params,
-               fields: [['Tag', 'modulation'], ['Type', m.type], ['Scope', m.kinds.map((k) => (k === 'part' ? 'the whole sound' : 'each note')).join(' and ')],
+               fields: [['Type', 'modulation'], ['Kind', m.type], ['Scope', m.kinds.map((k) => (k === 'part' ? 'the whole sound' : 'each note')).join(' and ')],
                         ['State', isOn(s, { ...m, kind: 'mod' }) ? 'on' : 'off'], ['Moves', moves.join(', ') || 'nothing yet']] };
     }
     if (p.kind === 'macro') {
       const k = +p.id.slice(1);
       const t = s.macroMaps.filter((r) => r.macro === k && r.dst).map((r) => human(r.dst.name));
       return { title: s.macroName(k), sub: `macro ${k + 1}`, k, row: {}, wide: true, params: [],
-               fields: [['Tag', 'macro'], ['Value', `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`], ['MIDI CC', String(Math.round(s.getP(`macro${k + 1}_cc`)) || 'none')],
+               fields: [['Type', 'macro'], ['Value', `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`], ['MIDI CC', String(Math.round(s.getP(`macro${k + 1}_cc`)) || 'none')],
                         ['State', t.length ? 'on' : 'off'], ['Moves', t.join(', ') || 'nothing yet']] };
     }
     if (p.kind === 'kit') return { title: 'Kit', sub: 'sampler', row: {}, wide: true, params: [],
-                                   fields: [['Tag', 'engine'], ['Kit', s.kitName || 'dropped files'], ['Samples', String(s.kit?.entries?.length ?? 0)]] };
+                                   fields: [['Type', 'source'], ['Kit', s.kitName || 'dropped files'], ['Samples', String(s.kit?.entries?.length ?? 0)]] };
     return null;
   });
   $effect(() => { s.panelTitle = P?.title ?? ''; });

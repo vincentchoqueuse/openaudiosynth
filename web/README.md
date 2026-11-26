@@ -63,9 +63,9 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   (tempo, loop, position, piano roll). **Synth**: laid out like a database admin. Its title is a path (instrument / sound / module open). Two tabs,
   as for every record: Settings, the modules of the sound as the records of one table (`SynthTable` on `DataTable`),
   and General, the sound as fields (`FieldTable`: name, file, description, edited in place, instrument, voices, what is
-  in use) with its signal path drawn. The table's columns are fields: Name, Type (source, filter, envelope, LFO, insert...,
-  a chip coloured by what it does: makes the sound, shapes it, sets its level, moves it, colours it after, plays it), On, Summary (the main settings), Moves (what a source or a macro moves); a click on a head sorts, the count is
-  under the table. Its toolbar: a search (names, settings, what a module moves), the tags, On / Off, then Init,
+  in use) with its signal path drawn. The table's columns are fields: Name, Type (source: makes the sound;
+  transform: filters, amp and every effect up to the output; modulation; macro), On, Summary (the main settings), Moves (what a source or a macro moves); a click on a head sorts, the count is
+  under the table. Its toolbar: a search (names, settings, what a module moves), the four types, On / Off, then Init,
   Randomize and Add effect. Every row has a switch (`lib/onoff.js`), or a lock when the module is always on. The
   effects of the rack are records: Add effect adds one after those in use, Remove in its panel takes it out
   (`lib/rack.svelte.js`). A row's cog, or a click on it, opens the record in the side panel (`SidePanel`), on

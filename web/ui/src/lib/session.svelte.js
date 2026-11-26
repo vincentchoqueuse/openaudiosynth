@@ -43,7 +43,7 @@ class Session {
   panelTitle = $state(''); // the name of what the panel shows, for the path above the view
   synthQuery = $state(''); // the Synth table's search
   synthState = $state('all'); // and on / off: all, on, off
-  synthTag = $state('all'); // and its tag (all, engine, effect, modulation, macro)
+  synthTag = $state('all'); // and its type filter (all, source, transform, modulation, macro)
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
   panelTab = $state('settings'); // the side panel's tab: general or settings
   synthTab = $state('settings'); // the Synth view's tab: general (the sound as a record) or settings (its modules)

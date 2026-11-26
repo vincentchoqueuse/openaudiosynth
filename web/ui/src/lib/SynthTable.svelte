@@ -2,8 +2,8 @@
      collection: the instrument's stages in the order its signal flows (the sampler: its kit), the effect chain (the
      output filter and the crush, the effects added to the rack, the master, the saturation, the limiter), the sources
      of modulation (envelopes, LFOs, Wander, the controllers) and the eight macros. A toolbar: a search (names,
-     settings, what a module moves), a tag per family, On / Off, then the actions: Add effect (one not yet in the
-     rack: rack.svelte.js), Init and Randomize. Columns are fields: Name, Type (a chip coloured by what it does: makes the sound, shapes it, sets its level, moves it, colours it after, plays it), On (a switch: onoff.js; a lock
+     settings, what a module moves), the four types (source, transform, modulation, macro), On / Off, then the actions: Add effect (one not yet in the
+     rack: rack.svelte.js), Init and Randomize. Columns are fields: Name, Type (source, transform, modulation or macro, a chip of its colour), On (a switch: onoff.js; a lock
      when the module is always on), Summary (its main settings) and Moves (what a source or a macro moves); a click on
      a head sorts. A row's cog, or a click on it, opens the record in the side panel. Under the table, the count. -->
 <script>
@@ -20,8 +20,12 @@
   import Seg from './Seg.svelte';
   import { isOn, locked, toggle } from './onoff.js';
 
-  const TAGS = [{ id: 'all', label: 'All' }, { id: 'engine', label: 'Engine' }, { id: 'effect', label: 'Effect' },
+  /* every module is one of four: a source makes the sound (oscillators, noise, the kit, the voice that plays them), a
+   * transform works on it (filters, amp, every effect up to the output), a modulation moves settings over time, a macro
+   * moves several at once from one control */
+  const TAGS = [{ id: 'all', label: 'All' }, { id: 'source', label: 'Source' }, { id: 'transform', label: 'Transform' },
                 { id: 'modulation', label: 'Modulation' }, { id: 'macro', label: 'Macro' }];
+  const CLASS = { source: 'source', voice: 'source', filter: 'transform', amp: 'transform', mod: 'modulation' };
 
   const fx = $derived(fxStages(s));
   const inRack = (id) => s.rack.includes(id);
@@ -47,14 +51,15 @@
   }
   const rows = $derived.by(() => {
     const out = [];
-    if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'engine', type: 'samples', words: 'kit pads samples',
+    if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'source', type: 'samples', words: 'kit pads samples',
                                                  sum: `${s.kit?.entries?.length ?? 0} samples${s.kitName ? ` · ${s.kitName}` : ''}`, moves: '' });
-    const stage = (r, tag, type) => out.push({ ...r, kind: 'stage', tag, type, sum: stageOn(s, r.st) ? summary(s, r, 3, tag === 'engine') : '', moves: '' });
-    for (const r of engineStages(s)) stage(r, 'engine', (ROLE[r.st?.kind] ?? 'stage').toLowerCase());
+    // a stage: its class (tag), and what it is more precisely (type: filter, amp, effect...), for the search
+    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
+    for (const r of engineStages(s)) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
     const first = fx.findIndex((r) => inRack(r.key));
-    fx.forEach((r, i) => { if (i < first && !inRack(r.key)) stage(r, 'effect', 'input'); });
-    for (const id of rack.used()) stage(fx.find((r) => r.key === id), 'effect', 'insert');
-    fx.forEach((r, i) => { if (i > first && !inRack(r.key)) stage(r, 'effect', 'output'); });
+    fx.forEach((r, i) => { if (i < first && !inRack(r.key)) stage(r, 'transform', 'effect', false); });
+    for (const id of rack.used()) stage(fx.find((r) => r.key === id), 'transform', 'effect', false);
+    fx.forEach((r, i) => { if (i > first && !inRack(r.key)) stage(r, 'transform', 'output', false); });
     for (const m of modRows()) {
       const moves = m.key === 'wander' ? (s.getP('wander') > 0 ? 'the macros' : '') : movesOf(m).map((x) => R.dstName(s, x)).join(', ');
       out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', type: m.type.toLowerCase(), sum: modLine(m), moves, dim: m.ctl && !moves });
@@ -69,7 +74,8 @@
   // the search: every word of the query in the row's name, tag, type, its settings' names, its summary or what it moves
   const text = (r) => [r.title, r.tag, r.type, r.sum, r.moves, r.words ?? '', ...(r.ps ?? []).map(({ d, label }) => `${label} ${human(d.name)}`)].join(' ').toLowerCase();
   let sort = $state(null); // {id, dir}: a head clicked; null: the order of the signal
-  const SORT = { name: (r) => r.title.toLowerCase(), type: (r) => r.tag + ' ' + r.type, on: (r) => (isOn(s, r) ? 0 : 1) };
+  const ORDER = { source: 0, transform: 1, modulation: 2, macro: 3 };
+  const SORT = { name: (r) => r.title.toLowerCase(), type: (r) => ORDER[r.tag], on: (r) => (isOn(s, r) ? 0 : 1) };
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     const state = (r) => s.synthState === 'all' || isOn(s, r) === (s.synthState === 'on');
@@ -80,11 +86,6 @@
   });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
-  // the colour of a type: what it does in the sound (makes it, shapes it, sets its level, moves it, colours it after,
-  // plays it), whatever the family it belongs to
-  const KIND = { source: 'src', samples: 'src', filter: 'flt', amp: 'amp', voice: 'amp', input: 'fx', insert: 'fx', output: 'fx',
-                 control: 'mac' };
-  const kindOf = (type) => KIND[type] ?? 'mod'; // modulator, envelope, lfo, random walk, controller
   const count = (id) => rows.filter((r) => id === 'all' || r.tag === id).length;
   const foot = $derived(`${shown.length === rows.length ? rows.length : `${shown.length} of ${rows.length}`} modules · ${rows.filter((r) => isOn(s, r)).length} on`);
   const columns = [{ id: 'name', label: 'Name', w: '19%', sort: true }, { id: 'type', label: 'Type', w: '132px', sort: true },
@@ -110,7 +111,7 @@
            empty="Nothing matches." bind:sort {foot}>
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
-    {:else if c.id === 'type'}<span class="tag kind-{kindOf(r.type)}" title={r.tag}>{r.type}</span>
+    {:else if c.id === 'type'}<span class="tag cls-{r.tag}" title={r.type}>{r.tag}</span>
     {:else if c.id === 'on'}
       {#if locked(s, r) && isOn(s, r)}<span class="lock" title="always on"><Icon name="lock" size={13} /></span>
       {:else}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"

@@ -424,18 +424,25 @@ static DSP_FAST_CODE void voice_render(modal_t *e, int vi, float vol0, float vol
         voice_tension(e, v, strike ? es : 0, bowing ? eb : 0, y, n);
         for (int k = 0; k < v->nmodes; k++)
             energy += reso_energy(&v->mode[k]);
-    } else
-    for (int k = 0; k < v->nmodes; k++) {
-        reso_t *m = &v->mode[k];
-        if (strike && bowing)
-            reso_drive2(m, es, v->g_strike[k], eb, v->g_bow[k], y, n);
-        else if (strike)
-            reso_drive(m, es, v->g_strike[k], y, n);
-        else if (bowing)
-            reso_drive(m, eb, v->g_bow[k], y, n);
-        else
-            reso_ring(m, y, n);
-        energy += reso_energy(m);
+    } else {
+        /* the modes two at a time (reso_pair: the same sums, in the same order, as one by one), the odd one alone */
+        const float *x1 = strike ? es : bowing ? eb : NULL, *x2 = strike && bowing ? eb : NULL;
+        const float *g1 = strike ? v->g_strike : v->g_bow, *g2 = v->g_bow;
+        int k = 0;
+        for (; k + 1 < v->nmodes; k += 2)
+            reso_pair(&v->mode[k], &v->mode[k + 1], x1, x1 ? g1[k] : 0.0f, x1 ? g1[k + 1] : 0.0f,
+                      x2, x2 ? g2[k] : 0.0f, x2 ? g2[k + 1] : 0.0f, y, n);
+        if (k < v->nmodes) {
+            reso_t *m = &v->mode[k];
+            if (x2)
+                reso_drive2(m, x1, g1[k], x2, g2[k], y, n);
+            else if (x1)
+                reso_drive(m, x1, g1[k], y, n);
+            else
+                reso_ring(m, y, n);
+        }
+        for (k = 0; k < v->nmodes; k++)
+            energy += reso_energy(&v->mode[k]);
     }
     v->energy = energy;
 

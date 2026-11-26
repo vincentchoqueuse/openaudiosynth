@@ -77,4 +77,45 @@ static inline void reso_drive2(reso_t *r, const float *restrict x1, float g1, co
     r->zr = zr, r->zi = zi;
 }
 
+/* Two modes in one pass: the same as one mode then the other (each mode's arithmetic is unchanged, and they are
+ * added to out in that order), but their two chains overlap in the FPU. g1/g2: each mode's gain on x1 and x2 (a mode
+ * that is not driven by an input passes NULL for it). */
+static inline void reso_pair(reso_t *a, reso_t *b, const float *restrict x1, float g1a, float g1b,
+                             const float *restrict x2, float g2a, float g2b, float *restrict out, int n)
+{
+    const float ca = a->c, sa = a->s, cb = b->c, sb = b->s;
+    float ar = a->zr, ai = a->zi, br = b->zr, bi = b->zi;
+    if (x1 && x2)
+        for (int i = 0; i < n; i++) {
+            const float na = ca * ar - sa * ai + g1a * x1[i] + g2a * x2[i];
+            const float nb = cb * br - sb * bi + g1b * x1[i] + g2b * x2[i];
+            ai = sa * ar + ca * ai;
+            bi = sb * br + cb * bi;
+            ar = na, br = nb;
+            out[i] += ai;
+            out[i] += bi;
+        }
+    else if (x1)
+        for (int i = 0; i < n; i++) {
+            const float na = ca * ar - sa * ai + g1a * x1[i];
+            const float nb = cb * br - sb * bi + g1b * x1[i];
+            ai = sa * ar + ca * ai;
+            bi = sb * br + cb * bi;
+            ar = na, br = nb;
+            out[i] += ai;
+            out[i] += bi;
+        }
+    else
+        for (int i = 0; i < n; i++) {
+            const float na = ca * ar - sa * ai;
+            const float nb = cb * br - sb * bi;
+            ai = sa * ar + ca * ai;
+            bi = sb * br + cb * bi;
+            ar = na, br = nb;
+            out[i] += ai;
+            out[i] += bi;
+        }
+    a->zr = ar, a->zi = ai, b->zr = br, b->zi = bi;
+}
+
 #endif /* RESONATOR_H */

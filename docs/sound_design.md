@@ -23,7 +23,7 @@ LFO 1 (global, slow) ──> pitch, cutoff, pulse width, and rate/depth of LFOs 
 | percussive | `amp_sustain` 0, `amp_decay` 0.2–1 s |
 | fat / wide | two saws, `osc2_detune` 5–12 cents, `pan_spread` 0.5–1, `drift` 4–8 |
 | **moving, breathing detune (lush pads)** | `lfo2_detune` 8–20 cents, `lfo2_rate` 0.1–0.4 Hz, `lfo2_spread` 1 |
-| **supersaw swarm** | `osc1_wave` `supersaw` (and `osc2_wave` too, maybe `osc2_oct` -1): `supersaw_detune` 15–40, `supersaw_mix` 0.6–0.9, `supersaw_motion` 4–10 cents at 0.1–0.3 Hz |
+| **unison swarm** | `osc1_wave` `saw` (and `osc2` too, maybe `osc2_oct` -1) with `osc1_unison` 5–9 (up to 16): `osc1_unison_detune` 15–40, `osc1_unison_blend` 0.6–0.9, `osc1_unison_width` 0.5–1 (0 keeps the voice mono and cheaper), `unison_motion` 3–8 cents for a stack that breathes |
 | denser, never-repeating detune | add `lfo3_detune` 5–12 (osc 1) and `lfo4_detune` 3–6 (whole voice); keep the default irrational rate ratios |
 | movement that itself evolves | LFO 1 slow (`lfo_rate` 0.02–0.08 Hz) + `lfo2_rate_mod` 1–2 oct + `lfo2_depth_mod` 0.5–0.8 (acts on LFOs 2–4, in opposite directions) |
 | slow filter breathing | `lfo_cutoff` 0.3–1 oct with slow `lfo_rate` |
@@ -48,7 +48,7 @@ leave headroom.
 - `va_warm_pad` — two detuned saws, slow attack, slowly opening filter.
 - `va_saw_pad` — two saws, **three desynchronized per-voice detune LFOs + LFO-of-LFO**, slow swell, big reverb
   in a song. Few chords: the movement carries the music.
-- `va_swarm_pad` — 2 x 7-saw supersaw (one octave apart), per-saw motion + LFOs 2–4.
+- `va_swarm_pad` — 2 x 7-saw unison (one octave apart, spread wide), per-voice motion + LFOs 2–4.
 - `va_saw_drone`, `va_soft_bell`, `va_air` — drone, glass bells, breathing hiss.
 
 ## Reading a patch (tools/patch_view.py)

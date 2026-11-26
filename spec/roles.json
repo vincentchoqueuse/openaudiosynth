@@ -301,6 +301,8 @@
     "osc<n>.semitone": "oscillator n semitones",
     "osc<n>.sync": "oscillator n hard-synced to the next one",
     "osc<n>.unison_detune": "detune spread of the unison copies of oscillator n",
+    "osc<n>.unison_blend": "level of the side voices of an oscillator's unison against the centre one",
+    "osc<n>.unison_width": "stereo width of an oscillator's unison voices",
     "osc<n>.unison_voices": "number of stacked detuned copies of oscillator n",
     "osc<n>.warp": "phase warp amount of oscillator n",
     "osc<n>.warp_mode": "phase warp type of oscillator n (sync, bend, mirror, fm, ring)",

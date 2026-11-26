@@ -28,13 +28,14 @@ export const ENGINE_UI = {
   // imperfections under More; what the chosen waves and filters do not use is hidden
   va: {
     place: fold(
-      [/^osc\d_semi$/, 'supersaw_motion', 'supersaw_motion_rate', 'keytrack', 'vel_cutoff', 'oversample', 'filter2_character',
+      [/^osc\d_semi$/, 'unison_motion', 'unison_motion_rate', /^osc\d_unison_blend$/, 'keytrack', 'vel_cutoff', 'oversample', 'filter2_character',
        'filter_routing', 'amp_velocity', 'pan_spread', 'lfo_pwm', 'wheel_vibrato', /^lfo[234]_/, 'tolerance', 'drift_time',
        'jitter', 'glide_mode', 'bend_range'],
       (n, s) => {
         let m = /^osc(\d)_pw$/.exec(n);
         if (m) return choice(s, `osc${m[1]}_wave`) !== 'pulse';
-        if (n.startsWith('supersaw_')) return choice(s, 'osc1_wave') !== 'supersaw' && choice(s, 'osc2_wave') !== 'supersaw';
+        if (/^osc\d_unison_/.test(n)) return s.getP(n.slice(0, 4) + '_unison') < 2; // a unison of one voice: nothing to set
+        if (n.startsWith('unison_motion')) return s.getP('osc1_unison') < 2 && s.getP('osc2_unison') < 2;
         if (n === 'filter_character') return !['formant', 'scream'].includes(choice(s, 'filter_mode'));
         if (n === 'filter2_character') return !['formant', 'scream'].includes(choice(s, 'filter2_mode'));
         if (n === 'lfo_pwm') return choice(s, 'osc1_wave') !== 'pulse' && choice(s, 'osc2_wave') !== 'pulse';

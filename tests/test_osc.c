@@ -6,7 +6,8 @@
 
 #include "osc/noise.h"
 #include "osc/polyblep.h"
-#include "osc/supersaw.h"
+#include "osc/unison.h"
+
 #include "test.h"
 
 #define SR 48000.0f
@@ -107,35 +108,61 @@ void suite_osc(void)
         free(db);
     }
 
-    /* Supersaw: single saw = exact pitch; loudness stable across the mix; bounded; deterministic */
+    /* Unison: one voice = exact pitch; loudness kept across the count and the blend; width 0 = the same on both
+     * sides, width 1 = two different sides; bounded; deterministic */
     {
-        supersaw_t ss;
-        float *c = malloc(sizeof(float) * (size_t)n);
-        supersaw_init(&ss, SR, 1);
+        unison_t u;
+        float *c = malloc(sizeof(float) * (size_t)n), *r = malloc(sizeof(float) * (size_t)n);
+        unison_init(&u, SR, 1);
         for (int i = 0; i < n; i += 32) {
-            supersaw_set(&ss, 440.0f, 30.0f, 0.0f, 0.0f, 0.2f, 1, 32);
-            supersaw_process(&ss, a + i, 32);
+            unison_set(&u, 440.0f, OSC_SAW, 0.5f, 1, 30.0f, 1.0f, 0.0f, 0.0f, 0.2f, 32);
+            unison_process(&u, a + i, NULL, 32);
         }
         const float fe = estimate_freq(a, n, SR);
-        CHECK(fabsf(fe - 440.0f) < 0.05f, "supersaw x1: %.4f Hz", (double)fe);
+        CHECK(fabsf(fe - 440.0f) < 0.05f, "unison x1: %.4f Hz", (double)fe);
 
-        float level[2];
-        for (int m = 0; m < 2; m++) {
-            for (int run = 0; run < 2; run++) {
-                supersaw_init(&ss, SR, 7);
-                for (int i = 0; i < n; i += 32) {
-                    supersaw_set(&ss, 220.0f, 30.0f, (float)m, 8.0f, 0.5f, 7, 32);
-                    supersaw_process(&ss, (run ? c : b) + i, 32);
+        /* the level, averaged over four notes (each starts its voices at random phases, and the closest voices
+         * beat slowly: one note alone moves by about 1 dB, as on any unison) */
+        float lo = 1e9f, hi = -1e9f;
+        for (int voices = 2; voices <= UNISON_MAX; voices += 7) {
+            for (int m = 0; m < 2; m++) {
+                double e = 0.0;
+                for (int seed = 0; seed < 4; seed++) {
+                    for (int run = 0; run < 2; run++) {
+                        unison_init(&u, SR, 7u + 101u * (uint32_t)seed);
+                        for (int i = 0; i < n; i += 32) {
+                            unison_set(&u, 220.0f, OSC_SAW, 0.5f, voices, 30.0f, (float)m, 0.0f, 8.0f, 0.5f, 32);
+                            unison_process(&u, (run ? c : b) + i, NULL, 32);
+                        }
+                    }
+                    CHECK(memcmp(b, c, sizeof(float) * (size_t)n) == 0, "unison not deterministic");
+                    CHECK(all_finite_bounded(b, n, 3.0f), "unison: NaN or |x| = %.3f", (double)max_abs(b, n));
+                    const float x = rms(b + 4800, n - 4800);
+                    e += (double)x * (double)x;
                 }
+                const float db = (float)(10.0 * log10(e / 4.0));
+                lo = fminf(lo, db), hi = fmaxf(hi, db);
             }
-            CHECK(memcmp(b, c, sizeof(float) * (size_t)n) == 0, "supersaw not deterministic");
-            CHECK(all_finite_bounded(b, n, 2.7f), "supersaw: NaN or |x| = %.3f", (double)max_abs(b, n));
-            level[m] = 20.0f * log10f(rms(b + 4800, n - 4800));
         }
-        printf("  supersaw 7 saws: rms %.1f dB (mix 0) / %.1f dB (mix 1)\n", (double)level[0], (double)level[1]);
-        CHECK(fabsf(level[1] - level[0]) < 2.0f, "supersaw loudness changes with the mix: %.1f dB",
-              (double)(level[1] - level[0]));
+        printf("  unison 2..16 voices, blend 0..1: rms %.1f .. %.1f dB (4 notes each)\n", (double)lo, (double)hi);
+        CHECK(hi - lo < 1.5f, "unison loudness changes with the count or the blend: %.1f dB", (double)(hi - lo));
+
+        for (int wide = 0; wide < 2; wide++) {
+            unison_init(&u, SR, 3);
+            for (int i = 0; i < n; i += 32) {
+                unison_set(&u, 220.0f, OSC_SAW, 0.5f, 7, 30.0f, 0.8f, (float)wide, 0.0f, 0.2f, 32);
+                unison_process(&u, c + i, r + i, 32);
+            }
+            float diff = 0.0f;
+            for (int i = 4800; i < n; i++)
+                diff = fmaxf(diff, fabsf(c[i] - r[i]));
+            if (wide)
+                CHECK(diff > 0.1f, "unison width 1: left and right are the same (max diff %.4f)", (double)diff);
+            else
+                CHECK(diff < 1e-6f, "unison width 0: left and right differ (max diff %.6f)", (double)diff);
+        }
         free(c);
+        free(r);
     }
 
     /* Noise: mean ~0, values in [-1, 1), deterministic */

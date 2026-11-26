@@ -435,17 +435,17 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 
 ## Engine `va` (8 voices)
 
-subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)
+subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
-| `osc1_wave` | sine, saw, pulse, tri, supersaw | saw |  | `osc1.waveform` | osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure, supersaw = up to 7 detuned saws (see supersaw_*) |
+| `osc1_wave` | sine, saw, pulse, tri | saw |  | `osc1.waveform` | osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure; osc1_unison stacks detuned copies of it |
 | `osc1_oct` | -3 .. 3 oct | 0 |  | `osc1.octave` | osc 1 octave shift |
 | `osc1_semi` | -12 .. 12 st | 0 |  | `osc1.semitone` | osc 1 transposition in semitones (7 = fifth, 12 = octave) |
 | `osc1_detune` | -50 .. 50 cent | 0 | yes | `osc1.detune` | osc 1 fine tune; detuning against osc 2 gives beating/chorus (5-12 cents = lush) |
 | `osc1_pw` | 0.05 .. 0.95 | 0.5 | yes | `osc1.pulse_width` | osc 1 pulse width (pulse wave only): 0.5 square, small/large values thin and nasal |
 | `osc1_level` | 0 .. 1 | 1 | yes | `osc1.level` | osc 1 level into the filter |
-| `osc2_wave` | sine, saw, pulse, tri, supersaw | saw |  | `osc2.waveform` | osc 2 waveform |
+| `osc2_wave` | sine, saw, pulse, tri | saw |  | `osc2.waveform` | osc 2 waveform |
 | `osc2_oct` | -3 .. 3 oct | 0 |  | `osc2.octave` | osc 2 octave shift (-1 = sub oscillator for bass weight) |
 | `osc2_semi` | -12 .. 12 st | 0 |  | `osc2.semitone` | osc 2 transposition in semitones |
 | `osc2_detune` | -50 .. 50 cent | 7 | yes (CC 18) | `osc2.detune` | osc 2 fine tune (default +7 cents: gentle chorus) |
@@ -486,11 +486,16 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise 
 | `lfo3_detune` | 0 .. 50 cent | 0 | yes | `motion.detune2.depth` | LFO 3 depth on osc 1 detune in cents: second, desynchronized beating layer |
 | `lfo4_rate` | 0.02 .. 10 Hz | 0.0708 | yes | `motion.detune3.rate` | per-voice LFO 4 rate (default ~0.24 x LFO 2: very slow) |
 | `lfo4_detune` | 0 .. 50 cent | 0 | yes | `motion.detune3.depth` | LFO 4 depth on the whole voice pitch in cents: chord notes slowly drift against each other (tape-like) |
-| `supersaw_voices` | 1 .. 7 | 7 |  | `osc.unison.voices` | saws per supersaw oscillator (odd: 1, 3, 5, 7); 7 = classic, 14 per note with both oscillators |
-| `supersaw_detune` | 0 .. 100 cent | 25 | yes | `osc.unison.detune` | spread of the outermost saw in cents (10-20 subtle chorus, 25-40 lush, 60+ wide/trance) |
-| `supersaw_mix` | 0 .. 1 | 0.6 | yes | `osc.unison.mix` | level of the side saws vs the centre one (loudness-normalized): 0 = single saw, 1 = full swarm |
-| `supersaw_motion` | 0 .. 30 cent | 0 | yes | `osc.unison.motion` | per-saw desynchronized LFO on each saw's detune, in cents: the swarm breathes and shimmers |
-| `supersaw_motion_rate` | 0.02 .. 5 Hz | 0.2 | yes | `osc.unison.motion_rate` | average rate of the per-saw motion LFOs (each saw gets 0.6-1.4x this rate) |
+| `osc1_unison` | 1 .. 16 | 1 |  | `osc1.unison_voices` | osc 1 unison: copies of the oscillator sounding together, detuned and spread (1 = a single oscillator; 3-5 = thick, 7-9 = a classic stack, 12-16 = a wall; each voice costs an oscillator) |
+| `osc1_unison_detune` | 0 .. 100 cent | 25 | yes | `osc1.unison_detune` | how far the outermost unison voice is detuned, in cents; the inner voices stay closer (10-20 = subtle chorus, 25-40 = lush, 60+ = wide, trance) |
+| `osc1_unison_blend` | 0 .. 1 | 0.6 | yes | `osc1.unison_blend` | level of the side voices against the centre one, the loudness kept: 0 = the centre alone, 1 = every voice as loud |
+| `osc1_unison_width` | 0 .. 1 | 0.5 | yes | `osc1.unison_width` | stereo width of the unison voices: 0 = mono (cheaper: one filter per voice), 1 = from hard left to hard right (mono on a board built with VA_STEREO 0) |
+| `osc2_unison` | 1 .. 16 | 1 |  | `osc2.unison_voices` | osc 2 unison: copies of the oscillator sounding together, detuned and spread (1 = a single oscillator; 3-5 = thick, 7-9 = a classic stack, 12-16 = a wall; each voice costs an oscillator) |
+| `osc2_unison_detune` | 0 .. 100 cent | 25 | yes | `osc2.unison_detune` | how far the outermost unison voice is detuned, in cents; the inner voices stay closer (10-20 = subtle chorus, 25-40 = lush, 60+ = wide, trance) |
+| `osc2_unison_blend` | 0 .. 1 | 0.6 | yes | `osc2.unison_blend` | level of the side voices against the centre one, the loudness kept: 0 = the centre alone, 1 = every voice as loud |
+| `osc2_unison_width` | 0 .. 1 | 0.5 | yes | `osc2.unison_width` | stereo width of the unison voices: 0 = mono (cheaper: one filter per voice), 1 = from hard left to hard right (mono on a board built with VA_STEREO 0) |
+| `unison_motion` | 0 .. 30 cent | 0 | yes | `osc.unison.motion` | a slow, desynchronized LFO on each unison voice's detune, in cents: the stack breathes and shimmers |
+| `unison_motion_rate` | 0.02 .. 5 Hz | 0.2 | yes | `osc.unison.motion_rate` | average rate of the unison motion LFOs (each voice gets 0.6-1.4x this rate) |
 | `pitch_env` | -48 .. 48 st | 0 | yes | `pitch_env.amount` | pitch envelope: the note starts this many semitones away and glides back (+24..+36 with 30-60 ms = kick drum, +7..+12 = snare/tom snap, -12..-24 = laser zap) |
 | `pitch_env_decay` | 0.002 .. 2 s | 0.05 | yes | `pitch_env.decay` | time constant of the pitch envelope |
 | `voice_mode` | poly, mono, legato | poly |  | `voice.mode` | poly = chords; mono = one voice, last note wins, every note retriggers the envelopes; legato = one voice, overlapping notes slide without retriggering (acid lines, leads, basses) |

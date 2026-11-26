@@ -110,14 +110,14 @@ plays a 16-bit sample at any speed, forwards or backwards, between a start and a
 - `void splay_set_loop(splay_t *p, int loop)` — Loop on or off while playing (a released note leaves its loop and plays to the end).
 - `int splay_process(splay_t *p, float *out, int n, float rate0, float rate1)` — Writes n samples (full scale 1.0) at a speed (1 = original pitch) ramping from rate0 to rate1 across the block, clamped to [0, SPLAY_RATE_MAX]; zeros once finished. Returns 1 while playing.
 
-## `dsp/osc/supersaw.h`
-stack of up to 7 detuned polyBLEP saws ("supersaw"), with irregular detune spacing (no common beat period, cf. A. Szabo, "How to Emulate the Super Saw", 2010), random start phases, loudness-normalized side mix, and one slow desynchronized LFO per saw that moves its detune ("motion"). Per-saw LFOs run at control rate; pitch is interpolated by each saw over the block.
-- types: `supersaw_t`
-- constants: `SUPERSAW_MAX` = 7
-- `void supersaw_init(supersaw_t *s, float sample_rate, uint32_t seed)`
-- `void supersaw_reset(supersaw_t *s)` — New note: random phases for every saw and new random LFO rates/phases; no pitch glide.
-- `void supersaw_set(supersaw_t *s, float freq_hz, float detune_cents, float side, float motion_cents, float motion_hz, int count, int block)` — freq_hz: centre pitch; detune_cents: outermost saw offset; side: level of the 6 side saws (0..1); motion_cents / motion_hz: depth and rate of the per-saw detune LFOs; count: 1, 3, 5 or 7 saws. Call once per block, bef...
-- `void supersaw_process(supersaw_t *s, float *restrict out, int n)`
+## `dsp/osc/unison.h`
+a stack of 1 to 16 detuned copies of one polyBLEP oscillator (sine, saw, pulse, triangle), spread in pitch and across the stereo field like a modern unison: the voices sit at symmetric positions from -1 to +1, set apart by `detune` (the outermost voice's offset, in cents) along a curve that keeps the inner ones a little closer, with a small fixed irregularity so the stack never shares a beat period (cf. A. Szabo, "How to Emulate the Super Saw", 2010). Blend sets the side voices against the centre, the sum kept at a constant loudness; width pans them (constant power), in a scrambled order so each side gets low and high voices. Each voice can drift on its own slow LFO (motion). Gains and pitch are set per block and ramped (gains) or interpolated (pitch).
+- types: `unison_t`
+- constants: `UNISON_MAX` = 16
+- `void unison_init(unison_t *u, float sample_rate, uint32_t seed)`
+- `void unison_reset(unison_t *u, int random)` — New note: each voice restarts at a random phase (random = 1) or all at phase 0 (a hard, identical attack); new motion rates and phases.
+- `void unison_set(unison_t *u, float freq_hz, int wave, float pw, int voices, float detune_cents, float blend, float width, float motion_cents, float motion_hz, int block)` — Once per block, before unison_process: centre frequency (Hz), wave (osc_wave_t), pulse width, voices (1..16), detune (cents of the outermost voice), blend (0 = the centre alone .. 1 = every voice as loud), width (0 = ...
+- `void unison_process(unison_t *u, float *restrict out_l, float *restrict out_r, int n)` — Writes n samples (n <= SYNTH_BLOCK) into out_l and out_r, the voices panned (constant power, scaled so that a centred voice has its full gain on each side: the caller pans the pair as it would a mono signal); with out...
 
 ## `dsp/osc/wavetable.h`
 band-limited wavetable oscillator. A table is WT_FRAMES single-cycle frames; each frame is stored as WT_LEVELS mipmaps (one per octave, 512 harmonics down to 1), built at init by FFT from a generator function. Playback: linear interpolation inside a frame and between neighbouring frames ("position"), mip level chosen per block so harmonics stay below 0.55 x SR (what folds back lands above 20 kHz), unison stack, and phase warps: hard sync (polyBLEP-corrected reset), bend, mirror, phase modulation and ring modulation by an external signal. References: P. Burk, "Band Limited Oscillators Using Wave Table Synthesis" (Audio Anecdotes, 2004); V. Valimaki et al. on polyBLEP for the sync discontinuity.
@@ -520,9 +520,9 @@ a drum sampler: plays the samples of a kit (core/kit.h, given by synth_part_kit)
 - data: `const param_desc_t sampler_params[SAMPLER_P_COUNT]`, `const engine_ops_t sampler_engine`
 
 ## `dsp/engines/va.h`
-"va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators (or supersaws) + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
+"va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators, each a unison of 1 to 16 detuned and spread copies (dsp/osc/unison.h), + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
 - types: `va_voice_t`, `va_t`
-- constants: `VA_VOICES` = 8, `VA_WAVE_SUPERSAW` = 4
+- constants: `VA_VOICES` = 8, `VA_STEREO` = 1
 - data: `const param_desc_t va_params[VA_P_COUNT]`, `const engine_ops_t va_engine`
 
 ## `dsp/engines/wt.h`

@@ -32,10 +32,10 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
         synth_set_param(synth_default(), VA_P_AMP_S, 1.0f);
         synth_set_param(synth_default(), VA_P_NOISE_LEVEL, param_to_norm(&va_params[VA_P_NOISE_LEVEL], 0.2f));
         synth_set_param(synth_default(), VA_P_LFO_CUTOFF, param_to_norm(&va_params[VA_P_LFO_CUTOFF], 1.0f));
-        if (supersaw) { /* worst case: 2 x 7 saws per voice, with per-saw motion */
-            synth_set_param(synth_default(), VA_P_OSC1_WAVE, 1.0f);
-            synth_set_param(synth_default(), VA_P_OSC2_WAVE, 1.0f);
-            synth_set_param(synth_default(), VA_P_SS_MOTION, param_to_norm(&va_params[VA_P_SS_MOTION], 8.0f));
+        if (supersaw) { /* unison: 2 x `supersaw` saws per voice, spread in stereo (width 0.5), with motion */
+            synth_set_param(synth_default(), VA_P_OSC1_UNISON, param_to_norm(&va_params[VA_P_OSC1_UNISON], (float)supersaw));
+            synth_set_param(synth_default(), VA_P_OSC2_UNISON, param_to_norm(&va_params[VA_P_OSC2_UNISON], (float)supersaw));
+            synth_set_param(synth_default(), VA_P_UNI_MOTION, param_to_norm(&va_params[VA_P_UNI_MOTION], 8.0f));
         }
     } else if (eng == SYNTH_ENGINE_MODAL) {
         synth_set_param(synth_default(), MODAL_P_MODES, 1.0f); /* 16 modes */
@@ -106,7 +106,8 @@ void run_bench(void)
 {
     printf("bench (host, 48 kHz, block %d)\n", SYNTH_BLOCK);
     bench_engine("va", SYNTH_ENGINE_VA, VA_VOICES, 0, 0);
-    bench_engine("va-ss", SYNTH_ENGINE_VA, VA_VOICES, 1, 0);
+    bench_engine("va-u7", SYNTH_ENGINE_VA, VA_VOICES, 7, 0);
+    bench_engine("va-u16", SYNTH_ENGINE_VA, VA_VOICES, 16, 0);
     bench_engine("modal", SYNTH_ENGINE_MODAL, MODAL_VOICES, 0, 0);
     bench_engine("va+fx", SYNTH_ENGINE_VA, VA_VOICES, 0, 1);
     bench_engine("va+all fx", SYNTH_ENGINE_VA, VA_VOICES, 0, 2);

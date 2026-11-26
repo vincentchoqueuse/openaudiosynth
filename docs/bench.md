@@ -35,6 +35,8 @@ with `DWT->CYCCNT` on the board (M7).
 | 2026-11-26 | Apple Silicon (host) | va + whole chain: phaser channels in one loop (was 27.9) | 8 | 20.8 | 0.80 % |
 | 2026-11-26 | Apple Silicon (host) | poly, ladder 1x: block state in locals (was 24.5) | 8 | 22.2 | 0.85 % |
 | 2026-11-26 | Apple Silicon (host) | mono, ladder 1x: block state in locals (was 29.1) | 1 | 26.5 | 0.13 % |
+| 2026-11-26 | Apple Silicon (host) | va, unison 7 per oscillator, width 0.5 (stereo: filters doubled), motion on (the mono supersaw of 7 was 27.0) | 8 | 38.2 | 1.47 % |
+| 2026-11-26 | Apple Silicon (host) | va, unison 16 per oscillator, stereo, motion on | 8 | 70.4 | 2.70 % |
 
 Cross build (arm-none-eabi-gcc, cortex-m7, -O2, `libsynth_dsp.a`): text ~77 KB (help strings
 included; `-DDSP_PARAM_TEXT=0` removes them), state ~340 KB with 8 parts (~40 KB per part: lower `SYNTH_PARTS` on a board), plus the effect arena (default 1.3 MB,

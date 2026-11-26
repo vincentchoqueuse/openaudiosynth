@@ -25,7 +25,7 @@ export function grouped(params) {
 export function inStage(name, st) {
   const title = st.label.toLowerCase().replace(/\s+/g, '');
   // a prefix is dropped only when it is the card's own name ("osc1_" in Osc 1, "reverb_" in Reverb): a stage may hold
-  // another part's parameters ("supersaw_" in Osc 1), which keep their full name
+  // another part's parameters ("unison_motion" in Osc 1), which keep their full name
   const pre = st.params.split(' ').find((t) => t.endsWith('_') && name.startsWith(t) && ((p) => title.startsWith(p) || title.endsWith(p))(t.slice(0, -1).replace(/_/g, '')));
   let rest = pre ? name.slice(pre.length) : name;
   const first = rest.split('_')[0];

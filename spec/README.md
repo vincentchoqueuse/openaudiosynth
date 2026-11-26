@@ -62,7 +62,7 @@ descriptor tables), never written by hand. Everything is UTF-8 JSON.
       "params": {
         "cutoff":    {"type": "float", "range": [20, 20000], "default": 2000, "unit": "Hz", "scale": "log",
                       "realtime": true, "cc": 74, "role": "filter.cutoff", "help": "main brightness control"},
-        "osc1_wave": {"type": "enum", "choices": ["sine", "saw", "pulse", "tri", "supersaw"],
+        "osc1_wave": {"type": "enum", "choices": ["sine", "saw", "pulse", "tri"],
                       "default": "saw", "realtime": false, "role": "osc1.waveform", "help": "..."}
       }
     },

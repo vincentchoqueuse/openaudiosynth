@@ -5,7 +5,7 @@ set(SYNTH_DSP_SOURCES
   dsp/core/sin_table.c
   dsp/core/kit.c
   dsp/osc/polyblep.c
-  dsp/osc/supersaw.c
+  dsp/osc/unison.c
   dsp/filter/svf_tpt.c
   dsp/filter/ladder.c
   dsp/filter/comb.c

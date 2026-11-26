@@ -8,19 +8,19 @@
 #define VA_VOICE_GAIN 0.125f /* -18 dBFS per voice */
 #define VA_SMOOTH_S 0.005f
 
-static const char *const osc_wave_labels[] = {"sine", "saw", "pulse", "tri", "supersaw", NULL};
+static const char *const osc_wave_labels[] = {"sine", "saw", "pulse", "tri", NULL};
 static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", NULL};
 static const char *const filter2_labels[] = {"off", "lp", "bp", "hp", "notch", "formant", "scream", NULL};
 static const char *const routing_labels[] = {"series", "parallel", NULL};
 
 const param_desc_t va_params[VA_P_COUNT] = {
-    PARAM(VA_P_OSC1_WAVE, "osc1_wave", "osc1.waveform", 0.0f, 4.0f, 1.0f, PARAM_INT, "", 0, osc_wave_labels, "osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure, supersaw = up to 7 detuned saws (see supersaw_*)"),
+    PARAM(VA_P_OSC1_WAVE, "osc1_wave", "osc1.waveform", 0.0f, 3.0f, 1.0f, PARAM_INT, "", 0, osc_wave_labels, "osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure; osc1_unison stacks detuned copies of it"),
     PARAM(VA_P_OSC1_OCT, "osc1_oct", "osc1.octave", -3.0f, 3.0f, 0.0f, PARAM_INT, "oct", 0, NULL, "osc 1 octave shift"),
     PARAM(VA_P_OSC1_SEMI, "osc1_semi", "osc1.semitone", -12.0f, 12.0f, 0.0f, PARAM_INT, "st", 0, NULL, "osc 1 transposition in semitones (7 = fifth, 12 = octave)"),
     PARAM(VA_P_OSC1_DETUNE, "osc1_detune", "osc1.detune", -50.0f, 50.0f, 0.0f, PARAM_LIN, "cent", 1, NULL, "osc 1 fine tune; detuning against osc 2 gives beating/chorus (5-12 cents = lush)"),
     PARAM(VA_P_OSC1_PW, "osc1_pw", "osc1.pulse_width", 0.05f, 0.95f, 0.5f, PARAM_LIN, "", 1, NULL, "osc 1 pulse width (pulse wave only): 0.5 square, small/large values thin and nasal"),
     PARAM(VA_P_OSC1_LEVEL, "osc1_level", "osc1.level", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL, "osc 1 level into the filter"),
-    PARAM(VA_P_OSC2_WAVE, "osc2_wave", "osc2.waveform", 0.0f, 4.0f, 1.0f, PARAM_INT, "", 0, osc_wave_labels, "osc 2 waveform"),
+    PARAM(VA_P_OSC2_WAVE, "osc2_wave", "osc2.waveform", 0.0f, 3.0f, 1.0f, PARAM_INT, "", 0, osc_wave_labels, "osc 2 waveform"),
     PARAM(VA_P_OSC2_OCT, "osc2_oct", "osc2.octave", -3.0f, 3.0f, 0.0f, PARAM_INT, "oct", 0, NULL, "osc 2 octave shift (-1 = sub oscillator for bass weight)"),
     PARAM(VA_P_OSC2_SEMI, "osc2_semi", "osc2.semitone", -12.0f, 12.0f, 0.0f, PARAM_INT, "st", 0, NULL, "osc 2 transposition in semitones"),
     PARAM(VA_P_OSC2_DETUNE, "osc2_detune", "osc2.detune", -50.0f, 50.0f, 7.0f, PARAM_LIN, "cent", 1, NULL, "osc 2 fine tune (default +7 cents: gentle chorus)"),
@@ -62,11 +62,16 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_LFO3_DETUNE, "lfo3_detune", "motion.detune2.depth", 0.0f, 50.0f, 0.0f, PARAM_LIN, "cent", 1, NULL, "LFO 3 depth on osc 1 detune in cents: second, desynchronized beating layer"),
     PARAM(VA_P_LFO4_RATE, "lfo4_rate", "motion.detune3.rate", 0.02f, 10.0f, 0.0708f, PARAM_EXP, "Hz", 1, NULL, "per-voice LFO 4 rate (default ~0.24 x LFO 2: very slow)"),
     PARAM(VA_P_LFO4_DETUNE, "lfo4_detune", "motion.detune3.depth", 0.0f, 50.0f, 0.0f, PARAM_LIN, "cent", 1, NULL, "LFO 4 depth on the whole voice pitch in cents: chord notes slowly drift against each other (tape-like)"),
-    PARAM(VA_P_SS_VOICES, "supersaw_voices", "osc.unison.voices", 1.0f, 7.0f, 7.0f, PARAM_INT, "", 0, NULL, "saws per supersaw oscillator (odd: 1, 3, 5, 7); 7 = classic, 14 per note with both oscillators"),
-    PARAM(VA_P_SS_DETUNE, "supersaw_detune", "osc.unison.detune", 0.0f, 100.0f, 25.0f, PARAM_LIN, "cent", 1, NULL, "spread of the outermost saw in cents (10-20 subtle chorus, 25-40 lush, 60+ wide/trance)"),
-    PARAM(VA_P_SS_MIX, "supersaw_mix", "osc.unison.mix", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL, "level of the side saws vs the centre one (loudness-normalized): 0 = single saw, 1 = full swarm"),
-    PARAM(VA_P_SS_MOTION, "supersaw_motion", "osc.unison.motion", 0.0f, 30.0f, 0.0f, PARAM_LIN, "cent", 1, NULL, "per-saw desynchronized LFO on each saw's detune, in cents: the swarm breathes and shimmers"),
-    PARAM(VA_P_SS_MOTION_RATE, "supersaw_motion_rate", "osc.unison.motion_rate", 0.02f, 5.0f, 0.2f, PARAM_EXP, "Hz", 1, NULL, "average rate of the per-saw motion LFOs (each saw gets 0.6-1.4x this rate)"),
+    PARAM(VA_P_OSC1_UNISON, "osc1_unison", "osc1.unison_voices", 1.0f, 16.0f, 1.0f, PARAM_INT, "", 0, NULL, "osc 1 unison: copies of the oscillator sounding together, detuned and spread (1 = a single oscillator; 3-5 = thick, 7-9 = a classic stack, 12-16 = a wall; each voice costs an oscillator)"),
+    PARAM(VA_P_OSC1_UNI_DETUNE, "osc1_unison_detune", "osc1.unison_detune", 0.0f, 100.0f, 25.0f, PARAM_LIN, "cent", 1, NULL, "how far the outermost unison voice is detuned, in cents; the inner voices stay closer (10-20 = subtle chorus, 25-40 = lush, 60+ = wide, trance)"),
+    PARAM(VA_P_OSC1_UNI_BLEND, "osc1_unison_blend", "osc1.unison_blend", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL, "level of the side voices against the centre one, the loudness kept: 0 = the centre alone, 1 = every voice as loud"),
+    PARAM(VA_P_OSC1_UNI_WIDTH, "osc1_unison_width", "osc1.unison_width", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL, "stereo width of the unison voices: 0 = mono (cheaper: one filter per voice), 1 = from hard left to hard right (mono on a board built with VA_STEREO 0)"),
+    PARAM(VA_P_OSC2_UNISON, "osc2_unison", "osc2.unison_voices", 1.0f, 16.0f, 1.0f, PARAM_INT, "", 0, NULL, "osc 2 unison: copies of the oscillator sounding together, detuned and spread (1 = a single oscillator; 3-5 = thick, 7-9 = a classic stack, 12-16 = a wall; each voice costs an oscillator)"),
+    PARAM(VA_P_OSC2_UNI_DETUNE, "osc2_unison_detune", "osc2.unison_detune", 0.0f, 100.0f, 25.0f, PARAM_LIN, "cent", 1, NULL, "how far the outermost unison voice is detuned, in cents; the inner voices stay closer (10-20 = subtle chorus, 25-40 = lush, 60+ = wide, trance)"),
+    PARAM(VA_P_OSC2_UNI_BLEND, "osc2_unison_blend", "osc2.unison_blend", 0.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, NULL, "level of the side voices against the centre one, the loudness kept: 0 = the centre alone, 1 = every voice as loud"),
+    PARAM(VA_P_OSC2_UNI_WIDTH, "osc2_unison_width", "osc2.unison_width", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL, "stereo width of the unison voices: 0 = mono (cheaper: one filter per voice), 1 = from hard left to hard right (mono on a board built with VA_STEREO 0)"),
+    PARAM(VA_P_UNI_MOTION, "unison_motion", "osc.unison.motion", 0.0f, 30.0f, 0.0f, PARAM_LIN, "cent", 1, NULL, "a slow, desynchronized LFO on each unison voice's detune, in cents: the stack breathes and shimmers"),
+    PARAM(VA_P_UNI_MOTION_RATE, "unison_motion_rate", "osc.unison.motion_rate", 0.02f, 5.0f, 0.2f, PARAM_EXP, "Hz", 1, NULL, "average rate of the unison motion LFOs (each voice gets 0.6-1.4x this rate)"),
     PARAM(VA_P_PENV_AMT, "pitch_env", "pitch_env.amount", -48.0f, 48.0f, 0.0f, PARAM_LIN, "st", 1, NULL,
           "pitch envelope: the note starts this many semitones away and glides back (+24..+36 with 30-60 ms = "
           "kick drum, +7..+12 = snare/tom snap, -12..-24 = laser zap)"),
@@ -133,11 +138,16 @@ static void va_init(void *st, float sample_rate)
         v->pitch = 60.0f;
         osc_init(&v->osc[0], sample_rate);
         osc_init(&v->osc[1], sample_rate);
-        supersaw_init(&v->ss[0], sample_rate, 0x4000u + 2u * (uint32_t)i);
-        supersaw_init(&v->ss[1], sample_rate, 0x4001u + 2u * (uint32_t)i);
+        unison_init(&v->uni[0], sample_rate, 0x4000u + 2u * (uint32_t)i);
+        unison_init(&v->uni[1], sample_rate, 0x4001u + 2u * (uint32_t)i);
+        v->stereo = 0;
         noise_init(&v->noise, 0x1000u + (uint32_t)i);
         vfilter_init(&v->f1, sample_rate);
         vfilter_init(&v->f2, sample_rate);
+#if VA_STEREO
+        vfilter_init(&v->f1r, sample_rate);
+        vfilter_init(&v->f2r, sample_rate);
+#endif
         adsr_init(&v->amp, sample_rate);
         adsr_init(&v->fenv, sample_rate);
         analog_init(&v->analog[0], 0x2000u + 2u * (uint32_t)i);
@@ -164,10 +174,11 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         /* random free-running phases: each note sounds slightly different, as on an analog synth */
         osc_reset(&v->osc[0], dsp_rand_unipolar(&e->rng));
         osc_reset(&v->osc[1], dsp_rand_unipolar(&e->rng));
-        supersaw_reset(&v->ss[0]);
-        supersaw_reset(&v->ss[1]);
+        unison_reset(&v->uni[0], 1);
+        unison_reset(&v->uni[1], 1);
         vfilter_reset(&v->f1);
         vfilter_reset(&v->f2);
+        v->stereo = 0; /* a new note starts mono: the right filters are copied from the left when it widens */
         adsr_reset(&v->amp);
         adsr_reset(&v->fenv);
         const float pos = e->p[VA_P_SPREAD] * dsp_rand_bipolar(&e->rng);
@@ -295,6 +306,22 @@ typedef struct {
     analog_cfg_t analog;
 } va_block_t;
 
+/* The two filters of one channel: in series, or in parallel (both hear the oscillators, mixed half and half). */
+static inline void filters(vfilter_t *f1, vfilter_t *f2, int mode2, int parallel, float *x, int n)
+{
+    if (parallel) {
+        float x2[SYNTH_BLOCK];
+        vfilter_process(f2, x, x2, n);
+        vfilter_process(f1, x, x, n);
+        for (int i = 0; i < n; i++)
+            x[i] = 0.5f * (x[i] + x2[i]);
+    } else {
+        vfilter_process(f1, x, x, n);
+        if (mode2 > 0)
+            vfilter_process(f2, x, x, n);
+    }
+}
+
 static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, float *L, float *R)
 {
     const int n = SYNTH_BLOCK;
@@ -339,15 +366,30 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
         fm_mtof(base + 12.0f * p[VA_P_OSC1_OCT] + p[VA_P_OSC1_SEMI] + 0.01f * (p[VA_P_OSC1_DETUNE] + det[1] + an[0])),
         fm_mtof(base + 12.0f * p[VA_P_OSC2_OCT] + p[VA_P_OSC2_SEMI] + 0.01f * (p[VA_P_OSC2_DETUNE] + det[0] + an[1])),
     };
+    /* each oscillator alone, or as a unison of detuned voices; the voice turns stereo while a unison has a width */
+    const int uni[2] = {(int)p[VA_P_OSC1_UNISON], (int)p[VA_P_OSC2_UNISON]};
+    const float width[2] = {uni[0] >= 2 ? p[VA_P_OSC1_UNI_WIDTH] : 0.0f, uni[1] >= 2 ? p[VA_P_OSC2_UNI_WIDTH] : 0.0f};
+    static const int uni_id[2] = {VA_P_OSC1_UNI_DETUNE, VA_P_OSC2_UNI_DETUNE};
+    int stereo = 0;
     for (int k = 0; k < 2; k++) {
-        if (wave[k] == VA_WAVE_SUPERSAW) {
-            supersaw_set(&v->ss[k], freq[k], p[VA_P_SS_DETUNE], p[VA_P_SS_MIX], p[VA_P_SS_MOTION],
-                         p[VA_P_SS_MOTION_RATE], (int)p[VA_P_SS_VOICES], SYNTH_BLOCK);
+        const int heard = b->lvl0[k] > 0.0f || b->lvl1[k] > 0.0f;
+        if (uni[k] >= 2) {
+            const float *u = &p[uni_id[k]]; /* detune, blend, width */
+            unison_set(&v->uni[k], freq[k], wave[k], b->pw[k], uni[k], u[0], u[1], u[2], p[VA_P_UNI_MOTION],
+                       p[VA_P_UNI_MOTION_RATE], SYNTH_BLOCK);
+            stereo |= VA_STEREO && heard && width[k] > 0.0f;
         } else {
             osc_set_wave(&v->osc[k], (osc_wave_t)wave[k]);
             osc_set(&v->osc[k], freq[k], b->pw[k]);
         }
     }
+#if VA_STEREO
+    if (stereo && !v->stereo) { /* widening: the right channel's filters start where the left ones are */
+        v->f1r = v->f1;
+        v->f2r = v->f2;
+    }
+#endif
+    v->stereo = stereo;
 
     /* cutoff (octaves): base + envelope + keytracking + velocity + LFO + drift */
     adsr_process(&v->fenv, env, n);
@@ -356,47 +398,67 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
                       an[0] * 0.005f + vm[VM_BRIGHT];
     const float reso01 = param_to_norm(&va_params[VA_P_RESO], b->res); /* formant and scream take 0..1 */
     vfilter_set(&v->f1, (int)p[VA_P_FILTER_MODE], fm_exp2(cut), b->res, reso01, p[VA_P_F1_CHAR]);
+#if VA_STEREO
+    if (stereo)
+        vfilter_set(&v->f1r, (int)p[VA_P_FILTER_MODE], fm_exp2(cut), b->res, reso01, p[VA_P_F1_CHAR]);
+#endif
     const int mode2 = (int)p[VA_P_F2_MODE];
     if (mode2 > 0) { /* filter 2 follows the same envelope, keytracking and modulation as filter 1 */
         const float cut2 = dsp_clampf(fm_log2(p[VA_P_F2_CUTOFF]) + (cut - b->cut_oct), 4.3f, 14.3f);
         vfilter_set(&v->f2, mode2 - 1, fm_exp2(cut2), 0.5f * fm_exp2(5.3f * p[VA_P_F2_RESO]), p[VA_P_F2_RESO], p[VA_P_F2_CHAR]);
+#if VA_STEREO
+        if (stereo)
+            vfilter_set(&v->f2r, mode2 - 1, fm_exp2(cut2), 0.5f * fm_exp2(5.3f * p[VA_P_F2_RESO]), p[VA_P_F2_RESO], p[VA_P_F2_CHAR]);
+#endif
     }
 
-    /* sources */
+    /* sources: x (and xr, the right channel, while the voice is stereo) */
+    float xr[SYNTH_BLOCK], tr[SYNTH_BLOCK];
     for (int i = 0; i < n; i++)
         x[i] = 0.0f;
+    if (stereo)
+        for (int i = 0; i < n; i++)
+            xr[i] = 0.0f;
     for (int k = 0; k < 2; k++) {
-        if (b->lvl0[k] > 0.0f || b->lvl1[k] > 0.0f) {
-            if (wave[k] == VA_WAVE_SUPERSAW)
-                supersaw_process(&v->ss[k], t, n);
-            else
-                osc_process(&v->osc[k], t, n);
-            dsp_ramp_mac(x, t, b->lvl0[k], b->lvl1[k], n);
-        }
+        if (!(b->lvl0[k] > 0.0f || b->lvl1[k] > 0.0f))
+            continue;
+        const int spread = stereo && width[k] > 0.0f; /* this unison's voices go left and right */
+        if (uni[k] >= 2)
+            unison_process(&v->uni[k], t, spread ? tr : NULL, n);
+        else
+            osc_process(&v->osc[k], t, n);
+        dsp_ramp_mac(x, t, b->lvl0[k], b->lvl1[k], n);
+        if (stereo)
+            dsp_ramp_mac(xr, spread ? tr : t, b->lvl0[k], b->lvl1[k], n);
     }
     if (b->lvl0[2] > 0.0f || b->lvl1[2] > 0.0f) {
         noise_process(&v->noise, t, n);
         dsp_ramp_mac(x, t, b->lvl0[2], b->lvl1[2], n);
+        if (stereo)
+            dsp_ramp_mac(xr, t, b->lvl0[2], b->lvl1[2], n);
     }
 
-    if (mode2 > 0 && (int)p[VA_P_FILTER_ROUTING] == 1) { /* parallel: both filters hear the oscillators */
-        float x2[SYNTH_BLOCK];
-        vfilter_process(&v->f2, x, x2, n);
-        vfilter_process(&v->f1, x, x, n);
-        for (int i = 0; i < n; i++)
-            x[i] = 0.5f * (x[i] + x2[i]);
-    } else {
-        vfilter_process(&v->f1, x, x, n);
-        if (mode2 > 0)
-            vfilter_process(&v->f2, x, x, n);
-    }
+    const int parallel = mode2 > 0 && (int)p[VA_P_FILTER_ROUTING] == 1;
+    filters(&v->f1, &v->f2, mode2, parallel, x, n);
+#if VA_STEREO
+    if (stereo)
+        filters(&v->f1r, &v->f2r, mode2, parallel, xr, n);
+#endif
 
     /* amp: envelope x gain (velocity, volume) x steal fade */
     adsr_process(&v->amp, env, n);
     const float g1 = VA_VOICE_GAIN * v->velgain * b->vol;
-    dsp_ramp_env_mul(x, env, v->gain_prev, g1, n);
+    if (stereo) { /* the same gain on both sides, then the voice's own pan as a balance */
+        dsp_ramp_env_mul(xr, env, v->gain_prev, g1, n);
+        dsp_ramp_env_mul(x, env, v->gain_prev, g1, n);
+        for (int i = 0; i < n; i++)
+            x[i] *= v->pan_l, xr[i] *= v->pan_r;
+        voice_out_stereo(&e->poly, vi, x, xr, n, L, R, &e->poly.nan_count);
+    } else {
+        dsp_ramp_env_mul(x, env, v->gain_prev, g1, n);
+        voice_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
+    }
     v->gain_prev = g1;
-    voice_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, vi, adsr_active(&v->amp));
 }
 
@@ -442,7 +504,7 @@ static DSP_FAST_CODE void va_render(void *st, float *L, float *R)
 
 /* signal chain, for UIs (engine.h) */
 static const engine_stage_t va_stages[] = {
-    {"osc1", "Osc 1", "source", "osc1_ supersaw_", "", NULL, "osc1_level", 0.0f, 1.0f},
+    {"osc1", "Osc 1", "source", "osc1_ unison_", "", NULL, "osc1_level", 0.0f, 1.0f},
     {"osc2", "Osc 2", "source", "osc2_", "", NULL, "osc2_level", 0.0f, 0.6f},
     {"noise", "Noise", "source", "noise_level", "", NULL, "noise_level", 0.0f, 0.2f},
     {"filter1", "Filter", "filter", "filter_mode cutoff resonance keytrack vel_cutoff filter_character oversample", "osc1 osc2 noise",
@@ -459,7 +521,7 @@ static const engine_stage_t va_stages[] = {
 
 const engine_ops_t va_engine = {
     .name = "va",
-    .description = "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri/supersaw) + noise -> two filter slots in series or parallel "
+    .description = "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + noise -> two filter slots in series or parallel "
                        "(state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
     .params = va_params,
     .param_count = VA_P_COUNT,

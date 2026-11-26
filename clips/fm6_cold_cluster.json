@@ -1,0 +1,15 @@
+{
+  "name": "fm6_cold_cluster",
+  "bpm": 56,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 62, "start": 0.007888, "length": 7.801867, "velocity": 97},
+    {"pitch": 69, "start": 0.00654, "length": 7.801867, "velocity": 90},
+    {"pitch": 76, "start": 0.00052, "length": 7.801867, "velocity": 96},
+    {"pitch": 53, "start": 8.002467, "length": 7.801867, "velocity": 93},
+    {"pitch": 60, "start": 8.001482, "length": 7.801867, "velocity": 86},
+    {"pitch": 67, "start": 8.005459, "length": 7.801867, "velocity": 92}
+  ]
+}

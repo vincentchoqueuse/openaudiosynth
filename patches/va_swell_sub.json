@@ -9,6 +9,5 @@
   "amp": {"attack": 3.0, "decay": 1.0, "sustain": 1.0, "release": 5.0, "velocity": 0.5},
   "output": {"volume": 12.4},
   "voice": {"drift": 1, "pan_spread": 0},
-  "motion": {"detune1": {"rate": 0.07, "depth": 3}, "spread": 1.0},
-  "audition": {"notes": "D1 _ _ _", "bpm": 60, "step": 2}
+  "motion": {"detune1": {"rate": 0.07, "depth": 3}, "spread": 1.0}
 }

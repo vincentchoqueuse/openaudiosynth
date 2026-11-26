@@ -1,0 +1,15 @@
+{
+  "name": "wt_growl_bass",
+  "bpm": 140,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 29, "start": 0.00079, "length": 0.954667, "velocity": 104},
+    {"pitch": 29, "start": 1.006928, "length": 0.454667, "velocity": 105},
+    {"pitch": 32, "start": 1.507888, "length": 0.454667, "velocity": 105},
+    {"pitch": 29, "start": 2.005218, "length": 0.954667, "velocity": 95},
+    {"pitch": 36, "start": 3.005736, "length": 0.454667, "velocity": 102},
+    {"pitch": 34, "start": 3.502467, "length": 0.454667, "velocity": 102}
+  ]
+}

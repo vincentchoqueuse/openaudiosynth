@@ -5,7 +5,7 @@
 // player (w_notes), edits take over in place, and it keeps playing whatever the page shows.
 import { untrack } from 'svelte';
 import { session } from './session.svelte.js';
-import { scaleRows, buildSong, docText, fromDoc, fromCells, toDoc, phraseToNotes, acidLine } from './seqExport.js';
+import { scaleRows, buildSong, docText, fromDoc, fromCells, toDoc, acidLine } from './seqExport.js';
 
 const KEY = 'synth.sequence.v2', OLD_KEY = 'synth.sequencer.v1';
 export const LOOPS = [1, 2, 4, 8, 16];
@@ -109,23 +109,16 @@ class Sequence {
     });
   }
 
-  // a preset's clip into the sequencer: its "clip" section, else its audition phrase as notes; a preset with
-  // neither leaves the clip as it is
+  // a sound's demo clip ({name, clip}: clips/<name>.json) into the sequencer
   fromPatch(p) {
-    let doc = null;
-    if (p?.clip && typeof p.clip === 'object') doc = { ...p.clip, name: p.name };
-    else if (p?.audition?.notes) {
-      const a = p.audition, step = a.step ?? 0.25, { notes, length } = phraseToNotes(a.notes, step, a.gate ?? 0.8, a.velocity ?? 100);
-      if (notes.length) doc = { name: p.name, bpm: a.bpm ?? 120, length, loop: true, grid: step >= 1 ? '1/4' : '1/16',
-        key: `${['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'][this.root]} ${this.scale}`, notes };
-    }
+    const doc = p?.clip && typeof p.clip === 'object' ? { ...p.clip, name: p.name } : null;
     if (doc && this.#load(doc)) {
       this.message = '';
       // the piano roll opens on the octave of the clip's lowest note
       if (this.notes.length) this.octave = Math.min(5, Math.max(1, Math.floor(Math.min(...this.notes.map((n) => n.pitch)) / 12) - 1));
     }
   }
-  // the clip as a patch's "clip" section (null when empty)
+  // the clip as a demo clip (clips/<name>.json; null when empty)
   toPatch() {
     if (!this.notes.length) return null;
     const { name, ...doc } = toDoc(this.snap());

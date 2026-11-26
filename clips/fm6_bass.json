@@ -1,0 +1,19 @@
+{
+  "name": "fm6_bass",
+  "bpm": 110,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 36, "start": 6e-06, "length": 0.203667, "velocity": 93},
+    {"pitch": 36, "start": 0.507156, "length": 0.203667, "velocity": 101},
+    {"pitch": 48, "start": 0.750931, "length": 0.203667, "velocity": 105},
+    {"pitch": 36, "start": 1.258165, "length": 0.203667, "velocity": 106},
+    {"pitch": 39, "start": 1.759296, "length": 0.203667, "velocity": 107},
+    {"pitch": 41, "start": 2.003635, "length": 0.203667, "velocity": 104},
+    {"pitch": 41, "start": 2.508083, "length": 0.203667, "velocity": 103},
+    {"pitch": 53, "start": 2.75615, "length": 0.203667, "velocity": 94},
+    {"pitch": 43, "start": 3.256761, "length": 0.203667, "velocity": 103},
+    {"pitch": 34, "start": 3.502626, "length": 0.203667, "velocity": 101}
+  ]
+}

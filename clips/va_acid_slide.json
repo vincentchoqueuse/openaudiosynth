@@ -1,0 +1,22 @@
+{
+  "name": "va_acid_slide",
+  "bpm": 128,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 36, "start": 0.0, "length": 0.154267, "velocity": 127},
+    {"pitch": 36, "start": 0.25, "length": 0.154267, "velocity": 100},
+    {"pitch": 48, "start": 0.5, "length": 0.329267, "velocity": 100},
+    {"pitch": 39, "start": 0.75, "length": 0.154267, "velocity": 100},
+    {"pitch": 36, "start": 1.25, "length": 0.154267, "velocity": 100},
+    {"pitch": 34, "start": 1.5, "length": 0.329267, "velocity": 100},
+    {"pitch": 36, "start": 1.75, "length": 0.154267, "velocity": 100},
+    {"pitch": 36, "start": 2.0, "length": 0.154267, "velocity": 127},
+    {"pitch": 31, "start": 2.5, "length": 0.154267, "velocity": 100},
+    {"pitch": 36, "start": 2.75, "length": 0.329267, "velocity": 100},
+    {"pitch": 48, "start": 3.0, "length": 0.154267, "velocity": 100},
+    {"pitch": 36, "start": 3.5, "length": 0.154267, "velocity": 100},
+    {"pitch": 39, "start": 3.75, "length": 0.154267, "velocity": 100}
+  ]
+}

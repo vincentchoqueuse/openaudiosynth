@@ -1,0 +1,18 @@
+{
+  "name": "mono_d_lead",
+  "bpm": 92,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 57, "start": 0.0, "length": 1.003067, "velocity": 100},
+    {"pitch": 60, "start": 1.0, "length": 0.653067, "velocity": 100},
+    {"pitch": 62, "start": 1.5, "length": 1.003067, "velocity": 100},
+    {"pitch": 64, "start": 2.5, "length": 0.653067, "velocity": 100},
+    {"pitch": 67, "start": 3.0, "length": 1.503067, "velocity": 100},
+    {"pitch": 64, "start": 4.5, "length": 0.653067, "velocity": 100},
+    {"pitch": 62, "start": 5.0, "length": 0.503067, "velocity": 100},
+    {"pitch": 60, "start": 5.5, "length": 0.653067, "velocity": 100},
+    {"pitch": 57, "start": 6.0, "length": 1.503067, "velocity": 100}
+  ]
+}

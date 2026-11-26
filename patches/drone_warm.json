@@ -17,31 +17,5 @@
   "fx": {
     "chorus": {"mode": "I", "mix": 0.3},
     "reverb": {"mix": 0.45, "decay": 0.94, "damping": 2800, "predelay": 0.04}
-  },
-  "audition": {"notes": "A2+E3 _ _ _ _ _ _ _", "bpm": 60, "step": 4},
-  "clip": {
-    "bpm": 60,
-    "length": 128,
-    "loop": true,
-    "grid": "1/4",
-    "key": "A major",
-    "notes": [
-      {"pitch": 45, "start": 0, "length": 128, "velocity": 90},
-      {"pitch": 52, "start": 2, "length": 12, "velocity": 64},
-      {"pitch": 52, "start": 8, "length": 120, "velocity": 70},
-      {"pitch": 52, "start": 10, "length": 20, "velocity": 76},
-      {"pitch": 54, "start": 20, "length": 20, "velocity": 70},
-      {"pitch": 64, "start": 22, "length": 24, "velocity": 85},
-      {"pitch": 56, "start": 36, "length": 24, "velocity": 90},
-      {"pitch": 52, "start": 44, "length": 28, "velocity": 83},
-      {"pitch": 68, "start": 52, "length": 20, "velocity": 73},
-      {"pitch": 61, "start": 64, "length": 16, "velocity": 69},
-      {"pitch": 56, "start": 76, "length": 24, "velocity": 87},
-      {"pitch": 64, "start": 80, "length": 24, "velocity": 84},
-      {"pitch": 56, "start": 84, "length": 16, "velocity": 72},
-      {"pitch": 54, "start": 104, "length": 24, "velocity": 78},
-      {"pitch": 61, "start": 106, "length": 22, "velocity": 78},
-      {"pitch": 69, "start": 112, "length": 16, "velocity": 69}
-    ]
   }
 }

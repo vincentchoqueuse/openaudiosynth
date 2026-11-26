@@ -60,6 +60,5 @@
     "jitter": 0.2
   },
   "polymod": {"source_osc2": 0, "source_filter_env": 0.8, "target": "pitch"},
-  "fx": {"delay": {"mix": 0.25, "time": 0.4}},
-  "audition": {"notes": "E4 _ _ G4 A4 _ _ _ B4 _ A4 _ G4 _ E4 _", "bpm": 112, "step": 0.5, "gate": 0.9}
+  "fx": {"delay": {"mix": 0.25, "time": 0.4}}
 }

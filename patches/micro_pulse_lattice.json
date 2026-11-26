@@ -30,6 +30,5 @@
   "osc2": {"level": -12},
   "output": {"volume": 10},
   "noise": {"level": -20},
-  "tempo": {"bpm": 120},
-  "audition": {"notes": "A4 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _", "bpm": 120, "step": 0.25}
+  "tempo": {"bpm": 120}
 }

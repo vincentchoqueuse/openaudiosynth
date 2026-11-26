@@ -32,13 +32,5 @@
   "vlfo": {"rate": 0.11, "waveform": "sh"},
   "vroute1": {"source": "vlfo", "destination": "brightness", "amount": 0.03},
   "vroute2": {"source": "vmseg", "destination": "timbre", "amount": 0.4},
-  "vroute3": {"source": "velocity", "destination": "brightness", "amount": 0.05},
-  "audition": {
-    "notes": "F2+C3+G3+A3 _ _ _ _ _ _ _ _ _ _ _ D2+A2+E3+F3 _ _ _ _ _ _ _ _ _ _ _",
-    "bpm": 40,
-    "step": 1,
-    "velocity": 85,
-    "humanize_velocity": 6,
-    "humanize_ms": 20
-  }
+  "vroute3": {"source": "velocity", "destination": "brightness", "amount": 0.05}
 }

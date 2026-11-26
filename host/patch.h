@@ -1,7 +1,7 @@
 /* patch.h — sound patches as versioned JSON files (host side). A patch names an engine and sets its settings grouped
  * by module, {"osc1": {"waveform": "saw"}, "filter": {"cutoff": 800}, "fx": {"delay": {"mix": 0.2}}}: each leaf's
- * path is a parameter's role (the catalog's), its value in physical units or a label. It carries an audition phrase,
- * a clip and named macros.
+ * path is a parameter's role (the catalog's), its value in physical units or a label, and named macros. A patch is
+ * the instrument alone: what plays it, its demo, is a clip of its own (clips/<name>.json, patch_load_clip).
  * Format documented in docs/patch_format.md. */
 #ifndef PATCH_H
 #define PATCH_H
@@ -24,13 +24,13 @@ typedef struct {
     int ids[PATCH_MAX_PARAMS];                  /* synth_set_param ids (engine or global) */
     const param_desc_t *desc[PATCH_MAX_PARAMS];
     float values[PATCH_MAX_PARAMS];             /* physical units */
-    /* audition */
+    /* what plays it: a phrase (the default one, or a song track's) or the clip of patch_load_clip */
     char notes[2048];
     float bpm, step_beats, gate;
     int velocity;
     float humanize_vel, humanize_ms; /* random +/- velocity and 0..ms delay per note (deterministic) */
     float swing;                     /* 0..0.5: every odd step is delayed by swing x step (shuffle) */
-    /* the clip (optional "clip" section): MIDI notes in beats, played instead of the audition phrase */
+    /* the clip: MIDI notes in beats, played instead of the phrase */
     int clip_n;                      /* 0: no clip */
     float clip_beats;                /* its length (the loop of the web sequencer) */
     float clip[PATCH_MAX_CLIP][4];   /* pitch, start (beats), length (beats), velocity */
@@ -43,7 +43,12 @@ extern const uint8_t *(*patch_kit_resolver)(const char *name, size_t *bytes);
 /* Loads and validates a patch. Returns 0, or -1 with a message in err (unknown parameter names
  * list the valid ones). Out-of-range values are clamped and reported in warn (may be empty). */
 int patch_load(const char *path, patch_t *p, char *err, size_t errlen, char *warn, size_t warnlen);
-/* Same, from JSON text already in memory (web build, embedded patches). */
+/* A clip file (clips/<name>.json, the web sequencer's clip: bpm, length in beats, notes) into the patch's clip, played
+ * by patch_audition instead of the default phrase. Returns 0, or -1 with a message. */
+int patch_load_clip(const char *path, patch_t *p, char *err, size_t errlen);
+/* Same, from the clip's JSON text. */
+int patch_parse_clip(const char *text, patch_t *p, char *err, size_t errlen);
+/* Same as patch_load, from JSON text already in memory (web build, embedded patches). */
 int patch_parse(const char *text, patch_t *p, char *err, size_t errlen, char *warn, size_t warnlen);
 struct json;
 /* Same, from a patch object inside a larger document (a song's inline patch); obj stays the caller's. */

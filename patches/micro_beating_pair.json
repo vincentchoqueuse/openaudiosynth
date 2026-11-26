@@ -7,15 +7,5 @@
   "micro": {"attack_curve": -0.3, "decay_curve": 0.3, "osc2_mode": "hz", "osc2_offset": 1.5, "osc2_split": "on"},
   "osc2": {"level": 0},
   "output": {"volume": 0.2},
-  "tempo": {"bpm": 120},
-  "clip": {
-    "bpm": 120,
-    "length": 16,
-    "loop": true,
-    "grid": "1/4",
-    "notes": [
-      {"pitch": 81, "start": 0, "length": 7.5, "velocity": 90},
-      {"pitch": 88, "start": 8, "length": 7.5, "velocity": 80}
-    ]
-  }
+  "tempo": {"bpm": 120}
 }

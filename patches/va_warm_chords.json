@@ -39,40 +39,5 @@
   "fx": {
     "chorus": {"mode": "I", "mix": 0.3},
     "reverb": {"mix": 0.22, "decay": 0.92, "damping": 4500, "predelay": 0.04}
-  },
-  "clip": {
-    "bpm": 84,
-    "length": 30,
-    "loop": true,
-    "grid": "1/8",
-    "key": "F# minor",
-    "notes": [
-      {"pitch": 57, "start": 0, "length": 1.5, "velocity": 80},
-      {"pitch": 62, "start": 0, "length": 1.5, "velocity": 80},
-      {"pitch": 66, "start": 0, "length": 1.5, "velocity": 80},
-      {"pitch": 57, "start": 1.5, "length": 4.5, "velocity": 80},
-      {"pitch": 61, "start": 1.5, "length": 4.5, "velocity": 80},
-      {"pitch": 54, "start": 1.5, "length": 6.0, "velocity": 80},
-      {"pitch": 57, "start": 6, "length": 1.5, "velocity": 80},
-      {"pitch": 64, "start": 6, "length": 1.5, "velocity": 80},
-      {"pitch": 59, "start": 7.5, "length": 1.5, "velocity": 80},
-      {"pitch": 52, "start": 7.5, "length": 1.5, "velocity": 80},
-      {"pitch": 50, "start": 9, "length": 6, "velocity": 80},
-      {"pitch": 54, "start": 9, "length": 6, "velocity": 80},
-      {"pitch": 57, "start": 9, "length": 6, "velocity": 80},
-      {"pitch": 57, "start": 15, "length": 1.5, "velocity": 80},
-      {"pitch": 62, "start": 15, "length": 1.5, "velocity": 80},
-      {"pitch": 66, "start": 15, "length": 1.5, "velocity": 80},
-      {"pitch": 57, "start": 16.5, "length": 4.5, "velocity": 80},
-      {"pitch": 61, "start": 16.5, "length": 4.5, "velocity": 80},
-      {"pitch": 54, "start": 16.5, "length": 6.0, "velocity": 80},
-      {"pitch": 57, "start": 21, "length": 1.5, "velocity": 80},
-      {"pitch": 64, "start": 21, "length": 1.5, "velocity": 80},
-      {"pitch": 59, "start": 22.5, "length": 1.5, "velocity": 80},
-      {"pitch": 52, "start": 22.5, "length": 1.5, "velocity": 80},
-      {"pitch": 50, "start": 24, "length": 6, "velocity": 80},
-      {"pitch": 54, "start": 24, "length": 6, "velocity": 80},
-      {"pitch": 57, "start": 24, "length": 6, "velocity": 80}
-    ]
   }
 }

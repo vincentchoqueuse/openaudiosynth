@@ -13,6 +13,5 @@
   "output": {"volume": 4},
   "voice": {"bend_range": 7, "priority": "low"},
   "mixer": {"feedback": 0.5},
-  "master": {"level": 4},
-  "audition": {"notes": "E3 _ _ E3 G3 _ A3 _ E3 _ _ D4 E4 _ B2 _", "bpm": 100, "step": 0.5, "gate": 0.9}
+  "master": {"level": 4}
 }

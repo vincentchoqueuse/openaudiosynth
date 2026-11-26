@@ -1,0 +1,17 @@
+{
+  "name": "va_warm_pad",
+  "bpm": 60,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 45, "start": 0.0, "length": 3.902, "velocity": 100},
+    {"pitch": 48, "start": 0.0, "length": 3.902, "velocity": 100},
+    {"pitch": 52, "start": 0.0, "length": 3.902, "velocity": 100},
+    {"pitch": 57, "start": 0.0, "length": 3.902, "velocity": 100},
+    {"pitch": 41, "start": 4.0, "length": 3.902, "velocity": 100},
+    {"pitch": 45, "start": 4.0, "length": 3.902, "velocity": 100},
+    {"pitch": 48, "start": 4.0, "length": 3.902, "velocity": 100},
+    {"pitch": 53, "start": 4.0, "length": 3.902, "velocity": 100}
+  ]
+}

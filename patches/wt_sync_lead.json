@@ -24,12 +24,5 @@
   },
   "voice": {"mode": "legato", "glide": 0.04},
   "output": {"volume": 11.4},
-  "fx": {"delay": {"mix": 0.2, "time": 0.375}, "reverb": {"mix": 0.15}},
-  "audition": {
-    "notes": "E4 _ G4 A4 _ _ B4 _ A4 G4 E4 _ D4 _ E4 _",
-    "bpm": 120,
-    "step": 0.5,
-    "humanize_velocity": 6,
-    "humanize_ms": 4
-  }
+  "fx": {"delay": {"mix": 0.2, "time": 0.375}, "reverb": {"mix": 0.15}}
 }

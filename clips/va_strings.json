@@ -1,0 +1,15 @@
+{
+  "name": "va_strings",
+  "bpm": 70,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 50, "start": 0.0, "length": 3.802333, "velocity": 100},
+    {"pitch": 57, "start": 0.0, "length": 3.802333, "velocity": 100},
+    {"pitch": 65, "start": 0.0, "length": 3.802333, "velocity": 100},
+    {"pitch": 48, "start": 4.0, "length": 3.802333, "velocity": 100},
+    {"pitch": 55, "start": 4.0, "length": 3.802333, "velocity": 100},
+    {"pitch": 64, "start": 4.0, "length": 3.802333, "velocity": 100}
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "fm6_epiano",
+  "bpm": 90,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 48, "start": 0.000762, "length": 1.903, "velocity": 105},
+    {"pitch": 52, "start": 0.004452, "length": 1.903, "velocity": 98},
+    {"pitch": 59, "start": 0.006881, "length": 1.903, "velocity": 104},
+    {"pitch": 45, "start": 2.007606, "length": 1.903, "velocity": 107},
+    {"pitch": 48, "start": 2.006306, "length": 1.903, "velocity": 100},
+    {"pitch": 55, "start": 2.000502, "length": 1.903, "velocity": 106},
+    {"pitch": 50, "start": 4.007938, "length": 0.903, "velocity": 100},
+    {"pitch": 53, "start": 4.004879, "length": 0.903, "velocity": 93},
+    {"pitch": 60, "start": 4.001964, "length": 0.903, "velocity": 101},
+    {"pitch": 43, "start": 5.005032, "length": 0.903, "velocity": 94},
+    {"pitch": 53, "start": 5.008019, "length": 0.903, "velocity": 101},
+    {"pitch": 59, "start": 5.003131, "length": 0.903, "velocity": 93},
+    {"pitch": 48, "start": 6.002379, "length": 1.903, "velocity": 103},
+    {"pitch": 55, "start": 6.001429, "length": 1.903, "velocity": 96},
+    {"pitch": 64, "start": 6.005264, "length": 1.903, "velocity": 102}
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "va_chorus_keys",
+  "bpm": 60,
+  "length": 6.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 39, "start": 0.0, "length": 0.802, "velocity": 85},
+    {"pitch": 55, "start": 1.0, "length": 1.802, "velocity": 85},
+    {"pitch": 58, "start": 1.0, "length": 1.802, "velocity": 85},
+    {"pitch": 62, "start": 1.0, "length": 1.802, "velocity": 85},
+    {"pitch": 65, "start": 1.0, "length": 1.802, "velocity": 85},
+    {"pitch": 39, "start": 3.0, "length": 0.802, "velocity": 85},
+    {"pitch": 55, "start": 4.0, "length": 1.802, "velocity": 85},
+    {"pitch": 58, "start": 4.0, "length": 1.802, "velocity": 85},
+    {"pitch": 62, "start": 4.0, "length": 1.802, "velocity": 85},
+    {"pitch": 65, "start": 4.0, "length": 1.802, "velocity": 85}
+  ]
+}

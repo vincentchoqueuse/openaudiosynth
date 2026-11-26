@@ -1,0 +1,21 @@
+{
+  "name": "va_brass",
+  "bpm": 110,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 48, "start": 0.0, "length": 2.903667, "velocity": 100},
+    {"pitch": 55, "start": 0.0, "length": 2.903667, "velocity": 100},
+    {"pitch": 60, "start": 0.0, "length": 2.903667, "velocity": 100},
+    {"pitch": 64, "start": 0.0, "length": 2.903667, "velocity": 100},
+    {"pitch": 45, "start": 4.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 52, "start": 4.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 57, "start": 4.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 60, "start": 4.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 41, "start": 6.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 48, "start": 6.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 53, "start": 6.0, "length": 1.903667, "velocity": 100},
+    {"pitch": 57, "start": 6.0, "length": 1.903667, "velocity": 100}
+  ]
+}

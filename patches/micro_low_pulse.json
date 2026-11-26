@@ -18,12 +18,5 @@
     "pulse1": {"mode": "sync", "div": "1/16", "steps": 16, "edge": 0.001, "pattern": 4369, "open": 32}
   },
   "output": {"volume": 3.2},
-  "tempo": {"bpm": 120},
-  "clip": {
-    "bpm": 120,
-    "length": 8,
-    "loop": true,
-    "grid": "1/4",
-    "notes": [{"pitch": 60, "start": 0, "length": 7.9, "velocity": 100}]
-  }
+  "tempo": {"bpm": 120}
 }

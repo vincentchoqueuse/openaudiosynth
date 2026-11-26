@@ -141,12 +141,5 @@
   },
   "output": {"volume": 13.7},
   "voice": {"pan_spread": 0.5},
-  "fx": {"reverb": {"mix": 0.35, "decay": 0.88}},
-  "audition": {
-    "notes": "C5 - G5 - E5 _ _ _ C6 _ _ _ - - - -",
-    "bpm": 80,
-    "step": 0.5,
-    "humanize_velocity": 8,
-    "humanize_ms": 6
-  }
+  "fx": {"reverb": {"mix": 0.35, "decay": 0.88}}
 }

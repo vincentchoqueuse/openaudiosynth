@@ -1,0 +1,11 @@
+{
+  "name": "micro_test_tone",
+  "bpm": 120,
+  "length": 4,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 83, "start": 0.5, "length": 0.1, "velocity": 100},
+    {"pitch": 95, "start": 2.5, "length": 0.1, "velocity": 100}
+  ]
+}

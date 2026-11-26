@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oid/clip.schema.json",
+  "title": "OID clip",
+  "description": "What plays an instrument: MIDI notes in beats, as the web sequencer holds them (its Code tab). A sound's demo is clips/<name>.json.",
+  "type": "object",
+  "required": [
+    "length",
+    "notes"
+  ],
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "bpm": {
+      "type": "number",
+      "exclusiveMinimum": 10,
+      "exclusiveMaximum": 400
+    },
+    "length": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1024,
+      "description": "the clip in beats, and its loop"
+    },
+    "loop": {
+      "type": "boolean"
+    },
+    "grid": {
+      "type": "string",
+      "description": "the piano roll's snap"
+    },
+    "key": {
+      "type": "string",
+      "description": "the scale the piano roll shows"
+    },
+    "notes": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": [
+          "pitch",
+          "start",
+          "length"
+        ],
+        "properties": {
+          "pitch": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 127
+          },
+          "start": {
+            "type": "number",
+            "minimum": 0
+          },
+          "length": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "velocity": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 127
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

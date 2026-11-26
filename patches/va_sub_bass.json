@@ -9,6 +9,5 @@
   "amp": {"attack": 0.004, "decay": 0.3, "sustain": 0.9, "release": 0.08},
   "filter_env": {"decay": 0.1},
   "output": {"volume": 13.6},
-  "voice": {"drift": 1, "pan_spread": 0},
-  "audition": {"notes": "E1 _ _ E1 - E1 G1 _ A1 _ _ A1 - G1 E1 D1", "bpm": 90, "gate": 0.85}
+  "voice": {"drift": 1, "pan_spread": 0}
 }

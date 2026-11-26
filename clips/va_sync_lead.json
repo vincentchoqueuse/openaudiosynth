@@ -1,0 +1,16 @@
+{
+  "name": "va_sync_lead",
+  "bpm": 112,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 64, "start": 0.0, "length": 1.453733, "velocity": 100},
+    {"pitch": 67, "start": 1.5, "length": 0.453733, "velocity": 100},
+    {"pitch": 69, "start": 2.0, "length": 1.953733, "velocity": 100},
+    {"pitch": 71, "start": 4.0, "length": 0.953733, "velocity": 100},
+    {"pitch": 69, "start": 5.0, "length": 0.953733, "velocity": 100},
+    {"pitch": 67, "start": 6.0, "length": 0.953733, "velocity": 100},
+    {"pitch": 64, "start": 7.0, "length": 0.953733, "velocity": 100}
+  ]
+}

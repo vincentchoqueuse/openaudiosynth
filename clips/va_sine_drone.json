@@ -1,0 +1,11 @@
+{
+  "name": "va_sine_drone",
+  "bpm": 60,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/2",
+  "notes": [
+    {"pitch": 33, "start": 0.0, "length": 7.602, "velocity": 100},
+    {"pitch": 81, "start": 0.0, "length": 7.602, "velocity": 100}
+  ]
+}

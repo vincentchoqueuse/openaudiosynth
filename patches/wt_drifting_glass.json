@@ -53,14 +53,6 @@
   "route3": {"source": "mseg2", "destination": "noise.level", "amount": 0.15},
   "route4": {"source": "mlfo2", "destination": "osc2.position", "amount": 0.3},
   "wander": {"amount": 0.8, "rate": 0.11},
-  "audition": {
-    "notes": "G4+D5+A5 _ _ _ _ _ _ _ E4+B4+F#5 _ _ _ _ _ _ _",
-    "bpm": 60,
-    "step": 1,
-    "velocity": 90,
-    "humanize_velocity": 8,
-    "humanize_ms": 10
-  },
   "macros": [
     {"name": "Position", "value": 0.5, "targets": [{"param": "osc1.position", "from": 0.2, "to": 1.0}]},
     {"name": "B position", "value": 0.5, "targets": [{"param": "osc2.position", "from": 0.0, "to": 0.9}]},

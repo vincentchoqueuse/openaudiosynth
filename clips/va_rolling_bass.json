@@ -1,0 +1,13 @@
+{
+  "name": "va_rolling_bass",
+  "bpm": 128,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 29, "start": 0.5, "length": 0.229267, "velocity": 100},
+    {"pitch": 29, "start": 1.5, "length": 0.229267, "velocity": 100},
+    {"pitch": 25, "start": 2.5, "length": 0.229267, "velocity": 100},
+    {"pitch": 25, "start": 3.5, "length": 0.229267, "velocity": 100}
+  ]
+}

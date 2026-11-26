@@ -1,0 +1,11 @@
+{
+  "name": "modal_frozen_bowl",
+  "bpm": 50,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 57, "start": 0.007042, "length": 7.801667, "velocity": 97},
+    {"pitch": 64, "start": 8.002203, "length": 7.801667, "velocity": 93}
+  ]
+}

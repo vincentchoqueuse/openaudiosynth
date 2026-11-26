@@ -22,12 +22,5 @@
   },
   "voice": {"mode": "legato", "glide": 0.06, "pan_spread": 0},
   "output": {"volume": 12},
-  "fx": {"chorus": {"mode": "I+II", "mix": 0.3}, "delay": {"mix": 0.2, "time": 0.41}, "reverb": {"mix": 0.2}},
-  "audition": {
-    "notes": "A4 _ C5 E5 _ D5 C5 _ B4 _ _ G4 A4 _ _ _ - -",
-    "bpm": 128,
-    "step": 0.5,
-    "humanize_velocity": 6,
-    "humanize_ms": 4
-  }
+  "fx": {"chorus": {"mode": "I+II", "mix": 0.3}, "delay": {"mix": 0.2, "time": 0.41}, "reverb": {"mix": 0.2}}
 }

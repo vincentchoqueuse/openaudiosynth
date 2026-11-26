@@ -1,0 +1,12 @@
+{
+  "name": "va_flute_lead",
+  "bpm": 60,
+  "length": 12.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 82, "start": 0.0, "length": 2.802, "velocity": 100},
+    {"pitch": 79, "start": 3.0, "length": 2.802, "velocity": 100},
+    {"pitch": 74, "start": 6.0, "length": 5.802, "velocity": 100}
+  ]
+}

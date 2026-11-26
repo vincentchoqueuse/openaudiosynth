@@ -28,6 +28,5 @@
     "detune2": {"rate": 0.13, "depth": 7},
     "detune3": {"rate": 0.04, "depth": 4}
   },
-  "osc": {"unison": {"motion": 6, "motion_rate": 0.15}},
-  "audition": {"notes": "D3+A3+E4+F4 _ _ _", "bpm": 60, "step": 2}
+  "osc": {"unison": {"motion": 6, "motion_rate": 0.15}}
 }

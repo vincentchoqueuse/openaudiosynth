@@ -15,6 +15,5 @@
   "exciter": {"position": 0.15, "hardness": 0.75, "noise": 0.06},
   "output": {"volume": 12.2},
   "voice": {"pan_spread": 0.5},
-  "fx": {"delay": {"mix": 0.3, "time": 0.643, "feedback": 0.45, "tone": 3000, "wow": 0.3, "pingpong": "on"}},
-  "audition": {"notes": "D5 A4 E5 F#5 - A5 F#5 E5 D5 - A4 B4 - E5 - -", "bpm": 70, "step": 0.5}
+  "fx": {"delay": {"mix": 0.3, "time": 0.643, "feedback": 0.45, "tone": 3000, "wow": 0.3, "pingpong": "on"}}
 }

@@ -15,12 +15,5 @@
     "slot3": {"source": "env2", "destination": "cutoff", "amount": 0.3}
   },
   "voice": {"mode": "mono"},
-  "output": {"volume": 17.4},
-  "audition": {
-    "notes": "F1 _ _ _ F1 _ G#1 _ F1 _ _ _ C2 _ A#1 _",
-    "bpm": 140,
-    "step": 0.25,
-    "humanize_velocity": 6,
-    "humanize_ms": 4
-  }
+  "output": {"volume": 17.4}
 }

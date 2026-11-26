@@ -1,0 +1,17 @@
+{
+  "name": "micro_deep_kick",
+  "bpm": 120,
+  "length": 8,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 36, "start": 0, "length": 0.1, "velocity": 120},
+    {"pitch": 36, "start": 1, "length": 0.1, "velocity": 105},
+    {"pitch": 36, "start": 2, "length": 0.1, "velocity": 105},
+    {"pitch": 36, "start": 3, "length": 0.1, "velocity": 105},
+    {"pitch": 36, "start": 4, "length": 0.1, "velocity": 120},
+    {"pitch": 36, "start": 5, "length": 0.1, "velocity": 105},
+    {"pitch": 36, "start": 6, "length": 0.1, "velocity": 105},
+    {"pitch": 36, "start": 7, "length": 0.1, "velocity": 105}
+  ]
+}

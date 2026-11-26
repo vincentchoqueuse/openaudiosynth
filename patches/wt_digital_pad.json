@@ -36,12 +36,5 @@
     "chorus": {"mode": "ensemble", "mix": 0.3},
     "delay": {"mix": 0.15, "time": 0.6},
     "reverb": {"mix": 0.45, "decay": 0.92}
-  },
-  "audition": {
-    "notes": "A2+E3+B3+C#4 _ _ _ _ _ _ _ F#2+C#3+A3+E4 _ _ _ _ _ _ _",
-    "bpm": 60,
-    "step": 1,
-    "humanize_velocity": 6,
-    "humanize_ms": 4
   }
 }

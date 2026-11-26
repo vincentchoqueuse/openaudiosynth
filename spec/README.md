@@ -18,6 +18,7 @@ owner's choice (suggested: CC BY 4.0 for the text, MIT for the schemas).
 |---|---|---|
 | **Description** `catalog.json` | What can this instrument do? | `schemas/catalog.schema.json` |
 | **Patch** `patches/*.json` | What are the values of this sound? | `schemas/patch.schema.json` |
+| **Clip** `clips/*.json` | Which notes play it (a sound's demo, the sequencer's clip)? | `schemas/clip.schema.json` |
 | **Controller map** `controllers/*.json` | Which knob moves what, on any engine? | (section 5) |
 | **Song** `songs/*.json` | Which notes, when, with which sounds and mix? | `schemas/song.schema.json` |
 | **Roles** `roles.json` | What does a parameter *mean*, across instruments? | — |
@@ -88,7 +89,8 @@ Parameter fields: `type` (`float`, `int`, `enum`), `range` [min, max] or `choice
 A patch describes its instrument the way the instrument describes itself: its settings are grouped by module,
 each leaf's path being a parameter's **role** (`filter.cutoff`, `fx.delay.mix`), unique within an instrument.
 Only settings that differ from the defaults are written; values are physical numbers or choice names. Macro
-targets and modulation destinations name parameters by role too.
+targets and modulation destinations name parameters by role too. A patch holds no notes: what plays it is a clip
+(`clips/<name>.json` for its demo).
 
 ## 5. Controller map
 

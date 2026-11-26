@@ -14,20 +14,5 @@
   "mlfo2": {"sync": "1/16", "waveform": "sine"},
   "route1": {"source": "mlfo1", "destination": "filter.cutoff", "amount": 0.32},
   "route2": {"source": "mlfo2", "destination": "filter.cutoff", "amount": 0.32, "via": "macro1"},
-  "route3": {"source": "mlfo1", "destination": "osc1.position", "amount": 0.15},
-  "clip": {
-    "bpm": 140,
-    "length": 16,
-    "loop": true,
-    "grid": "1/8",
-    "key": "F minor",
-    "notes": [
-      {"pitch": 29, "start": 0, "length": 3.9, "velocity": 110},
-      {"pitch": 29, "start": 4, "length": 1.9, "velocity": 110},
-      {"pitch": 41, "start": 6, "length": 1.9, "velocity": 110},
-      {"pitch": 27, "start": 8, "length": 3.9, "velocity": 110},
-      {"pitch": 32, "start": 12, "length": 1.9, "velocity": 110},
-      {"pitch": 31, "start": 14, "length": 1.9, "velocity": 110}
-    ]
-  }
+  "route3": {"source": "mlfo1", "destination": "osc1.position", "amount": 0.15}
 }

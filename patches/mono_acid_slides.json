@@ -12,30 +12,5 @@
   "voice": {"glide": 0.06, "mode": "legato", "drift": 1, "glide_mode": "legato"},
   "output": {"volume": 1.6},
   "fx": {"delay": {"mix": 0}, "reverb": {"mix": 0}},
-  "master": {"saturation": {"mode": "hard", "drive": 23.1, "tone": 4500}},
-  "clip": {
-    "bpm": 111,
-    "length": 4,
-    "loop": true,
-    "grid": "1/16",
-    "key": "A# chromatic",
-    "notes": [
-      {"pitch": 34, "start": 0.0, "length": 0.27, "velocity": 84},
-      {"pitch": 53, "start": 0.25, "length": 0.15, "velocity": 84},
-      {"pitch": 38, "start": 0.5, "length": 0.27, "velocity": 84},
-      {"pitch": 60, "start": 0.75, "length": 0.15, "velocity": 84},
-      {"pitch": 46, "start": 1.0, "length": 0.27, "velocity": 120},
-      {"pitch": 43, "start": 1.25, "length": 0.15, "velocity": 84},
-      {"pitch": 30, "start": 1.5, "length": 0.27, "velocity": 120},
-      {"pitch": 44, "start": 1.75, "length": 0.15, "velocity": 84},
-      {"pitch": 58, "start": 2.0, "length": 0.27, "velocity": 84},
-      {"pitch": 33, "start": 2.25, "length": 0.15, "velocity": 84},
-      {"pitch": 48, "start": 2.5, "length": 0.27, "velocity": 84},
-      {"pitch": 50, "start": 2.75, "length": 0.27, "velocity": 120},
-      {"pitch": 41, "start": 3.0, "length": 0.15, "velocity": 84},
-      {"pitch": 38, "start": 3.25, "length": 0.27, "velocity": 84},
-      {"pitch": 29, "start": 3.5, "length": 0.27, "velocity": 84},
-      {"pitch": 39, "start": 3.75, "length": 0.25, "velocity": 84}
-    ]
-  }
+  "master": {"saturation": {"mode": "hard", "drive": 23.1, "tone": 4500}}
 }

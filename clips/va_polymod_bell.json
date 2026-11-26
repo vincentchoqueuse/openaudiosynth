@@ -1,0 +1,14 @@
+{
+  "name": "va_polymod_bell",
+  "bpm": 100,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 72, "start": 0.0, "length": 0.403333, "velocity": 100},
+    {"pitch": 76, "start": 1.0, "length": 0.403333, "velocity": 100},
+    {"pitch": 79, "start": 2.0, "length": 0.403333, "velocity": 100},
+    {"pitch": 83, "start": 3.0, "length": 0.403333, "velocity": 100},
+    {"pitch": 84, "start": 4.0, "length": 1.903333, "velocity": 100}
+  ]
+}

@@ -141,12 +141,5 @@
   },
   "output": {"volume": 9.3},
   "voice": {"pan_spread": 0.3},
-  "fx": {"chorus": {"mode": "I", "mix": 0.35}, "reverb": {"mix": 0.2}},
-  "audition": {
-    "notes": "C3+E3+B3 _ _ _ A2+C3+G3 _ _ _ D3+F3+C4 _ G2+F3+B3 _ C3+G3+E4 _ _ _",
-    "bpm": 90,
-    "step": 0.5,
-    "humanize_velocity": 8,
-    "humanize_ms": 6
-  }
+  "fx": {"chorus": {"mode": "I", "mix": 0.35}, "reverb": {"mix": 0.2}}
 }

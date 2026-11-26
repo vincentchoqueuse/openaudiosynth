@@ -39,13 +39,5 @@
   "route1": {"source": "mseg1", "destination": "exciter.position", "amount": 0.35},
   "route2": {"source": "mlfo1", "destination": "resonator.stretch", "amount": 0.02},
   "route3": {"source": "mlfo2", "destination": "resonator.brightness", "amount": 0.15},
-  "route4": {"source": "aftertouch", "destination": "exciter.bow", "amount": 0.4},
-  "audition": {
-    "notes": "A3 _ _ _ _ _ _ _ E4 _ _ _ _ _ _ _",
-    "bpm": 50,
-    "step": 1,
-    "velocity": 90,
-    "humanize_velocity": 8,
-    "humanize_ms": 10
-  }
+  "route4": {"source": "aftertouch", "destination": "exciter.bow", "amount": 0.4}
 }

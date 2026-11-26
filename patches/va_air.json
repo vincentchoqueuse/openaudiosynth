@@ -10,6 +10,5 @@
   "amp": {"attack": 6.0, "sustain": 1.0, "release": 6.0, "velocity": 0},
   "lfo": {"rate": 0.06, "waveform": "sine", "to_cutoff": 1.5},
   "output": {"volume": 16.1},
-  "voice": {"pan_spread": 0},
-  "audition": {"notes": "C4 _ _ _ _ _ _ _", "bpm": 60, "step": 2}
+  "voice": {"pan_spread": 0}
 }

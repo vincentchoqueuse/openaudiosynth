@@ -58,6 +58,5 @@
     "tolerance": 2,
     "drift_time": 3,
     "jitter": 0.2
-  },
-  "audition": {"notes": "A1 - A1 A2 - A1 - C2 D2 - D2 D3 - D2 E2 G1", "bpm": 120, "step": 0.25}
+  }
 }

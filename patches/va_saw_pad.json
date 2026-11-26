@@ -18,6 +18,5 @@
     "meta_depth": 0.7,
     "detune2": {"rate": 0.13, "depth": 11},
     "detune3": {"rate": 0.04, "depth": 5}
-  },
-  "audition": {"notes": "D3+A3+E4+F4 _ _ _", "bpm": 60, "step": 2}
+  }
 }

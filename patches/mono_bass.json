@@ -9,6 +9,5 @@
   "filter": {"drive": 0.6, "cutoff": 260, "resonance": 0.3, "envelope_amount": 3.0, "keytrack": 0.33},
   "filter_env": {"decay": 0.25, "sustain": 0.15},
   "amp": {"decay": 0.6, "sustain": 0.8, "velocity": 0.4},
-  "output": {"volume": 10.7},
-  "audition": {"notes": "C3 - C3 C4 - C3 - D#3 F3 - F3 F4 - F3 G3 A#2", "bpm": 120, "step": 0.25}
+  "output": {"volume": 10.7}
 }

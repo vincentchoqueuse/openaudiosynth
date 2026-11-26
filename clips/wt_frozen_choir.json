@@ -1,0 +1,17 @@
+{
+  "name": "wt_frozen_choir",
+  "bpm": 40,
+  "length": 24.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 41, "start": 0.007454, "length": 11.801333, "velocity": 80},
+    {"pitch": 48, "start": 0.01188, "length": 11.801333, "velocity": 86},
+    {"pitch": 55, "start": 0.004638, "length": 11.801333, "velocity": 80},
+    {"pitch": 57, "start": 0.011609, "length": 11.801333, "velocity": 85},
+    {"pitch": 38, "start": 12.012352, "length": 11.801333, "velocity": 89},
+    {"pitch": 45, "start": 12.006986, "length": 11.801333, "velocity": 85},
+    {"pitch": 52, "start": 12.003085, "length": 11.801333, "velocity": 90},
+    {"pitch": 53, "start": 12.009835, "length": 11.801333, "velocity": 84}
+  ]
+}

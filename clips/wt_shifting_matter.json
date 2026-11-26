@@ -1,0 +1,17 @@
+{
+  "name": "wt_shifting_matter",
+  "bpm": 118,
+  "length": 8,
+  "loop": true,
+  "grid": "1/16",
+  "key": "C minor",
+  "notes": [
+    {"pitch": 36, "start": 0, "length": 1.9, "velocity": 110},
+    {"pitch": 36, "start": 2, "length": 0.9, "velocity": 100},
+    {"pitch": 39, "start": 3, "length": 0.9, "velocity": 104},
+    {"pitch": 34, "start": 4, "length": 1.9, "velocity": 110},
+    {"pitch": 36, "start": 6, "length": 0.6, "velocity": 100},
+    {"pitch": 43, "start": 6.75, "length": 0.6, "velocity": 96},
+    {"pitch": 41, "start": 7.5, "length": 0.45, "velocity": 100}
+  ]
+}

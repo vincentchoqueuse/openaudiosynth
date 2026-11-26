@@ -14,6 +14,5 @@
   "fx": {
     "reverb": {"mix": 0.35, "decay": 0.9, "damping": 3200},
     "tape": {"mode": "on", "wow": 0.55, "flutter": 0.35, "drive": 0.45, "hiss": 0.3, "tone": 5200}
-  },
-  "audition": {"notes": "Eb2 G3+Bb3+D4+F4 _ Eb2 G3+Bb3+D4+F4 _", "bpm": 60, "step": 1, "velocity": 85}
+  }
 }

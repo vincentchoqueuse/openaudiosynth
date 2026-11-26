@@ -307,10 +307,10 @@ def html_view(patch, catalog, rows, show_all, sound=None):
     snd = ""
     if sound:
         png, metrics = sound
-        snd = (f'<section class="card sound" style="grid-column:1/-1"><h2>Measured sound (audition)</h2>'
+        snd = (f'<section class="card sound" style="grid-column:1/-1"><h2>Measured sound (its demo clip)</h2>'
                f'<img alt="spectrogram" src="data:image/png;base64,{png}"><pre>{html.escape(metrics)}</pre></section>')
-    aud = patch.get("audition", {})
-    aud_line = f"audition: {html.escape(aud['notes'])}" if aud.get("notes") else ""
+    clip = os.path.join(ROOT, "clips", f"{patch.get('name', '')}.json")
+    aud_line = "its demo: clips/" + html.escape(patch.get("name", "")) + ".json" if os.path.exists(clip) else ""
     changed = sum(1 for r in rows if r[3])
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>{html.escape(patch.get('name', 'patch'))}</title>

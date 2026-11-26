@@ -1,0 +1,8 @@
+{
+  "name": "micro_low_pressure",
+  "bpm": 60,
+  "length": 10,
+  "loop": false,
+  "grid": "1/4",
+  "notes": [{"pitch": 48, "start": 0, "length": 8, "velocity": 100}]
+}

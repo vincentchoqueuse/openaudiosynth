@@ -1,0 +1,17 @@
+{
+  "name": "wt_digital_pad",
+  "bpm": 60,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 45, "start": 0.00338, "length": 7.802, "velocity": 105},
+    {"pitch": 52, "start": 0.002803, "length": 7.802, "velocity": 100},
+    {"pitch": 59, "start": 0.000223, "length": 7.802, "velocity": 104},
+    {"pitch": 61, "start": 0.002151, "length": 7.802, "velocity": 100},
+    {"pitch": 42, "start": 8.001057, "length": 7.802, "velocity": 102},
+    {"pitch": 49, "start": 8.000635, "length": 7.802, "velocity": 97},
+    {"pitch": 57, "start": 8.00234, "length": 7.802, "velocity": 102},
+    {"pitch": 64, "start": 8.000286, "length": 7.802, "velocity": 97}
+  ]
+}

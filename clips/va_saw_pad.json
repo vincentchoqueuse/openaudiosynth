@@ -1,0 +1,13 @@
+{
+  "name": "va_saw_pad",
+  "bpm": 60,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/2",
+  "notes": [
+    {"pitch": 50, "start": 0.0, "length": 7.602, "velocity": 100},
+    {"pitch": 57, "start": 0.0, "length": 7.602, "velocity": 100},
+    {"pitch": 64, "start": 0.0, "length": 7.602, "velocity": 100},
+    {"pitch": 65, "start": 0.0, "length": 7.602, "velocity": 100}
+  ]
+}

@@ -129,8 +129,7 @@ static int set_one(patch_t *p, const char *key, const json_t *m, char *err, size
 /* the keys of a patch that are not settings */
 static int reserved(const char *k)
 {
-    static const char *const R[] = {"version", "engine", "name", "description", "kit", "macros", "audition", "clip",
-                                    NULL};
+    static const char *const R[] = {"version", "engine", "name", "description", "kit", "macros", NULL};
     for (int i = 0; R[i]; i++)
         if (!strcmp(k, R[i]))
             return 1;
@@ -337,12 +336,12 @@ static int patch_read_clip(const json_t *c, patch_t *p, char *err, size_t errlen
     const json_t *len = json_get(c, "length"), *bpm = json_get(c, "bpm"), *notes = json_get(c, "notes");
     if (c->type != JSON_OBJ || !len || len->type != JSON_NUM || !(len->num > 0.0 && len->num <= 1024.0) || !notes ||
         notes->type != JSON_ARR) {
-        snprintf(err, errlen, "\"clip\": {length (beats, 0..1024), notes: [{pitch, start, length, velocity}]}");
+        snprintf(err, errlen, "a clip is {length (beats, 0..1024), notes: [{pitch, start, length, velocity}]}");
         return -1;
     }
     if (bpm) {
         if (bpm->type != JSON_NUM || !(bpm->num > 10.0 && bpm->num < 400.0)) {
-            snprintf(err, errlen, "\"clip.bpm\": 10..400");
+            snprintf(err, errlen, "the clip's bpm: 10..400");
             return -1;
         }
         p->bpm = (float)bpm->num;
@@ -351,7 +350,7 @@ static int patch_read_clip(const json_t *c, patch_t *p, char *err, size_t errlen
     int i = 0;
     for (const json_t *n = notes->child; n; n = n->next, i++) {
         if (i >= PATCH_MAX_CLIP) {
-            snprintf(err, errlen, "\"clip\": %d notes at most", PATCH_MAX_CLIP);
+            snprintf(err, errlen, "a clip holds %d notes at most", PATCH_MAX_CLIP);
             return -1;
         }
         const json_t *pi = json_get(n, "pitch"), *st = json_get(n, "start"), *ln = json_get(n, "length");
@@ -360,7 +359,7 @@ static int patch_read_clip(const json_t *c, patch_t *p, char *err, size_t errlen
             !st || st->type != JSON_NUM || !(st->num >= 0.0 && st->num <= 1024.0) || !ln || ln->type != JSON_NUM ||
             !(ln->num > 0.0 && ln->num <= 1024.0) ||
             (ve && (ve->type != JSON_NUM || ve->num < 1.0 || ve->num > 127.0))) {
-            snprintf(err, errlen, "clip.notes[%d]: pitch 0..127, start >= 0 and length > 0 (beats), velocity 1..127", i);
+            snprintf(err, errlen, "notes[%d]: pitch 0..127, start >= 0 and length > 0 (beats), velocity 1..127", i);
             return -1;
         }
         p->clip[i][0] = (float)pi->num;
@@ -405,6 +404,11 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
         }
         snprintf(p->kit, sizeof p->kit, "%s", kit->str);
     }
+    if (json_get(root, "audition") || json_get(root, "clip")) {
+        snprintf(err, errlen, "a patch is the instrument alone: its demo is a clip of its own, clips/<name>.json "
+                 "(docs/patch_format.md)");
+        goto out;
+    }
     if (json_get(root, "params")) {
         snprintf(err, errlen, "\"params\": a version %d patch groups its settings by module at the top level "
                  "({\"filter\": {\"cutoff\": 800}}; docs/patch_format.md)", PATCH_VERSION);
@@ -416,7 +420,9 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
     if (patch_set_macros(p, json_get(root, "macros"), err, errlen) != 0)
         goto out;
 
-    /* audition defaults: one bar of sixteenths on C3 */
+    /* what plays it when no clip is given: one bar of sixteenths on C3 */
+    p->clip_n = 0;
+    p->clip_beats = 0.0f;
     snprintf(p->notes, sizeof p->notes, "C3 _ _ _ E3 _ _ _ G3 _ _ _ C4 _ _ _");
     p->bpm = 120.0f;
     p->step_beats = 0.25f;
@@ -425,33 +431,7 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
     p->humanize_vel = 0.0f;
     p->humanize_ms = 0.0f;
     p->swing = 0.0f;
-    const json_t *aud = json_get(root, "audition");
-    if (aud) {
-        const json_t *x;
-        if ((x = json_get(aud, "notes")) && x->type == JSON_STR) {
-            if (strlen(x->str) >= sizeof p->notes) {
-                snprintf(err, errlen, "audition notes too long (%d characters at most)", (int)sizeof p->notes - 1);
-                goto out;
-            }
-            snprintf(p->notes, sizeof p->notes, "%s", x->str);
-        }
-        if ((x = json_get(aud, "bpm")) && x->type == JSON_NUM && x->num > 10.0 && x->num < 400.0)
-            p->bpm = (float)x->num;
-        if ((x = json_get(aud, "step")) && x->type == JSON_NUM && x->num >= 1.0 / 64.0 && x->num <= 64.0)
-            p->step_beats = (float)x->num;
-        if ((x = json_get(aud, "gate")) && x->type == JSON_NUM && x->num > 0.0 && x->num <= 1.0)
-            p->gate = (float)x->num;
-        if ((x = json_get(aud, "humanize_velocity")) && x->type == JSON_NUM && x->num >= 0.0)
-            p->humanize_vel = (float)x->num;
-        if ((x = json_get(aud, "humanize_ms")) && x->type == JSON_NUM && x->num >= 0.0)
-            p->humanize_ms = (float)x->num;
-        if ((x = json_get(aud, "swing")) && x->type == JSON_NUM && x->num >= 0.0 && x->num <= 0.5)
-            p->swing = (float)x->num;
-        if ((x = json_get(aud, "velocity")) && x->type == JSON_NUM && x->num >= 1.0 && x->num <= 127.0)
-            p->velocity = (int)x->num;
-    }
-    if (patch_read_clip(json_get(root, "clip"), p, err, errlen) != 0)
-        goto out;
+
     rc = 0;
 out:
     return rc;
@@ -515,6 +495,26 @@ void patch_write_settings(void (*put)(void *ctx, const char *text), void *ctx, p
         put_indent(put, ctx, indent + 2 * (depth - 1));
         put(ctx, "}");
     }
+}
+
+int patch_parse_clip(const char *text, patch_t *p, char *err, size_t errlen)
+{
+    json_t *root = json_parse(text, err, errlen);
+    if (!root)
+        return -1;
+    const int rc = patch_read_clip(root, p, err, errlen);
+    json_free(root);
+    return rc;
+}
+
+int patch_load_clip(const char *path, patch_t *p, char *err, size_t errlen)
+{
+    json_t *root = json_parse_file(path, err, errlen);
+    if (!root)
+        return -1;
+    const int rc = patch_read_clip(root, p, err, errlen);
+    json_free(root);
+    return rc;
 }
 
 const uint8_t *(*patch_kit_resolver)(const char *name, size_t *bytes);

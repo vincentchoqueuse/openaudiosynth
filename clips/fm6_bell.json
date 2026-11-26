@@ -1,0 +1,13 @@
+{
+  "name": "fm6_bell",
+  "bpm": 80,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 72, "start": 4e-06, "length": 0.402667, "velocity": 93},
+    {"pitch": 79, "start": 1.005204, "length": 0.402667, "velocity": 101},
+    {"pitch": 76, "start": 2.006761, "length": 1.902667, "velocity": 107},
+    {"pitch": 84, "start": 4.004473, "length": 1.902667, "velocity": 94}
+  ]
+}

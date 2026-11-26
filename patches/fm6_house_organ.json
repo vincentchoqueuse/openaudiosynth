@@ -148,42 +148,5 @@
     "reverb": {"mix": 0.12, "decay": 0.5}
   },
   "mlfo2": {"sync": "1/4", "waveform": "saw"},
-  "route2": {"source": "mlfo2", "destination": "output.volume", "amount": 0.07},
-  "clip": {
-    "bpm": 124,
-    "length": 16,
-    "loop": true,
-    "grid": "1/16",
-    "key": "C minor",
-    "notes": [
-      {"pitch": 36, "start": 0, "length": 0.4, "velocity": 104},
-      {"pitch": 48, "start": 0.75, "length": 0.2, "velocity": 90},
-      {"pitch": 36, "start": 1.5, "length": 0.4, "velocity": 104},
-      {"pitch": 48, "start": 2.25, "length": 0.2, "velocity": 90},
-      {"pitch": 46, "start": 2.75, "length": 0.2, "velocity": 90},
-      {"pitch": 36, "start": 3.0, "length": 0.4, "velocity": 104},
-      {"pitch": 43, "start": 3.5, "length": 0.4, "velocity": 90},
-      {"pitch": 36, "start": 4, "length": 0.4, "velocity": 104},
-      {"pitch": 48, "start": 4.75, "length": 0.2, "velocity": 90},
-      {"pitch": 36, "start": 5.5, "length": 0.4, "velocity": 104},
-      {"pitch": 48, "start": 6.25, "length": 0.2, "velocity": 90},
-      {"pitch": 46, "start": 6.75, "length": 0.2, "velocity": 90},
-      {"pitch": 36, "start": 7.0, "length": 0.4, "velocity": 104},
-      {"pitch": 43, "start": 7.5, "length": 0.4, "velocity": 90},
-      {"pitch": 34, "start": 8, "length": 0.4, "velocity": 104},
-      {"pitch": 46, "start": 8.75, "length": 0.2, "velocity": 90},
-      {"pitch": 34, "start": 9.5, "length": 0.4, "velocity": 104},
-      {"pitch": 46, "start": 10.25, "length": 0.2, "velocity": 90},
-      {"pitch": 44, "start": 10.75, "length": 0.2, "velocity": 90},
-      {"pitch": 34, "start": 11.0, "length": 0.4, "velocity": 104},
-      {"pitch": 41, "start": 11.5, "length": 0.4, "velocity": 90},
-      {"pitch": 39, "start": 12, "length": 0.4, "velocity": 104},
-      {"pitch": 51, "start": 12.75, "length": 0.2, "velocity": 90},
-      {"pitch": 39, "start": 13.5, "length": 0.4, "velocity": 104},
-      {"pitch": 51, "start": 14.25, "length": 0.2, "velocity": 90},
-      {"pitch": 49, "start": 14.75, "length": 0.2, "velocity": 90},
-      {"pitch": 39, "start": 15.0, "length": 0.4, "velocity": 104},
-      {"pitch": 46, "start": 15.5, "length": 0.4, "velocity": 90}
-    ]
-  }
+  "route2": {"source": "mlfo2", "destination": "output.volume", "amount": 0.07}
 }

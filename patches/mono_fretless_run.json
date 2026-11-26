@@ -11,35 +11,5 @@
   "amp": {"attack": 0.003, "decay": 0.4, "sustain": 0.85, "velocity": 0.4},
   "voice": {"glide": 0.06, "mode": "legato"},
   "output": {"volume": 10.2},
-  "fx": {"reverb": {"mix": 0.1}},
-  "clip": {
-    "bpm": 170,
-    "length": 8,
-    "loop": true,
-    "grid": "1/16",
-    "key": "E minor",
-    "notes": [
-      {"pitch": 40, "start": 0, "length": 0.2125, "velocity": 96},
-      {"pitch": 43, "start": 0.25, "length": 0.2125, "velocity": 82},
-      {"pitch": 45, "start": 0.5, "length": 0.62, "velocity": 82},
-      {"pitch": 47, "start": 1.0, "length": 0.2125, "velocity": 96},
-      {"pitch": 50, "start": 1.25, "length": 0.2125, "velocity": 82},
-      {"pitch": 52, "start": 1.5, "length": 0.77, "velocity": 82},
-      {"pitch": 50, "start": 2.25, "length": 0.2125, "velocity": 82},
-      {"pitch": 47, "start": 2.5, "length": 0.2125, "velocity": 82},
-      {"pitch": 45, "start": 2.75, "length": 0.62, "velocity": 82},
-      {"pitch": 43, "start": 3.25, "length": 0.2125, "velocity": 82},
-      {"pitch": 40, "start": 3.5, "length": 0.52, "velocity": 82},
-      {"pitch": 52, "start": 4, "length": 0.255, "velocity": 96},
-      {"pitch": 55, "start": 4.25, "length": 0.255, "velocity": 82},
-      {"pitch": 57, "start": 4.5, "length": 0.72, "velocity": 82},
-      {"pitch": 55, "start": 5.25, "length": 0.2125, "velocity": 82},
-      {"pitch": 52, "start": 5.5, "length": 0.2125, "velocity": 82},
-      {"pitch": 50, "start": 5.75, "length": 0.62, "velocity": 82},
-      {"pitch": 47, "start": 6.25, "length": 0.2125, "velocity": 82},
-      {"pitch": 45, "start": 6.5, "length": 0.34, "velocity": 82},
-      {"pitch": 43, "start": 6.75, "length": 0.62, "velocity": 82},
-      {"pitch": 40, "start": 7.25, "length": 0.72, "velocity": 82}
-    ]
-  }
+  "fx": {"reverb": {"mix": 0.1}}
 }

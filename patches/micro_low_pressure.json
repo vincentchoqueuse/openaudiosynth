@@ -23,12 +23,5 @@
   "amp": {"attack": 0.6, "decay": 4, "sustain": 0, "velocity": 0},
   "osc2": {"level": -12},
   "output": {"volume": 4.9},
-  "tempo": {"bpm": 60},
-  "clip": {
-    "bpm": 60,
-    "length": 10,
-    "loop": false,
-    "grid": "1/4",
-    "notes": [{"pitch": 48, "start": 0, "length": 8, "velocity": 100}]
-  }
+  "tempo": {"bpm": 60}
 }

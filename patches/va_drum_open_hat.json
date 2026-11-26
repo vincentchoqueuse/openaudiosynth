@@ -9,6 +9,5 @@
   "filter": {"type": "hp", "cutoff": 6500, "resonance": 1.0, "envelope_amount": 0, "keytrack": 0},
   "amp": {"attack": 0.0005, "decay": 0.3, "sustain": 0, "release": 0.1, "velocity": 0.7},
   "output": {"volume": 13.6},
-  "voice": {"drift": 0, "pan_spread": 0},
-  "audition": {"notes": "- - A#5 - - - A#5 - - - A#5 - - - A#5 -", "bpm": 92, "step": 0.25, "gate": 0.5}
+  "voice": {"drift": 0, "pan_spread": 0}
 }

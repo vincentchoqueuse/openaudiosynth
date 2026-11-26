@@ -5,7 +5,7 @@ tree (in the catalog's order: the engine's modules first, then the effects, the 
 import json
 import os
 
-RESERVED = ("version", "engine", "name", "description", "kit", "macros", "audition", "clip")
+RESERVED = ("version", "engine", "name", "description", "kit", "macros")
 _CAT = {}
 
 

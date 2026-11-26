@@ -10,17 +10,5 @@
   },
   "amp": {"attack": 0.0002, "decay": 0.08, "sustain": 0, "velocity": 0.4},
   "output": {"volume": 10},
-  "tempo": {"bpm": 120},
-  "clip": {
-    "bpm": 120,
-    "length": 8,
-    "loop": true,
-    "grid": "1/16",
-    "notes": [
-      {"pitch": 123, "start": 0.75, "length": 0.1, "velocity": 100},
-      {"pitch": 127, "start": 2.5, "length": 0.1, "velocity": 90},
-      {"pitch": 123, "start": 4.75, "length": 0.1, "velocity": 100},
-      {"pitch": 125, "start": 6.25, "length": 0.1, "velocity": 90}
-    ]
-  }
+  "tempo": {"bpm": 120}
 }

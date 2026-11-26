@@ -23,23 +23,5 @@
   "route3": {"source": "mlfo1", "destination": "drone.motion", "amount": 0.2},
   "route4": {"source": "mlfo2", "destination": "drone.temperature", "amount": 0.12},
   "vlfo": {"rate": 0.3, "waveform": "wiener"},
-  "vroute1": {"source": "vlfo", "destination": "pitch", "amount": 0.006},
-  "clip": {
-    "bpm": 60,
-    "length": 128,
-    "loop": true,
-    "grid": "1/4",
-    "key": "E phrygian",
-    "notes": [
-      {"pitch": 28, "start": 0, "length": 128, "velocity": 96},
-      {"pitch": 35, "start": 0, "length": 128, "velocity": 84},
-      {"pitch": 40, "start": 16, "length": 96, "velocity": 74},
-      {"pitch": 41, "start": 40, "length": 24, "velocity": 70},
-      {"pitch": 55, "start": 24, "length": 40, "velocity": 76},
-      {"pitch": 60, "start": 60, "length": 30, "velocity": 74},
-      {"pitch": 59, "start": 90, "length": 30, "velocity": 78},
-      {"pitch": 64, "start": 100, "length": 20, "velocity": 70},
-      {"pitch": 53, "start": 110, "length": 16, "velocity": 68}
-    ]
-  }
+  "vroute1": {"source": "vlfo", "destination": "pitch", "amount": 0.006}
 }

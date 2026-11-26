@@ -1,0 +1,14 @@
+{
+  "name": "va_soft_arp_chords",
+  "bpm": 105,
+  "length": 16,
+  "loop": true,
+  "grid": "1/16",
+  "key": "B minor",
+  "notes": [
+    {"pitch": 55, "start": 0, "length": 4, "velocity": 96},
+    {"pitch": 59, "start": 4, "length": 4, "velocity": 96},
+    {"pitch": 57, "start": 8, "length": 4, "velocity": 96},
+    {"pitch": 52, "start": 12, "length": 3.75, "velocity": 96}
+  ]
+}

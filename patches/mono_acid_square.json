@@ -11,6 +11,5 @@
   "amp": {"attack": 0.002, "decay": 2.0, "sustain": 0.7, "velocity": 0.8},
   "voice": {"glide": 0.06, "mode": "legato", "drift": 1, "glide_mode": "legato"},
   "output": {"volume": 8.5},
-  "master": {"saturation": {"mode": "soft", "drive": 9.6, "tone": 5500}},
-  "audition": {"notes": "C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2", "bpm": 126, "step": 0.25, "gate": 0.6}
+  "master": {"saturation": {"mode": "soft", "drive": 9.6, "tone": 5500}}
 }

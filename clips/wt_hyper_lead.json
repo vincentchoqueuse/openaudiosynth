@@ -1,0 +1,17 @@
+{
+  "name": "wt_hyper_lead",
+  "bpm": 128,
+  "length": 9.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 69, "start": 0.008111, "length": 0.904267, "velocity": 103},
+    {"pitch": 72, "start": 1.005551, "length": 0.404267, "velocity": 100},
+    {"pitch": 76, "start": 1.50458, "length": 0.904267, "velocity": 99},
+    {"pitch": 74, "start": 2.506334, "length": 0.404267, "velocity": 105},
+    {"pitch": 72, "start": 3.007211, "length": 0.904267, "velocity": 105},
+    {"pitch": 71, "start": 4.006271, "length": 1.404267, "velocity": 102},
+    {"pitch": 67, "start": 5.504771, "length": 0.404267, "velocity": 95},
+    {"pitch": 69, "start": 6.002256, "length": 1.904267, "velocity": 102}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "fm6_glass_pad",
+  "bpm": 56,
+  "length": 32,
+  "loop": true,
+  "grid": "1/8",
+  "key": "D minor",
+  "notes": [
+    {"pitch": 50, "start": 0, "length": 7.6, "velocity": 70},
+    {"pitch": 57, "start": 0, "length": 7.6, "velocity": 70},
+    {"pitch": 64, "start": 0, "length": 7.6, "velocity": 70},
+    {"pitch": 46, "start": 8, "length": 7.6, "velocity": 70},
+    {"pitch": 53, "start": 8, "length": 7.6, "velocity": 70},
+    {"pitch": 62, "start": 8, "length": 7.6, "velocity": 70},
+    {"pitch": 43, "start": 16, "length": 7.6, "velocity": 70},
+    {"pitch": 50, "start": 16, "length": 7.6, "velocity": 70},
+    {"pitch": 58, "start": 16, "length": 7.6, "velocity": 70},
+    {"pitch": 62, "start": 16, "length": 7.6, "velocity": 70},
+    {"pitch": 45, "start": 24, "length": 7.6, "velocity": 70},
+    {"pitch": 52, "start": 24, "length": 7.6, "velocity": 70},
+    {"pitch": 57, "start": 24, "length": 7.6, "velocity": 70},
+    {"pitch": 61, "start": 24, "length": 7.6, "velocity": 70},
+    {"pitch": 81, "start": 5, "length": 3, "velocity": 52},
+    {"pitch": 86, "start": 13, "length": 3, "velocity": 48},
+    {"pitch": 77, "start": 20, "length": 4, "velocity": 52},
+    {"pitch": 88, "start": 26, "length": 3, "velocity": 46},
+    {"pitch": 84, "start": 29, "length": 2.5, "velocity": 48}
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "fm6_metal_shards",
+  "bpm": 112,
+  "length": 8,
+  "loop": true,
+  "grid": "1/16",
+  "key": "C chromatic",
+  "notes": [
+    {"pitch": 66, "start": 0.0, "length": 0.1, "velocity": 80},
+    {"pitch": 60, "start": 0.75, "length": 0.1, "velocity": 60},
+    {"pitch": 60, "start": 1.25, "length": 0.1, "velocity": 100},
+    {"pitch": 72, "start": 1.75, "length": 0.1, "velocity": 80},
+    {"pitch": 79, "start": 1.875, "length": 0.05, "velocity": 70},
+    {"pitch": 67, "start": 2.5, "length": 0.1, "velocity": 60},
+    {"pitch": 84, "start": 2.625, "length": 0.05, "velocity": 70},
+    {"pitch": 67, "start": 3.0, "length": 0.1, "velocity": 60},
+    {"pitch": 60, "start": 3.5, "length": 0.1, "velocity": 80},
+    {"pitch": 72, "start": 4.0, "length": 0.1, "velocity": 60},
+    {"pitch": 67, "start": 4.75, "length": 0.1, "velocity": 60},
+    {"pitch": 60, "start": 5.25, "length": 0.1, "velocity": 80},
+    {"pitch": 73, "start": 5.375, "length": 0.05, "velocity": 70},
+    {"pitch": 72, "start": 5.75, "length": 0.1, "velocity": 60},
+    {"pitch": 72, "start": 6.5, "length": 0.1, "velocity": 80},
+    {"pitch": 84, "start": 6.625, "length": 0.05, "velocity": 70},
+    {"pitch": 73, "start": 7.0, "length": 0.1, "velocity": 80},
+    {"pitch": 72, "start": 7.5, "length": 0.1, "velocity": 60}
+  ]
+}

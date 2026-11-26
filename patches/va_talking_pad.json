@@ -33,6 +33,5 @@
     "point5": {"time": 2.5, "level": 1.0, "curve": -0.3}
   },
   "route1": {"source": "mseg1", "destination": "filter.character", "amount": 1.0},
-  "route2": {"source": "mlfo1", "destination": "filter2.character", "amount": 0.3},
-  "audition": {"notes": "A2+E3+C4 _ _ _ _ _ _ _ F2+C3+A3 _ _ _ _ _ _ _", "bpm": 60, "step": 1}
+  "route2": {"source": "mlfo1", "destination": "filter2.character", "amount": 0.3}
 }

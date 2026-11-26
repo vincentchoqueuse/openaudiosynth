@@ -10,6 +10,5 @@
   "filter_env": {"attack": 0.002, "decay": 0.8, "sustain": 0.2},
   "output": {"volume": 10},
   "voice": {"drift": 4, "pan_spread": 0.4},
-  "motion": {"detune1": {"rate": 0.3, "depth": 5}, "spread": 1.0, "detune2": {"depth": 3}},
-  "audition": {"notes": "Eb2 G3+Bb3+D4+F4 _ Eb2 G3+Bb3+D4+F4 _", "bpm": 60, "step": 1, "velocity": 85}
+  "motion": {"detune1": {"rate": 0.3, "depth": 5}, "spread": 1.0, "detune2": {"depth": 3}}
 }

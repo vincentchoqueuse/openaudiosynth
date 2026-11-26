@@ -36,6 +36,5 @@
     "drift_time": 3,
     "jitter": 0.2
   },
-  "fx": {"chorus": {"mode": "ensemble", "mix": 0.5}, "reverb": {"mix": 0.3}},
-  "audition": {"notes": "D3+A3+F4 _ _ _ C3+G3+E4 _ _ _", "bpm": 70, "step": 1}
+  "fx": {"chorus": {"mode": "ensemble", "mix": 0.5}, "reverb": {"mix": 0.3}}
 }

@@ -1,0 +1,28 @@
+{
+  "name": "modal_piano_cold",
+  "bpm": 66,
+  "length": 15.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 40, "start": 8e-06, "length": 0.9522, "velocity": 63},
+    {"pitch": 55, "start": 1.010734, "length": 1.9522, "velocity": 71},
+    {"pitch": 59, "start": 1.013245, "length": 1.9522, "velocity": 64},
+    {"pitch": 62, "start": 1.007257, "length": 1.9522, "velocity": 70},
+    {"pitch": 66, "start": 1.015949, "length": 1.9522, "velocity": 64},
+    {"pitch": 36, "start": 3.001396, "length": 0.9522, "velocity": 75},
+    {"pitch": 52, "start": 4.012248, "length": 1.9522, "velocity": 76},
+    {"pitch": 55, "start": 4.013732, "length": 1.9522, "velocity": 69},
+    {"pitch": 59, "start": 4.006708, "length": 1.9522, "velocity": 77},
+    {"pitch": 40, "start": 6.011805, "length": 0.9522, "velocity": 70},
+    {"pitch": 55, "start": 7.005453, "length": 1.9522, "velocity": 74},
+    {"pitch": 59, "start": 7.004097, "length": 1.9522, "velocity": 67},
+    {"pitch": 62, "start": 7.008414, "length": 1.9522, "velocity": 75},
+    {"pitch": 66, "start": 7.000347, "length": 1.9522, "velocity": 67},
+    {"pitch": 36, "start": 9.014554, "length": 0.9522, "velocity": 70},
+    {"pitch": 52, "start": 10.003938, "length": 4.9522, "velocity": 71},
+    {"pitch": 55, "start": 10.005548, "length": 4.9522, "velocity": 64},
+    {"pitch": 59, "start": 10.015149, "length": 4.9522, "velocity": 70},
+    {"pitch": 76, "start": 10.007018, "length": 4.9522, "velocity": 64}
+  ]
+}

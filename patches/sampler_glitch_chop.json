@@ -14,11 +14,5 @@
   "pad8": {"choke": 1},
   "pad9": {"tune": 12},
   "pad10": {"start": 0.3, "end": 0.34, "reverse": "on", "loop": "on", "level": -6, "cutoff": 7000},
-  "fx": {"delay": {"mix": 0.15, "sync": "1/16"}},
-  "audition": {
-    "notes": "C2! D2 F#2 C2 D#2? C2 D2+F#2 F2 C2! F2? A2 C3 C#3 - - D2 C2! D2 F#2 C2 D#2? C2 D2+F#2 F#2 C2 D2 D2 D2 D2+F#2 D2 D2 C3",
-    "bpm": 140,
-    "step": 0.25,
-    "gate": 0.9
-  }
+  "fx": {"delay": {"mix": 0.15, "sync": "1/16"}}
 }

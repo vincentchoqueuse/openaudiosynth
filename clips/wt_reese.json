@@ -1,0 +1,12 @@
+{
+  "name": "wt_reese",
+  "bpm": 172,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 28, "start": 0.00969, "length": 3.905733, "velocity": 105},
+    {"pitch": 31, "start": 4.006411, "length": 1.905733, "velocity": 95},
+    {"pitch": 26, "start": 6.003031, "length": 1.905733, "velocity": 102}
+  ]
+}

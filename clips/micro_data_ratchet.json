@@ -1,0 +1,13 @@
+{
+  "name": "micro_data_ratchet",
+  "bpm": 120,
+  "length": 8,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 60, "start": 1.5, "length": 0.1, "velocity": 100},
+    {"pitch": 60, "start": 3.75, "length": 0.1, "velocity": 80},
+    {"pitch": 60, "start": 5.5, "length": 0.1, "velocity": 100},
+    {"pitch": 60, "start": 7.25, "length": 0.1, "velocity": 90}
+  ]
+}

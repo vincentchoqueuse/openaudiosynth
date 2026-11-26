@@ -1,6 +1,6 @@
-/* test_patch.c — the patch reader's clip section (host/patch.c): a clip is read with its tempo and notes and plays
- * instead of the audition phrase (its notes at their beats, its length as the audition's); a malformed clip is
- * refused with a message; without a clip the phrase still plays. The settings grouped by module (version 2): a role
+/* test_patch.c — the patch reader (host/patch.c). A clip (a sound's demo, clips/<name>.json) is read with its tempo
+ * and notes and plays instead of the phrase (its notes at their beats, its length the clip's); a malformed clip is
+ * refused with a message; without a clip the default phrase plays; a patch carrying notes is refused. The settings grouped by module (version 2): a role
  * read at any depth gives its parameter, an unknown one names its module's settings, a flat "params" or a version 1
  * patch is refused; written back by patch_write_settings, the tree reads the same. */
 #include <stdio.h>
@@ -66,18 +66,18 @@ void suite_patch(void)
     static patch_t p; /* large */
     module_tree();
     char err[512], warn[512];
-    const char *with_clip =
-        "{\"version\":2,\"engine\":\"micro\",\"audition\":{\"notes\":\"C4 D4 E4\",\"bpm\":90},"
-        "\"clip\":{\"bpm\":60,\"length\":8,\"loop\":true,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":2,\"velocity\":90},"
-        "{\"pitch\":67,\"start\":4,\"length\":1},{\"pitch\":72,\"start\":9,\"length\":1}]}}";
-    CHECK(patch_parse(with_clip, &p, err, sizeof err, warn, sizeof warn) == 0, "patch with a clip refused: %s", err);
+    CHECK(patch_parse("{\"version\":2,\"engine\":\"micro\"}", &p, err, sizeof err, warn, sizeof warn) == 0 &&
+              p.clip_n == 0, "bare patch refused: %s", err);
+    const char *clip = "{\"bpm\":60,\"length\":8,\"loop\":true,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":2,"
+                       "\"velocity\":90},{\"pitch\":67,\"start\":4,\"length\":1},{\"pitch\":72,\"start\":9,\"length\":1}]}";
+    CHECK(patch_parse_clip(clip, &p, err, sizeof err) == 0, "clip refused: %s", err);
     CHECK(p.clip_n == 3 && p.clip_beats == 8.0f && p.bpm == 60.0f && p.clip[1][3] == 100.0f,
           "clip read: %d notes, %g beats, %g bpm, default velocity %g", p.clip_n, (double)p.clip_beats, (double)p.bpm,
           (double)p.clip[1][3]);
     seq_t s;
     seq_init(&s);
     const float len = patch_audition(&p, NULL, &s, err, sizeof err);
-    CHECK(len == 8.0f && note_ons(&s) == 2, "clip audition: %g s, %d notes (8 s, 2 expected: one past the end)",
+    CHECK(len == 8.0f && note_ons(&s) == 2, "clip played: %g s, %d notes (8 s, 2 expected: one past the end)",
           (double)len, note_ons(&s));
     seq_free(&s);
     seq_init(&s); /* notes given explicitly (a song's track): the phrase, not the clip */
@@ -86,19 +86,24 @@ void suite_patch(void)
     seq_free(&s);
 
     const char *bad[] = {
-        "{\"version\":2,\"engine\":\"micro\",\"clip\":{\"notes\":[]}}",
-        "{\"version\":2,\"engine\":\"micro\",\"clip\":{\"length\":4,\"notes\":[{\"pitch\":200,\"start\":0,\"length\":1}]}}",
-        "{\"version\":2,\"engine\":\"micro\",\"clip\":{\"length\":4,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":0}]}}",
-        "{\"version\":2,\"engine\":\"micro\",\"clip\":{\"length\":4,\"bpm\":5,\"notes\":[]}}",
+        "{\"notes\":[]}",
+        "{\"length\":4,\"notes\":[{\"pitch\":200,\"start\":0,\"length\":1}]}",
+        "{\"length\":4,\"notes\":[{\"pitch\":60,\"start\":0,\"length\":0}]}",
+        "{\"length\":4,\"bpm\":5,\"notes\":[]}",
     };
     for (unsigned i = 0; i < sizeof bad / sizeof bad[0]; i++)
-        CHECK(patch_parse(bad[i], &p, err, sizeof err, warn, sizeof warn) != 0 && strstr(err, "clip"),
-              "bad clip %u accepted (or a message without \"clip\": %s)", i, err);
+        CHECK(patch_parse_clip(bad[i], &p, err, sizeof err) != 0 && err[0], "bad clip %u accepted", i);
 
-    const char *no_clip = "{\"version\":2,\"engine\":\"micro\",\"audition\":{\"notes\":\"C4 D4 E4\",\"bpm\":120,\"step\":0.5}}";
-    CHECK(patch_parse(no_clip, &p, err, sizeof err, warn, sizeof warn) == 0 && p.clip_n == 0, "patch without a clip");
+    /* a patch is the instrument alone: notes in it are refused, with where they go */
+    CHECK(patch_parse("{\"version\":2,\"engine\":\"micro\",\"clip\":{\"length\":4,\"notes\":[]}}", &p, err, sizeof err,
+                      warn, sizeof warn) != 0 && strstr(err, "clips/"), "a patch with a clip accepted: %s", err);
+    CHECK(patch_parse("{\"version\":2,\"engine\":\"micro\",\"audition\":{\"notes\":\"C4\"}}", &p, err, sizeof err,
+                      warn, sizeof warn) != 0, "a patch with an audition accepted");
+
+    /* without a clip: the default phrase, a bar of sixteenths on C3 at 120 bpm (2 s) */
+    CHECK(patch_parse("{\"version\":2,\"engine\":\"micro\"}", &p, err, sizeof err, warn, sizeof warn) == 0, "bare patch");
     seq_init(&s);
     const float l2 = patch_audition(&p, NULL, &s, err, sizeof err);
-    CHECK(note_ons(&s) == 3 && l2 > 0.74f && l2 < 0.76f, "phrase audition: %d notes over %g s", note_ons(&s), (double)l2);
+    CHECK(note_ons(&s) == 4 && l2 > 1.99f && l2 < 2.01f, "default phrase: %d notes over %g s", note_ons(&s), (double)l2);
     seq_free(&s);
 }

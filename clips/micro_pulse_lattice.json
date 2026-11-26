@@ -1,0 +1,8 @@
+{
+  "name": "micro_pulse_lattice",
+  "bpm": 120,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [{"pitch": 69, "start": 0.0, "length": 3.954, "velocity": 100}]
+}

@@ -1,0 +1,21 @@
+{
+  "name": "va_pwm_strings",
+  "bpm": 70,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 48, "start": 0.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 55, "start": 0.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 64, "start": 0.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 50, "start": 2.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 57, "start": 2.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 65, "start": 2.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 52, "start": 4.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 59, "start": 4.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 67, "start": 4.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 48, "start": 6.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 55, "start": 6.0, "length": 1.902333, "velocity": 100},
+    {"pitch": 72, "start": 6.0, "length": 1.902333, "velocity": 100}
+  ]
+}

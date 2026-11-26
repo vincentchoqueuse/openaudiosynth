@@ -15,6 +15,5 @@
   },
   "exciter": {"hardness": 0.9, "noise": 0.03},
   "output": {"volume": 7.2},
-  "voice": {"pan_spread": 0.6},
-  "audition": {"notes": "E4 _ _ _ B3 _ _ _ G4 _ _ _ _ _ _ _", "bpm": 70, "step": 1}
+  "voice": {"pan_spread": 0.6}
 }

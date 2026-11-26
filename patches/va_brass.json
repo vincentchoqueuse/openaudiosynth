@@ -36,6 +36,5 @@
     "drift_time": 3,
     "jitter": 0.2
   },
-  "fx": {"reverb": {"mix": 0.18}},
-  "audition": {"notes": "C3+G3+C4+E4 _ _ _ _ _ - - A2+E3+A3+C4 _ _ _ F2+C3+F3+A3 _ _ _", "bpm": 110, "step": 0.5}
+  "fx": {"reverb": {"mix": 0.18}}
 }

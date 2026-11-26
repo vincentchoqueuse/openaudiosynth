@@ -163,13 +163,5 @@
   "route1": {"source": "mseg1", "destination": "fm.op2.output", "amount": 0.25},
   "route2": {"source": "mseg1", "destination": "fm.op4.output", "amount": -0.2},
   "route3": {"source": "mlfo1", "destination": "fm.op6.output", "amount": 0.15},
-  "route4": {"source": "velocity", "destination": "fm.op2.output", "amount": 0.1},
-  "audition": {
-    "notes": "D4+A4+E5 _ _ _ _ _ _ _ F3+C4+G4 _ _ _ _ _ _ _",
-    "bpm": 56,
-    "step": 1,
-    "velocity": 90,
-    "humanize_velocity": 8,
-    "humanize_ms": 10
-  }
+  "route4": {"source": "velocity", "destination": "fm.op2.output", "amount": 0.1}
 }

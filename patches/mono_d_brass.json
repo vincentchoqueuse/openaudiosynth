@@ -13,6 +13,5 @@
   "voice": {"mode": "mono", "bend_range": 7, "priority": "last"},
   "mod": {"mix": 0.0, "to_pitch": 0.6, "source_a": "filter_eg"},
   "output": {"volume": 8.6},
-  "fx": {"reverb": {"mix": 0.15}},
-  "audition": {"notes": "C4 _ _ E4 G4 _ _ _ F4 _ _ A4 G4 _ _ -", "bpm": 88, "step": 0.5, "gate": 0.9}
+  "fx": {"reverb": {"mix": 0.15}}
 }

@@ -16,6 +16,5 @@
   "exciter": {"position": 0.31, "hardness": 0.4, "noise": 0.08},
   "output": {"volume": 6.7},
   "voice": {"pan_spread": 0.3},
-  "fx": {"reverb": {"mix": 0.35, "decay": 0.9}},
-  "audition": {"notes": "A1! _ _ _ _ _ _ _ _ _ _ _ D2? _ _ _ _ _ _ _", "bpm": 60, "step": 1, "velocity": 127}
+  "fx": {"reverb": {"mix": 0.35, "decay": 0.9}}
 }

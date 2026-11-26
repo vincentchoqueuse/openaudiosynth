@@ -41,6 +41,5 @@
         {"param": "fx.delay.mix", "from": 0.07, "to": 0.52}
       ]
     }
-  ],
-  "audition": {"notes": "A3 _ C4~ D4 _ E4~ G4 _ _ E4~ D4 C4~ A3 _ _ -", "bpm": 92, "step": 0.5, "gate": 1.0}
+  ]
 }

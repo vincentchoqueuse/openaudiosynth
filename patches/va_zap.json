@@ -10,6 +10,5 @@
   "output": {"volume": 12.0},
   "voice": {"drift": 0, "pan_spread": 1},
   "pitch_env": {"amount": -18, "decay": 0.05},
-  "fx": {"delay": {"mix": 0.35, "time": 0.489, "feedback": 0.5, "tone": 4500, "wow": 0.15, "pingpong": "on"}},
-  "audition": {"notes": "C6 - - E6 - - - G5 - C6 - - - - A5 -", "bpm": 92, "step": 0.25, "gate": 0.5}
+  "fx": {"delay": {"mix": 0.35, "time": 0.489, "feedback": 0.5, "tone": 4500, "wow": 0.15, "pingpong": "on"}}
 }

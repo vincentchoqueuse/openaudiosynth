@@ -37,6 +37,5 @@
     "jitter": 0.2
   },
   "polymod": {"source_osc2": 0.55, "source_filter_env": 0, "target": "pitch"},
-  "fx": {"reverb": {"mix": 0.35}},
-  "audition": {"notes": "C5 - E5 - G5 - B5 - C6 _ _ _ - - - -", "bpm": 100, "step": 0.5}
+  "fx": {"reverb": {"mix": 0.35}}
 }

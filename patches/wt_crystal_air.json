@@ -51,13 +51,5 @@
   "route1": {"source": "mseg1", "destination": "osc1.warp", "amount": 0.25},
   "route2": {"source": "mlfo1", "destination": "osc1.position", "amount": 0.15},
   "route3": {"source": "mseg2", "destination": "noise.level", "amount": 0.15},
-  "route4": {"source": "mlfo2", "destination": "osc2.position", "amount": 0.3},
-  "audition": {
-    "notes": "G4+D5+A5 _ _ _ _ _ _ _ E4+B4+F#5 _ _ _ _ _ _ _",
-    "bpm": 60,
-    "step": 1,
-    "velocity": 90,
-    "humanize_velocity": 8,
-    "humanize_ms": 10
-  }
+  "route4": {"source": "mlfo2", "destination": "osc2.position", "amount": 0.3}
 }

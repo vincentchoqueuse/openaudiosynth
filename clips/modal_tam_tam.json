@@ -1,0 +1,11 @@
+{
+  "name": "modal_tam_tam",
+  "bpm": 60,
+  "length": 20.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 33, "start": 0.0, "length": 11.802, "velocity": 127},
+    {"pitch": 38, "start": 12.0, "length": 7.802, "velocity": 50}
+  ]
+}

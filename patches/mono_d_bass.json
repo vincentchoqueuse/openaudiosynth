@@ -12,6 +12,5 @@
   "env": {"release_switch": "off"},
   "voice": {"mode": "legato", "drift": 3, "bend_range": 7, "priority": "low"},
   "output": {"volume": 9.5},
-  "master": {"level": 3},
-  "audition": {"notes": "E3 _ E4 E3 - G3 A3 _ E3 _ E4 D4 - B2 D3 _", "bpm": 104, "step": 0.5, "gate": 0.85}
+  "master": {"level": 3}
 }

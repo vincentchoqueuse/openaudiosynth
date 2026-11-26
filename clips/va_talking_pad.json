@@ -1,0 +1,15 @@
+{
+  "name": "va_talking_pad",
+  "bpm": 60,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 45, "start": 0.0, "length": 7.802, "velocity": 100},
+    {"pitch": 52, "start": 0.0, "length": 7.802, "velocity": 100},
+    {"pitch": 60, "start": 0.0, "length": 7.802, "velocity": 100},
+    {"pitch": 41, "start": 8.0, "length": 7.802, "velocity": 100},
+    {"pitch": 48, "start": 8.0, "length": 7.802, "velocity": 100},
+    {"pitch": 57, "start": 8.0, "length": 7.802, "velocity": 100}
+  ]
+}

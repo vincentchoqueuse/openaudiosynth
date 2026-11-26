@@ -13,25 +13,5 @@
   "voice": {"drift": 4, "mode": "legato", "glide": 0.08},
   "osc": {"unison": {"motion": 4}},
   "pitch_env": {"amount": 7, "decay": 0.18},
-  "fx": {"chorus": {"mode": "I+II", "mix": 0.6}, "reverb": {"mix": 0.18, "decay": 0.6}},
-  "clip": {
-    "bpm": 140,
-    "length": 16,
-    "loop": true,
-    "grid": "1/8",
-    "key": "F minor",
-    "notes": [
-      {"pitch": 53, "start": 0, "length": 1.4, "velocity": 110},
-      {"pitch": 56, "start": 1.5, "length": 0.4, "velocity": 100},
-      {"pitch": 53, "start": 2, "length": 1.9, "velocity": 110},
-      {"pitch": 60, "start": 4, "length": 1.4, "velocity": 112},
-      {"pitch": 58, "start": 5.5, "length": 0.4, "velocity": 100},
-      {"pitch": 56, "start": 6, "length": 1.9, "velocity": 108},
-      {"pitch": 53, "start": 8, "length": 1.4, "velocity": 110},
-      {"pitch": 56, "start": 9.5, "length": 0.4, "velocity": 100},
-      {"pitch": 53, "start": 10, "length": 1.4, "velocity": 110},
-      {"pitch": 51, "start": 11.5, "length": 0.4, "velocity": 100},
-      {"pitch": 48, "start": 12, "length": 3.9, "velocity": 112}
-    ]
-  }
+  "fx": {"chorus": {"mode": "I+II", "mix": 0.6}, "reverb": {"mix": 0.18, "decay": 0.6}}
 }

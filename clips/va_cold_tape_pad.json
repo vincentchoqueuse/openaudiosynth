@@ -1,0 +1,16 @@
+{
+  "name": "va_cold_tape_pad",
+  "bpm": 66,
+  "length": 13.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 55, "start": 0.0, "length": 5.8022, "velocity": 80},
+    {"pitch": 59, "start": 0.0, "length": 5.8022, "velocity": 80},
+    {"pitch": 62, "start": 0.0, "length": 5.8022, "velocity": 80},
+    {"pitch": 66, "start": 0.0, "length": 5.8022, "velocity": 80},
+    {"pitch": 52, "start": 6.0, "length": 5.8022, "velocity": 80},
+    {"pitch": 55, "start": 6.0, "length": 5.8022, "velocity": 80},
+    {"pitch": 59, "start": 6.0, "length": 5.8022, "velocity": 80}
+  ]
+}

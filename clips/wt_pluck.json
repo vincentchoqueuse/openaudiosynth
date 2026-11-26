@@ -1,0 +1,25 @@
+{
+  "name": "wt_pluck",
+  "bpm": 118,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 72, "start": 4e-06, "length": 0.203933, "velocity": 95},
+    {"pitch": 67, "start": 0.257478, "length": 0.203933, "velocity": 103},
+    {"pitch": 76, "start": 0.505117, "length": 0.203933, "velocity": 100},
+    {"pitch": 72, "start": 0.750666, "length": 0.203933, "velocity": 104},
+    {"pitch": 71, "start": 1.004222, "length": 0.203933, "velocity": 99},
+    {"pitch": 67, "start": 1.255839, "length": 0.203933, "velocity": 105},
+    {"pitch": 74, "start": 1.505628, "length": 0.203933, "velocity": 100},
+    {"pitch": 71, "start": 1.756648, "length": 0.203933, "velocity": 105},
+    {"pitch": 69, "start": 2.0026, "length": 0.203933, "velocity": 103},
+    {"pitch": 64, "start": 2.256939, "length": 0.203933, "velocity": 100},
+    {"pitch": 72, "start": 2.505781, "length": 0.203933, "velocity": 102},
+    {"pitch": 69, "start": 2.754398, "length": 0.203933, "velocity": 95},
+    {"pitch": 67, "start": 3.006444, "length": 0.203933, "velocity": 102},
+    {"pitch": 62, "start": 3.254835, "length": 0.203933, "velocity": 102},
+    {"pitch": 71, "start": 3.501878, "length": 0.203933, "velocity": 101},
+    {"pitch": 67, "start": 3.752079, "length": 0.203933, "velocity": 102}
+  ]
+}

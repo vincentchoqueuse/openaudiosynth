@@ -14,32 +14,5 @@
   },
   "amp": {"attack": 12, "release": 20},
   "output": {"volume": -8.7},
-  "fx": {"reverb": {"mix": 0.7, "decay": 0.97, "damping": 4500, "predelay": 0.1}},
-  "audition": {"notes": "F2+C3+A3 _ _ _ _ _ _ _", "bpm": 60, "step": 4},
-  "clip": {
-    "bpm": 60,
-    "length": 128,
-    "loop": true,
-    "grid": "1/4",
-    "key": "F lydian",
-    "notes": [
-      {"pitch": 41, "start": 0, "length": 128, "velocity": 90},
-      {"pitch": 62, "start": 2, "length": 16, "velocity": 74},
-      {"pitch": 48, "start": 8, "length": 120, "velocity": 70},
-      {"pitch": 69, "start": 10, "length": 28, "velocity": 74},
-      {"pitch": 57, "start": 20, "length": 28, "velocity": 65},
-      {"pitch": 55, "start": 22, "length": 28, "velocity": 84},
-      {"pitch": 65, "start": 40, "length": 12, "velocity": 79},
-      {"pitch": 53, "start": 52, "length": 28, "velocity": 68},
-      {"pitch": 62, "start": 54, "length": 12, "velocity": 91},
-      {"pitch": 64, "start": 56, "length": 24, "velocity": 66},
-      {"pitch": 57, "start": 70, "length": 12, "velocity": 75},
-      {"pitch": 67, "start": 82, "length": 20, "velocity": 79},
-      {"pitch": 57, "start": 88, "length": 20, "velocity": 76},
-      {"pitch": 53, "start": 90, "length": 16, "velocity": 64},
-      {"pitch": 62, "start": 106, "length": 22, "velocity": 80},
-      {"pitch": 55, "start": 114, "length": 14, "velocity": 65},
-      {"pitch": 59, "start": 116, "length": 12, "velocity": 69}
-    ]
-  }
+  "fx": {"reverb": {"mix": 0.7, "decay": 0.97, "damping": 4500, "predelay": 0.1}}
 }

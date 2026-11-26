@@ -1,0 +1,11 @@
+{
+  "name": "micro_low_beating",
+  "bpm": 120,
+  "length": 8,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 60, "start": 0, "length": 3.9, "velocity": 100},
+    {"pitch": 60, "start": 4, "length": 3.9, "velocity": 100}
+  ]
+}

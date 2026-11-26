@@ -18,14 +18,5 @@
   "exciter": {"position": 0.125, "hardness": 0.08, "noise": 0.09, "velocity_brightness": 0.5},
   "output": {"volume": 11.2},
   "voice": {"pan_spread": 0.35},
-  "fx": {"reverb": {"mix": 0.35, "decay": 0.86, "damping": 3500, "predelay": 0.03}},
-  "audition": {
-    "notes": "C3+G3+E4 _ _ _ D4 E4 G4 _ C5 _ _ _ B4+G4+D4 _ _ _ A3+E4+C5 _ _ _ G4 _ E4 _ F3+C4+A4 _ _ _ _ _ _ _",
-    "bpm": 66,
-    "step": 0.5,
-    "velocity": 70,
-    "gate": 0.95,
-    "humanize_velocity": 10,
-    "humanize_ms": 12
-  }
+  "fx": {"reverb": {"mix": 0.35, "decay": 0.86, "damping": 3500, "predelay": 0.03}}
 }

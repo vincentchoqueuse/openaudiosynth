@@ -24,6 +24,5 @@
   },
   "amp": {"attack": 2e-05, "decay": 0.004},
   "output": {"volume": 17.0},
-  "tempo": {"bpm": 120},
-  "audition": {"notes": "A4 - - - A4 - - - A4 - - - A4 - - -", "bpm": 120, "step": 0.25}
+  "tempo": {"bpm": 120}
 }

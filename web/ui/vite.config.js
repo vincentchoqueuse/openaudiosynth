@@ -1,6 +1,6 @@
 // vite.config.js — dev server and build of the web prototype. The engine and the sounds are served from where
 // they live, without copies: synth.wasm from build-wasm (`just wasm`), the patches from patches/ with an index
-// generated on the fly (patches/index.json), the songs from songs/ likewise (songs/index.json), the demo sample
+// generated on the fly (patches/index.json), the sounds' demo clips from clips/, the songs from songs/ likewise (songs/index.json), the demo sample
 // kits from build-host/kits (NAME.oidk, recorded by host/kit_demo at every host build); `vite build` emits them
 // next to the app. In development only, POST /api/patches saves a sound into patches/ (the board's presets are generated from there).
 import { PATCH_VERSION, dumps } from './src/lib/patchjson.js';
@@ -13,6 +13,7 @@ const ROOT = resolve(__dirname, '../..');
 const WASM = resolve(ROOT, 'build-wasm/web/wasm/synth.wasm');
 const PATCHES = resolve(ROOT, 'patches');
 const SONGS = resolve(ROOT, 'songs');
+const CLIPS = resolve(ROOT, 'clips');
 const KITS = resolve(ROOT, 'build-host/kits');
 const kitFiles = () => (existsSync(KITS) ? readdirSync(KITS).filter((f) => /^[a-z0-9_]+\.oidk$/.test(f)) : []);
 
@@ -48,7 +49,8 @@ function wasmMissing() {
   return `synth.wasm not built: run \`just wasm\` (or cmake --build --preset wasm)`;
 }
 
-// POST /api/patches {name, patch, overwrite}: writes patches/<name>.json. Same checks as a patch file must pass
+// POST /api/patches {name, patch, clip, overwrite}: writes patches/<name>.json, and the clip (when not null) as its
+// demo, clips/<name>.json. Same checks as a patch file must pass
 // (a name of lowercase letters, digits and _, format version 2, an engine), no silent overwrite. Only this page
 // may call it: a JSON content type (a cross-site form or text/plain post cannot send one without a preflight,
 // which this server does not answer) and, when the browser sends one, an Origin of this server.
@@ -81,6 +83,9 @@ function savePatch(req, res) {
     const file = resolve(PATCHES, name + '.json');
     if (existsSync(file) && !m.overwrite) return reply(409, { error: `patches/${name}.json exists`, exists: true });
     writeFileSync(file, dumps({ ...patch, name }));
+    const clip = m.clip;
+    if (clip && typeof clip === 'object' && Array.isArray(clip.notes) && clip.notes.length)
+      writeFileSync(resolve(CLIPS, name + '.json'), dumps({ name, ...clip }));
     reply(200, { file: name + '.json' });
   });
 }
@@ -89,7 +94,7 @@ function engineAndSounds() {
   return {
     name: 'synth-engine-and-sounds',
     configureServer(server) {
-      server.watcher.add([WASM, PATCHES, SONGS]);
+      server.watcher.add([WASM, PATCHES, SONGS, CLIPS]);
       server.middlewares.use((req, res, next) => {
         if (req.method === 'POST' && (req.url ?? '').split('?')[0] === '/api/patches') return savePatch(req, res);
         let url;
@@ -108,9 +113,9 @@ function engineAndSounds() {
           res.end(readFileSync(f));
           return;
         }
-        const m = url.match(/\/(patches|songs)\/([\w.-]+\.json)$/);
+        const m = url.match(/\/(patches|songs|clips)\/([\w.-]+\.json)$/);
         if (m) {
-          const [dir, index] = m[1] === 'songs' ? [SONGS, songIndex] : [PATCHES, patchIndex];
+          const [dir, index] = m[1] === 'songs' ? [SONGS, songIndex] : m[1] === 'clips' ? [CLIPS, () => []] : [PATCHES, patchIndex];
           const body = m[2] === 'index.json' ? JSON.stringify(index()) : (() => {
             const f = resolve(dir, m[2]);
             return existsSync(f) ? readFileSync(f, 'utf8') : null;
@@ -131,6 +136,9 @@ function engineAndSounds() {
       for (const p of index)
         this.emitFile({ type: 'asset', fileName: `patches/${p.file}`, source: readFileSync(resolve(PATCHES, p.file), 'utf8') });
       this.emitFile({ type: 'asset', fileName: 'patches/index.json', source: JSON.stringify(index) });
+      for (const p of index)
+        if (existsSync(resolve(CLIPS, p.file)))
+          this.emitFile({ type: 'asset', fileName: `clips/${p.file}`, source: readFileSync(resolve(CLIPS, p.file), 'utf8') });
       const songs = songIndex();
       for (const so of songs)
         this.emitFile({ type: 'asset', fileName: `songs/${so.file}`, source: readFileSync(resolve(SONGS, so.file), 'utf8') });

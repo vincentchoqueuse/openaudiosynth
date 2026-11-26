@@ -9,7 +9,7 @@ pattern can change while it plays and several boards share one clock.
     tools/board.py --iface en0 note B5 --dur 3
     tools/board.py --iface en0 play "C4 E4 G4 C5 _ _ - -" --bpm 120 --loop 4
     tools/board.py --iface en0 play "A2 _ A2 C3" --sweep 13:0:127        # knob 1 (CC 13) up over the phrase
-    tools/board.py --iface en0 audition va_acid_bass                        # a patch's own phrase, on its preset
+    tools/board.py --iface en0 audition va_acid_bass                        # a sound's demo clip, on its preset
     tools/board.py --iface en0 cc 14 100
     tools/board.py --iface en0 test --seconds 2                          # every preset: plays, then the load
     tools/board.py --iface en0 panic
@@ -220,7 +220,9 @@ class Link:
             time.sleep(max(0.0, min(nxt - now, 0.01 if sweep else HEARTBEAT_S / 2)))
 
     def play(self, text, bpm=120.0, step=0.25, loop=1, velocity=100, gate=0.9, sweep=None):
-        events, length = phrase_events(text, bpm, step, velocity, gate)
+        self.play_events(*phrase_events(text, bpm, step, velocity, gate), loop=loop, sweep=sweep)
+
+    def play_events(self, events, length, loop=1, sweep=None):
         all_events = [(t + k * length, m) for k in range(loop) for t, m in events]
         self.run(all_events, length * loop, sweep)
 
@@ -231,10 +233,26 @@ def board_presets():
     return re.findall(r'^\s*\{"([a-z0-9_]+)", "([a-z0-9]+)", "', src, re.M)
 
 
-def audition(name):
-    p = json.loads((ROOT / "patches" / f"{name}.json").read_text())
-    a = p.get("audition", {})
-    return a.get("notes", "C3 E3 G3 C4"), float(a.get("bpm", 120)), float(a.get("step", 0.25))
+def clip_events(name, bpm=None):
+    """A sound's demo clip (clips/NAME.json, the web sequencer's clip) -> (events, length s); None if it has none."""
+    path = ROOT / "clips" / f"{name}.json"
+    if not path.exists():
+        return None
+    c = json.loads(path.read_text())
+    spb = 60.0 / (bpm or float(c.get("bpm", 120)))
+    events = []
+    for n in c["notes"]:
+        if n["start"] >= c["length"]:
+            continue
+        events.append((n["start"] * spb, bytes([0x90, n["pitch"], n.get("velocity", 100)])))
+        events.append((n["start"] * spb + max(n["length"] * spb - 0.002, 0.001), bytes([0x80, n["pitch"], 0])))
+    events.sort(key=lambda e: (e[0], e[1][0] == 0x90))  # at the same time, note-offs first
+    return events, c["length"] * spb
+
+
+def demo_events(name):
+    """its clip, or a C major arpeggio"""
+    return clip_events(name) or phrase_events("C3 E3 G3 C4", 120.0, 0.25)
 
 
 def main():
@@ -276,17 +294,17 @@ def main():
         link.hold(a.dur)
         link.note_off(a.note)
     elif a.cmd in ("play", "audition"):
+        sweep = tuple(int(x) for x in a.sweep.split(":")) if a.sweep else None
         if a.cmd == "audition":
-            text, bpm, step = audition(a.patch)
+            events, length = clip_events(a.patch, a.bpm) or phrase_events("C3 E3 G3 C4", a.bpm or 120.0, 0.25)
             status = link.select(a.patch)
             if status != "ok":
                 sys.exit(f"{a.patch}: {status}")
             time.sleep(0.1)
         else:
-            text, bpm, step = a.phrase, 120.0, 0.25
-        sweep = tuple(int(x) for x in a.sweep.split(":")) if a.sweep else None
+            events, length = phrase_events(a.phrase, a.bpm or 120.0, a.step or 0.25, a.vel)
         try:
-            link.play(text, a.bpm or bpm, a.step or step, a.loop, a.vel, sweep=sweep)
+            link.play_events(events, length, a.loop, sweep=sweep)
         except KeyboardInterrupt:
             link.panic()
     elif a.cmd == "cc":
@@ -304,8 +322,7 @@ def main():
                 bad += 1
                 continue
             time.sleep(0.1)
-            text, bpm, step = audition(name) if (ROOT / "patches" / f"{name}.json").exists() else ("C3 E3 G3 C4", 120, 0.25)
-            events, length = phrase_events(text, bpm, step)
+            events, length = demo_events(name)
             events = [e for e in events if e[0] < a.seconds]
             link.run(events + [(a.seconds, bytes([0xB0, 123, 0]))], a.seconds)
             b = link.discover()

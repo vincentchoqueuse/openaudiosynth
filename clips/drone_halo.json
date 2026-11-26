@@ -1,0 +1,12 @@
+{
+  "name": "drone_halo",
+  "bpm": 60,
+  "length": 32.0,
+  "loop": true,
+  "grid": "1 bar",
+  "notes": [
+    {"pitch": 41, "start": 0.0, "length": 31.202, "velocity": 100},
+    {"pitch": 48, "start": 0.0, "length": 31.202, "velocity": 100},
+    {"pitch": 57, "start": 0.0, "length": 31.202, "velocity": 100}
+  ]
+}

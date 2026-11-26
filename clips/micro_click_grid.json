@@ -1,0 +1,26 @@
+{
+  "name": "micro_click_grid",
+  "bpm": 120,
+  "length": 8,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 72, "start": 0.0, "length": 0.05, "velocity": 120},
+    {"pitch": 60, "start": 0.5, "length": 0.05, "velocity": 85},
+    {"pitch": 72, "start": 0.75, "length": 0.05, "velocity": 85},
+    {"pitch": 60, "start": 1.25, "length": 0.05, "velocity": 85},
+    {"pitch": 60, "start": 2.0, "length": 0.05, "velocity": 120},
+    {"pitch": 60, "start": 2.75, "length": 0.05, "velocity": 85},
+    {"pitch": 72, "start": 3.0, "length": 0.05, "velocity": 120},
+    {"pitch": 60, "start": 3.5, "length": 0.05, "velocity": 85},
+    {"pitch": 60, "start": 4.0, "length": 0.05, "velocity": 120},
+    {"pitch": 72, "start": 4.5, "length": 0.05, "velocity": 85},
+    {"pitch": 72, "start": 5.25, "length": 0.05, "velocity": 85},
+    {"pitch": 60, "start": 5.5, "length": 0.05, "velocity": 85},
+    {"pitch": 72, "start": 6.0, "length": 0.05, "velocity": 120},
+    {"pitch": 72, "start": 6.75, "length": 0.05, "velocity": 85},
+    {"pitch": 60, "start": 7.25, "length": 0.05, "velocity": 85},
+    {"pitch": 72, "start": 7.5, "length": 0.05, "velocity": 85},
+    {"pitch": 60, "start": 7.75, "length": 0.05, "velocity": 85}
+  ]
+}

@@ -20,6 +20,5 @@
     "detune3": {"rate": 0.05, "depth": 14}
   },
   "filter2": {"type": "hp", "cutoff": 110, "resonance": 0},
-  "fx": {"chorus": {"mode": "I", "mix": 0.3}},
-  "audition": {"notes": "G3+B3+D4+F#4 _ _ _ _ _ E3+G3+B3 _ _ _ _ _ -", "bpm": 66, "step": 1, "velocity": 80}
+  "fx": {"chorus": {"mode": "I", "mix": 0.3}}
 }

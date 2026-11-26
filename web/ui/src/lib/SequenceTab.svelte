@@ -21,6 +21,7 @@
   <span class="spacer"></span>
   <button class="tool" onclick={q.clear} title="Clear the clip"><Icon name="init" size={13} /> Init</button>
   <button class="tool" onclick={q.random} title="New random notes in the clip, in its scale"><Icon name="dice" size={13} /> Randomize</button>
+  <button class="tool" onclick={() => s.loadDemo()} disabled={!s.current} title="The sound's demo clip in the sequencer (clips/{s.current || 'its name.json'})"><Icon name="sequence" size={13} /> Demo</button>
   <button class="ghost set" onclick={() => (s.clipSettingsOpen = true)} title="Clip settings: {summary}"><Icon name="settings" weight={1.2} /> Settings</button>
 </div>
 {#if q.message}<p class="message">{q.message}</p>{/if}

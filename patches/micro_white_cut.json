@@ -15,16 +15,5 @@
   "amp": {"attack": 2e-05, "decay": 0.0005, "sustain": 0, "velocity": 0.6},
   "output": {"volume": 11.1},
   "noise": {"level": -4},
-  "tempo": {"bpm": 120},
-  "clip": {
-    "bpm": 120,
-    "length": 4,
-    "loop": true,
-    "grid": "1/16",
-    "notes": [
-      {"pitch": 60, "start": 1, "length": 0.1, "velocity": 100},
-      {"pitch": 60, "start": 3, "length": 0.1, "velocity": 100},
-      {"pitch": 60, "start": 3.75, "length": 0.1, "velocity": 100}
-    ]
-  }
+  "tempo": {"bpm": 120}
 }

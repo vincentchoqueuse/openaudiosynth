@@ -1,0 +1,11 @@
+{
+  "name": "modal_church_bell",
+  "bpm": 70,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 62, "start": 0.0, "length": 7.802333, "velocity": 100},
+    {"pitch": 57, "start": 8.0, "length": 7.802333, "velocity": 100}
+  ]
+}

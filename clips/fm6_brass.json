@@ -1,0 +1,21 @@
+{
+  "name": "fm6_brass",
+  "bpm": 100,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 48, "start": 0.007423, "length": 2.903333, "velocity": 106},
+    {"pitch": 55, "start": 0.008322, "length": 2.903333, "velocity": 99},
+    {"pitch": 60, "start": 0.004066, "length": 2.903333, "velocity": 107},
+    {"pitch": 64, "start": 0.009375, "length": 2.903333, "velocity": 99},
+    {"pitch": 46, "start": 4.005591, "length": 1.903333, "velocity": 94},
+    {"pitch": 53, "start": 4.00891, "length": 1.903333, "velocity": 101},
+    {"pitch": 58, "start": 4.003479, "length": 1.903333, "velocity": 93},
+    {"pitch": 62, "start": 4.008707, "length": 1.903333, "velocity": 101},
+    {"pitch": 41, "start": 6.002643, "length": 1.903333, "velocity": 103},
+    {"pitch": 48, "start": 6.001587, "length": 1.903333, "velocity": 96},
+    {"pitch": 53, "start": 6.005849, "length": 1.903333, "velocity": 102},
+    {"pitch": 57, "start": 6.000716, "length": 1.903333, "velocity": 96}
+  ]
+}

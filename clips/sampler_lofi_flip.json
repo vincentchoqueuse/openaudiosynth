@@ -1,0 +1,28 @@
+{
+  "name": "sampler_lofi_flip",
+  "bpm": 84,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 36, "start": 0.0, "length": 0.2028, "velocity": 127},
+    {"pitch": 42, "start": 0.295, "length": 0.2028, "velocity": 50},
+    {"pitch": 42, "start": 0.5, "length": 0.2028, "velocity": 100},
+    {"pitch": 38, "start": 0.795, "length": 0.2028, "velocity": 50},
+    {"pitch": 38, "start": 1.0, "length": 0.2028, "velocity": 100},
+    {"pitch": 42, "start": 1.0, "length": 0.2028, "velocity": 100},
+    {"pitch": 42, "start": 1.295, "length": 0.2028, "velocity": 50},
+    {"pitch": 36, "start": 1.5, "length": 0.2028, "velocity": 100},
+    {"pitch": 36, "start": 1.795, "length": 0.2028, "velocity": 50},
+    {"pitch": 42, "start": 2.0, "length": 0.2028, "velocity": 100},
+    {"pitch": 42, "start": 2.295, "length": 0.2028, "velocity": 50},
+    {"pitch": 36, "start": 2.5, "length": 0.2028, "velocity": 100},
+    {"pitch": 46, "start": 2.5, "length": 0.2028, "velocity": 100},
+    {"pitch": 42, "start": 2.795, "length": 0.2028, "velocity": 50},
+    {"pitch": 38, "start": 3.0, "length": 0.2028, "velocity": 100},
+    {"pitch": 39, "start": 3.0, "length": 0.2028, "velocity": 100},
+    {"pitch": 42, "start": 3.295, "length": 0.2028, "velocity": 50},
+    {"pitch": 42, "start": 3.5, "length": 0.2028, "velocity": 100},
+    {"pitch": 42, "start": 3.795, "length": 0.2028, "velocity": 50}
+  ]
+}

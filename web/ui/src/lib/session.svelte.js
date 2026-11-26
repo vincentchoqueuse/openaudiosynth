@@ -1,6 +1,6 @@
 // session.svelte.js — the state of the page in one place, read by every component: the synth (the worklet), the
 // catalog of engines and parameters, the current sound (engine, parameter values, the patch it came from, its
-// macros' names, its kit), the library, the audition phrase and its transport, the save dialog and the notices.
+// macros' names, its kit), the library and the sounds' demo clips, the save dialog and the notices.
 // Components import `session` and call its actions instead of passing a dozen props down. Values are in
 // physical units; the synth gets them normalized (synth.js).
 import { PATCH_VERSION, putRole, dumps } from './patchjson.js';
@@ -31,10 +31,9 @@ class Session {
   kit = $state.raw(null); // the sample kit the synth plays (parsed, for display), null none
   kitName = $state(''); // its name when it comes from kits/ (a patch can name it), '' for dropped files
   seqPlaying = $state(false); // the sequence plays
-  // the clip a preset carries goes to the sequencer, and comes back into the patch when it is saved: set by
-  // sequence.svelte.js (take(patch object), give() -> the patch's "clip" section or null)
+  // the sequencer, set by sequence.svelte.js: take({name, clip}) puts a clip in it (a sound's demo), give() -> its clip
+  // (or null when empty). A sound and the sequencer are apart: loading a sound leaves the clip as it is.
   clipHook = null;
-  #audition = null; // the loaded patch's audition phrase, kept as it was when it is saved (the boards play it)
   patchGen = $state(0); // patch loads and engine changes (they reset the synth's tempo)
   picks = $state(0); // sounds picked in the library (the name flashes)
   constructor() {
@@ -302,21 +301,17 @@ class Session {
     for (const d of this.engine.params) if (Math.abs((this.values[d.id] ?? d.def) - d.def) > 1e-9) this.setValue(d, d.def);
   };
 
-  // An empty sound on an instrument: everything at its default (the instrument, the effects, the modulation), the
-  // instrument's default macros, one long note as its clip. It goes through the patch reader like any sound.
+  // An empty sound on an instrument, bare (#bare). It goes through the patch reader like any sound; the clip in the
+  // sequencer stays, and goes on playing with it.
   newSound = async (engine) => {
-    const wasPlaying = !!this.clipHook?.playing();
-    this.clipHook?.stop();
     const prev = [this.current, this.info];
     this.current = '';
     this.info = null;
-    const r = await this.applyPatch(JSON.stringify({ version: PATCH_VERSION, engine, name: `${engine}_new`,
-                                                     audition: { notes: 'C3 _ _ _', bpm: 90, step: 1 } }));
+    const r = await this.applyPatch(JSON.stringify({ version: PATCH_VERSION, engine, name: `${engine}_new` }));
     if (!r?.ok) { if (r) [this.current, this.info] = prev; return false; }
     this.#bare();
     this.baseline = { ...this.values };
     this.picks++;
-    if (wasPlaying) this.clipHook?.play();
     return true;
   };
 
@@ -341,10 +336,9 @@ class Session {
     for (const [name, v] of Object.entries(BARE[this.engine?.name] ?? {})) if (this.byName[name]) this.setP(name, v);
   };
 
-  // a sound of the library; returns true when it is the current one
+  // a sound of the library; returns true when it is the current one. The sequencer keeps its clip (a playing clip
+  // goes on with the new sound); a phone, which does not edit clips, takes the sound's demo
   loadPatch = async (p) => {
-    const wasPlaying = !!this.clipHook?.playing(); // another sound: its own clip takes over, and goes on playing
-    this.clipHook?.stop();
     const seq = ++this.#loadSeq;
     let text;
     try {
@@ -364,7 +358,19 @@ class Session {
     this.baseline = { ...this.values };
     this.picks++;
     remember('synth.sound', p.name);
-    if (wasPlaying) this.clipHook?.play();
+    if (this.phone) await this.loadDemo(true);
+    return true;
+  };
+
+  // the current sound's demo clip (clips/<name>.json) into the sequencer; quiet: no notice when it has none
+  loadDemo = async (quiet = false) => {
+    const name = this.current ? this.current.replace(/\.json$/, '') : '';
+    let doc = null;
+    if (name) try { const res = await fetch(`clips/${name}.json`); if (res.ok) doc = await res.json(); } catch { /* none */ }
+    if (!doc) { if (!quiet) this.notify(name ? `${this.label} has no demo clip` : 'A new sound has no demo clip yet'); return false; }
+    this.clipHook?.take({ name, clip: doc });
+    const t = this.byName.tempo; // the demo's tempo is the synth's: not an edit of the sound
+    if (t && doc.bpm) { this.setP('tempo', doc.bpm); this.baseline = { ...this.baseline, [t.id]: this.values[t.id] }; }
     return true;
   };
 
@@ -386,10 +392,8 @@ class Session {
     this.say(r.warning);
     try {
       const o = JSON.parse(text);
-      this.#audition = o.audition ?? null;
       this.description = typeof o.description === 'string' ? o.description : '';
       if (!(o.macros ?? []).some((m) => m?.targets?.length)) this.defaultMacros();
-      this.clipHook?.take(o);
     } catch { /* the C reader has accepted it: it is JSON */ }
     if (r.kit && r.kit !== this.kitName) await this.loadNamedKit(r.kit); // the synth keeps the last kit across patches
     return r;
@@ -464,9 +468,6 @@ class Session {
     if (this.kitName && engine.name === 'sampler') p.kit = this.kitName; // a dropped kit has no name to save
     Object.assign(p, settings);
     if (macros.length) p.macros = macros;
-    if (this.#audition) p.audition = this.#audition;
-    const clip = this.clipHook?.give();
-    if (clip) p.clip = clip;
     return p;
   };
 
@@ -482,7 +483,8 @@ class Session {
     this.notify(`Exported ${name}.json, also copied to the clipboard`);
   };
 
-  // ---- save into patches/ (development): the board's presets are generated from there ----
+  // ---- save into patches/ (development): the board's presets are generated from there; the sequencer's clip is
+  // saved as the sound's demo (clips/<name>.json) ----
   openSave = () => {
     if (this.edited) this.compare();
     const p = this.currentPatch();
@@ -493,7 +495,7 @@ class Session {
     p.description = this.saving.description.trim();
     const res = await fetch('/api/patches', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: this.saving.name.trim(), patch: p, overwrite }),
+      body: JSON.stringify({ name: this.saving.name.trim(), patch: p, clip: this.clipHook?.give() ?? null, overwrite }),
     }).catch((e) => ({ ok: false, status: 0, json: async () => ({ error: e.message }) }));
     const r = await res.json().catch(() => ({ error: 'no answer from the dev server' }));
     if (res.status === 409) { this.saving = { ...this.saving, exists: true, error: '' }; return; }

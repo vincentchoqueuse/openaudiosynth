@@ -1,0 +1,18 @@
+{
+  "name": "wt_sync_lead",
+  "bpm": 120,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 64, "start": 0.007604, "length": 0.904, "velocity": 103},
+    {"pitch": 67, "start": 1.005204, "length": 0.404, "velocity": 100},
+    {"pitch": 69, "start": 1.505938, "length": 1.404, "velocity": 105},
+    {"pitch": 71, "start": 3.006761, "length": 0.904, "velocity": 105},
+    {"pitch": 69, "start": 4.002644, "length": 0.404, "velocity": 103},
+    {"pitch": 67, "start": 4.507056, "length": 0.404, "velocity": 100},
+    {"pitch": 64, "start": 5.004473, "length": 0.904, "velocity": 95},
+    {"pitch": 62, "start": 6.004917, "length": 0.904, "velocity": 102},
+    {"pitch": 64, "start": 7.002115, "length": 0.904, "velocity": 102}
+  ]
+}

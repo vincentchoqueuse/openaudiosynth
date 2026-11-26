@@ -1,0 +1,12 @@
+{
+  "name": "wt_hollow_drone",
+  "bpm": 40,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 36, "start": 0.003524, "length": 15.801333, "velocity": 87},
+    {"pitch": 43, "start": 0.002117, "length": 15.801333, "velocity": 82},
+    {"pitch": 50, "start": 0.007798, "length": 15.801333, "velocity": 87}
+  ]
+}

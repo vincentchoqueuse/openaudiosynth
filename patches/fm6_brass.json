@@ -142,12 +142,5 @@
   "pitch_env": {"rate1": 80, "level1": 50, "level4": 47},
   "output": {"volume": 2.8},
   "voice": {"pan_spread": 0.4},
-  "fx": {"reverb": {"mix": 0.2}},
-  "audition": {
-    "notes": "C3+G3+C4+E4 _ _ _ _ _ - - A#2+F3+A#3+D4 _ _ _ F2+C3+F3+A3 _ _ _",
-    "bpm": 100,
-    "step": 0.5,
-    "humanize_velocity": 8,
-    "humanize_ms": 6
-  }
+  "fx": {"reverb": {"mix": 0.2}}
 }

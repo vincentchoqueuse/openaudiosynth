@@ -10,6 +10,5 @@
   "amp": {"attack": 0.0005, "decay": 0.17, "sustain": 0, "release": 0.06, "velocity": 0.7},
   "output": {"volume": 21},
   "voice": {"drift": 0, "pan_spread": 0},
-  "pitch_env": {"amount": 9, "decay": 0.02},
-  "audition": {"notes": "- - - - D3 - - D3? - - - - D3 - - D3?", "bpm": 92, "step": 0.25, "gate": 0.5}
+  "pitch_env": {"amount": 9, "decay": 0.02}
 }

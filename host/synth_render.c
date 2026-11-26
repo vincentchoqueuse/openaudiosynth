@@ -5,7 +5,8 @@
  *   synth_render --name va_bass --demo out.wav   a given demo
  *   synth_render --all build-host/renders        every demo, one WAV each
  *   synth_render --list
- *   synth_render --patch patches/va_acid_bass.json --out x.wav [--notes "C2 C2 C3 -"] [--tail 1.5]
+ *   synth_render --patch patches/va_acid_bass.json --out x.wav [--clip FILE | --notes "C2 C2 C3 -"] [--tail 1.5]
+ *   (a patch plays its demo clip, clips/<name>.json beside patches/, unless --clip or --notes says otherwise)
  *   synth_render --song songs/drift.json --out x.wav
  * A patch that names a sample kit ("kit": "synth_analog") finds it in kits/NAME (the current directory), then in
  * the kits built next to this program (build-host/kits/NAME, made by host/kit_demo.c).
@@ -61,16 +62,40 @@ static int render_one(const demo_t *d, const char *path, float sr)
     return render_seq(&s, d->seconds, d->name, path, sr);
 }
 
-static int render_patch(const char *patch_path, const char *notes, float tail, const char *out, float sr)
+/* the demo clip of a patch: clips/<name>.json next to its patches/ directory */
+static void clip_beside(const char *patch_path, char *out, size_t len)
 {
-    patch_t p;
-    char err[2048], warn[1024];
+    const char *base = strrchr(patch_path, '/');
+    base = base ? base + 1 : patch_path;
+    const int dir = (int)(base - patch_path);
+    const char *dot = strrchr(base, '.');
+    const int stem = dot ? (int)(dot - base) : (int)strlen(base);
+    snprintf(out, len, "%.*s../clips/%.*s.json", dir, patch_path, stem, base);
+}
+
+static int render_patch(const char *patch_path, const char *clip_path, const char *notes, float tail, const char *out,
+                        float sr)
+{
+    static patch_t p; /* large */
+    char err[2048], warn[1024], beside[1024];
     if (patch_load(patch_path, &p, err, sizeof err, warn, sizeof warn) != 0) {
         fprintf(stderr, "%s: %s\n", patch_path, err);
         return 1;
     }
     if (warn[0])
         fprintf(stderr, "%s: warning:\n%s", patch_path, warn);
+    if (!clip_path && !notes) { /* its own demo, when it has one */
+        clip_beside(patch_path, beside, sizeof beside);
+        FILE *f = fopen(beside, "r");
+        if (f) {
+            fclose(f);
+            clip_path = beside;
+        }
+    }
+    if (clip_path && !notes && patch_load_clip(clip_path, &p, err, sizeof err) != 0) {
+        fprintf(stderr, "%s: %s\n", clip_path, err);
+        return 1;
+    }
     seq_t s;
     seq_init(&s);
     patch_apply(&p, &s);
@@ -123,12 +148,12 @@ static void usage(void)
            "       synth_render --all DIR\n"
            "       synth_render --list\n"
            "       synth_render --song FILE.json --out OUT.wav\n"
-           "       synth_render --patch FILE.json --out OUT.wav [--notes \"C3 E3 G3+B3 - _\"] [--tail SEC]\n");
+           "       synth_render --patch FILE.json --out OUT.wav [--clip CLIP.json | --notes \"C3 E3 G3+B3 - _\"] [--tail SEC]\n");
 }
 
 int main(int argc, char **argv)
 {
-    const char *out = NULL, *all_dir = NULL, *name = NULL, *patch = NULL, *notes = NULL, *song = NULL;
+    const char *out = NULL, *all_dir = NULL, *name = NULL, *patch = NULL, *notes = NULL, *song = NULL, *clip = NULL;
     float tail = 1.5f;
     synth_engine_t engine = SYNTH_ENGINE_VA;
     float sr = 48000.0f;
@@ -155,6 +180,8 @@ int main(int argc, char **argv)
             song = argv[++i];
         } else if (!strcmp(argv[i], "--patch") && has_val) {
             patch = argv[++i];
+        } else if (!strcmp(argv[i], "--clip") && has_val) {
+            clip = argv[++i];
         } else if (!strcmp(argv[i], "--notes") && has_val) {
             notes = argv[++i];
         } else if (!strcmp(argv[i], "--tail") && has_val) {
@@ -205,7 +232,7 @@ int main(int argc, char **argv)
     if (song)
         return render_song(song, out, sr);
     if (patch)
-        return render_patch(patch, notes, tail, out, sr);
+        return render_patch(patch, clip, notes, tail, out, sr);
     const demo_t *d = name ? demo_find(name) : demo_for_engine(engine);
     if (!d) {
         if (name)

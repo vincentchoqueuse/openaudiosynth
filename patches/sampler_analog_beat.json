@@ -12,10 +12,5 @@
   "pad7": {"pan": 0.0},
   "pad8": {"pan": 0.3, "choke": 1},
   "pad9": {"pan": 0.4},
-  "fx": {"reverb": {"mix": 0.08}},
-  "audition": {
-    "notes": "C2!+F#2 F#2? F#2 C2+F#2? D2+F#2 F#2? C2+F#2 A#2 C2+F#2 F#2? C2!+F#2 F#2? D2+D#2+F#2 F#2? F#2 C3+C2",
-    "bpm": 118,
-    "step": 0.25
-  }
+  "fx": {"reverb": {"mix": 0.08}}
 }

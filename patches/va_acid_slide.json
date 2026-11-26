@@ -9,6 +9,5 @@
   "amp": {"attack": 0.002, "decay": 0.6, "sustain": 0.8, "release": 0.03, "velocity": 0.4},
   "filter_env": {"decay": 0.2, "sustain": 0},
   "output": {"volume": 3.8},
-  "voice": {"drift": 1, "pan_spread": 0, "mode": "legato", "glide": 0.06, "glide_mode": "legato"},
-  "audition": {"notes": "C2! C2 C3~ D#2 - C2 A#1~ C2 C2! - G1 C2~ C3 - C2 D#2", "bpm": 128, "step": 0.25, "gate": 0.6}
+  "voice": {"drift": 1, "pan_spread": 0, "mode": "legato", "glide": 0.06, "glide_mode": "legato"}
 }

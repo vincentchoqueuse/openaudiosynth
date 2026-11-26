@@ -1,5 +1,5 @@
 # review_library.py — a pass over every sound of the library: its loudness, how it answers velocity (the phrase at
-# velocity 40 and 120: level and brightness) and what each macro does (at 0 and at 1); renders through synth_render into
+# velocity 40 and 120: level and brightness; the phrase is its demo clip, clips/<name>.json) and what each macro does (at 0 and at 1); renders through synth_render into
 # a scratch directory and writes review.json there. Usage: python tools/review_library.py <repo> <outdir>
 import json, os, re, subprocess, sys
 import numpy as np
@@ -10,12 +10,19 @@ os.makedirs(OUT, exist_ok=True)
 CAT = json.load(open(f'{REPO}/docs/catalog.json'))
 
 
-def render(patch, tag):
+def render(patch, tag, clip=None):
     src = f'{OUT}/{patch["name"]}_{tag}.json'
     wav = src[:-5] + '.wav'
     json.dump(patch, open(src, 'w'))
-    r = subprocess.run([f'{REPO}/build-host/host/synth_render', '--patch', src, '--out', wav, '--tail', '1.5'],
+    clip_path = f'{REPO}/clips/{patch["name"]}.json'
+    if clip is not None:  # a changed copy of the demo clip
+        clip_path = src[:-5] + '_clip.json'
+        json.dump(clip, open(clip_path, 'w'))
+    args = ['--clip', clip_path] if os.path.exists(clip_path) else []
+    r = subprocess.run([f'{REPO}/build-host/host/synth_render', '--patch', src, '--out', wav, '--tail', '1.5'] + args,
                        capture_output=True, text=True, cwd=REPO)
+    if clip is not None:
+        os.remove(clip_path)
     if r.returncode != 0 or not os.path.exists(wav):
         return None
     sr, x = wavfile.read(wav)
@@ -62,16 +69,14 @@ for fn in sorted(os.listdir(f'{REPO}/patches')):
     sr, m = r
     L, C = describe(m, sr)
     row = {'name': p['name'], 'engine': eng, 'loud': round(L, 1), 'centroid': round(C), 'peak': round(20 * np.log10(np.abs(m).max() + 1e-12), 1)}
-    # velocity: the phrase at 40 and at 120, accents removed
+    # velocity: the demo clip with every note at 40, then at 120
     vel = {}
+    cpath = f'{REPO}/clips/{p["name"]}.json'
     for v in (40, 120):
-        q = json.loads(json.dumps(p))
-        a = q.setdefault('audition', {})
-        a['velocity'] = v
-        if 'notes' in a:
-            a['notes'] = re.sub(r'[!?]', '', a['notes'])
-        q.pop('clip', None)
-        rv = render(q, f'v{v}')
+        c = json.load(open(cpath)) if os.path.exists(cpath) else {'bpm': 120, 'length': 4, 'notes': [{'pitch': 48, 'start': 0, 'length': 3.5}]}
+        for n in c['notes']:
+            n['velocity'] = v
+        rv = render(p, f'v{v}', c)
         vel[v] = describe(rv[1], rv[0]) if rv else (None, None)
     if vel[40][0] is not None and vel[120][0] is not None:
         row['vel_db'] = round(vel[120][0] - vel[40][0], 1)

@@ -1,0 +1,25 @@
+{
+  "name": "va_morph_growl",
+  "bpm": 140,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 28, "start": 0.0, "length": 0.179667, "velocity": 127},
+    {"pitch": 28, "start": 0.25, "length": 0.179667, "velocity": 100},
+    {"pitch": 40, "start": 0.5, "length": 0.179667, "velocity": 100},
+    {"pitch": 28, "start": 0.75, "length": 0.179667, "velocity": 100},
+    {"pitch": 31, "start": 1.0, "length": 0.179667, "velocity": 127},
+    {"pitch": 28, "start": 1.25, "length": 0.179667, "velocity": 100},
+    {"pitch": 38, "start": 1.5, "length": 0.179667, "velocity": 100},
+    {"pitch": 28, "start": 1.75, "length": 0.179667, "velocity": 100},
+    {"pitch": 28, "start": 2.0, "length": 0.179667, "velocity": 127},
+    {"pitch": 35, "start": 2.25, "length": 0.179667, "velocity": 100},
+    {"pitch": 28, "start": 2.5, "length": 0.179667, "velocity": 100},
+    {"pitch": 33, "start": 2.75, "length": 0.179667, "velocity": 100},
+    {"pitch": 28, "start": 3.0, "length": 0.179667, "velocity": 100},
+    {"pitch": 40, "start": 3.25, "length": 0.179667, "velocity": 127},
+    {"pitch": 31, "start": 3.5, "length": 0.179667, "velocity": 100},
+    {"pitch": 26, "start": 3.75, "length": 0.179667, "velocity": 100}
+  ]
+}

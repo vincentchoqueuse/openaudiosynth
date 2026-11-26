@@ -22,12 +22,5 @@
   "osc2": {"level": -26},
   "output": {"volume": 9.0},
   "noise": {"level": 2},
-  "tempo": {"bpm": 120},
-  "clip": {
-    "bpm": 120,
-    "length": 8,
-    "loop": true,
-    "grid": "1/4",
-    "notes": [{"pitch": 60, "start": 0, "length": 7.9, "velocity": 100}]
-  }
+  "tempo": {"bpm": 120}
 }

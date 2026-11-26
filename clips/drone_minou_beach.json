@@ -1,0 +1,19 @@
+{
+  "name": "drone_minou_beach",
+  "bpm": 60,
+  "length": 128,
+  "loop": true,
+  "grid": "1/4",
+  "key": "A lydian",
+  "notes": [
+    {"pitch": 33, "start": 0, "length": 128, "velocity": 92},
+    {"pitch": 40, "start": 2, "length": 124, "velocity": 72},
+    {"pitch": 61, "start": 6, "length": 30, "velocity": 80},
+    {"pitch": 68, "start": 20, "length": 26, "velocity": 76},
+    {"pitch": 75, "start": 40, "length": 20, "velocity": 70},
+    {"pitch": 71, "start": 52, "length": 30, "velocity": 78},
+    {"pitch": 64, "start": 70, "length": 30, "velocity": 80},
+    {"pitch": 66, "start": 90, "length": 30, "velocity": 74},
+    {"pitch": 73, "start": 100, "length": 24, "velocity": 72}
+  ]
+}

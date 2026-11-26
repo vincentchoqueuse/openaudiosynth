@@ -23,6 +23,5 @@
       "shimmer": 1.0,
       "shimmer_pitch": "octave_up"
     }
-  },
-  "audition": {"notes": "F2+C3+A3 _ _ _ _ _ _ _", "bpm": 60, "step": 4}
+  }
 }

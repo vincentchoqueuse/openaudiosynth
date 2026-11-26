@@ -1,0 +1,8 @@
+{
+  "name": "va_air",
+  "bpm": 60,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/2",
+  "notes": [{"pitch": 60, "start": 0.0, "length": 15.602, "velocity": 100}]
+}

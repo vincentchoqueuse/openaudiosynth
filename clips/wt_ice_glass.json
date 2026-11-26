@@ -1,0 +1,15 @@
+{
+  "name": "wt_ice_glass",
+  "bpm": 60,
+  "length": 16.0,
+  "loop": true,
+  "grid": "1/4",
+  "notes": [
+    {"pitch": 64, "start": 0.008451, "length": 7.802, "velocity": 97},
+    {"pitch": 71, "start": 0.007007, "length": 7.802, "velocity": 90},
+    {"pitch": 78, "start": 0.000558, "length": 7.802, "velocity": 96},
+    {"pitch": 60, "start": 8.002643, "length": 7.802, "velocity": 93},
+    {"pitch": 67, "start": 8.001587, "length": 7.802, "velocity": 86},
+    {"pitch": 74, "start": 8.005849, "length": 7.802, "velocity": 92}
+  ]
+}

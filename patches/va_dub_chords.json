@@ -12,6 +12,5 @@
   "fx": {
     "delay": {"mix": 0.5, "time": 0.375, "feedback": 0.65, "tone": 2000, "drive": 0.5, "wow": 0.35, "pingpong": "on"},
     "reverb": {"mix": 0.3, "decay": 0.85, "damping": 3000}
-  },
-  "audition": {"notes": "- D3+F3+A3 - D3+F3+A3 - C3+E3+G3 - C3+E3+G3", "bpm": 75, "step": 0.5}
+  }
 }

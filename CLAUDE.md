@@ -44,7 +44,7 @@ midi/           # USB-MIDI 4 octets et flux DIN ; lien réseau des cartes (UDP, 
 host/           # macOS : synth_play, synth_render, synth_catalog, fm6_import, synth_link ; JSON, patchs, morceaux, WAV
 tests/          # suites unitaires (liste : tests/suites.h), bench, empreintes audio (golden.json)
 tools/          # Python : analyse, validation, règles, index d'API, empreintes, générateurs
-patches/ songs/ controllers/ spec/   # format ouvert OID (patchs, morceaux, cartes de contrôleurs, schémas)
+patches/ clips/ songs/ controllers/ spec/   # format ouvert OID (patchs, clips de démo, morceaux, cartes de contrôleurs, schémas)
 docs/           # api.md et catalog.md (générés), architecture, décisions, bench, progress.md
 web/            # browser prototype: wasm (emscripten) + AudioWorklet + Svelte UI (web/README.md)
 plugin/         # CLAP plugin (synth.clap) and its test host (plugin/README.md); SDK headers in third_party/clap

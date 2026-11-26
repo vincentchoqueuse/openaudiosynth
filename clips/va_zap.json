@@ -1,0 +1,14 @@
+{
+  "name": "va_zap",
+  "bpm": 92,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/16",
+  "notes": [
+    {"pitch": 84, "start": 0.0, "length": 0.128067, "velocity": 100},
+    {"pitch": 88, "start": 0.75, "length": 0.128067, "velocity": 100},
+    {"pitch": 79, "start": 1.75, "length": 0.128067, "velocity": 100},
+    {"pitch": 84, "start": 2.25, "length": 0.128067, "velocity": 100},
+    {"pitch": 81, "start": 3.5, "length": 0.128067, "velocity": 100}
+  ]
+}

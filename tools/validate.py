@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# validate.py — checks every patch and song against the open format (spec/schemas, OID 0.3) and against
+# validate.py — checks every patch, song and demo clip against the open format (spec/schemas, OID 0.3) and against
 # the instrument description (catalog): engine and parameter names or roles, choices, ranges, pattern
 # rows, referenced patches; and checks the catalog's roles against the vocabulary (spec/roles.json).
 #
@@ -47,6 +47,7 @@ class Checker:
         sch = os.path.join(ROOT, "spec", "schemas")
         self.patch_schema = load(os.path.join(sch, "patch.schema.json"))
         self.song_schema = load(os.path.join(sch, "song.schema.json"))
+        self.clip_schema = load(os.path.join(sch, "clip.schema.json"))
 
     def err(self, where, msg):
         self.errors.append(f"{where}: {msg}")
@@ -120,6 +121,16 @@ class Checker:
                     self.err(path, f"macro {k + 1}: target '{t.get('param')}' is not a {doc['engine']} parameter")
         return doc["engine"]
 
+    def clip(self, path):
+        doc = load(path)
+        self.schema(path, doc, self.clip_schema)
+        name = os.path.basename(path)[:-5]
+        if not os.path.isfile(os.path.join(ROOT, "patches", name + ".json")):
+            self.err(path, f"a demo clip of no sound (patches/{name}.json)")
+        for i, n in enumerate(doc.get("notes", [])):
+            if n.get("start", 0) >= doc.get("length", 0):
+                self.warn(path, f"note {i} starts past the clip's length (not played)")
+
     def song(self, path):
         doc = load(path)
         self.schema(path, doc, self.song_schema)
@@ -168,10 +179,15 @@ def main():
 
     files = args.files or sorted(glob.glob(os.path.join(ROOT, "patches", "*.json"))) + \
         sorted(glob.glob(os.path.join(ROOT, "songs", "*.json")))
-    n_patch = n_song = 0
+    n_patch = n_song = n_clip = 0
+    if not args.files:
+        files += sorted(glob.glob(os.path.join(ROOT, "clips", "*.json")))
     for f in files:
         doc = load(f)
-        if "tracks" in doc:
+        if os.path.basename(os.path.dirname(os.path.abspath(f))) == "clips":
+            c.clip(f)
+            n_clip += 1
+        elif "tracks" in doc:
             c.song(f)
             n_song += 1
         else:
@@ -191,7 +207,7 @@ def main():
         print("warning:", w)
     for e in c.errors:
         print("error:", e)
-    print(f"{n_patch} patches, {n_song} songs: {len(c.errors)} error(s), {len(c.warnings)} warning(s)")
+    print(f"{n_patch} patches, {n_song} songs, {n_clip} clips: {len(c.errors)} error(s), {len(c.warnings)} warning(s)")
     sys.exit(1 if c.errors else 0)
 
 

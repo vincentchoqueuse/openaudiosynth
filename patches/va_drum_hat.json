@@ -9,11 +9,5 @@
   "filter": {"type": "hp", "cutoff": 7500, "resonance": 1.1, "envelope_amount": 0, "keytrack": 0},
   "amp": {"attack": 0.0005, "decay": 0.035, "sustain": 0, "release": 0.02, "velocity": 0.85},
   "output": {"volume": 21.3},
-  "voice": {"drift": 0, "pan_spread": 0},
-  "audition": {
-    "notes": "F#5 F#5? F#5 F#5? F#5 F#5? F#5 F#5? F#5 F#5? F#5 F#5? F#5 F#5? F#5 F#5?",
-    "bpm": 92,
-    "step": 0.25,
-    "gate": 0.5
-  }
+  "voice": {"drift": 0, "pan_spread": 0}
 }

@@ -12,6 +12,5 @@
   "lfo": {"rate": 4.8, "waveform": "sine", "to_pitch": 0.07},
   "output": {"volume": 10.2},
   "voice": {"drift": 5, "pan_spread": 0},
-  "motion": {"detune1": {"rate": 0.2, "depth": 4}},
-  "audition": {"notes": "Bb5 _ _ G5 _ _ D5 _ _ _ _ _", "bpm": 60, "step": 1}
+  "motion": {"detune1": {"rate": 0.2, "depth": 4}}
 }

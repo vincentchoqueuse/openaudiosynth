@@ -1,0 +1,17 @@
+{
+  "name": "mono_d_overload",
+  "bpm": 100,
+  "length": 8.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 52, "start": 0.0, "length": 1.453333, "velocity": 100},
+    {"pitch": 52, "start": 1.5, "length": 0.453333, "velocity": 100},
+    {"pitch": 55, "start": 2.0, "length": 0.953333, "velocity": 100},
+    {"pitch": 57, "start": 3.0, "length": 0.953333, "velocity": 100},
+    {"pitch": 52, "start": 4.0, "length": 1.453333, "velocity": 100},
+    {"pitch": 62, "start": 5.5, "length": 0.453333, "velocity": 100},
+    {"pitch": 64, "start": 6.0, "length": 0.953333, "velocity": 100},
+    {"pitch": 47, "start": 7.0, "length": 0.953333, "velocity": 100}
+  ]
+}

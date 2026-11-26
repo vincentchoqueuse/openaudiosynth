@@ -15,27 +15,5 @@
   },
   "amp": {"attack": 10, "release": 16},
   "output": {"volume": -7.1},
-  "fx": {"reverb": {"mix": 0.45, "decay": 0.94, "damping": 5000, "predelay": 0.05}},
-  "audition": {"notes": "G2+D3 _ _ _ _ _ _ _", "bpm": 60, "step": 4},
-  "clip": {
-    "bpm": 60,
-    "length": 128,
-    "loop": true,
-    "grid": "1/4",
-    "key": "G major",
-    "notes": [
-      {"pitch": 43, "start": 0, "length": 128, "velocity": 90},
-      {"pitch": 62, "start": 2, "length": 28, "velocity": 73},
-      {"pitch": 57, "start": 10, "length": 16, "velocity": 69},
-      {"pitch": 55, "start": 28, "length": 16, "velocity": 78},
-      {"pitch": 59, "start": 36, "length": 16, "velocity": 89},
-      {"pitch": 59, "start": 46, "length": 12, "velocity": 91},
-      {"pitch": 62, "start": 54, "length": 28, "velocity": 76},
-      {"pitch": 57, "start": 64, "length": 16, "velocity": 85},
-      {"pitch": 64, "start": 84, "length": 28, "velocity": 91},
-      {"pitch": 55, "start": 88, "length": 20, "velocity": 91},
-      {"pitch": 59, "start": 112, "length": 16, "velocity": 72},
-      {"pitch": 67, "start": 114, "length": 14, "velocity": 67}
-    ]
-  }
+  "fx": {"reverb": {"mix": 0.45, "decay": 0.94, "damping": 5000, "predelay": 0.05}}
 }

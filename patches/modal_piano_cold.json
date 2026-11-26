@@ -25,14 +25,5 @@
   },
   "vlfo": {"rate": 0.33, "waveform": "sine"},
   "vroute1": {"source": "vlfo", "destination": "pitch", "amount": 0.0035},
-  "vroute2": {"source": "random", "destination": "pitch", "amount": 0.002},
-  "audition": {
-    "notes": "E2 G3+B3+D4+F#4 _ C2 E3+G3+B3 _ E2 G3+B3+D4+F#4 _ C2 E3+G3+B3+E5 _ _ _ _",
-    "bpm": 66,
-    "step": 1,
-    "velocity": 70,
-    "gate": 0.95,
-    "humanize_velocity": 8,
-    "humanize_ms": 15
-  }
+  "vroute2": {"source": "random", "destination": "pitch", "amount": 0.002}
 }

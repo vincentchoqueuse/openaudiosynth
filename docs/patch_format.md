@@ -19,13 +19,13 @@ values are clamped with a warning. Parameters, their roles, ranges and units: `d
   "osc1": {"waveform": "saw"},
   "osc2": {"waveform": "pulse", "octave": -1, "pulse_width": 0.3, "level": 0.5},
   "filter": {"cutoff": 220, "resonance": 8, "keytrack": 0.3},
-  "fx": {"delay": {"mix": 0.15, "time": 0.357}},
-  "audition": { "notes": "C2! C2 C3 - Eb2 _ Bb1 C2", "bpm": 124, "step": 0.25, "gate": 0.6, "velocity": 100 }
+  "fx": {"delay": {"mix": 0.15, "time": 0.357}}
 }
 ```
 
+- **A patch is the instrument alone.** What plays it is a clip, apart: its demo is `clips/<name>.json` (below).
 - **Settings, grouped by module**: every key of the patch other than its own (`version`, `engine`, `name`,
-  `description`, `kit`, `macros`, `audition`, `clip`) is a module, an object of settings, possibly nested
+  `description`, `kit`, `macros`) is a module, an object of settings, possibly nested
   (`"fx": {"delay": {...}}`, `"mseg1": {"point2": {"time": 0.5}}`). A leaf's path is a parameter's **role**
   (`filter.cutoff`, `fx.delay.mix`: the `role` column of `docs/catalog.md`), unique on every engine. Values in
   physical units (Hz, s, dB, cents, octaves, semitones…); enumerated parameters take a label (`"saw"`, `"lp"`)
@@ -62,21 +62,28 @@ values are clamped with a warning. Parameters, their roles, ranges and units: `d
     top. When no macro holds an effect any more, it returns to the value last set (patch, CC 91/93/94).
   - `cc` (optional): the MIDI CC that turns the macro, 2..119 except 64 (0: none). By default macros 1..8 listen
     to CC 102..109, a free range: set a controller (or the hub) to send them, or give the CCs your knobs send.
-- `audition` (optional): the phrase used by `synth_render --patch`.
-- `clip` (optional): the patch's sequence as MIDI notes, played instead of the audition phrase by
-  `synth_render --patch` and loaded into the web page's sequencer with the preset:
-  `{ "bpm": 60, "length": 128, "loop": true, "grid": "1/4", "key": "F lydian",
-     "notes": [ { "pitch": 41, "start": 0, "length": 128, "velocity": 90 }, … ] }` — pitch MIDI (60 = C4), start
-  and length in beats, velocity 1..127 (default 100), length the clip and its loop, at most 256 notes; grid and key
-  are the piano roll's. The boards still play the `audition` phrase.
-  - `step`: beats per step (0.25 = sixteenth), `gate`: fraction of the step the note is held.
-  - Notes: space-separated steps. `C3`, `Eb2`, `F#4` (C4 = MIDI 60); chord `C3+E3+G3`;
-    `-` rest; `_` tie (extends the previous step); suffix `!` accent (vel 127), `?` soft (vel 50),
-    `~` slide into the next note (overlap -> legato glide on mono/legato voices), per note in chords;
-    `|` is ignored (bar separator for readability).
+## Clip — `clips/<name>.json`
+
+What plays an instrument: MIDI notes in beats, exactly as the web sequencer holds them (its Code tab). A sound's
+demo is the clip of the same name; the sequencer stays apart from the sounds (loading a sound leaves the clip as
+it is, Demo puts the sound's demo in it, saving a sound into the library saves the sequencer's clip as its demo).
+
+```json
+{ "name": "va_acid_bass", "bpm": 124, "length": 4, "loop": true, "grid": "1/16", "key": "C minor",
+  "notes": [ { "pitch": 36, "start": 0, "length": 0.15, "velocity": 127 }, … ] }
+```
+
+Pitch MIDI (60 = C4), start and length in beats, velocity 1..127 (default 100), length the clip and its loop, at
+most 256 notes; grid and key are the piano roll's. Each note ends 2 ms early when played (a repeated pitch is
+never cut). Schema: `spec/schemas/clip.schema.json`.
 
 Render: `./build-host/host/synth_render --patch patches/va_acid_bass.json --out build-host/renders/x.wav`
-(`--notes "..."` overrides the phrase, `--tail 1.5` adds release time).
+plays the patch with its demo (`clips/<name>.json` beside `patches/`); `--clip FILE` plays another clip,
+`--notes "C2! C2 C3 -"` a phrase (the notation below, also a song track's), `--tail 1.5` adds release time.
+
+Phrases (`--notes`, song tracks): space-separated steps. `C3`, `Eb2`, `F#4` (C4 = MIDI 60); chord `C3+E3+G3`;
+`-` rest; `_` tie (extends the previous step); suffix `!` accent (vel 127), `?` soft (vel 50), `~` slide into the
+next note (overlap -> legato glide on mono/legato voices), per note in chords; `|` is ignored (bar separator).
 
 ## Song — `songs/<name>.json`
 

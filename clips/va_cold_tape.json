@@ -1,0 +1,33 @@
+{
+  "name": "va_cold_tape",
+  "bpm": 68,
+  "length": 32,
+  "loop": true,
+  "grid": "1/8",
+  "key": "E minor",
+  "notes": [
+    {"pitch": 40, "start": 0, "length": 7.5, "velocity": 76},
+    {"pitch": 47, "start": 0, "length": 7.5, "velocity": 88},
+    {"pitch": 54, "start": 0, "length": 7.5, "velocity": 76},
+    {"pitch": 59, "start": 0, "length": 7.5, "velocity": 88},
+    {"pitch": 66, "start": 0, "length": 7.5, "velocity": 76},
+    {"pitch": 36, "start": 8, "length": 7.5, "velocity": 76},
+    {"pitch": 43, "start": 8, "length": 7.5, "velocity": 88},
+    {"pitch": 52, "start": 8, "length": 7.5, "velocity": 76},
+    {"pitch": 54, "start": 8, "length": 7.5, "velocity": 88},
+    {"pitch": 59, "start": 8, "length": 7.5, "velocity": 76},
+    {"pitch": 33, "start": 16, "length": 7.5, "velocity": 76},
+    {"pitch": 43, "start": 16, "length": 7.5, "velocity": 88},
+    {"pitch": 47, "start": 16, "length": 7.5, "velocity": 76},
+    {"pitch": 52, "start": 16, "length": 7.5, "velocity": 88},
+    {"pitch": 60, "start": 16, "length": 7.5, "velocity": 76},
+    {"pitch": 35, "start": 24, "length": 7.5, "velocity": 76},
+    {"pitch": 40, "start": 24, "length": 7.5, "velocity": 88},
+    {"pitch": 47, "start": 24, "length": 7.5, "velocity": 76},
+    {"pitch": 52, "start": 24, "length": 7.5, "velocity": 88},
+    {"pitch": 57, "start": 24, "length": 7.5, "velocity": 76},
+    {"pitch": 78, "start": 3, "length": 3.5, "velocity": 62},
+    {"pitch": 76, "start": 6.5, "length": 1.2, "velocity": 56},
+    {"pitch": 74, "start": 19, "length": 4, "velocity": 60}
+  ]
+}

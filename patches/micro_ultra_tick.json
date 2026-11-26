@@ -14,24 +14,5 @@
   },
   "amp": {"attack": 2e-05, "decay": 0.001, "sustain": 0, "velocity": 0.7},
   "output": {"volume": 13.4},
-  "tempo": {"bpm": 120},
-  "clip": {
-    "bpm": 120,
-    "length": 4,
-    "loop": true,
-    "grid": "1/16",
-    "notes": [
-      {"pitch": 60, "start": 0.0, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 0.5, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 0.75, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 1.0, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 1.5, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 2.0, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 2.5, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 2.75, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 3.0, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 3.5, "length": 0.05, "velocity": 100},
-      {"pitch": 60, "start": 3.75, "length": 0.05, "velocity": 100}
-    ]
-  }
+  "tempo": {"bpm": 120}
 }

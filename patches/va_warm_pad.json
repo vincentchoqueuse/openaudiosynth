@@ -9,6 +9,5 @@
   "filter_env": {"attack": 1.2, "decay": 2.5, "sustain": 0.4},
   "lfo": {"rate": 0.25, "to_cutoff": 0.5},
   "output": {"volume": 1.9},
-  "voice": {"drift": 6, "pan_spread": 0.9},
-  "audition": {"notes": "A2+C3+E3+A3 _ _ _ _ _ _ _ F2+A2+C3+F3 _ _ _ _ _ _ _", "bpm": 60, "step": 0.5}
+  "voice": {"drift": 6, "pan_spread": 0.9}
 }

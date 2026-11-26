@@ -1,0 +1,21 @@
+{
+  "name": "va_dub_chords",
+  "bpm": 75,
+  "length": 4.0,
+  "loop": true,
+  "grid": "1/8",
+  "notes": [
+    {"pitch": 50, "start": 0.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 53, "start": 0.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 57, "start": 0.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 50, "start": 1.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 53, "start": 1.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 57, "start": 1.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 48, "start": 2.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 52, "start": 2.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 55, "start": 2.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 48, "start": 3.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 52, "start": 3.5, "length": 0.4025, "velocity": 100},
+    {"pitch": 55, "start": 3.5, "length": 0.4025, "velocity": 100}
+  ]
+}

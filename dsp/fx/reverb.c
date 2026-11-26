@@ -149,48 +149,55 @@ DSP_FAST_CODE void reverb_process(reverb_t *r, const float *in, float *outL, flo
     const int r0 = otap_delay(d1L, 353, k), r1 = otap_delay(d1L, 3627, k), r2 = otap_delay(apL, 1228, k),
               r3 = otap_delay(d2L, 2673, k), r4 = otap_delay(d1R, 2111, k), r5 = otap_delay(apR, 335, k),
               r6 = otap_delay(d2R, 121, k);
+    /* the state each sample reads and writes, in locals for the block (written back after it) */
+    float cur_decay = r->cur_decay, cur_damp = r->cur_damp, cur_in = r->cur_in, bw_state = r->bw_state;
+    float lfo_phase = r->lfo_phase, damp_state[2] = {r->damp_state[0], r->damp_state[1]}, fb[2] = {r->fb[0], r->fb[1]};
+    const float excursion = r->excursion, lfo_inc = r->lfo_inc;
+    const int predelay = r->predelay;
     for (int i = 0; i < n; i++) {
-        r->cur_decay += (t_decay - r->cur_decay) * gl;
-        r->cur_damp += (t_damp - r->cur_damp) * gl;
-        r->cur_in += (t_in - r->cur_in) * gl;
-        const float decay = r->cur_decay, damp = r->cur_damp;
+        cur_decay += (t_decay - cur_decay) * gl;
+        cur_damp += (t_damp - cur_damp) * gl;
+        cur_in += (t_in - cur_in) * gl;
+        const float decay = cur_decay, damp = cur_damp;
         /* predelay + bandwidth filter + input diffusion */
-        push(&r->pre, in[i] * r->cur_in);
-        float x = r->predelay > 0 ? tap(&r->pre, r->predelay) : in[i] * r->cur_in;
-        r->bw_state += (x - r->bw_state) * bw;
-        x = r->bw_state;
+        push(&r->pre, in[i] * cur_in);
+        float x = predelay > 0 ? tap(&r->pre, predelay) : in[i] * cur_in;
+        bw_state += (x - bw_state) * bw;
+        x = bw_state;
         for (int a = 0; a < 4; a++)
             x = allpass(&r->in_ap[a], x, in_ap_g[a], r->in_ap[a].len - 1);
 
         /* tank modulation: the two halves move in quadrature */
-        r->lfo_phase += r->lfo_inc;
-        if (r->lfo_phase >= 1.0f)
-            r->lfo_phase -= 1.0f;
-        const float m0 = r->excursion * (1.0f + fm_sin(r->lfo_phase)) * 0.5f;
-        const float m1 = r->excursion * (1.0f + fm_cos(r->lfo_phase)) * 0.5f;
+        lfo_phase += lfo_inc;
+        if (lfo_phase >= 1.0f)
+            lfo_phase -= 1.0f;
+        const float m0 = excursion * (1.0f + fm_sin(lfo_phase)) * 0.5f;
+        const float m1 = excursion * (1.0f + fm_cos(lfo_phase)) * 0.5f;
         const float mod[2] = {m0, m1};
 
         float out_half[2];
         for (int h = 0; h < 2; h++) {
-            float t = x + r->fb[h];
-            const float base = (float)(r->tank_ap1[h].len - 3) - r->excursion;
+            float t = x + fb[h];
+            const float base = (float)(r->tank_ap1[h].len - 3) - excursion;
             /* decay diffusion 1 has the opposite sign in the paper */
             t = allpass_frac(&r->tank_ap1[h], t, -dd1, base + mod[h]);
             push(&r->tank_d1[h], t);
             t = tap(&r->tank_d1[h], r->tank_d1[h].len - 1);
-            r->damp_state[h] += (t - r->damp_state[h]) * damp;
-            t = r->damp_state[h] * decay;
+            damp_state[h] += (t - damp_state[h]) * damp;
+            t = damp_state[h] * decay;
             t = allpass(&r->tank_ap2[h], t, dd2, r->tank_ap2[h].len - 1);
             push(&r->tank_d2[h], t);
             out_half[h] = tap(&r->tank_d2[h], r->tank_d2[h].len - 1) * decay;
         }
         /* figure of eight: each half feeds the other */
-        r->fb[1] = out_half[0];
-        r->fb[0] = out_half[1];
+        fb[1] = out_half[0];
+        fb[0] = out_half[1];
 
         outL[i] = 0.6f * (tap(d1R, l0) + tap(d1R, l1) - tap(apR, l2) + tap(d2R, l3) - tap(d1L, l4) -
                           tap(apL, l5) - tap(d2L, l6));
         outR[i] = 0.6f * (tap(d1L, r0) + tap(d1L, r1) - tap(apL, r2) + tap(d2L, r3) - tap(d1R, r4) -
                           tap(apR, r5) - tap(d2R, r6));
     }
+    r->cur_decay = cur_decay, r->cur_damp = cur_damp, r->cur_in = cur_in, r->bw_state = bw_state, r->lfo_phase = lfo_phase;
+    r->damp_state[0] = damp_state[0], r->damp_state[1] = damp_state[1], r->fb[0] = fb[0], r->fb[1] = fb[1];
 }

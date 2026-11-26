@@ -71,6 +71,7 @@ export const ENGINE_UI = {
        'noise_pattern', 'bend_range', /^pulse\d_(offset|edge|depth)$/],
       (n, s) => {
         if (n === 'freq') return choice(s, 'pitch_mode') !== 'fixed';
+        if (n === 'ortho_mode') return s.getP('ortho') === 0; // a pure sine: no kind of noise to choose
         if (n === 'osc2_ratio') return choice(s, 'osc2_mode') !== 'ratio';
         if (n === 'osc2_offset') return choice(s, 'osc2_mode') !== 'hz';
         if (n === 'noise_decay') return choice(s, 'noise_env') === 'amp';

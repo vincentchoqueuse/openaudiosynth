@@ -243,10 +243,55 @@ static void pulses(void)
     CHECK(z0 == h + 48 && o1 == h + 96, "free pulse 1 kHz: hit at %d, shut from %d, open again at %d", h, z0, o1);
 }
 
+/* the two newer pulse targets: ortho (an open step is the ortho noise, a closed one the sine) and trigger (every step
+ * that opens hits the low layer on its own sample) */
+static void pulse_targets(void)
+{
+    /* the reference: the plain sine, no pulse */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L2, R, 18000, 120.0f);
+    /* ortho at 1 (noise), pulse 1 on 1/16 every other step from step 1, target ortho */
+    fresh();
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    setp(MICRO_P_ORTHO, 1.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, 7.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 18000, 120.0f);
+    float open_d = 0.0f, shut_d = 0.0f;
+    for (int i = 100; i < 5900; i++)
+        open_d = fmaxf(open_d, fabsf(L[i] - L2[i]));
+    for (int i = 6100; i < 11900; i++)
+        shut_d = fmaxf(shut_d, fabsf(L[i] - L2[i]));
+    printf("  pulse on ortho: open step %.3f from the sine, closed step %.2g\n", (double)open_d, (double)shut_d);
+    CHECK(open_d > 0.05f && shut_d < 1e-5f, "pulse ortho: open %g, closed %g from the sine", (double)open_d, (double)shut_d);
+
+    /* trigger: the low layer alone (short), pulse 1 open on steps 1, 5, 9 (0x111): a hit on each, silence between */
+    fresh();
+    setp(MICRO_P_SINE_LEVEL, -60.0f);
+    setp(MICRO_P_SUSTAIN, 1.0f);
+    setp(MICRO_P_LOW_LEVEL, 0.0f);
+    setp(MICRO_P_LOW_DECAY, 0.02f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 273.0f, 0.0f, 8.0f);
+    note_at(69, 0);
+    beat_pos = 0.0f;
+    run(L, R, 60000, 120.0f);
+    const float h4 = max_abs(L + 24000, 2000), gap = max_abs(L + 15000, 9000), h8 = max_abs(L + 48000, 2000);
+    const int f4 = first_nonzero(L + 23000, 2000), on4 = f4 == 1000 || f4 == 1001; /* the low sine starts at phase 0 */
+    printf("  pulse trigger: hits %.3f and %.3f on steps 5 and 9, %.2g between; the hit on sample 24000: %s\n",
+           (double)h4, (double)h8, (double)gap, on4 ? "yes" : "no");
+    CHECK(h4 > 0.05f && h8 > 0.05f && gap < 1e-4f && on4, "pulse trigger: %g %g, between %g, first sound at %d", (double)h4,
+          (double)h8, (double)gap, 23000 + f4);
+}
+
 void suite_micro(void)
 {
     grid_and_space();
     pulses();
+    pulse_targets();
     /* onset: a note asked at sample 37 of the stream starts on sample 37 through the synth (block 1, offset 5) */
     {
         synth_t *s = synth_default();

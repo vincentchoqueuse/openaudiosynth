@@ -109,6 +109,7 @@ typedef struct {
     int32_t pu_n[MICRO_PULSES];  /* free pulses: samples since the note */
     int32_t pu_q[MICRO_PULSES];  /* free pulses: steps since the note */
     int64_t pu_nb[MICRO_PULSES]; /* free pulses: the sample (since the note) where the next step starts */
+    int8_t pu_last[MICRO_PULSES]; /* each pulse's step at the last sample (-1: none yet): a trigger fires on a new open one */
 } micro_voice_t;
 
 typedef struct {

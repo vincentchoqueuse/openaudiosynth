@@ -25,8 +25,9 @@ static const float lock_beats[] = {0.0f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.0f, 2.0
 static const char *const space_labels[] = {"free", "hard", "alternate", NULL};
 static const char *const ortho_labels[] = {"smooth", "stepped", "sparse", NULL};
 /* what a pulse opens and closes, as a mask: 1 the main sine (with sub and click), 2 the second sine, 4 the noise, 8 the low layer */
-static const char *const pulse_target_labels[] = {"main", "sine2", "sines", "noise", "low", "tone_noise", "all", NULL};
-static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15};
+static const char *const pulse_target_labels[] = {"main", "sine2", "sines", "noise", "low", "tone_noise", "all", "ortho", "trigger", NULL};
+/* bits: 1 main, 2 second sine, 4 noise, 8 low, 16 ortho (open = the noise of ortho, closed = the sine), 32 trigger */
+static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15, 16, 32};
 #define PULSE(K)                                                                                                       \
     PARAM(MICRO_PU(K - 1, MICRO_PU_MODE), "pulse" #K "_mode", "micro.pulse" #K ".mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0,  \
           gate_mode_labels, "pulse " #K ": an on / off rhythm exact to the sample, on the song's beat (sync) or from the " \
@@ -45,9 +46,10 @@ static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15};
           "s", 1, NULL, "length of its edges: one sample is a cut with its click, a few milliseconds soften it"),       \
     PARAM(MICRO_PU(K - 1, MICRO_PU_DEPTH), "pulse" #K "_depth", "micro.pulse" #K ".depth", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, \
           NULL, "how far a closed step goes down: 1 to silence, less leaves some of the layer through"),             \
-    PARAM(MICRO_PU(K - 1, MICRO_PU_TARGET), "pulse" #K "_target", "micro.pulse" #K ".target", 0.0f, 6.0f, 0.0f, PARAM_INT, \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_TARGET), "pulse" #K "_target", "micro.pulse" #K ".target", 0.0f, 8.0f, 0.0f, PARAM_INT, \
           "", 0, pulse_target_labels, "the layers it opens and closes: main (sine, sub, click), sine2, both sines, "   \
-          "noise, low, the tone and the noise, or all")
+          "noise, low, the tone and the noise, all; ortho: the main sine is its ortho noise on an open step and the sine on a "  \
+          "closed one; trigger: every step that opens restarts the noise's envelope and hits the low layer")
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, param_voice_mode_labels,
@@ -493,6 +495,7 @@ static void hit(micro_t *e, micro_voice_t *v)
         for (int k = 0; k < MICRO_PULSES; k++) {
             v->pu_n[k] = 0;
             v->pu_q[k] = 0;
+            v->pu_last[k] = -1;
             v->pu_nb[k] = pulse_boundary(1, pulse_len_q(e, k));
         }
     v->hit_index++;
@@ -543,7 +546,7 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         v->vm_fresh = 1;
         v->gate_g = -1.0f; /* set on the first sample */
         for (int k = 0; k < MICRO_PULSES; k++)
-            v->pu_g[k] = -1.0f;
+            v->pu_g[k] = -1.0f, v->pu_last[k] = -1;
     }
     const float vs = e->p[MICRO_P_VELOCITY];
     v->vel = 1.0f - vs + vs * vel;
@@ -727,6 +730,7 @@ typedef struct {
     float ldg, lnorm, ldrop, lbeat, lmix;
     int space;                                /* free, hard, alternate */
     int pulses;                               /* pulses on (0: none, the loop skips them) */
+    int pu_ortho;                             /* a pulse targets ortho (and ortho is on) */
     int pu_mode[MICRO_PULSES], pu_steps[MICRO_PULSES], pu_off[MICRO_PULSES];
     uint32_t pu_pat[MICRO_PULSES];
     uint8_t pu_mask[MICRO_PULSES];
@@ -880,7 +884,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
     micro_voice_t *v = &e->v[vi];
     const float *vm = vpoly_vmod(&e->poly, vi);
     const float shift = e->bend + vm[VM_PITCH];
-    float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK], xw[SYNTH_BLOCK], sd[SYNTH_BLOCK];
+    float xa[SYNTH_BLOCK], xb[SYNTH_BLOCK], ck[SYNTH_BLOCK], xn[SYNTH_BLOCK], xw[SYNTH_BLOCK], sd[SYNTH_BLOCK], xd[SYNTH_BLOCK];
     const int alt = blk->space == 2;
     const int low_live = ll > 0.0f || v->low_stage != MICRO_ENV_IDLE || v->low_tail != 0.0f;
     if (v->low_stage != MICRO_ENV_IDLE) {
@@ -913,6 +917,37 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
             v->off_in--;
         }
 
+        /* pulses: each one's step on the beat or from the note, its pattern, its slewed gain into the layers it
+         * targets (m, applied at the end of the sample); a trigger pulse stepping into an open step restarts the noise
+         * and the low layer on this very sample */
+        float m[5] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f}; /* main, second sine, noise, low, ortho */
+        int trig = 0;
+        if (blk->pulses)
+            for (int k = 0; k < MICRO_PULSES; k++) {
+                const int mode = blk->pu_mode[k];
+                if (mode == 0)
+                    continue;
+                int ps;
+                if (mode == 1) {
+                    ps = blk->pu_step[k][i];
+                } else { /* free: steps of len samples from the note, counted in whole samples */
+                    if (v->pu_n[k] >= v->pu_nb[k]) {
+                        v->pu_q[k]++;
+                        v->pu_nb[k] = pulse_boundary(v->pu_q[k] + 1, blk->pu_len[k]);
+                    }
+                    ps = (v->pu_q[k] + blk->pu_off[k]) % blk->pu_steps[k];
+                    v->pu_n[k]++;
+                }
+                const int open = (int)((blk->pu_pat[k] >> ps) & 1u);
+                if ((blk->pu_mask[k] & 32u) && ps != v->pu_last[k] && open)
+                    trig = 1;
+                v->pu_last[k] = (int8_t)ps;
+                const float pg = v->pu_g[k] = gate_slew(v->pu_g[k], open ? 1.0f : blk->pu_floor[k], blk->pu_slew[k]);
+                for (int t = 0; t < 5; t++)
+                    if (blk->pu_mask[k] & (1u << t))
+                        m[t] *= pg;
+            }
+
         /* amplitude envelope */
         if (v->stage == MICRO_ENV_ATTACK || v->stage == MICRO_ENV_HOLD || v->stage == MICRO_ENV_DECAY ||
             v->stage == MICRO_ENV_RELEASE) {
@@ -939,9 +974,12 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
         }
 
         /* sines */
-        float a = 0.0f, b = 0.0f;
+        float a = 0.0f, b = 0.0f, od = 0.0f;
         if (v->tone_on) {
-            a = l1 * ortho_next(&v->ortho, &blk->ortho, v->ph1); /* the sine itself while ortho is 0 */
+            const float o = ortho_next(&v->ortho, &blk->ortho, v->ph1); /* the sine itself while ortho is 0 */
+            a = l1 * o;
+            if (blk->pu_ortho)
+                od = l1 * (o - fm_sin_pos(v->ph1)); /* what ortho adds to the sine: an ortho pulse takes it off */
             if (ls > 0.0f)
                 a += ls * fm_sin_pos(v->phs);
             if (l2 > 0.0f) {
@@ -978,6 +1016,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
 
         const float g = env * gg;
         xa[i] = a * g;
+        xd[i] = od * g;
         xb[i] = b * g;
 
         /* noise layer: generator, its gate (its own slew), its envelope */
@@ -1013,6 +1052,8 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                     v->nstep = step;
                 }
             }
+            if (trig && nenv > 0 && v->gate) /* a trigger pulse: the noise's own envelope starts again */
+                v->noise_amp = 1.0f;
             float ne;
             if (nenv == 0) {
                 ne = env;
@@ -1025,6 +1066,10 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
 
         /* low layer: a hit on every step its gate opens, then its sine under its own envelope */
         if (low_live) {
+            if (trig && ll > 0.0f && v->gate) { /* a trigger pulse: a hit of the low layer */
+                low_hit(e, v);
+                linc = inc_of(v->low_semi + (v->low_pitch_on ? ldrop : 0.0f), inv_sr);
+            }
             if (lgate > 0 && step >= 0 && step != v->lstep) {
                 if (ll > 0.0f && v->gate && ((lpat >> step) & 1u)) {
                     low_hit(e, v);
@@ -1075,30 +1120,8 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
         }
         ck[i] = c * gg;
 
-        /* pulses: each one's step on the beat or from the note, its pattern, its slewed gain, into the layers it targets */
+        /* pulses: their gains, computed at the top of the sample (above), applied to the layers they target */
         if (blk->pulses) {
-            float m[4] = {1.0f, 1.0f, 1.0f, 1.0f}; /* main, second sine, noise, low */
-            for (int k = 0; k < MICRO_PULSES; k++) {
-                const int mode = blk->pu_mode[k];
-                if (mode == 0)
-                    continue;
-                int ps;
-                if (mode == 1) {
-                    ps = blk->pu_step[k][i];
-                } else { /* free: steps of len samples from the note, counted in whole samples */
-                    if (v->pu_n[k] >= v->pu_nb[k]) {
-                        v->pu_q[k]++;
-                        v->pu_nb[k] = pulse_boundary(v->pu_q[k] + 1, blk->pu_len[k]);
-                    }
-                    ps = (v->pu_q[k] + blk->pu_off[k]) % blk->pu_steps[k];
-                    v->pu_n[k]++;
-                }
-                const float target = (blk->pu_pat[k] >> ps) & 1u ? 1.0f : blk->pu_floor[k];
-                const float pg = v->pu_g[k] = gate_slew(v->pu_g[k], target, blk->pu_slew[k]);
-                for (int t = 0; t < 4; t++)
-                    if (blk->pu_mask[k] & (1u << t))
-                        m[t] *= pg;
-            }
             xa[i] *= m[0];
             ck[i] *= m[0];
             xb[i] *= m[1];
@@ -1106,6 +1129,8 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                 xn[i] *= m[2];
             if (low_live)
                 xw[i] *= m[3];
+            if (blk->pu_ortho) /* ortho target: from the ortho noise (open) back toward the sine (closed) */
+                xa[i] -= (1.0f - m[4]) * xd[i];
         }
         any_click |= c != 0.0f;
     }
@@ -1192,6 +1217,7 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     b.ldg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE], b.lnorm = 1.0f / fm_tanh(b.ldg), b.ldrop = p[MICRO_P_LOW_DROP];
     b.space = (int)p[MICRO_P_SPACE];
     b.pulses = 0;
+    b.pu_ortho = 0;
     for (int k = 0; k < MICRO_PULSES; k++) {
         const float *q = &p[MICRO_PU(k, 0)];
         b.pu_mode[k] = (int)q[MICRO_PU_MODE];
@@ -1199,7 +1225,8 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         b.pu_steps[k] = dsp_clampi((int)q[MICRO_PU_STEPS], 1, 16);
         b.pu_off[k] = (int)q[MICRO_PU_OFFSET];
         b.pu_pat[k] = (uint32_t)q[MICRO_PU_PATTERN];
-        b.pu_mask[k] = pulse_target_mask[dsp_clampi((int)q[MICRO_PU_TARGET], 0, 6)];
+        b.pu_mask[k] = pulse_target_mask[dsp_clampi((int)q[MICRO_PU_TARGET], 0, 8)];
+        b.pu_ortho |= b.pu_mode[k] > 0 && (b.pu_mask[k] & 16u) && b.ortho.on;
         if (b.pu_mode[k] == 1) {
             /* on the beat: the step of each sample from the integer clock and a step length in 1/65536 samples,
              * so a step of a whole number of samples is exactly that */
@@ -1272,11 +1299,11 @@ static const engine_stage_t micro_stages[] = {
                           "velocity pan volume", "drive osc2 noise low", NULL, NULL, 0.0f, 0.0f},
     {"pitch_env", "Pitch env", "mod", "pitch_amount pitch_time pitch_curve", "", "sine osc2 sub", NULL, 0.0f, 0.0f},
     {"ratchet", "Ratchet", "mod", "ratchet ratchet_div ratchet_hz ratchet_decay", "", "amp", "ratchet", 1.0f, 4.0f},
-    {"gate", "Gate", "mod", "gate_", "", "amp", "gate_mode", 0.0f, 1.0f},
-    {"pulse1", "Pulse 1", "mod", "pulse1_", "", "sine osc2 noise low", "pulse1_mode", 0.0f, 1.0f},
-    {"pulse2", "Pulse 2", "mod", "pulse2_", "", "sine osc2 noise low", "pulse2_mode", 0.0f, 1.0f},
-    {"pulse3", "Pulse 3", "mod", "pulse3_", "", "sine osc2 noise low", "pulse3_mode", 0.0f, 1.0f},
-    {"pulse4", "Pulse 4", "mod", "pulse4_", "", "sine osc2 noise low", "pulse4_mode", 0.0f, 1.0f},
+    {"gate", "Gate LFO 1", "mod", "gate_", "", "amp noise low", "gate_mode", 0.0f, 1.0f},
+    {"pulse1", "Gate LFO 2", "mod", "pulse1_", "", "sine osc2 noise low", "pulse1_mode", 0.0f, 1.0f},
+    {"pulse2", "Gate LFO 3", "mod", "pulse2_", "", "sine osc2 noise low", "pulse2_mode", 0.0f, 1.0f},
+    {"pulse3", "Gate LFO 4", "mod", "pulse3_", "", "sine osc2 noise low", "pulse3_mode", 0.0f, 1.0f},
+    {"pulse4", "Gate LFO 5", "mod", "pulse4_", "", "sine osc2 noise low", "pulse4_mode", 0.0f, 1.0f},
     {"grid", "Grid and space", "mod", "lock space space_delay", "", "sine osc2 low noise", NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "voice_mode glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
@@ -1284,8 +1311,9 @@ static const engine_stage_t micro_stages[] = {
 const engine_ops_t micro_engine = {
     .name = "micro",
     .description = "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, "
-                   "click, noise layer with its own gate, low layer (a sub with its own sample-exact envelope, pitch drop "
-                   "and gate), tone bursts, ratchets, gate patterns (8 voices)",
+                   "click, the main sine turned toward noise (ortho), noise layer, low layer (a sub with its own sample-exact "
+                   "envelope and pitch drop), tone bursts, ratchets, five gate LFOs (on / off rhythms exact to the sample: "
+                   "the first steps the noise and low layers, the others open, close or trigger any layer) (8 voices)",
     .params = micro_params,
     .param_count = MICRO_P_COUNT,
     .voices = MICRO_VOICES,

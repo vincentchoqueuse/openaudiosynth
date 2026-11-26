@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "grille_fine",
   "description": "A study in exact sines at 120 BPM on the micro engine: two pure tones beating 1.5 Hz apart between the ears, a grid of two-cycle ticks, a low tone carved by a gate pattern, a deep pitched kick, data rolls in 1/32, a keyed sub and very high blips; a two-bar break before the end.",
   "bpm": 120,
@@ -18,26 +18,10 @@
     {
       "patch": "patches/micro_click_grid.json",
       "pattern": [
-        {
-          "C4": "x.x..x..x..x.x..",
-          "C5": "...x......x.....",
-          "repeat": 8
-        },
-        {
-          "C4": "x.xx.x..x..xx.x.",
-          "C5": "...x...x..x...xx",
-          "repeat": 8
-        },
-        {
-          "C4": "................",
-          "C5": "................",
-          "repeat": 2
-        },
-        {
-          "C4": "x.xx.x..x..xx.x.",
-          "C5": "...x...x..x...xx",
-          "repeat": 6
-        }
+        {"C4": "x.x..x..x..x.x..", "C5": "...x......x.....", "repeat": 8},
+        {"C4": "x.xx.x..x..xx.x.", "C5": "...x...x..x...xx", "repeat": 8},
+        {"C4": "................", "C5": "................", "repeat": 2},
+        {"C4": "x.xx.x..x..xx.x.", "C5": "...x...x..x...xx", "repeat": 6}
       ],
       "gain_db": -4,
       "velocity": 100
@@ -51,33 +35,16 @@
       "gain_db": -3,
       "velocity": 100,
       "gate": 1,
-      "params": {
-        "gate_pattern": 46261
-      }
+      "params": {"micro": {"gate_pattern": 46261}}
     },
     {
       "patch": "patches/micro_deep_kick.json",
       "pattern": [
-        {
-          "C3": "................",
-          "repeat": 4
-        },
-        {
-          "C3": "x...x...x...x...",
-          "repeat": 10
-        },
-        {
-          "C3": "x...x...x...x.x.",
-          "repeat": 2
-        },
-        {
-          "C3": "................",
-          "repeat": 2
-        },
-        {
-          "C3": "x...x...x...x...",
-          "repeat": 6
-        }
+        {"C3": "................", "repeat": 4},
+        {"C3": "x...x...x...x...", "repeat": 10},
+        {"C3": "x...x...x...x.x.", "repeat": 2},
+        {"C3": "................", "repeat": 2},
+        {"C3": "x...x...x...x...", "repeat": 6}
       ],
       "gain_db": 0,
       "velocity": 120
@@ -85,24 +52,10 @@
     {
       "patch": "patches/micro_data_ratchet.json",
       "pattern": [
-        {
-          "C4": "................",
-          "repeat": 6
-        },
-        {
-          "C4": "......x.......x.",
-          "C5": "...........x....",
-          "repeat": 10
-        },
-        {
-          "C4": "................",
-          "repeat": 2
-        },
-        {
-          "C4": "......x.....x.x.",
-          "C5": "...x.......x....",
-          "repeat": 6
-        }
+        {"C4": "................", "repeat": 6},
+        {"C4": "......x.......x.", "C5": "...........x....", "repeat": 10},
+        {"C4": "................", "repeat": 2},
+        {"C4": "......x.....x.x.", "C5": "...x.......x....", "repeat": 6}
       ],
       "gain_db": -6,
       "velocity": 100
@@ -120,34 +73,14 @@
     {
       "patch": "patches/micro_high_tone.json",
       "pattern": [
-        {
-          "B8": "................",
-          "repeat": 10
-        },
-        {
-          "B8": "...x..........x.",
-          "G8": "..........x.....",
-          "repeat": 6
-        },
-        {
-          "B8": "................",
-          "repeat": 2
-        },
-        {
-          "B8": "...x..........x.",
-          "G8": "......x...x.....",
-          "repeat": 6
-        }
+        {"B8": "................", "repeat": 10},
+        {"B8": "...x..........x.", "G8": "..........x.....", "repeat": 6},
+        {"B8": "................", "repeat": 2},
+        {"B8": "...x..........x.", "G8": "......x...x.....", "repeat": 6}
       ],
       "gain_db": -8,
       "velocity": 100
     }
   ],
-  "reverb": {
-    "decay": 0.6,
-    "damping_hz": 7000,
-    "predelay_s": 0.02,
-    "size": 0.8,
-    "return_db": -8
-  }
+  "reverb": {"decay": 0.6, "damping_hz": 7000, "predelay_s": 0.02, "size": 0.8, "return_db": -8}
 }

@@ -3,6 +3,7 @@
 // generated on the fly (patches/index.json), the songs from songs/ likewise (songs/index.json), the demo sample
 // kits from build-host/kits (NAME.oidk, recorded by host/kit_demo at every host build); `vite build` emits them
 // next to the app. In development only, POST /api/patches saves a sound into patches/ (the board's presets are generated from there).
+import { PATCH_VERSION, dumps } from './src/lib/patchjson.js';
 import { defineConfig } from 'vite';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync, readdirSync, existsSync, writeFileSync } from 'node:fs';
@@ -48,7 +49,7 @@ function wasmMissing() {
 }
 
 // POST /api/patches {name, patch, overwrite}: writes patches/<name>.json. Same checks as a patch file must pass
-// (a name of lowercase letters, digits and _, format version 1, an engine), no silent overwrite. Only this page
+// (a name of lowercase letters, digits and _, format version 2, an engine), no silent overwrite. Only this page
 // may call it: a JSON content type (a cross-site form or text/plain post cannot send one without a preflight,
 // which this server does not answer) and, when the browser sends one, an Origin of this server.
 function savePatch(req, res) {
@@ -76,10 +77,10 @@ function savePatch(req, res) {
     const name = String(m?.name ?? '');
     if (!/^[a-z0-9_]{1,48}$/.test(name)) return reply(400, { error: 'name: lowercase letters, digits and _ only' });
     const patch = m.patch;
-    if (!patch || patch.version !== 1 || typeof patch.engine !== 'string') return reply(400, { error: 'not a patch (version 1, engine)' });
+    if (!patch || patch.version !== PATCH_VERSION || typeof patch.engine !== 'string') return reply(400, { error: `not a patch (version ${PATCH_VERSION}, engine)` });
     const file = resolve(PATCHES, name + '.json');
     if (existsSync(file) && !m.overwrite) return reply(409, { error: `patches/${name}.json exists`, exists: true });
-    writeFileSync(file, JSON.stringify({ ...patch, name }, null, 2) + '\n');
+    writeFileSync(file, dumps({ ...patch, name }));
     reply(200, { file: name + '.json' });
   });
 }

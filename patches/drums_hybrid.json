@@ -1,12 +1,10 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "drums",
   "name": "drums_hybrid",
   "description": "Hybrid drum machine kit (mid-80s spirit): punchy clicky kick with a deep pitch sweep, bright snappy snare, gritty 6-bit hats and ride. House and techno.",
-  "params": {
-    "volume": -0.4,
-    "kit": "hybrid"
-  },
+  "drum": {"kit": "hybrid"},
+  "output": {"volume": -0.4},
   "audition": {
     "notes": "C2!+F#2 F#2? F#2 C2+F#2? D2+F#2 F#2? C2+F#2 A#2 C2+F#2 F#2? C2!+F#2 F#2? D2+D#2+F#2 F#2? F#2 C3+C2",
     "bpm": 118,

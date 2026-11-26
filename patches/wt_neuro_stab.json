@@ -1,70 +1,35 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "wt",
   "name": "wt_neuro_stab",
   "description": "Neuro stabs at 174: digital and hard-synced tables through a comb tuned on the note, hard clipped; each stab's comb drops in pitch like a zap while its table sweeps, a square LFO throws dotted echoes on the off-beats and sample-and-hold jumps on the output high-pass thin some stabs out.",
-  "params": {
-    "a_table": "digital",
-    "a_position": 0.3,
-    "a_unison": 2,
-    "a_detune": 12,
-    "a_level": 0.8,
-    "b_table": "sync",
-    "b_position": 0.6,
-    "b_warp_mode": "sync",
-    "b_warp": 0.5,
-    "b_level": 0.6,
-    "sub": 0.6,
-    "sub_route": "direct",
-    "filter_type": "comb",
-    "cutoff": 260,
-    "resonance": 0.7,
-    "drive": 0.3,
-    "keytrack": 1.0,
-    "dist_mode": "hard",
-    "dist_drive": 20,
-    "dist_tone": 9000,
-    "amp_attack": 0.001,
-    "amp_decay": 0.25,
-    "amp_sustain": 0.2,
-    "amp_release": 0.08,
-    "voice_mode": "mono",
-    "vmseg_mode": "oneshot",
-    "vmseg_sync": "beats",
-    "vmseg_points": 3,
-    "vmseg_sustain": "none",
-    "vmseg_t1": 0,
-    "vmseg_l1": 0.0,
-    "vmseg_t2": 0.5,
-    "vmseg_l2": 1.0,
-    "vmseg_c2": -0.5,
-    "vmseg_t3": 1.0,
-    "vmseg_l3": 1.0,
-    "vroute1_source": "vmseg",
-    "vroute1_destination": "timbre",
-    "vroute1_amount": 0.5,
-    "vroute2_source": "vmseg",
-    "vroute2_destination": "brightness",
-    "vroute2_amount": -0.25,
-    "mlfo1_wave": "square",
-    "mlfo1_sync": "1/4",
-    "route1_source": "mlfo1",
-    "route1_destination": "delay_mix",
-    "route1_amount": 0.3,
-    "out_filter": "hp",
-    "out_cutoff": 30,
-    "mlfo2_wave": "sh",
-    "mlfo2_sync": "1/16",
-    "route2_source": "mlfo2",
-    "route2_destination": "out_cutoff",
-    "route2_amount": 0.15,
-    "delay_sync": "1/8d",
-    "delay_feedback": 0.35,
-    "delay_mix": 0.0,
-    "reverb_mix": 0.06,
-    "pan_spread": 0.0,
-    "volume": 17.0
+  "osc1": {"wavetable": "digital", "position": 0.3, "level": 0.8, "unison_voices": 2, "unison_detune": 12},
+  "osc2": {"wavetable": "sync", "position": 0.6, "warp_mode": "sync", "warp": 0.5, "level": 0.6},
+  "sub": {"level": 0.6, "route": "direct"},
+  "filter": {"type": "comb", "cutoff": 260, "resonance": 0.7, "drive": 0.3, "keytrack": 1.0},
+  "amp": {"attack": 0.001, "decay": 0.25, "sustain": 0.2, "release": 0.08},
+  "voice": {"mode": "mono", "pan_spread": 0.0},
+  "output": {"volume": 17.0, "filter": {"mode": "hp", "cutoff": 30}},
+  "fx": {
+    "distortion": {"mode": "hard", "drive": 20, "tone": 9000},
+    "delay": {"mix": 0.0, "feedback": 0.35, "sync": "1/8d"},
+    "reverb": {"mix": 0.06}
   },
+  "mlfo1": {"sync": "1/4", "waveform": "square"},
+  "mlfo2": {"sync": "1/16", "waveform": "sh"},
+  "route1": {"source": "mlfo1", "destination": "fx.delay.mix", "amount": 0.3},
+  "route2": {"source": "mlfo2", "destination": "output.filter.cutoff", "amount": 0.15},
+  "vmseg": {
+    "mode": "oneshot",
+    "sync": "beats",
+    "points": 3,
+    "sustain": "none",
+    "point1": {"time": 0, "level": 0.0},
+    "point2": {"time": 0.5, "level": 1.0, "curve": -0.5},
+    "point3": {"time": 1.0, "level": 1.0}
+  },
+  "vroute1": {"source": "vmseg", "destination": "timbre", "amount": 0.5},
+  "vroute2": {"source": "vmseg", "destination": "brightness", "amount": -0.25},
   "clip": {
     "bpm": 174,
     "length": 8,
@@ -72,72 +37,17 @@
     "grid": "1/16",
     "key": "F minor",
     "notes": [
-      {
-        "pitch": 29,
-        "start": 0,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 29,
-        "start": 0.75,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 41,
-        "start": 1.5,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 29,
-        "start": 2,
-        "length": 0.5,
-        "velocity": 110
-      },
-      {
-        "pitch": 36,
-        "start": 3.25,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 29,
-        "start": 3.5,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 39,
-        "start": 4.5,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 29,
-        "start": 5,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 29,
-        "start": 5.75,
-        "length": 0.25,
-        "velocity": 110
-      },
-      {
-        "pitch": 34,
-        "start": 6.5,
-        "length": 0.5,
-        "velocity": 110
-      },
-      {
-        "pitch": 41,
-        "start": 7.25,
-        "length": 0.25,
-        "velocity": 110
-      }
+      {"pitch": 29, "start": 0, "length": 0.25, "velocity": 110},
+      {"pitch": 29, "start": 0.75, "length": 0.25, "velocity": 110},
+      {"pitch": 41, "start": 1.5, "length": 0.25, "velocity": 110},
+      {"pitch": 29, "start": 2, "length": 0.5, "velocity": 110},
+      {"pitch": 36, "start": 3.25, "length": 0.25, "velocity": 110},
+      {"pitch": 29, "start": 3.5, "length": 0.25, "velocity": 110},
+      {"pitch": 39, "start": 4.5, "length": 0.25, "velocity": 110},
+      {"pitch": 29, "start": 5, "length": 0.25, "velocity": 110},
+      {"pitch": 29, "start": 5.75, "length": 0.25, "velocity": 110},
+      {"pitch": 34, "start": 6.5, "length": 0.5, "velocity": 110},
+      {"pitch": 41, "start": 7.25, "length": 0.25, "velocity": 110}
     ]
   }
 }

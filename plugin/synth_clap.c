@@ -622,31 +622,32 @@ static void add(text_t *t, const char *fmt, ...)
 }
 
 /* value as written in a patch: a label for enumerations, a parameter name for route destinations */
-static void add_value(text_t *t, const engine_ops_t *en, const param_desc_t *d, float v)
+/* a value as JSON text: a route's or a macro target's destination by role, a label, or a number */
+static void value_text(char out[64], const engine_ops_t *en, const param_desc_t *d, float v)
 {
     if ((strncmp(d->name, "route", 5) == 0 || strncmp(d->name, "map", 3) == 0) && strstr(d->name, "_destination")) {
         const int k = (int)(v + 0.5f) - 1;
         const param_desc_t *g = k >= SYNTH_PARAM_GLOBAL ? synth_global_param(k - SYNTH_PARAM_GLOBAL) : NULL;
         if (k >= 0 && k < en->param_count)
-            add(t, "\"%s\"", en->params[k].name);
+            snprintf(out, 64, "\"%s\"", en->params[k].role);
         else if (g) /* a macro target on the master or an effect */
-            add(t, "\"%s\"", g->name);
+            snprintf(out, 64, "\"%s\"", g->role);
         else
-            add(t, "0");
+            snprintf(out, 64, "0");
     } else if (d->labels) {
         int n = 0;
         while (d->labels[n])
             n++;
-        add(t, "\"%s\"", d->labels[dsp_clampi((int)(v - d->min + 0.5f), 0, n - 1)]);
+        snprintf(out, 64, "\"%s\"", d->labels[dsp_clampi((int)(v - d->min + 0.5f), 0, n - 1)]);
     } else { /* 9 significant digits give the float back exactly; '.' whatever the host's locale */
-        char num[32];
-        snprintf(num, sizeof num, "%.9g", (double)v);
-        for (char *c = num; *c; c++)
+        snprintf(out, 64, "%.9g", (double)v);
+        for (char *c = out; *c; c++)
             if (*c == ',')
                 *c = '.';
-        add(t, "%s", num);
     }
 }
+
+static void put_text(void *ctx, const char *text) { add(ctx, "%s", text); }
 
 static bool state_save(const clap_plugin_t *pl, const clap_ostream_t *stream)
 {
@@ -659,29 +660,32 @@ static bool state_save(const clap_plugin_t *pl, const clap_ostream_t *stream)
     v->engine = dsp_clampi(v->engine, 0, SYNTH_ENGINE_COUNT - 1);
     const engine_ops_t *en = engine_registry[v->engine];
     text_t t = {0};
-    add(&t, "{\n  \"version\": %d,\n  \"engine\": \"%s\",\n  \"name\": \"clap_state\",\n", PATCH_VERSION, en->name);
+    add(&t, "{\n  \"version\": %d,\n  \"engine\": \"%s\",\n  \"name\": \"clap_state\"", PATCH_VERSION, en->name);
     if (v->kit > 0 && v->kit < kit_count_all)
-        add(&t, "  \"kit\": \"%s\",\n", kit_names[v->kit]);
-    add(&t, "  \"params\": {");
-    int first = 1;
-    for (int k = 0; k < en->param_count; k++) {
+        add(&t, ",\n  \"kit\": \"%s\"", kit_names[v->kit]);
+    patch_setting_t *set = malloc(sizeof *set * PATCH_MAX_PARAMS);
+    int n = 0;
+    for (int k = 0; set && k < en->param_count && n < PATCH_MAX_PARAMS; k++) {
         const param_desc_t *d = &en->params[k];
         if (v->eng[v->engine][k] == d->def)
             continue;
-        add(&t, "%s\n    \"%s\": ", first ? "" : ",", d->name);
-        add_value(&t, en, d, v->eng[v->engine][k]);
-        first = 0;
+        set[n].role = d->role;
+        value_text(set[n++].value, en, d, v->eng[v->engine][k]);
     }
-    for (int k = 0; k < shared_count(); k++) {
+    for (int k = 0; set && k < shared_count() && n < PATCH_MAX_PARAMS; k++) {
         int sid;
         const param_desc_t *d = catalog_shared(k, &sid);
         if (v->shared[k] == d->def)
             continue;
-        add(&t, "%s\n    \"%s\": ", first ? "" : ",", d->name);
-        add_value(&t, en, d, v->shared[k]);
-        first = 0;
+        set[n].role = d->role;
+        value_text(set[n++].value, en, d, v->shared[k]);
     }
-    add(&t, "\n  }\n}\n");
+    if (set && n) {
+        add(&t, ",\n");
+        patch_write_settings(put_text, &t, set, n, 2);
+    }
+    free(set);
+    add(&t, "\n}\n");
     free(v);
     if (!t.buf)
         return false;

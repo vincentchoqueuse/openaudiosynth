@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "drift_wet",
   "description": "Same piece as drift with a much wetter, longer, darker reverb wash for a more hypnotic, blurred result. Sub and drone stay almost dry to keep the low end clear.",
   "bpm": 60,
@@ -46,15 +46,6 @@
       "reverb_send": 0.7
     }
   ],
-  "reverb": {
-    "decay": 0.95,
-    "damping_hz": 3000,
-    "predelay_s": 0.09,
-    "size": 2.0,
-    "return_db": 1
-  },
-  "master": {
-    "fade_in_s": 6,
-    "fade_out_s": 16
-  }
+  "reverb": {"decay": 0.95, "damping_hz": 3000, "predelay_s": 0.09, "size": 2.0, "return_db": 1},
+  "master": {"fade_in_s": 6, "fade_out_s": 16}
 }

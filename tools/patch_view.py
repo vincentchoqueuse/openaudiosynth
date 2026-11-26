@@ -20,6 +20,8 @@ import re
 import subprocess
 import sys
 import tempfile
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patchtree  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -102,7 +104,7 @@ def resolve(patch, catalog):
     tables = [eng["params"], catalog["global"]["params"]] + [catalog[k]["params"] for k in ("part", "modulation") if k in catalog]
     by_role = {d["role"]: (n, d) for t in tables for n, d in t.items()}
     given = {}
-    for k, v in patch.get("params", {}).items():
+    for k, v in patchtree.settings(patch).items():
         if any(k in t for t in tables):
             given[k] = v
         elif k in by_role:

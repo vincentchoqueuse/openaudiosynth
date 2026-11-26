@@ -5,7 +5,7 @@
   "type": "object",
   "required": ["version", "bpm", "length_beats", "tracks"],
   "properties": {
-    "version": {"const": 1},
+    "version": {"const": 2},
     "name": {"type": "string"},
     "description": {"type": "string"},
     "bpm": {"type": "number", "exclusiveMinimum": 10, "exclusiveMaximum": 400},
@@ -42,11 +42,23 @@
       "required": ["patch"],
       "oneOf": [{"required": ["notes"]}, {"required": ["pattern"]}],
       "properties": {
-        "patch": {"oneOf": [{"type": "string", "description": "a patch file, relative to the repository root"}, {"type": "object", "required": ["version", "engine"], "description": "an inline patch (same format as a patch file)"}]},
+        "patch": {
+          "oneOf": [
+            {"type": "string", "description": "a patch file, relative to the repository root"},
+            {
+              "type": "object",
+              "required": ["version", "engine"],
+              "description": "an inline patch (same format as a patch file)"
+            }
+          ]
+        },
         "notes": {"type": "string"},
-        "pattern": {"oneOf": [
-          {"$ref": "#/$defs/pattern_section"},
-          {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/pattern_section"}}]},
+        "pattern": {
+          "oneOf": [
+            {"$ref": "#/$defs/pattern_section"},
+            {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/pattern_section"}}
+          ]
+        },
         "step": {"type": "number", "exclusiveMinimum": 0},
         "start_step": {"type": "integer", "minimum": 0},
         "repeat": {"type": "integer", "minimum": 1},
@@ -67,9 +79,18 @@
           },
           "additionalProperties": false
         },
-        "params": {"type": "object", "additionalProperties": {"type": ["number", "string"]}}
+        "params": {
+          "$ref": "#/$defs/module",
+          "description": "settings over the patch's, grouped by module like a patch's"
+        }
       },
       "additionalProperties": false
+    },
+    "module": {
+      "type": "object",
+      "propertyNames": {"pattern": "^[a-z0-9_]+$"},
+      "additionalProperties": {"anyOf": [{"type": ["number", "string"]}, {"$ref": "#/$defs/module"}]},
+      "description": "a module's settings: each key a part of a parameter's role, each leaf a value in its units or a label"
     }
   }
 }

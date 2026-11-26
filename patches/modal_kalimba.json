@@ -1,31 +1,20 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "modal",
   "name": "modal_kalimba",
   "description": "Kalimba / music-box tine: free bar struck near the end (position), bright metal attack, medium ring; with a ping-pong tape echo.",
-  "params": {
-    "volume": 12.2,
+  "resonator": {
     "model": "bar",
     "modes": 8,
     "decay": 2.5,
     "damping": 1.5,
     "release": 1.5,
     "brightness": 0.6,
-    "position": 0.15,
-    "hardness": 0.75,
-    "noise": 0.06,
-    "variation": 3,
-    "pan_spread": 0.5,
-    "delay_mix": 0.3,
-    "delay_time": 0.643,
-    "delay_pingpong": "on",
-    "delay_feedback": 0.45,
-    "delay_tone": 3000,
-    "delay_wow": 0.3
+    "variation": 3
   },
-  "audition": {
-    "notes": "D5 A4 E5 F#5 - A5 F#5 E5 D5 - A4 B4 - E5 - -",
-    "bpm": 70,
-    "step": 0.5
-  }
+  "exciter": {"position": 0.15, "hardness": 0.75, "noise": 0.06},
+  "output": {"volume": 12.2},
+  "voice": {"pan_spread": 0.5},
+  "fx": {"delay": {"mix": 0.3, "time": 0.643, "feedback": 0.45, "tone": 3000, "wow": 0.3, "pingpong": "on"}},
+  "audition": {"notes": "D5 A4 E5 F#5 - A5 F#5 E5 D5 - A4 B4 - E5 - -", "bpm": 70, "step": 0.5}
 }

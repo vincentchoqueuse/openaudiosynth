@@ -1,35 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "mono",
   "name": "mono_fretless_run",
   "description": "A nimble, singing bass for fast runs: two triangles and a soft sawtooth an octave down, a short contour, legato notes that slide into each other like a fretless neck; at 170 BPM.",
-  "params": {
-    "osc1_range": "8",
-    "osc1_wave": "tri",
-    "osc1_level": 0.9,
-    "osc2_range": "8",
-    "osc2_wave": "tri",
-    "osc2_detune": 0.06,
-    "osc2_level": 0.6,
-    "osc3_range": "16",
-    "osc3_wave": "saw",
-    "osc3_level": 0.3,
-    "cutoff": 700,
-    "emphasis": 0.2,
-    "contour": 2.0,
-    "keytrack": 0.4,
-    "fenv_attack": 0.002,
-    "fenv_decay": 0.25,
-    "fenv_sustain": 0.4,
-    "amp_attack": 0.003,
-    "amp_decay": 0.4,
-    "amp_sustain": 0.85,
-    "glide": 0.06,
-    "voice_mode": "legato",
-    "velocity": 0.4,
-    "reverb_mix": 0.1,
-    "volume": 10.2
-  },
+  "osc1": {"octave": "8", "waveform": "tri", "level": 0.9},
+  "osc2": {"octave": "8", "waveform": "tri", "detune": 0.06, "level": 0.6},
+  "osc3": {"octave": "16", "waveform": "saw", "level": 0.3},
+  "filter": {"cutoff": 700, "resonance": 0.2, "envelope_amount": 2.0, "keytrack": 0.4},
+  "filter_env": {"attack": 0.002, "decay": 0.25, "sustain": 0.4},
+  "amp": {"attack": 0.003, "decay": 0.4, "sustain": 0.85, "velocity": 0.4},
+  "voice": {"glide": 0.06, "mode": "legato"},
+  "output": {"volume": 10.2},
+  "fx": {"reverb": {"mix": 0.1}},
   "clip": {
     "bpm": 170,
     "length": 8,
@@ -37,132 +19,27 @@
     "grid": "1/16",
     "key": "E minor",
     "notes": [
-      {
-        "pitch": 40,
-        "start": 0,
-        "length": 0.2125,
-        "velocity": 96
-      },
-      {
-        "pitch": 43,
-        "start": 0.25,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 45,
-        "start": 0.5,
-        "length": 0.62,
-        "velocity": 82
-      },
-      {
-        "pitch": 47,
-        "start": 1.0,
-        "length": 0.2125,
-        "velocity": 96
-      },
-      {
-        "pitch": 50,
-        "start": 1.25,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 52,
-        "start": 1.5,
-        "length": 0.77,
-        "velocity": 82
-      },
-      {
-        "pitch": 50,
-        "start": 2.25,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 47,
-        "start": 2.5,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 45,
-        "start": 2.75,
-        "length": 0.62,
-        "velocity": 82
-      },
-      {
-        "pitch": 43,
-        "start": 3.25,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 40,
-        "start": 3.5,
-        "length": 0.52,
-        "velocity": 82
-      },
-      {
-        "pitch": 52,
-        "start": 4,
-        "length": 0.255,
-        "velocity": 96
-      },
-      {
-        "pitch": 55,
-        "start": 4.25,
-        "length": 0.255,
-        "velocity": 82
-      },
-      {
-        "pitch": 57,
-        "start": 4.5,
-        "length": 0.72,
-        "velocity": 82
-      },
-      {
-        "pitch": 55,
-        "start": 5.25,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 52,
-        "start": 5.5,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 50,
-        "start": 5.75,
-        "length": 0.62,
-        "velocity": 82
-      },
-      {
-        "pitch": 47,
-        "start": 6.25,
-        "length": 0.2125,
-        "velocity": 82
-      },
-      {
-        "pitch": 45,
-        "start": 6.5,
-        "length": 0.34,
-        "velocity": 82
-      },
-      {
-        "pitch": 43,
-        "start": 6.75,
-        "length": 0.62,
-        "velocity": 82
-      },
-      {
-        "pitch": 40,
-        "start": 7.25,
-        "length": 0.72,
-        "velocity": 82
-      }
+      {"pitch": 40, "start": 0, "length": 0.2125, "velocity": 96},
+      {"pitch": 43, "start": 0.25, "length": 0.2125, "velocity": 82},
+      {"pitch": 45, "start": 0.5, "length": 0.62, "velocity": 82},
+      {"pitch": 47, "start": 1.0, "length": 0.2125, "velocity": 96},
+      {"pitch": 50, "start": 1.25, "length": 0.2125, "velocity": 82},
+      {"pitch": 52, "start": 1.5, "length": 0.77, "velocity": 82},
+      {"pitch": 50, "start": 2.25, "length": 0.2125, "velocity": 82},
+      {"pitch": 47, "start": 2.5, "length": 0.2125, "velocity": 82},
+      {"pitch": 45, "start": 2.75, "length": 0.62, "velocity": 82},
+      {"pitch": 43, "start": 3.25, "length": 0.2125, "velocity": 82},
+      {"pitch": 40, "start": 3.5, "length": 0.52, "velocity": 82},
+      {"pitch": 52, "start": 4, "length": 0.255, "velocity": 96},
+      {"pitch": 55, "start": 4.25, "length": 0.255, "velocity": 82},
+      {"pitch": 57, "start": 4.5, "length": 0.72, "velocity": 82},
+      {"pitch": 55, "start": 5.25, "length": 0.2125, "velocity": 82},
+      {"pitch": 52, "start": 5.5, "length": 0.2125, "velocity": 82},
+      {"pitch": 50, "start": 5.75, "length": 0.62, "velocity": 82},
+      {"pitch": 47, "start": 6.25, "length": 0.2125, "velocity": 82},
+      {"pitch": 45, "start": 6.5, "length": 0.34, "velocity": 82},
+      {"pitch": 43, "start": 6.75, "length": 0.62, "velocity": 82},
+      {"pitch": 40, "start": 7.25, "length": 0.72, "velocity": 82}
     ]
   }
 }

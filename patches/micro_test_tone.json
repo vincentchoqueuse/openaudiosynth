@@ -1,39 +1,20 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "micro",
   "name": "micro_test_tone",
   "description": "A test tone: exactly 24 cycles of a pure sine at the key's pitch, starting and ending at zero, nothing else.",
-  "params": {
-    "burst": 24,
-    "env_mode": "one_shot",
-    "amp_attack": 2e-05,
-    "amp_hold": 1,
-    "amp_decay": 0.001,
-    "amp_sustain": 0,
-    "phase": 0,
-    "phase_reset": "on",
-    "velocity": 0.5,
-    "volume": 6,
-    "tempo": 120
-  },
+  "micro": {"phase": 0, "phase_reset": "on", "env_mode": "one_shot", "hold": 1, "burst": 24},
+  "amp": {"attack": 2e-05, "decay": 0.001, "sustain": 0, "velocity": 0.5},
+  "output": {"volume": 6},
+  "tempo": {"bpm": 120},
   "clip": {
     "bpm": 120,
     "length": 4,
     "loop": true,
     "grid": "1/16",
     "notes": [
-      {
-        "pitch": 83,
-        "start": 0.5,
-        "length": 0.1,
-        "velocity": 100
-      },
-      {
-        "pitch": 95,
-        "start": 2.5,
-        "length": 0.1,
-        "velocity": 100
-      }
+      {"pitch": 83, "start": 0.5, "length": 0.1, "velocity": 100},
+      {"pitch": 95, "start": 2.5, "length": 0.1, "velocity": 100}
     ]
   }
 }

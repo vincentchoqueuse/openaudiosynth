@@ -1,217 +1,114 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "havoc",
   "name": "havoc_oracle",
   "description": "It answers, slowly, in a voice two sizes too large, and you would rather it had not.",
-  "params": {
-    "g1_lfo_rate": 0.05,
-    "g1_lfo_a": 0.1,
-    "g1_lfo_b": 0.2,
-    "g1_type": "talk",
-    "g1_pitch": -29,
-    "g1_track": "off",
-    "g1_a": 0.12,
-    "g1_b": 0.1,
-    "g1_fm": 0,
-    "g1_ring": 0,
-    "g1_life": "steady",
-    "g1_life_rate": 2.0,
-    "g1_life_shape": 0.5,
-    "g1_level": 1.0,
-    "g1_pan": 0.0,
-    "g1_rot": 0.25,
-    "g2_type": "talk",
-    "g2_pitch": -17,
-    "g2_track": "off",
-    "g2_a": 0.2,
-    "g2_b": 1.0,
-    "g2_fm": 0,
-    "g2_ring": 0,
-    "g2_life": "swell",
-    "g2_life_rate": 0.2,
-    "g2_life_shape": 1.0,
-    "g2_level": 0.4,
-    "g2_pan": 0.6,
-    "g3_type": "rumble",
-    "g3_pitch": -34,
-    "g3_track": "off",
-    "g3_a": 0.3,
-    "g3_b": 0.0,
-    "g3_fm": 0,
-    "g3_ring": 0,
-    "g3_life": "steady",
-    "g3_life_rate": 2.0,
-    "g3_life_shape": 0.5,
-    "g3_level": 0.4,
-    "g3_pan": -0.5,
-    "x1_type": "sub",
-    "x1_p1": 0.3,
-    "x1_p2": 0.3,
-    "x1_mix": 0.5,
-    "x2_type": "lp",
-    "x2_p1": 0.62,
-    "x2_p2": 0.3,
-    "x2_mix": 1.0,
-    "g4_level": 0,
-    "amp_attack": 0.3,
-    "amp_release": 5.0,
+  "amp": {"attack": 0.3, "release": 5.0},
+  "output": {"volume": 6.4},
+  "havoc": {
     "feedback": 0.15,
-    "volume": 6.4,
-    "reverb_mix": 0.55,
-    "reverb_decay": 0.97,
-    "reverb_damping": 1800,
-    "reverb_predelay": 0.07
+    "proc1": {"type": "sub", "p1": 0.3, "p2": 0.3, "mix": 0.5},
+    "proc2": {"type": "lp", "p1": 0.62, "p2": 0.3, "mix": 1.0},
+    "gen1": {
+      "type": "talk",
+      "pitch": -29,
+      "track": "off",
+      "a": 0.12,
+      "b": 0.1,
+      "fm": 0,
+      "ring": 0,
+      "life": "steady",
+      "life_rate": 2.0,
+      "life_shape": 0.5,
+      "level": 1.0,
+      "pan": 0.0,
+      "lfo_rate": 0.05,
+      "lfo_a": 0.1,
+      "lfo_b": 0.2,
+      "rot": 0.25
+    },
+    "gen2": {
+      "type": "talk",
+      "pitch": -17,
+      "track": "off",
+      "a": 0.2,
+      "b": 1.0,
+      "fm": 0,
+      "ring": 0,
+      "life": "swell",
+      "life_rate": 0.2,
+      "life_shape": 1.0,
+      "level": 0.4,
+      "pan": 0.6
+    },
+    "gen3": {
+      "type": "rumble",
+      "pitch": -34,
+      "track": "off",
+      "a": 0.3,
+      "b": 0.0,
+      "fm": 0,
+      "ring": 0,
+      "life": "steady",
+      "life_rate": 2.0,
+      "life_shape": 0.5,
+      "level": 0.4,
+      "pan": -0.5
+    },
+    "gen4": {"level": 0}
   },
+  "fx": {"reverb": {"mix": 0.55, "decay": 0.97, "damping": 1800, "predelay": 0.07}},
   "macros": [
     {
       "name": "Rot",
       "value": 0,
       "targets": [
-        {
-          "param": "g1_rot",
-          "from": 0.25,
-          "to": 0.95
-        },
-        {
-          "param": "g2_rot",
-          "from": 0,
-          "to": 0.7
-        },
-        {
-          "param": "g3_rot",
-          "from": 0,
-          "to": 0.7
-        },
-        {
-          "param": "g4_rot",
-          "from": 0,
-          "to": 0.7
-        }
+        {"param": "havoc.gen1.rot", "from": 0.25, "to": 0.95},
+        {"param": "havoc.gen2.rot", "from": 0, "to": 0.7},
+        {"param": "havoc.gen3.rot", "from": 0, "to": 0.7},
+        {"param": "havoc.gen4.rot", "from": 0, "to": 0.7}
       ]
     },
     {
       "name": "Motion",
       "value": 0,
       "targets": [
-        {
-          "param": "g1_lfo_a",
-          "from": 0.1,
-          "to": 0.6
-        },
-        {
-          "param": "g1_lfo_b",
-          "from": 0.2,
-          "to": 0.7
-        },
-        {
-          "param": "g2_lfo_a",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g2_lfo_b",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g3_lfo_a",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g3_lfo_b",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g4_lfo_a",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g4_lfo_b",
-          "from": 0,
-          "to": 0.5
-        }
+        {"param": "havoc.gen1.lfo_a", "from": 0.1, "to": 0.6},
+        {"param": "havoc.gen1.lfo_b", "from": 0.2, "to": 0.7},
+        {"param": "havoc.gen2.lfo_a", "from": 0, "to": 0.5},
+        {"param": "havoc.gen2.lfo_b", "from": 0, "to": 0.5},
+        {"param": "havoc.gen3.lfo_a", "from": 0, "to": 0.5},
+        {"param": "havoc.gen3.lfo_b", "from": 0, "to": 0.5},
+        {"param": "havoc.gen4.lfo_a", "from": 0, "to": 0.5},
+        {"param": "havoc.gen4.lfo_b", "from": 0, "to": 0.5}
       ]
     },
     {
       "name": "Chaos",
       "value": 0,
       "targets": [
-        {
-          "param": "feedback",
-          "from": 0.15,
-          "to": 0.95
-        },
-        {
-          "param": "mutate",
-          "from": 0,
-          "to": 0.8
-        }
+        {"param": "havoc.feedback", "from": 0.15, "to": 0.95},
+        {"param": "havoc.mutate", "from": 0, "to": 0.8}
       ]
     },
     {
       "name": "Density",
       "value": 0,
       "targets": [
-        {
-          "param": "g1_life_rate",
-          "from": 2.0,
-          "to": 16.0
-        },
-        {
-          "param": "g2_life_rate",
-          "from": 0.2,
-          "to": 1.6
-        },
-        {
-          "param": "g3_life_rate",
-          "from": 2.0,
-          "to": 16.0
-        },
-        {
-          "param": "g4_life_rate",
-          "from": 2.0,
-          "to": 16.0
-        }
+        {"param": "havoc.gen1.life_rate", "from": 2.0, "to": 16.0},
+        {"param": "havoc.gen2.life_rate", "from": 0.2, "to": 1.6},
+        {"param": "havoc.gen3.life_rate", "from": 2.0, "to": 16.0},
+        {"param": "havoc.gen4.life_rate", "from": 2.0, "to": 16.0}
       ]
     },
-    {
-      "name": "Dark",
-      "value": 0,
-      "targets": [
-        {
-          "param": "dark",
-          "from": 0,
-          "to": 1.0
-        }
-      ]
-    },
-    {
-      "name": "Space",
-      "value": 0,
-      "targets": [
-        {
-          "param": "reverb_mix",
-          "from": 0.55,
-          "to": 1.0
-        }
-      ]
-    }
+    {"name": "Dark", "value": 0, "targets": [{"param": "havoc.dark", "from": 0, "to": 1.0}]},
+    {"name": "Space", "value": 0, "targets": [{"param": "fx.reverb.mix", "from": 0.55, "to": 1.0}]}
   ],
   "clip": {
     "bpm": 60,
     "length": 22,
     "loop": false,
     "grid": "1/4",
-    "notes": [
-      {
-        "pitch": 48,
-        "start": 0,
-        "length": 16,
-        "velocity": 100
-      }
-    ]
+    "notes": [{"pitch": 48, "start": 0, "length": 16, "velocity": 100}]
   }
 }

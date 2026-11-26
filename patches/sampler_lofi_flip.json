@@ -1,89 +1,36 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "sampler",
   "name": "sampler_lofi_flip",
   "description": "Hybrid demo kit played slower (three semitones down) through dark low-passes: dusty kick cut short by its end point, snare played backwards into the beat, closed hat chokes the open one. Lo-fi hip-hop.",
   "kit": "synth_hybrid",
-  "params": {
-    "volume": -6.2,
-    "tune": -3,
-    "velocity": 0.8,
-    "resonance": 0.9,
-    "pad1_cutoff": 2500,
-    "pad1_end": 0.55,
-    "pad3_cutoff": 4500,
-    "pad3_reverse": "on",
-    "pad3_start": 0.0,
-    "pad3_end": 0.45,
-    "pad3_level": -4,
-    "pad4_cutoff": 3500,
-    "pad6_cutoff": 6000,
-    "pad6_choke": 1,
-    "pad8_choke": 1,
-    "pad8_decay": 0.6,
-    "pad8_cutoff": 5000,
-    "pad6_pan": 0.2,
-    "chorus_mode": "I",
-    "reverb_mix": 0.12
-  },
+  "output": {"volume": -6.2},
+  "voice": {"transpose": -3},
+  "amp": {"velocity": 0.8},
+  "filter": {"resonance": 0.9},
+  "pad1": {"end": 0.55, "cutoff": 2500},
+  "pad3": {"start": 0.0, "end": 0.45, "reverse": "on", "level": -4, "cutoff": 4500},
+  "pad4": {"cutoff": 3500},
+  "pad6": {"pan": 0.2, "cutoff": 6000, "choke": 1},
+  "pad8": {"decay": 0.6, "cutoff": 5000, "choke": 1},
+  "fx": {"chorus": {"mode": "I"}, "reverb": {"mix": 0.12}},
   "macros": [
-    {
-      "name": "Tape speed",
-      "value": 0.5,
-      "targets": [
-        {
-          "param": "tune",
-          "from": 0,
-          "to": -6
-        }
-      ]
-    },
+    {"name": "Tape speed", "value": 0.5, "targets": [{"param": "voice.transpose", "from": 0, "to": -6}]},
     {
       "name": "Dust",
       "value": 0.3,
       "targets": [
-        {
-          "param": "pad1_cutoff",
-          "from": 4000,
-          "to": 800
-        },
-        {
-          "param": "pad3_cutoff",
-          "from": 7000,
-          "to": 1500
-        },
-        {
-          "param": "pad4_cutoff",
-          "from": 6000,
-          "to": 1200
-        },
-        {
-          "param": "pad6_cutoff",
-          "from": 9000,
-          "to": 2000
-        },
-        {
-          "param": "pad8_cutoff",
-          "from": 8000,
-          "to": 1800
-        }
+        {"param": "pad1.cutoff", "from": 4000, "to": 800},
+        {"param": "pad3.cutoff", "from": 7000, "to": 1500},
+        {"param": "pad4.cutoff", "from": 6000, "to": 1200},
+        {"param": "pad6.cutoff", "from": 9000, "to": 2000},
+        {"param": "pad8.cutoff", "from": 8000, "to": 1800}
       ]
     },
     {
       "name": "Hats",
       "value": 0.5,
-      "targets": [
-        {
-          "param": "pad6_level",
-          "from": -18,
-          "to": 0
-        },
-        {
-          "param": "pad8_level",
-          "from": -18,
-          "to": 0
-        }
-      ]
+      "targets": [{"param": "pad6.level", "from": -18, "to": 0}, {"param": "pad8.level", "from": -18, "to": 0}]
     }
   ],
   "audition": {

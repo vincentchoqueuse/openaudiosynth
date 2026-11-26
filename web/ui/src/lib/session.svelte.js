@@ -3,6 +3,7 @@
 // macros' names, its kit), the library, the audition phrase and its transport, the save dialog and the notices.
 // Components import `session` and call its actions instead of passing a dozen props down. Values are in
 // physical units; the synth gets them normalized (synth.js).
+import { PATCH_VERSION, putRole, dumps } from './patchjson.js';
 import { Synth, fromNorm, toNorm } from './synth.js';
 import { parseKit, filesToKit } from './kit.js';
 import { engineColor, engineRank, DEFAULT_MACROS, DEFAULT_MACRO_SENDS } from './engines.js';
@@ -307,7 +308,7 @@ class Session {
     const prev = [this.current, this.info];
     this.current = '';
     this.info = null;
-    const r = await this.applyPatch(JSON.stringify({ version: 1, engine, name: `${engine}_new`, params: {},
+    const r = await this.applyPatch(JSON.stringify({ version: PATCH_VERSION, engine, name: `${engine}_new`,
                                                      audition: { notes: 'C3 _ _ _', bpm: 90, step: 1 } }));
     if (!r?.ok) { if (r) [this.current, this.info] = prev; return false; }
     this.baseline = { ...this.values };
@@ -407,7 +408,7 @@ class Session {
   currentPatch = () => {
     const engine = this.engine, getP = this.getP;
     const label = (d, v) => {
-      if (/^route\d+_destination$/.test(d.name)) return this.#mapTarget(Math.round(v) - 1)?.name ?? 0; // by name (the engine's or an effect's)
+      if (/^route\d+_destination$/.test(d.name)) return this.#mapTarget(Math.round(v) - 1)?.role ?? 0; // by role (the engine's or an effect's)
       return d.labels ? d.labels[Math.round(v - d.min)] : +v.toPrecision(5);
     };
     // envelope points beyond the point count are leftovers of an earlier, longer shape: not part of the sound
@@ -415,10 +416,10 @@ class Session {
       const m = name.match(/^(mseg\d|vmseg)_[tlc](\d+)$/);
       return m && +m[2] > Math.round(getP(m[1] + '_points'));
     };
-    const params = {};
+    const settings = {}; // by module (the parameters' roles), in the catalog's order
     for (const d of [...engine.params, ...this.shared])
       if (Math.abs((this.values[d.id] ?? d.def) - d.def) > 1e-6 && !unusedPoint(d.name) && !/^(map\d+_|macro\d+(_cc)?$)/.test(d.name))
-        params[d.name] = label(d, this.values[d.id]);
+        putRole(settings, d.role, label(d, this.values[d.id]));
     // the macros as the readable "macros" section (docs/patch_format.md): name, value, targets in their units
     const macros = [];
     for (let k = 0; k < 8; k++) {
@@ -427,7 +428,7 @@ class Session {
         const dst = this.paramById(Math.round(getP(`map${s}_destination`)) - 1);
         if (Math.round(getP(`map${s}_macro`)) !== k + 1 || !dst) continue;
         const v = (n) => { const x = fromNorm(dst, n); return dst.labels ? dst.labels[Math.round(x - dst.min)] : +x.toPrecision(5); };
-        targets.push({ param: dst.name, from: v(getP(`map${s}_from`)), to: v(getP(`map${s}_to`)) });
+        targets.push({ param: dst.role, from: v(getP(`map${s}_from`)), to: v(getP(`map${s}_to`)) });
       }
       const value = +getP(`macro${k + 1}`).toPrecision(4), cc = Math.round(getP(`macro${k + 1}_cc`));
       macros.push({ ...(this.macroNames[k] ? { name: this.macroNames[k] } : {}), ...(value ? { value } : {}),
@@ -435,9 +436,10 @@ class Session {
     }
     while (macros.length && !Object.keys(macros[macros.length - 1]).length) macros.pop();
     const name = this.current ? this.current.replace('.json', '') : engine.name + '_new';
-    const p = { version: 1, engine: engine.name, name, description: this.description, params };
-    if (macros.length) p.macros = macros;
+    const p = { version: PATCH_VERSION, engine: engine.name, name, description: this.description };
     if (this.kitName && engine.name === 'sampler') p.kit = this.kitName; // a dropped kit has no name to save
+    Object.assign(p, settings);
+    if (macros.length) p.macros = macros;
     if (this.#audition) p.audition = this.#audition;
     const clip = this.clipHook?.give();
     if (clip) p.clip = clip;
@@ -447,7 +449,7 @@ class Session {
   exportPatch = () => {
     if (this.edited) this.compare(); // the edit is what is exported, not the loaded sound heard meanwhile
     const p = this.currentPatch(), name = p.name;
-    const text = JSON.stringify(p, null, 2) + '\n';
+    const text = dumps(p);
     navigator.clipboard?.writeText(text).catch(() => {});
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' }));

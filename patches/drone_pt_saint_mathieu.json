@@ -1,10 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "drone",
   "name": "drone_pt_saint_mathieu",
   "description": "Pointe Saint-Mathieu at dusk: the lighthouse over the abbey ruins and the cliffs, the sea's breath below. D Dorian (a minor third and a bright sixth): the whole drone swells gently in and out like the sea, soft wide air without whistle, and the sparkles turn like the beam.",
-  "params": {
-    "volume": -9.4,
+  "drone": {
     "temperature": 0.45,
     "density": 0.6,
     "motion": 0.5,
@@ -12,33 +11,20 @@
     "brightness": 0.5,
     "sparkle": 0.25,
     "width": 0.85,
-    "amp_attack": 8,
-    "amp_release": 14,
-    "vlfo_wave": "wiener",
-    "vlfo_rate": 0.15,
-    "vroute1_source": "vlfo",
-    "vroute1_destination": "pitch",
-    "vroute1_amount": 0.004,
-    "reverb_mix": 0.55,
-    "reverb_decay": 0.95,
-    "reverb_damping": 4500,
-    "reverb_predelay": 0.05,
-    "delay_mix": 0.12,
-    "delay_time": 1.2,
-    "delay_feedback": 0.4,
-    "delay_tone": 2500,
-    "air_reso": 0.3,
-    "mlfo1_wave": "sine",
-    "mlfo1_rate": 0.04,
-    "route1_source": "mlfo1",
-    "route1_destination": "volume",
-    "route1_amount": 0.018,
-    "mlfo2_wave": "wiener",
-    "mlfo2_rate": 0.1,
-    "route2_source": "mlfo2",
-    "route2_destination": "volume",
-    "route2_amount": 0.012
+    "air_reso": 0.3
   },
+  "amp": {"attack": 8, "release": 14},
+  "output": {"volume": -9.4},
+  "fx": {
+    "delay": {"mix": 0.12, "time": 1.2, "feedback": 0.4, "tone": 2500},
+    "reverb": {"mix": 0.55, "decay": 0.95, "damping": 4500, "predelay": 0.05}
+  },
+  "mlfo1": {"rate": 0.04, "waveform": "sine"},
+  "mlfo2": {"rate": 0.1, "waveform": "wiener"},
+  "route1": {"source": "mlfo1", "destination": "output.volume", "amount": 0.018},
+  "route2": {"source": "mlfo2", "destination": "output.volume", "amount": 0.012},
+  "vlfo": {"rate": 0.15, "waveform": "wiener"},
+  "vroute1": {"source": "vlfo", "destination": "pitch", "amount": 0.004},
   "clip": {
     "bpm": 60,
     "length": 128,
@@ -46,66 +32,16 @@
     "grid": "1/4",
     "key": "D dorian",
     "notes": [
-      {
-        "pitch": 38,
-        "start": 0,
-        "length": 128,
-        "velocity": 92
-      },
-      {
-        "pitch": 45,
-        "start": 4,
-        "length": 120,
-        "velocity": 72
-      },
-      {
-        "pitch": 65,
-        "start": 2,
-        "length": 26,
-        "velocity": 80
-      },
-      {
-        "pitch": 72,
-        "start": 12,
-        "length": 24,
-        "velocity": 74
-      },
-      {
-        "pitch": 64,
-        "start": 30,
-        "length": 30,
-        "velocity": 78
-      },
-      {
-        "pitch": 71,
-        "start": 40,
-        "length": 28,
-        "velocity": 76
-      },
-      {
-        "pitch": 69,
-        "start": 64,
-        "length": 30,
-        "velocity": 80
-      },
-      {
-        "pitch": 67,
-        "start": 80,
-        "length": 30,
-        "velocity": 74
-      },
-      {
-        "pitch": 74,
-        "start": 96,
-        "length": 24,
-        "velocity": 72
-      },
-      {
-        "pitch": 65,
-        "start": 100,
-        "length": 26,
-        "velocity": 78
-      }
+      {"pitch": 38, "start": 0, "length": 128, "velocity": 92},
+      {"pitch": 45, "start": 4, "length": 120, "velocity": 72},
+      {"pitch": 65, "start": 2, "length": 26, "velocity": 80},
+      {"pitch": 72, "start": 12, "length": 24, "velocity": 74},
+      {"pitch": 64, "start": 30, "length": 30, "velocity": 78},
+      {"pitch": 71, "start": 40, "length": 28, "velocity": 76},
+      {"pitch": 69, "start": 64, "length": 30, "velocity": 80},
+      {"pitch": 67, "start": 80, "length": 30, "velocity": 74},
+      {"pitch": 74, "start": 96, "length": 24, "velocity": 72},
+      {"pitch": 65, "start": 100, "length": 26, "velocity": 78}
     ]
   }
 }

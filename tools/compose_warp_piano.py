@@ -5,6 +5,10 @@
 # Example of composing programmatically for the song format (docs/patch_format.md).
 # Usage: python3 tools/compose_warp_piano.py && ./build-host/host/synth_render --song songs/warp_piano.json --out x.wav
 import json
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patchtree  # noqa: E402
 
 BPM = 92
 
@@ -133,7 +137,7 @@ def per16(fn, nbars=32):
 
 
 song = {
-    "version": 1,
+    "version": 2,
     "name": "warp_piano",
     "description": "Original piece in an early-90s IDM / Warp spirit: the hazy pedal piano (modal_piano_ambient) "
                    "arpeggiates a F#m9 - Dmaj7#11 - Bm9 - C#7sus progression; a detuned saw pad, sub swells; "
@@ -167,6 +171,5 @@ song = {
 for t in song["tracks"]:  # sanity: every phrase fits the song length
     steps = len(t["notes"].split())
     assert steps * t["step"] <= song["length_beats"] + 1e-9, (t["patch"], steps * t["step"], song["length_beats"])
-json.dump(song, open("songs/warp_piano.json", "w"), indent=2)
-open("songs/warp_piano.json", "a").write("\n")
+open("songs/warp_piano.json", "w").write(patchtree.dumps(patchtree.song_v2(song)))
 print("songs/warp_piano.json: %d bars at %d bpm = %.0f s" % (BARS, BPM, BARS * 4 * 60 / BPM))

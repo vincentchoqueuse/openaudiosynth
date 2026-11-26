@@ -1,77 +1,28 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "micro",
   "name": "micro_sub_pressure",
   "description": "Pure sub pressure: a keyed sine and its octave below, legato with an 80 ms glide, a soft 3 ms attack, a touch of drive so small speakers still hear it; clean, centred, no effects.",
-  "params": {
-    "voice_mode": "legato",
-    "glide": 0.08,
-    "amp_attack": 0.003,
-    "amp_decay": 0.3,
-    "amp_sustain": 1,
-    "amp_release": 0.12,
-    "decay_curve": 0.5,
-    "sub_level": -6,
-    "sub_octave": 1,
-    "drive": 4,
-    "velocity": 0.2,
-    "volume": 10.3,
-    "tempo": 120
-  },
+  "voice": {"mode": "legato", "glide": 0.08},
+  "amp": {"attack": 0.003, "decay": 0.3, "sustain": 1, "release": 0.12, "velocity": 0.2},
+  "micro": {"decay_curve": 0.5, "sub_octave": 1, "drive": 4},
+  "sub": {"level": -6},
+  "output": {"volume": 10.3},
+  "tempo": {"bpm": 120},
   "clip": {
     "bpm": 120,
     "length": 8,
     "loop": true,
     "grid": "1/16",
     "notes": [
-      {
-        "pitch": 28,
-        "start": 0,
-        "length": 1.5,
-        "velocity": 100
-      },
-      {
-        "pitch": 28,
-        "start": 1.75,
-        "length": 0.25,
-        "velocity": 90
-      },
-      {
-        "pitch": 31,
-        "start": 2,
-        "length": 1.5,
-        "velocity": 100
-      },
-      {
-        "pitch": 26,
-        "start": 3.5,
-        "length": 0.5,
-        "velocity": 95
-      },
-      {
-        "pitch": 28,
-        "start": 4,
-        "length": 1.5,
-        "velocity": 100
-      },
-      {
-        "pitch": 35,
-        "start": 5.5,
-        "length": 0.5,
-        "velocity": 90
-      },
-      {
-        "pitch": 33,
-        "start": 6,
-        "length": 1.75,
-        "velocity": 100
-      },
-      {
-        "pitch": 31,
-        "start": 7.5,
-        "length": 0.5,
-        "velocity": 90
-      }
+      {"pitch": 28, "start": 0, "length": 1.5, "velocity": 100},
+      {"pitch": 28, "start": 1.75, "length": 0.25, "velocity": 90},
+      {"pitch": 31, "start": 2, "length": 1.5, "velocity": 100},
+      {"pitch": 26, "start": 3.5, "length": 0.5, "velocity": 95},
+      {"pitch": 28, "start": 4, "length": 1.5, "velocity": 100},
+      {"pitch": 35, "start": 5.5, "length": 0.5, "velocity": 90},
+      {"pitch": 33, "start": 6, "length": 1.75, "velocity": 100},
+      {"pitch": 31, "start": 7.5, "length": 0.5, "velocity": 90}
     ]
   }
 }

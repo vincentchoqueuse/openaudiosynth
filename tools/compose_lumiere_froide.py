@@ -4,6 +4,10 @@
 # long plate, a worn-tape saw pad (`va_cold_tape_pad`) and tape air. Example of composing for docs/patch_format.md.
 # Usage: python3 tools/compose_lumiere_froide.py && ./build-host/host/synth_render --song songs/lumiere_froide.json --out x.wav
 import json
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patchtree  # noqa: E402
 
 BPM = 66  # quarter notes; 3 beats per bar, one step = one beat
 
@@ -47,7 +51,7 @@ beats = len(piano)
 air = ["E4"] + ["_"] * (beats - 1)
 
 song = {
-    "version": 1,
+    "version": 2,
     "name": "lumiere_froide",
     "description": "Original slow 3/4 piece in E minor: Satie-like bass-then-chord sway (Em9 / Cmaj7, a darker middle with Fmaj7#11 and B7), a sparse falling melody, a cold piano far back in a long plate with tape-warbled pitch and echoes, a worn-tape saw pad and tape air: cold 90s ambient melancholy.",
     "bpm": BPM,
@@ -67,6 +71,5 @@ song = {
     "reverb": {"decay": 0.94, "damping_hz": 5000, "predelay_s": 0.06, "size": 2.0, "return_db": 0},
     "master": {"fade_in_s": 3, "fade_out_s": 12},
 }
-json.dump(song, open("songs/lumiere_froide.json", "w"), indent=2)
-open("songs/lumiere_froide.json", "a").write("\n")
+open("songs/lumiere_froide.json", "w").write(patchtree.dumps(patchtree.song_v2(song)))
 print(f"songs/lumiere_froide.json: {beats // 3} bars, {beats * 60 / BPM:.0f} s + tail")

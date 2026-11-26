@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "lent_et_langoureux",
   "description": "Original slow 3/4 piece: Satie-like bass-then-chord swaying on soft keys, Debussy colours (parallel ninth chords, lydian #11, a Db9#11 whole-tone dominant), a sparse high melody leaning on colour tones, all floating on a breathing supersaw pad, slow detuned sub swells, tape air and a long dark plate reverb.",
   "bpm": 60,
@@ -12,11 +12,7 @@
       "notes": "G3+Bb3+D4+F4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ G3+Bb3+D4+F4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ Ab3+C4+Eb4+G4 _ _ _ _ _ Bb3+D4+F4+A4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ F3+Cb4+Eb4+G4 _ _ _ _ _ G3+Bb3+D4+F4 _ _ _ _ _ Eb3+G3+Bb3+D4 _ _ _ _ _ C4+D4+Eb4+G4 _ _ _ _ _ Eb3+F3+Ab3+C4 _ _ _ _ _ G3+Bb3+D4+F4 _ _ _ _ _ _ _ _ _ _ _",
       "gain_db": -5,
       "reverb_send": 0.8,
-      "params": {
-        "amp_attack": 1.5,
-        "amp_release": 3.0,
-        "cutoff": 900
-      }
+      "params": {"filter": {"cutoff": 900}, "amp": {"attack": 1.5, "release": 3.0}}
     },
     {
       "patch": "patches/va_chorus_keys.json",
@@ -51,15 +47,6 @@
       "reverb_send": 0.6
     }
   ],
-  "reverb": {
-    "decay": 0.93,
-    "damping_hz": 3500,
-    "predelay_s": 0.07,
-    "size": 2.0,
-    "return_db": 0
-  },
-  "master": {
-    "fade_in_s": 3,
-    "fade_out_s": 14
-  }
+  "reverb": {"decay": 0.93, "damping_hz": 3500, "predelay_s": 0.07, "size": 2.0, "return_db": 0},
+  "master": {"fade_in_s": 3, "fade_out_s": 14}
 }

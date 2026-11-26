@@ -5,7 +5,7 @@ version: `docs/catalog.json` (open format OID 0.3, `spec/README.md`).
 
 Patch values are in **physical units**. **live** = safe to move while playing (CC, modulation);
 the CC number is the default assignment. **role** = meaning in the shared vocabulary
-(`spec/roles.json`): a patch may use a role instead of a name. Patch format version: 1.
+(`spec/roles.json`): a patch may use a role instead of a name. Patch format version: 2.
 
 ## Global (every engine): master and effect bus
 

@@ -13,7 +13,7 @@
 #include "patch.h"
 #include "engines/drums.h"
 
-#define SONG_VERSION 1
+#define SONG_VERSION 2
 #define SONG_MAX_SECONDS 3600 /* one hour: bounds the buffers */
 #define SONG_MAX_REPEAT 4096
 

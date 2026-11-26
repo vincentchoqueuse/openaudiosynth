@@ -1,89 +1,58 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "wt",
   "name": "wt_drifting_glass",
   "description": "Drifting glass: the crystal pad left to itself. Six macros (table position, warp, cutoff, resonance, delay, reverb) each follow their own slow random walk (wander), so a held chord keeps changing colour and place and never passes twice through the same sound.",
-  "params": {
-    "volume": 0.4,
-    "a_table": "harmonics",
-    "a_position": 0.75,
-    "a_warp_mode": "sync",
-    "a_warp": 0.1,
-    "a_octave": 1,
-    "a_unison": 4,
-    "a_detune": 6,
-    "a_level": 0.6,
-    "b_table": "basic",
-    "b_position": 0.0,
-    "b_octave": 2,
-    "b_level": 0.25,
-    "noise": 0.04,
-    "filter_type": "hp12",
-    "cutoff": 500,
-    "resonance": 0.25,
-    "amp_attack": 2.0,
-    "amp_decay": 1.0,
-    "amp_sustain": 1.0,
-    "amp_release": 5.0,
-    "pan_spread": 0.9,
-    "mlfo1_sync": "1",
-    "mlfo1_wave": "sh",
-    "mlfo2_rate": 0.09,
-    "reverb_mix": 0.5,
-    "reverb_decay": 0.94,
-    "reverb_damping": 9000,
-    "reverb_predelay": 0.06,
-    "delay_mix": 0.22,
-    "delay_sync": "1/8d",
-    "delay_feedback": 0.55,
-    "delay_tone": 6000,
-    "delay_pingpong": "on",
-    "tempo": 72,
-    "mseg1_mode": "loop_free",
-    "mseg1_points": 3,
-    "mseg1_sustain": "none",
-    "mseg1_sync": "seconds",
-    "mseg1_loop_start": "1",
-    "mseg1_loop_end": "3",
-    "mseg1_t1": 0,
-    "mseg1_l1": 0.0,
-    "mseg1_c1": 0,
-    "mseg1_t2": 0.6,
-    "mseg1_l2": 1.0,
-    "mseg1_c2": 0.7,
-    "mseg1_t3": 1.8,
-    "mseg1_l3": 0.0,
-    "mseg1_c3": -0.7,
-    "mseg2_mode": "loop_free",
-    "mseg2_points": 3,
-    "mseg2_sustain": "none",
-    "mseg2_sync": "seconds",
-    "mseg2_loop_start": "1",
-    "mseg2_loop_end": "3",
-    "mseg2_t1": 0,
-    "mseg2_l1": 0.3,
-    "mseg2_c1": 0,
-    "mseg2_t2": 4.0,
-    "mseg2_l2": 0.9,
-    "mseg2_c2": 0,
-    "mseg2_t3": 6.0,
-    "mseg2_l3": 0.2,
-    "mseg2_c3": 0,
-    "route1_source": "mseg1",
-    "route1_destination": "a_warp",
-    "route1_amount": 0.25,
-    "route2_source": "mlfo1",
-    "route2_destination": "a_position",
-    "route2_amount": 0.15,
-    "route3_source": "mseg2",
-    "route3_destination": "noise",
-    "route3_amount": 0.15,
-    "route4_source": "mlfo2",
-    "route4_destination": "b_position",
-    "route4_amount": 0.3,
-    "wander": 0.8,
-    "wander_rate": 0.11
+  "osc1": {
+    "wavetable": "harmonics",
+    "position": 0.75,
+    "warp_mode": "sync",
+    "warp": 0.1,
+    "level": 0.6,
+    "octave": 1,
+    "unison_voices": 4,
+    "unison_detune": 6
   },
+  "osc2": {"wavetable": "basic", "position": 0.0, "level": 0.25, "octave": 2},
+  "noise": {"level": 0.04},
+  "filter": {"type": "hp12", "cutoff": 500, "resonance": 0.25},
+  "amp": {"attack": 2.0, "decay": 1.0, "sustain": 1.0, "release": 5.0},
+  "output": {"volume": 0.4},
+  "voice": {"pan_spread": 0.9},
+  "fx": {
+    "delay": {"mix": 0.22, "feedback": 0.55, "tone": 6000, "pingpong": "on", "sync": "1/8d"},
+    "reverb": {"mix": 0.5, "decay": 0.94, "damping": 9000, "predelay": 0.06}
+  },
+  "tempo": {"bpm": 72},
+  "mlfo1": {"sync": "1", "waveform": "sh"},
+  "mlfo2": {"rate": 0.09},
+  "mseg1": {
+    "mode": "loop_free",
+    "sync": "seconds",
+    "points": 3,
+    "sustain": "none",
+    "loop_start": "1",
+    "loop_end": "3",
+    "point1": {"time": 0, "level": 0.0, "curve": 0},
+    "point2": {"time": 0.6, "level": 1.0, "curve": 0.7},
+    "point3": {"time": 1.8, "level": 0.0, "curve": -0.7}
+  },
+  "mseg2": {
+    "mode": "loop_free",
+    "sync": "seconds",
+    "points": 3,
+    "sustain": "none",
+    "loop_start": "1",
+    "loop_end": "3",
+    "point1": {"time": 0, "level": 0.3, "curve": 0},
+    "point2": {"time": 4.0, "level": 0.9, "curve": 0},
+    "point3": {"time": 6.0, "level": 0.2, "curve": 0}
+  },
+  "route1": {"source": "mseg1", "destination": "osc1.warp", "amount": 0.25},
+  "route2": {"source": "mlfo1", "destination": "osc1.position", "amount": 0.15},
+  "route3": {"source": "mseg2", "destination": "noise.level", "amount": 0.15},
+  "route4": {"source": "mlfo2", "destination": "osc2.position", "amount": 0.3},
+  "wander": {"amount": 0.8, "rate": 0.11},
   "audition": {
     "notes": "G4+D5+A5 _ _ _ _ _ _ _ E4+B4+F#5 _ _ _ _ _ _ _",
     "bpm": 60,
@@ -93,71 +62,11 @@
     "humanize_ms": 10
   },
   "macros": [
-    {
-      "name": "Position",
-      "value": 0.5,
-      "targets": [
-        {
-          "param": "a_position",
-          "from": 0.2,
-          "to": 1.0
-        }
-      ]
-    },
-    {
-      "name": "B position",
-      "value": 0.5,
-      "targets": [
-        {
-          "param": "b_position",
-          "from": 0.0,
-          "to": 0.9
-        }
-      ]
-    },
-    {
-      "name": "Warp",
-      "value": 0.4,
-      "targets": [
-        {
-          "param": "a_warp",
-          "from": 0.0,
-          "to": 0.5
-        }
-      ]
-    },
-    {
-      "name": "Cutoff",
-      "value": 0.55,
-      "targets": [
-        {
-          "param": "cutoff",
-          "from": 112.5,
-          "to": 10023.7
-        }
-      ]
-    },
-    {
-      "name": "Echoes",
-      "value": 0.4,
-      "targets": [
-        {
-          "param": "delay_mix",
-          "from": 0.0,
-          "to": 0.45
-        }
-      ]
-    },
-    {
-      "name": "Space",
-      "value": 0.6,
-      "targets": [
-        {
-          "param": "reverb_mix",
-          "from": 0.25,
-          "to": 0.8
-        }
-      ]
-    }
+    {"name": "Position", "value": 0.5, "targets": [{"param": "osc1.position", "from": 0.2, "to": 1.0}]},
+    {"name": "B position", "value": 0.5, "targets": [{"param": "osc2.position", "from": 0.0, "to": 0.9}]},
+    {"name": "Warp", "value": 0.4, "targets": [{"param": "osc1.warp", "from": 0.0, "to": 0.5}]},
+    {"name": "Cutoff", "value": 0.55, "targets": [{"param": "filter.cutoff", "from": 112.5, "to": 10023.7}]},
+    {"name": "Echoes", "value": 0.4, "targets": [{"param": "fx.delay.mix", "from": 0.0, "to": 0.45}]},
+    {"name": "Space", "value": 0.6, "targets": [{"param": "fx.reverb.mix", "from": 0.25, "to": 0.8}]}
   ]
 }

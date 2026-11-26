@@ -1,42 +1,20 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "wt",
   "name": "wt_wobble_bass",
   "description": "Bass-music wobble: a growling wavetable with a sub through a resonant low-pass, its cutoff swept by an LFO locked to the tempo (an eighth); macro 1 doubles the wobble's speed.",
-  "params": {
-    "a_table": "growl",
-    "a_position": 0.35,
-    "a_unison": 2,
-    "a_detune": 10,
-    "a_level": 0.85,
-    "sub": 0.6,
-    "filter_type": "lp24",
-    "cutoff": 350,
-    "resonance": 0.45,
-    "drive": 0.4,
-    "keytrack": 0.2,
-    "amp_attack": 0.003,
-    "amp_decay": 0.3,
-    "amp_sustain": 1.0,
-    "amp_release": 0.12,
-    "voice_mode": "mono",
-    "mlfo1_wave": "sine",
-    "mlfo1_sync": "1/8",
-    "route1_source": "mlfo1",
-    "route1_destination": "cutoff",
-    "route1_amount": 0.32,
-    "mlfo2_wave": "sine",
-    "mlfo2_sync": "1/16",
-    "route2_source": "mlfo2",
-    "route2_destination": "cutoff",
-    "route2_amount": 0.32,
-    "route2_via": "macro1",
-    "route3_source": "mlfo1",
-    "route3_destination": "a_position",
-    "route3_amount": 0.15,
-    "reverb_mix": 0.08,
-    "volume": 14.4
-  },
+  "osc1": {"wavetable": "growl", "position": 0.35, "level": 0.85, "unison_voices": 2, "unison_detune": 10},
+  "sub": {"level": 0.6},
+  "filter": {"type": "lp24", "cutoff": 350, "resonance": 0.45, "drive": 0.4, "keytrack": 0.2},
+  "amp": {"attack": 0.003, "decay": 0.3, "sustain": 1.0, "release": 0.12},
+  "voice": {"mode": "mono"},
+  "output": {"volume": 14.4},
+  "fx": {"reverb": {"mix": 0.08}},
+  "mlfo1": {"sync": "1/8", "waveform": "sine"},
+  "mlfo2": {"sync": "1/16", "waveform": "sine"},
+  "route1": {"source": "mlfo1", "destination": "filter.cutoff", "amount": 0.32},
+  "route2": {"source": "mlfo2", "destination": "filter.cutoff", "amount": 0.32, "via": "macro1"},
+  "route3": {"source": "mlfo1", "destination": "osc1.position", "amount": 0.15},
   "clip": {
     "bpm": 140,
     "length": 16,
@@ -44,42 +22,12 @@
     "grid": "1/8",
     "key": "F minor",
     "notes": [
-      {
-        "pitch": 29,
-        "start": 0,
-        "length": 3.9,
-        "velocity": 110
-      },
-      {
-        "pitch": 29,
-        "start": 4,
-        "length": 1.9,
-        "velocity": 110
-      },
-      {
-        "pitch": 41,
-        "start": 6,
-        "length": 1.9,
-        "velocity": 110
-      },
-      {
-        "pitch": 27,
-        "start": 8,
-        "length": 3.9,
-        "velocity": 110
-      },
-      {
-        "pitch": 32,
-        "start": 12,
-        "length": 1.9,
-        "velocity": 110
-      },
-      {
-        "pitch": 31,
-        "start": 14,
-        "length": 1.9,
-        "velocity": 110
-      }
+      {"pitch": 29, "start": 0, "length": 3.9, "velocity": 110},
+      {"pitch": 29, "start": 4, "length": 1.9, "velocity": 110},
+      {"pitch": 41, "start": 6, "length": 1.9, "velocity": 110},
+      {"pitch": 27, "start": 8, "length": 3.9, "velocity": 110},
+      {"pitch": 32, "start": 12, "length": 1.9, "velocity": 110},
+      {"pitch": 31, "start": 14, "length": 1.9, "velocity": 110}
     ]
   }
 }

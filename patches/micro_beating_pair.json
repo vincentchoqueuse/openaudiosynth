@@ -1,41 +1,21 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "micro",
   "name": "micro_beating_pair",
   "description": "Two pure sines one and a half hertz apart, one in each ear: the beating happens between the ears. Keyed, slow 40 ms fades, held tones; the second sine follows the key at an exact offset in Hz.",
-  "params": {
-    "amp_attack": 0.04,
-    "amp_decay": 0.1,
-    "amp_sustain": 1,
-    "amp_release": 0.8,
-    "attack_curve": -0.3,
-    "decay_curve": 0.3,
-    "osc2_level": 0,
-    "osc2_mode": "hz",
-    "osc2_offset": 1.5,
-    "osc2_split": "on",
-    "velocity": 0,
-    "volume": 0.2,
-    "tempo": 120
-  },
+  "amp": {"attack": 0.04, "decay": 0.1, "sustain": 1, "release": 0.8, "velocity": 0},
+  "micro": {"attack_curve": -0.3, "decay_curve": 0.3, "osc2_mode": "hz", "osc2_offset": 1.5, "osc2_split": "on"},
+  "osc2": {"level": 0},
+  "output": {"volume": 0.2},
+  "tempo": {"bpm": 120},
   "clip": {
     "bpm": 120,
     "length": 16,
     "loop": true,
     "grid": "1/4",
     "notes": [
-      {
-        "pitch": 81,
-        "start": 0,
-        "length": 7.5,
-        "velocity": 90
-      },
-      {
-        "pitch": 88,
-        "start": 8,
-        "length": 7.5,
-        "velocity": 80
-      }
+      {"pitch": 81, "start": 0, "length": 7.5, "velocity": 90},
+      {"pitch": 88, "start": 8, "length": 7.5, "velocity": 80}
     ]
   }
 }

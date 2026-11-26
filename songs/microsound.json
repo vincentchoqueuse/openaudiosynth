@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "microsound",
   "description": "Glitch / microsound study on the glitch kit: precise 16th grids of sub pulses, single-sample ticks, 12 kHz beeps, gated data tones, white and decimated noise bursts, modem chirps, an abrupt silence, over two slowly beating pure-sine drones.",
   "bpm": 125,
@@ -9,11 +9,7 @@
     {
       "patch": "patches/drums_glitch.json",
       "pattern": [
-        {
-          "chat": "x.......x.......",
-          "ohat": "..............x.",
-          "repeat": 4
-        },
+        {"chat": "x.......x.......", "ohat": "..............x.", "repeat": 4},
         {
           "kick": "x...x...x...x...",
           "chat": "xxxxxxxxxxxxxxxx",
@@ -33,16 +29,8 @@
           "clap": "....x.......x...",
           "repeat": 1
         },
-        {
-          "kick": "................",
-          "repeat": 1
-        },
-        {
-          "snare": "x..x..x...x..x..",
-          "cymbal": "........x.......",
-          "chat": "x.x.x.x.x.x.x.x.",
-          "repeat": 3
-        },
+        {"kick": "................", "repeat": 1},
+        {"snare": "x..x..x...x..x..", "cymbal": "........x.......", "chat": "x.x.x.x.x.x.x.x.", "repeat": 3},
         {
           "kick": "x...x...x...x...",
           "chat": "xxxxxxxxxxxxxxxx",
@@ -71,16 +59,8 @@
           "clave": "..x.............",
           "repeat": 1
         },
-        {
-          "kick": "x...............",
-          "chat": "x...............",
-          "ohat": "............x...",
-          "repeat": 4
-        },
-        {
-          "kick": "................",
-          "repeat": 4
-        }
+        {"kick": "x...............", "chat": "x...............", "ohat": "............x...", "repeat": 4},
+        {"kick": "................", "repeat": 4}
       ],
       "velocity": 110,
       "gain_db": 0,
@@ -94,15 +74,6 @@
       "reverb_send": 0.3
     }
   ],
-  "reverb": {
-    "decay": 0.6,
-    "damping_hz": 12000,
-    "predelay_s": 0.0,
-    "size": 0.8,
-    "return_db": -12
-  },
-  "master": {
-    "fade_in_s": 0,
-    "fade_out_s": 3
-  }
+  "reverb": {"decay": 0.6, "damping_hz": 12000, "predelay_s": 0.0, "size": 0.8, "return_db": -12},
+  "master": {"fade_in_s": 0, "fade_out_s": 3}
 }

@@ -5,13 +5,14 @@
 <script>
   import { untrack } from 'svelte';
   import { session as s } from './session.svelte.js';
+  import { dumps } from './patchjson.js';
   import { sequence as q } from './sequence.svelte.js';
   import { SCALES, GRIDS } from './seqExport.js';
   const editor = import('./CodeEditor.svelte'); // the code editor stays out of the main bundle
   let { doc } = $props(); // 'sound' or 'clip'
 
   const DOCS = {
-    sound: { text: () => JSON.stringify(s.currentPatch(), null, 2) + '\n',
+    sound: { text: () => dumps(s.currentPatch()),
       apply: async (t) => { const r = await s.applyFromEditor(t); return r.ok ? '' : r.text; },
       hint: 'The sound as its patch file (docs/patch_format.md): parameters in physical units or labels, macros with their targets, kit, clip. Apply reloads the sound from this text.' },
     clip: { text: () => q.docText(), apply: async (t) => q.applyText(t),

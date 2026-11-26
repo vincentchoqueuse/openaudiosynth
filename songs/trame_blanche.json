@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "trame_blanche",
   "description": "A study in the cold, exact register at 132 BPM, on the micro engine alone: poles of low sine, rectangles of white noise, test tones of an exact number of cycles, ticks at 13 kHz, two low sines interfering, a tone and noise interlocked, a data stream, and a bass line that is only weight. Twenty-eight bars: grid, weight, a break left to the interference, everything, thinning, end.",
   "bpm": 132,
@@ -9,30 +9,12 @@
     {
       "patch": "patches/micro_ultra_tick.json",
       "pattern": [
-        {
-          "C4": "x.xxx.x.x.xxx.xx",
-          "repeat": 4
-        },
-        {
-          "C4": "x.xxx.x.x.xxx.xx",
-          "repeat": 8
-        },
-        {
-          "C4": "................",
-          "repeat": 2
-        },
-        {
-          "C4": "x.xxx.xxx.xxx.xx",
-          "repeat": 8
-        },
-        {
-          "C4": "x...x...x...x...",
-          "repeat": 4
-        },
-        {
-          "C4": "................",
-          "repeat": 2
-        }
+        {"C4": "x.xxx.x.x.xxx.xx", "repeat": 4},
+        {"C4": "x.xxx.x.x.xxx.xx", "repeat": 8},
+        {"C4": "................", "repeat": 2},
+        {"C4": "x.xxx.xxx.xxx.xx", "repeat": 8},
+        {"C4": "x...x...x...x...", "repeat": 4},
+        {"C4": "................", "repeat": 2}
       ],
       "gain_db": -14,
       "velocity": 100
@@ -40,34 +22,12 @@
     {
       "patch": "patches/micro_test_tone.json",
       "pattern": [
-        {
-          "B5": "..x.......x.....",
-          "B6": "......x.........",
-          "repeat": 4
-        },
-        {
-          "B5": "..x.......x.....",
-          "B6": "......x......x..",
-          "repeat": 8
-        },
-        {
-          "B5": "................",
-          "repeat": 2
-        },
-        {
-          "B5": "..x.......x.....",
-          "B6": "......x......x..",
-          "F#7": "...........x....",
-          "repeat": 8
-        },
-        {
-          "B6": "......x.........",
-          "repeat": 4
-        },
-        {
-          "B5": "x...............",
-          "repeat": 2
-        }
+        {"B5": "..x.......x.....", "B6": "......x.........", "repeat": 4},
+        {"B5": "..x.......x.....", "B6": "......x......x..", "repeat": 8},
+        {"B5": "................", "repeat": 2},
+        {"B5": "..x.......x.....", "B6": "......x......x..", "F#7": "...........x....", "repeat": 8},
+        {"B6": "......x.........", "repeat": 4},
+        {"B5": "x...............", "repeat": 2}
       ],
       "gain_db": -9,
       "velocity": 100
@@ -75,38 +35,14 @@
     {
       "patch": "patches/micro_low_pole.json",
       "pattern": [
-        {
-          "C2": "................",
-          "repeat": 4
-        },
-        {
-          "C2": "x.....x...x.....",
-          "repeat": 7
-        },
-        {
-          "C2": "x.....x...x..x.x",
-          "repeat": 1
-        },
-        {
-          "C2": "................",
-          "repeat": 2
-        },
-        {
-          "C2": "x.....x...x.....",
-          "repeat": 7
-        },
-        {
-          "C2": "x..x..x...x..x.x",
-          "repeat": 1
-        },
-        {
-          "C2": "x...............",
-          "repeat": 4
-        },
-        {
-          "C2": "x...............",
-          "repeat": 2
-        }
+        {"C2": "................", "repeat": 4},
+        {"C2": "x.....x...x.....", "repeat": 7},
+        {"C2": "x.....x...x..x.x", "repeat": 1},
+        {"C2": "................", "repeat": 2},
+        {"C2": "x.....x...x.....", "repeat": 7},
+        {"C2": "x..x..x...x..x.x", "repeat": 1},
+        {"C2": "x...............", "repeat": 4},
+        {"C2": "x...............", "repeat": 2}
       ],
       "gain_db": 0,
       "velocity": 120
@@ -114,38 +50,14 @@
     {
       "patch": "patches/micro_white_cut.json",
       "pattern": [
-        {
-          "C4": "................",
-          "repeat": 4
-        },
-        {
-          "C4": "....x.......x...",
-          "repeat": 6
-        },
-        {
-          "C4": "....x.......x.xx",
-          "repeat": 2
-        },
-        {
-          "C4": "................",
-          "repeat": 2
-        },
-        {
-          "C4": "....x..x....x...",
-          "repeat": 6
-        },
-        {
-          "C4": "....x..x....xxxx",
-          "repeat": 2
-        },
-        {
-          "C4": "............x...",
-          "repeat": 4
-        },
-        {
-          "C4": "................",
-          "repeat": 2
-        }
+        {"C4": "................", "repeat": 4},
+        {"C4": "....x.......x...", "repeat": 6},
+        {"C4": "....x.......x.xx", "repeat": 2},
+        {"C4": "................", "repeat": 2},
+        {"C4": "....x..x....x...", "repeat": 6},
+        {"C4": "....x..x....xxxx", "repeat": 2},
+        {"C4": "............x...", "repeat": 4},
+        {"C4": "................", "repeat": 2}
       ],
       "gain_db": -8,
       "velocity": 100
@@ -159,9 +71,7 @@
       "gain_db": -4,
       "velocity": 100,
       "gate": 0.98,
-      "params": {
-        "tempo": 132
-      }
+      "params": {"tempo": {"bpm": 132}}
     },
     {
       "patch": "patches/micro_noise_interlock.json",
@@ -172,44 +82,21 @@
       "gain_db": -9,
       "velocity": 100,
       "gate": 0.99,
-      "params": {
-        "tempo": 132,
-        "freq": 98
-      }
+      "params": {"micro": {"freq": 98}, "tempo": {"bpm": 132}}
     },
     {
       "patch": "patches/micro_data_burst.json",
       "pattern": [
-        {
-          "C4": "................",
-          "repeat": 8
-        },
-        {
-          "C4": "........xx......",
-          "repeat": 4
-        },
-        {
-          "C4": "................",
-          "repeat": 6
-        },
-        {
-          "C4": "........xx....x.",
-          "repeat": 4
-        },
-        {
-          "C4": "..............x.",
-          "repeat": 4
-        },
-        {
-          "C4": "................",
-          "repeat": 2
-        }
+        {"C4": "................", "repeat": 8},
+        {"C4": "........xx......", "repeat": 4},
+        {"C4": "................", "repeat": 6},
+        {"C4": "........xx....x.", "repeat": 4},
+        {"C4": "..............x.", "repeat": 4},
+        {"C4": "................", "repeat": 2}
       ],
       "gain_db": -12,
       "velocity": 100,
-      "params": {
-        "tempo": 132
-      }
+      "params": {"tempo": {"bpm": 132}}
     },
     {
       "patch": "patches/micro_low_line.json",
@@ -222,11 +109,5 @@
       "gate": 0.8
     }
   ],
-  "reverb": {
-    "decay": 0.5,
-    "damping_hz": 8000,
-    "predelay_s": 0.01,
-    "size": 0.7,
-    "return_db": -14
-  }
+  "reverb": {"decay": 0.5, "damping_hz": 8000, "predelay_s": 0.01, "size": 0.7, "return_db": -14}
 }

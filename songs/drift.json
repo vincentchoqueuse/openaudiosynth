@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "drift",
   "description": "Ambient piece in the spirit of early-90s bedroom ambient: two chords only, the movement comes from LFO-modulated detune (LFO of LFO), a dark drone, sub swells that come and go, sparse glass bells, tape-like air and a long plate reverb.",
   "bpm": 60,
@@ -46,15 +46,6 @@
       "reverb_send": 0.4
     }
   ],
-  "reverb": {
-    "decay": 0.88,
-    "damping_hz": 4500,
-    "predelay_s": 0.05,
-    "size": 1.8,
-    "return_db": -2
-  },
-  "master": {
-    "fade_in_s": 6,
-    "fade_out_s": 10
-  }
+  "reverb": {"decay": 0.88, "damping_hz": 4500, "predelay_s": 0.05, "size": 1.8, "return_db": -2},
+  "master": {"fade_in_s": 6, "fade_out_s": 10}
 }

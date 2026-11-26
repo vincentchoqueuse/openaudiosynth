@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "acid_jam",
   "description": "Acid jam: the monosynth (accents, slides, resonant ladder) over the hybrid kit; the cutoff and resonance are ridden section by section, dub stabs in the second half.",
   "bpm": 126,
@@ -9,12 +9,7 @@
     {
       "patch": "patches/drums_hybrid.json",
       "pattern": [
-        {
-          "kick": "X...x...X...x...",
-          "chat": "..x...x...x...x.",
-          "ohat": "..x...x...x...x.",
-          "repeat": 4
-        },
+        {"kick": "X...x...X...x...", "chat": "..x...x...x...x.", "ohat": "..x...x...x...x.", "repeat": 4},
         {
           "kick": "X...x...X...x...",
           "chat": "xo.oxo.oxo.oxo.o",
@@ -22,11 +17,7 @@
           "clap": "....x.......x...",
           "repeat": 12
         },
-        {
-          "chat": "xo.oxo.oxo.oxo.o",
-          "clap": "............x...",
-          "repeat": 4
-        },
+        {"chat": "xo.oxo.oxo.oxo.o", "clap": "............x...", "repeat": 4},
         {
           "kick": "X...x...X...x...",
           "chat": "xo.oxo.oxo.oxo.o",
@@ -41,11 +32,7 @@
       "gain_db": 0,
       "reverb_send": 0.05,
       "params": {
-        "stereo": 0.4,
-        "drive": 0.2,
-        "chat_level": -4,
-        "cymbal_level": -9,
-        "kick_level": -7
+        "drum": {"drive": 0.2, "stereo": 0.4, "kick": {"level": -7}, "chat": {"level": -4}, "cymbal": {"level": -9}}
       }
     },
     {
@@ -57,12 +44,8 @@
       "gain_db": 2,
       "reverb_send": 0.08,
       "params": {
-        "cutoff": 469,
-        "emphasis": 0.75,
-        "contour": 2.5,
-        "delay_mix": 0.15,
-        "delay_time": 0.357,
-        "delay_pingpong": "on"
+        "filter": {"cutoff": 469, "resonance": 0.75, "envelope_amount": 2.5},
+        "fx": {"delay": {"mix": 0.15, "time": 0.357, "pingpong": "on"}}
       }
     },
     {
@@ -74,12 +57,8 @@
       "gain_db": 1,
       "reverb_send": 0.08,
       "params": {
-        "cutoff": 1015,
-        "emphasis": 0.85,
-        "contour": 3.0,
-        "delay_mix": 0.15,
-        "delay_time": 0.357,
-        "delay_pingpong": "on"
+        "filter": {"cutoff": 1015, "resonance": 0.85, "envelope_amount": 3.0},
+        "fx": {"delay": {"mix": 0.15, "time": 0.357, "pingpong": "on"}}
       }
     },
     {
@@ -91,12 +70,8 @@
       "gain_db": 0,
       "reverb_send": 0.08,
       "params": {
-        "cutoff": 2187,
-        "emphasis": 0.9,
-        "contour": 3.5,
-        "delay_mix": 0.15,
-        "delay_time": 0.357,
-        "delay_pingpong": "on"
+        "filter": {"cutoff": 2187, "resonance": 0.9, "envelope_amount": 3.5},
+        "fx": {"delay": {"mix": 0.15, "time": 0.357, "pingpong": "on"}}
       }
     },
     {
@@ -108,12 +83,8 @@
       "gain_db": 1,
       "reverb_send": 0.08,
       "params": {
-        "cutoff": 1250,
-        "emphasis": 0.88,
-        "contour": 3.2,
-        "delay_mix": 0.15,
-        "delay_time": 0.357,
-        "delay_pingpong": "on"
+        "filter": {"cutoff": 1250, "resonance": 0.88, "envelope_amount": 3.2},
+        "fx": {"delay": {"mix": 0.15, "time": 0.357, "pingpong": "on"}}
       }
     },
     {
@@ -123,25 +94,10 @@
       "gain_db": -8,
       "reverb_send": 0.3,
       "notes": "- - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - - - - - - - - C3+D#3+G3 - - - - - - - - -",
-      "params": {
-        "delay_time": 0.357,
-        "delay_feedback": 0.5
-      },
-      "pump": {
-        "depth_db": 6,
-        "release_s": 0.2
-      }
+      "params": {"fx": {"delay": {"time": 0.357, "feedback": 0.5}}},
+      "pump": {"depth_db": 6, "release_s": 0.2}
     }
   ],
-  "reverb": {
-    "decay": 0.75,
-    "damping_hz": 6000,
-    "predelay_s": 0.015,
-    "size": 1.2,
-    "return_db": -6
-  },
-  "master": {
-    "fade_in_s": 0,
-    "fade_out_s": 5
-  }
+  "reverb": {"decay": 0.75, "damping_hz": 6000, "predelay_s": 0.015, "size": 1.2, "return_db": -6},
+  "master": {"fade_in_s": 0, "fade_out_s": 5}
 }

@@ -9,6 +9,8 @@ import numpy as np, librosa, soundfile as sf, matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from scipy.signal import butter, sosfiltfilt
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+import patchtree  # noqa: E402
 
 spec = json.load(open(sys.argv[1]))
 OUT = spec['outdir']; os.makedirs(OUT, exist_ok=True)
@@ -46,8 +48,8 @@ ref_y, ref_sr = sf.read(spec['ref']); ref_y = ref_y.mean(axis=1) if ref_y.ndim >
 REF = features(prep(ref_y, ref_sr, True))
 
 def render(params, path):
-    patch = {"version": 1, "engine": spec['engine'], "name": "fit", "description": "fit", "params": params,
-             "clip": dict(clip, notes=clip['notes'])}
+    patch = {"version": 2, "engine": spec['engine'], "name": "fit", "description": "fit",
+             **patchtree.tree(spec['engine'], params), "clip": dict(clip, notes=clip['notes'])}
     pj = path + '.json'; json.dump(patch, open(pj, 'w'))
     r = subprocess.run([RENDER, '--patch', pj, '--out', path, '--tail', '0.5'], capture_output=True, text=True)
     if r.returncode != 0 or not os.path.exists(path): return None

@@ -1,112 +1,46 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "mono",
   "name": "mono_d_lead",
   "description": "The singing lead: two sawtooths and a square an octave apart, the ladder half open with the contour opening it further, full keyboard control, decay switch on, a slow glide and legato playing; the mod wheel adds the LFO vibrato.",
-  "params": {
-    "osc1_range": "8",
-    "osc1_wave": "saw",
-    "osc1_level": 0.8,
-    "osc2_range": "8",
-    "osc2_wave": "saw",
-    "osc2_detune": 0.09,
-    "osc2_level": 0.7,
-    "osc3_range": "16",
-    "osc3_wave": "square",
-    "osc3_detune": -0.04,
-    "osc3_level": 0.5,
-    "mixer_drive": 0.35,
-    "cutoff": 900,
-    "emphasis": 0.3,
-    "contour": 2.4,
-    "keytrack": 0.66,
-    "fenv_attack": 0.02,
-    "fenv_decay": 0.6,
-    "fenv_sustain": 0.55,
-    "amp_attack": 0.005,
-    "amp_decay": 0.5,
-    "amp_sustain": 0.9,
-    "release": "on",
-    "glide": 0.07,
-    "voice_mode": "legato",
-    "note_priority": "last",
-    "mod_b": "lfo",
-    "mod_mix": 1.0,
-    "lfo_rate": 5.5,
-    "mod_pitch": 0.35,
-    "bend_range": 7,
-    "delay_mix": 0.14,
-    "delay_time": 0.375,
-    "delay_feedback": 0.3,
-    "reverb_mix": 0.12,
-    "volume": 8.8,
-    "velocity": 0.4
-  },
+  "osc1": {"octave": "8", "waveform": "saw", "level": 0.8},
+  "osc2": {"octave": "8", "waveform": "saw", "detune": 0.09, "level": 0.7},
+  "osc3": {"octave": "16", "waveform": "square", "detune": -0.04, "level": 0.5},
+  "filter": {"drive": 0.35, "cutoff": 900, "resonance": 0.3, "envelope_amount": 2.4, "keytrack": 0.66},
+  "filter_env": {"attack": 0.02, "decay": 0.6, "sustain": 0.55},
+  "amp": {"attack": 0.005, "decay": 0.5, "sustain": 0.9, "velocity": 0.4},
+  "env": {"release_switch": "on"},
+  "voice": {"glide": 0.07, "mode": "legato", "bend_range": 7, "priority": "last"},
+  "mod": {"mix": 1.0, "to_pitch": 0.35, "source_b": "lfo"},
+  "output": {"volume": 8.8},
+  "lfo": {"rate": 5.5},
+  "fx": {"delay": {"mix": 0.14, "time": 0.375, "feedback": 0.3}, "reverb": {"mix": 0.12}},
   "macros": [
     {
       "name": "Brightness",
       "value": 0.35,
       "targets": [
-        {
-          "param": "cutoff",
-          "from": 400,
-          "to": 4000
-        },
-        {
-          "param": "contour",
-          "from": 1.8,
-          "to": 3.4
-        }
+        {"param": "filter.cutoff", "from": 400, "to": 4000},
+        {"param": "filter.envelope_amount", "from": 1.8, "to": 3.4}
       ]
     },
     {
       "name": "Growl",
       "value": 0.2,
       "targets": [
-        {
-          "param": "mixer_drive",
-          "from": 0.2,
-          "to": 0.9
-        },
-        {
-          "param": "emphasis",
-          "from": 0.2,
-          "to": 0.7
-        }
+        {"param": "filter.drive", "from": 0.2, "to": 0.9},
+        {"param": "filter.resonance", "from": 0.2, "to": 0.7}
       ]
     },
-    {
-      "name": "Vibrato",
-      "value": 0.0,
-      "targets": [
-        {
-          "param": "mod_pitch",
-          "from": 0.35,
-          "to": 1.0
-        }
-      ]
-    },
+    {"name": "Vibrato", "value": 0.0, "targets": [{"param": "mod.to_pitch", "from": 0.35, "to": 1.0}]},
     {
       "name": "Space",
       "value": 0.1556,
       "targets": [
-        {
-          "param": "reverb_mix",
-          "from": 0.05,
-          "to": 0.5
-        },
-        {
-          "param": "delay_mix",
-          "from": 0.07,
-          "to": 0.52
-        }
+        {"param": "fx.reverb.mix", "from": 0.05, "to": 0.5},
+        {"param": "fx.delay.mix", "from": 0.07, "to": 0.52}
       ]
     }
   ],
-  "audition": {
-    "notes": "A3 _ C4~ D4 _ E4~ G4 _ _ E4~ D4 C4~ A3 _ _ -",
-    "bpm": 92,
-    "step": 0.5,
-    "gate": 1.0
-  }
+  "audition": {"notes": "A3 _ C4~ D4 _ E4~ G4 _ _ E4~ D4 C4~ A3 _ _ -", "bpm": 92, "step": 0.5, "gate": 1.0}
 }

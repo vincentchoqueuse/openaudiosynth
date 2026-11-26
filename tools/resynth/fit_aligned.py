@@ -10,6 +10,8 @@ import json, os, subprocess, sys
 import numpy as np, librosa, soundfile as sf, matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+import patchtree  # noqa: E402
 
 spec = json.load(open(sys.argv[1]))
 OUT = spec['outdir']; os.makedirs(OUT, exist_ok=True)
@@ -46,7 +48,8 @@ def distance(F):
     return float(spec_d + 0.5 * env_d + 0.3 * wid_d), (float(spec_d), float(env_d), float(wid_d))
 
 def render(params, path):
-    p = dict(patch, params=params); p.pop('macros', None)
+    p = {k: v for k, v in patch.items() if k in patchtree.RESERVED and k != 'macros'}
+    p.update(patchtree.tree(patch['engine'], params))
     pj = path + '.json'; json.dump(p, open(pj, 'w'))
     r = subprocess.run([RENDER, '--patch', pj, '--out', path, '--tail', '1'], capture_output=True, text=True)
     return load(path) if r.returncode == 0 and os.path.exists(path) else None

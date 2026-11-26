@@ -1,7 +1,7 @@
 {
   "oid": "0.3",
   "instrument": {"name": "synth", "description": "modular DSP synthesizer for macOS and STM32: subtractive, modal/physical and drum machine engines with an effect bus"},
-  "patch_version": 1,
+  "patch_version": 2,
   "midi": {"pitch_bend": "each engine's bend_range", "cc": {"1": "mod_wheel", "64": "sustain", "120": "all_sound_off", "123": "all_notes_off"}},
   "global": {
     "description": "master and effect bus, shared by every engine: engine -> chorus -> tape delay -> plate reverb -> master",

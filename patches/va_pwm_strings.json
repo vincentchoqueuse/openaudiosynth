@@ -1,13 +1,14 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "va",
   "name": "va_pwm_strings",
   "description": "String-ensemble-like: two pulse waves with slow LFO pulse-width modulation, soft attack.",
-  "params": {
-    "volume": 1.2,
-    "osc1_wave": "pulse", "osc2_wave": "pulse", "osc2_detune": 6, "osc2_level": 0.8,
-    "lfo_rate": 0.7, "lfo_pwm": 0.35, "cutoff": 2200, "resonance": 0.8, "fenv_amount": 0.5, "keytrack": 0.7,
-    "amp_attack": 0.12, "amp_decay": 0.5, "amp_sustain": 0.85, "amp_release": 0.7, "pan_spread": 0.6
-  },
-  "audition": { "notes": "C3+G3+E4 _ _ _ D3+A3+F4 _ _ _ E3+B3+G4 _ _ _ C3+G3+C5 _ _ _", "bpm": 70, "step": 0.5 }
+  "osc1": {"waveform": "pulse"},
+  "osc2": {"waveform": "pulse", "detune": 6, "level": 0.8},
+  "filter": {"cutoff": 2200, "resonance": 0.8, "envelope_amount": 0.5, "keytrack": 0.7},
+  "amp": {"attack": 0.12, "decay": 0.5, "sustain": 0.85, "release": 0.7},
+  "lfo": {"rate": 0.7, "to_pulse_width": 0.35},
+  "output": {"volume": 1.2},
+  "voice": {"pan_spread": 0.6},
+  "audition": {"notes": "C3+G3+E4 _ _ _ D3+A3+F4 _ _ _ E3+B3+G4 _ _ _ C3+G3+C5 _ _ _", "bpm": 70, "step": 0.5}
 }

@@ -16,6 +16,9 @@ import sys
 
 import jsonschema
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patchtree  # noqa: E402
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 NOTE_RE = re.compile(r"^[A-Ga-g][#b]?-?\d+$")
 
@@ -89,8 +92,9 @@ class Checker:
             if isinstance(value, str) and d.get("role", "").startswith("route") and d["role"].endswith(".destination"):
                 if value != "none":  # an engine parameter, or an effect's (master and effect chain), that moves in real time
                     t = self.resolve(engine, value)
-                    fx = value in self.glob and value != "tempo"  # pm_global_target: not the tempo nor the tuning
-                    if t is None or (not fx and (value in self.shared or t.get("role", "") in [x.get("role") for x in self.shared.values()])):
+                    glob = any(t is g for g in self.glob.values())
+                    fx = glob and t.get("role") != "tempo.bpm"  # pm_global_target: not the tempo nor the tuning
+                    if t is None or (not fx and any(t is x for x in self.shared.values())):
                         self.err(where, f"'{key}': '{value}' is not a {engine} parameter")
                     elif not t.get("realtime"):
                         self.err(where, f"'{key}': {engine} parameter '{value}' is not realtime (cannot be modulated)")
@@ -109,7 +113,11 @@ class Checker:
         if doc.get("engine") not in self.engines:
             self.err(path, f"unknown engine '{doc.get('engine')}' (valid: {sorted(self.engines)})")
             return None
-        self.params(path, doc["engine"], doc.get("params", {}))
+        self.params(path, doc["engine"], patchtree.settings(doc))
+        for k, m in enumerate(doc.get("macros", [])):
+            for t in m.get("targets", []):
+                if self.resolve(doc["engine"], t.get("param", "")) is None:
+                    self.err(path, f"macro {k + 1}: target '{t.get('param')}' is not a {doc['engine']} parameter")
         return doc["engine"]
 
     def song(self, path):
@@ -127,7 +135,7 @@ class Checker:
                 engine = self.patch(pp)
             if engine is None:
                 continue
-            self.params(where, engine, t.get("params", {}))
+            self.params(where, engine, patchtree.flatten(t.get("params", {})))
             pat = t.get("pattern")
             if pat is not None:
                 names = set(self.engines[engine].get("notes", {}))

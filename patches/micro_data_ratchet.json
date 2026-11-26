@@ -1,52 +1,30 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "micro",
   "name": "micro_data_ratchet",
   "description": "Data rolls: each note is a 2.6 kHz tone repeated eight times on 1/32 notes, each hit 2 dB quieter, very short and exact; the rolls fall on the beat's offbeats.",
-  "params": {
+  "micro": {
     "pitch_mode": "fixed",
     "freq": 2600,
-    "amp_attack": 2e-05,
-    "amp_decay": 0.012,
-    "decay_curve": 0.4,
     "env_mode": "one_shot",
+    "decay_curve": 0.4,
     "ratchet": 8,
     "ratchet_div": "1/32",
-    "ratchet_decay": -2,
-    "velocity": 0.5,
-    "volume": 21.3,
-    "tempo": 120
+    "ratchet_decay": -2
   },
+  "amp": {"attack": 2e-05, "decay": 0.012, "velocity": 0.5},
+  "output": {"volume": 21.3},
+  "tempo": {"bpm": 120},
   "clip": {
     "bpm": 120,
     "length": 8,
     "loop": true,
     "grid": "1/16",
     "notes": [
-      {
-        "pitch": 60,
-        "start": 1.5,
-        "length": 0.1,
-        "velocity": 100
-      },
-      {
-        "pitch": 60,
-        "start": 3.75,
-        "length": 0.1,
-        "velocity": 80
-      },
-      {
-        "pitch": 60,
-        "start": 5.5,
-        "length": 0.1,
-        "velocity": 100
-      },
-      {
-        "pitch": 60,
-        "start": 7.25,
-        "length": 0.1,
-        "velocity": 90
-      }
+      {"pitch": 60, "start": 1.5, "length": 0.1, "velocity": 100},
+      {"pitch": 60, "start": 3.75, "length": 0.1, "velocity": 80},
+      {"pitch": 60, "start": 5.5, "length": 0.1, "velocity": 100},
+      {"pitch": 60, "start": 7.25, "length": 0.1, "velocity": 90}
     ]
   }
 }

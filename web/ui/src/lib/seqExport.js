@@ -103,7 +103,7 @@ export function buildSong(s, patch, loops = 4) {
   }
   const rows = [...byPitch].sort((a, b) => a[0] - b[0]).map(([, t]) => t.join(' '));
   return {
-    version: 1,
+    version: 2,
     name: s.name,
     description: `Clip exported from the web sequencer: ${s.notes.length} note(s) over ${s.length} beats at ${s.bpm} BPM, ` +
       `played ${loops} times, on the sound "${patch.name}" (inline patch).`,

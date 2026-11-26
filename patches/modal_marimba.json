@@ -1,25 +1,19 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "modal",
   "name": "modal_marimba",
   "description": "Marimba: tuned bar (overtones at 4x and 10x), soft rubber mallet, short woody decay.",
-  "params": {
-    "volume": 12,
+  "resonator": {
     "model": "marimba",
     "modes": 6,
     "decay": 1.2,
     "damping": 2.0,
     "release": 0.6,
     "brightness": 0.45,
-    "hardness": 0.45,
-    "noise": 0.08,
-    "variation": 2,
-    "vel_brightness": 0.7,
-    "pan_spread": 0.4
+    "variation": 2
   },
-  "audition": {
-    "notes": "C4 E4 G4 C5 B4 G4 E4 D4 C4 - G3 - C4 - - -",
-    "bpm": 110,
-    "step": 0.5
-  }
+  "exciter": {"hardness": 0.45, "noise": 0.08, "velocity_brightness": 0.7},
+  "output": {"volume": 12},
+  "voice": {"pan_spread": 0.4},
+  "audition": {"notes": "C4 E4 G4 C5 B4 G4 E4 D4 C4 - G3 - C4 - - -", "bpm": 110, "step": 0.5}
 }

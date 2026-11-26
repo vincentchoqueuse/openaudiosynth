@@ -42,77 +42,133 @@ static int patch_put(patch_t *p, int id, const param_desc_t *d, float v, char *e
     return 0;
 }
 
-int patch_set_params(patch_t *p, const json_t *params, char *err, size_t errlen, char *warn, size_t warnlen)
+/* "unknown setting": what the module of a key holds (the roles under its first part), or the modules there are */
+static void list_module(const engine_ops_t *e, const char *key, char *err, size_t errlen)
 {
-    if (params && params->type != JSON_OBJ) {
-        snprintf(err, errlen, "\"params\" must be an object");
+    const char *dot = strrchr(key, '.');
+    const size_t n = dot ? (size_t)(dot - key) : 0;
+    snprintf(err, errlen, "unknown %s setting \"%s\"", e->name, key);
+    int any = 0;
+    for (int i = 0; i < e->param_count + catalog_shared_count(); i++) {
+        int id;
+        const param_desc_t *d = i < e->param_count ? &e->params[i] : catalog_shared(i - e->param_count, &id);
+        if (d && d->role && n && !strncmp(d->role, key, n) && d->role[n] == '.') {
+            appendf(err, errlen, "%s %s", any ? "" : "; this module has:", d->role + n + 1);
+            any = 1;
+        }
+    }
+    if (!any)
+        appendf(err, errlen, " (settings are grouped by module: \"filter\": {\"cutoff\": 800}; see docs/catalog.md)");
+}
+
+/* One setting: its key (a parameter's role, "filter.cutoff", or for the patch's own lookups its name) and its value
+ * (a number in its units, or one of its labels). */
+static int set_one(patch_t *p, const char *key, const json_t *m, char *err, size_t errlen, char *warn, size_t warnlen)
+{
+    catalog_param_t cp;
+    const int found = catalog_lookup(p->engine, key, &cp);
+    if (found == -2) {
+        snprintf(err, errlen, "role \"%s\" matches several %s parameters; use one of their names:", key,
+                 p->engine->name);
+        for (int i = 0; i < p->engine->param_count; i++)
+            if (p->engine->params[i].role && !strcmp(p->engine->params[i].role, key))
+                appendf(err, errlen, " %s", p->engine->params[i].name);
         return -1;
     }
-    for (const json_t *m = params ? params->child : NULL; m; m = m->next) {
-        catalog_param_t cp;
-        const int found = catalog_lookup(p->engine, m->key, &cp);
-        if (found == -2) {
-            snprintf(err, errlen, "role \"%s\" matches several %s parameters; use one of their names:", m->key,
-                     p->engine->name);
-            for (int i = 0; i < p->engine->param_count; i++)
-                if (p->engine->params[i].role && !strcmp(p->engine->params[i].role, m->key))
-                    appendf(err, errlen, " %s", p->engine->params[i].name);
-            return -1;
-        }
-        if (found != 0) {
-            char names[4096];
-            catalog_list_names(p->engine, names, sizeof names);
-            snprintf(err, errlen, "unknown %s parameter \"%s\"; valid: %s", p->engine->name, m->key, names);
-            return -1;
-        }
-        const param_desc_t *d = cp.desc;
-        float v;
-        if (m->type == JSON_NUM) {
-            v = (float)m->num;
-        } else if (m->type == JSON_STR && cp.id >= SYNTH_MOD_PARAM &&
-                   (!strncmp(d->name, "route", 5) || !strncmp(d->name, "map", 3)) && strstr(d->name, "_destination")) {
-            /* route or macro target destination: an engine parameter, by name or role, that moves in real time */
-            catalog_param_t dst;
-            if (!strcmp(m->str, "none")) {
-                v = 0.0f;
-            } else if (catalog_lookup(p->engine, m->str, &dst) == 0 &&
-                       (dst.id < SYNTH_PARAM_GLOBAL || pm_global_target(dst.id))) {
-                if (!dst.desc->realtime) {
-                    snprintf(err, errlen, "\"%s\": %s is not a realtime parameter of %s (cannot be modulated)", m->key,
-                             m->str, p->engine->name);
-                    return -1;
-                }
-                v = (float)(dst.id + 1);
-            } else {
-                snprintf(err, errlen, "\"%s\": \"%s\" is not a %s parameter", m->key, m->str, p->engine->name);
+    if (found != 0) {
+        list_module(p->engine, key, err, errlen);
+        return -1;
+    }
+    const param_desc_t *d = cp.desc;
+    float v;
+    if (m->type == JSON_NUM) {
+        v = (float)m->num;
+    } else if (m->type == JSON_STR && cp.id >= SYNTH_MOD_PARAM &&
+               (!strncmp(d->name, "route", 5) || !strncmp(d->name, "map", 3)) && strstr(d->name, "_destination")) {
+        /* route or macro target destination: an engine parameter, by name or role, that moves in real time */
+        catalog_param_t dst;
+        if (!strcmp(m->str, "none")) {
+            v = 0.0f;
+        } else if (catalog_lookup(p->engine, m->str, &dst) == 0 &&
+                   (dst.id < SYNTH_PARAM_GLOBAL || pm_global_target(dst.id))) {
+            if (!dst.desc->realtime) {
+                snprintf(err, errlen, "\"%s\": %s is not a realtime parameter of %s (cannot be modulated)", key,
+                         m->str, p->engine->name);
                 return -1;
             }
-        } else if (m->type == JSON_STR) {
-            const int found = param_label(d, m->str);
-            if (found < 0) {
-                snprintf(err, errlen, "parameter \"%s\": unknown value \"%s\"", m->key, m->str);
-                if (d->labels) {
-                    appendf(err, errlen, "; valid:");
-                    for (int i = 0; d->labels[i]; i++)
-                        appendf(err, errlen, " %s", d->labels[i]);
-                }
-                return -1;
-            }
-            v = (float)found;
+            v = (float)(dst.id + 1);
         } else {
-            snprintf(err, errlen, "parameter \"%s\": number or label expected", m->key);
+            snprintf(err, errlen, "\"%s\": \"%s\" is not a %s parameter", key, m->str, p->engine->name);
             return -1;
         }
-        if (v < d->min || v > d->max) {
-            if (warn)
-                appendf(warn, warnlen, "%s (range %g..%g %s, clamped)\n", m->key, (double)d->min, (double)d->max,
-                        d->unit);
-            v = v < d->min ? d->min : d->max;
+    } else if (m->type == JSON_STR) {
+        const int found = param_label(d, m->str);
+        if (found < 0) {
+            snprintf(err, errlen, "parameter \"%s\": unknown value \"%s\"", key, m->str);
+            if (d->labels) {
+                appendf(err, errlen, "; valid:");
+                for (int i = 0; d->labels[i]; i++)
+                    appendf(err, errlen, " %s", d->labels[i]);
+            }
+            return -1;
         }
-        if (patch_put(p, cp.id, d, v, err, errlen) != 0)
+        v = (float)found;
+    } else {
+        snprintf(err, errlen, "parameter \"%s\": number or label expected", key);
+        return -1;
+    }
+    if (v < d->min || v > d->max) {
+        if (warn)
+            appendf(warn, warnlen, "%s (range %g..%g %s, clamped)\n", key, (double)d->min, (double)d->max,
+                    d->unit);
+        v = v < d->min ? d->min : d->max;
+    }
+    return patch_put(p, cp.id, d, v, err, errlen);
+}
+
+/* the keys of a patch that are not settings */
+static int reserved(const char *k)
+{
+    static const char *const R[] = {"version", "engine", "name", "description", "kit", "macros", "audition", "clip",
+                                    NULL};
+    for (int i = 0; R[i]; i++)
+        if (!strcmp(k, R[i]))
+            return 1;
+    return 0;
+}
+
+/* Settings as a tree of modules: {"filter": {"cutoff": 800}, "fx": {"delay": {"mix": 0.2}}}; a leaf's path is its
+ * parameter's role ("filter.cutoff", "fx.delay.mix"). At the top of a patch, its own keys are skipped. */
+static int set_tree(patch_t *p, const json_t *obj, char *path, size_t len, int top, char *err, size_t errlen,
+                    char *warn, size_t warnlen)
+{
+    const size_t at = strlen(path);
+    for (const json_t *m = obj->child; m; m = m->next) {
+        if (top && reserved(m->key))
+            continue;
+        if (snprintf(path + at, len - at, "%s%s", at ? "." : "", m->key) >= (int)(len - at)) {
+            snprintf(err, errlen, "setting path too long: %s", path);
+            return -1;
+        }
+        const int rc = m->type == JSON_OBJ ? set_tree(p, m, path, len, 0, err, errlen, warn, warnlen)
+                                           : set_one(p, path, m, err, errlen, warn, warnlen);
+        path[at] = 0;
+        if (rc != 0)
             return -1;
     }
     return 0;
+}
+
+int patch_set_params(patch_t *p, const json_t *settings, char *err, size_t errlen, char *warn, size_t warnlen)
+{
+    if (!settings)
+        return 0;
+    if (settings->type != JSON_OBJ) {
+        snprintf(err, errlen, "settings must be an object of modules ({\"filter\": {\"cutoff\": 800}})");
+        return -1;
+    }
+    char path[128] = "";
+    return set_tree(p, settings, path, sizeof path, 0, err, errlen, warn, warnlen);
 }
 
 /* ---- the "macros" section: named macros, each moving targets between two values ---- */
@@ -321,7 +377,7 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
 {
     int rc = -1;
     const json_t *ver = json_get(root, "version"), *eng = json_get(root, "engine");
-    const json_t *name = json_get(root, "name"), *params = json_get(root, "params");
+    const json_t *name = json_get(root, "name");
     if (root->type != JSON_OBJ) {
         snprintf(err, errlen, "top level must be an object");
         goto out;
@@ -349,11 +405,13 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
         }
         snprintf(p->kit, sizeof p->kit, "%s", kit->str);
     }
-    if (params && params->type != JSON_OBJ) {
-        snprintf(err, errlen, "\"params\" must be an object");
+    if (json_get(root, "params")) {
+        snprintf(err, errlen, "\"params\": a version %d patch groups its settings by module at the top level "
+                 "({\"filter\": {\"cutoff\": 800}}; docs/patch_format.md)", PATCH_VERSION);
         goto out;
     }
-    if (patch_set_params(p, params, err, errlen, warn, warnlen) != 0)
+    char path[128] = "";
+    if (set_tree(p, root, path, sizeof path, 1, err, errlen, warn, warnlen) != 0)
         goto out;
     if (patch_set_macros(p, json_get(root, "macros"), err, errlen) != 0)
         goto out;
@@ -397,6 +455,66 @@ static int patch_read(const json_t *root, patch_t *p, char *err, size_t errlen, 
     rc = 0;
 out:
     return rc;
+}
+
+static int by_role(const void *a, const void *b)
+{
+    return strcmp(((const patch_setting_t *)a)->role, ((const patch_setting_t *)b)->role);
+}
+
+/* the parts of a role, split at its dots: up to 8 parts of 63 characters */
+static int split_role(const char *role, char part[8][64])
+{
+    int m = 0;
+    for (const char *c = role; *c && m < 8; m++) {
+        const char *e = strchr(c, '.');
+        const size_t l = e ? (size_t)(e - c) : strlen(c);
+        snprintf(part[m], 64, "%.*s", (int)l, c);
+        c += l + (e ? 1 : 0);
+    }
+    return m;
+}
+
+static void put_indent(void (*put)(void *, const char *), void *ctx, int n)
+{
+    static const char sp[] = "                                ";
+    put(ctx, sp + (sizeof sp - 1 - (size_t)dsp_clampi(n, 0, (int)sizeof sp - 1)));
+}
+
+void patch_write_settings(void (*put)(void *ctx, const char *text), void *ctx, patch_setting_t *s, int n, int indent)
+{
+    qsort(s, (size_t)n, sizeof *s, by_role);
+    char open[8][64], part[8][64], buf[128];
+    int depth = 0, first[9] = {1, 1, 1, 1, 1, 1, 1, 1, 1};
+    for (int i = 0; i < n; i++) {
+        const int m = split_role(s[i].role, part);
+        int c = 0;
+        while (c < depth && c < m - 1 && !strcmp(open[c], part[c]))
+            c++;
+        for (; depth > c; depth--) { /* close the modules this setting is not in */
+            put(ctx, "\n");
+            put_indent(put, ctx, indent + 2 * (depth - 1));
+            put(ctx, "}");
+        }
+        for (int l = depth; l < m; l++) { /* open its modules, then the setting */
+            put(ctx, first[l] ? (l ? "\n" : "") : ",\n");
+            first[l] = 0;
+            put_indent(put, ctx, indent + 2 * l);
+            snprintf(buf, sizeof buf, "\"%s\": %s", part[l], l < m - 1 ? "{" : "");
+            put(ctx, buf);
+            if (l < m - 1) {
+                snprintf(open[l], 64, "%s", part[l]);
+                first[l + 1] = 1;
+                depth = l + 1;
+            }
+        }
+        put(ctx, s[i].value);
+    }
+    for (; depth > 0; depth--) {
+        put(ctx, "\n");
+        put_indent(put, ctx, indent + 2 * (depth - 1));
+        put(ctx, "}");
+    }
 }
 
 const uint8_t *(*patch_kit_resolver)(const char *name, size_t *bytes);

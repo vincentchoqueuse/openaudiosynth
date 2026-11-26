@@ -1,35 +1,17 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "mono",
   "name": "mono_acid_climb",
   "description": "An acid line that climbs in C minor, accents piling up so the cutoff keeps rising over the bar, slides at the top; a hard, distorted saw. On the monosynth: one oscillator into the ladder, a short filter contour, slides only between tied notes (glide_mode legato), accents by velocity.",
-  "params": {
-    "osc1_range": "8",
-    "osc1_wave": "saw",
-    "osc1_level": 0.8,
-    "osc2_level": 0,
-    "osc3_level": 0,
-    "mixer_drive": 0.4,
-    "cutoff": 2235,
-    "emphasis": 0.84,
-    "contour": 4.8,
-    "keytrack": 0,
-    "fenv_attack": 0.002,
-    "fenv_decay": 0.35,
-    "fenv_sustain": 0,
-    "amp_attack": 0.002,
-    "amp_decay": 2.0,
-    "amp_sustain": 0.7,
-    "glide": 0.05,
-    "glide_mode": "legato",
-    "voice_mode": "legato",
-    "velocity": 0.85,
-    "drift": 1,
-    "volume": 6.1,
-    "saturation": "hard",
-    "saturation_drive": 18.6,
-    "saturation_tone": 5000
-  },
+  "osc1": {"octave": "8", "waveform": "saw", "level": 0.8},
+  "osc2": {"level": 0},
+  "osc3": {"level": 0},
+  "filter": {"drive": 0.4, "cutoff": 2235, "resonance": 0.84, "envelope_amount": 4.8, "keytrack": 0},
+  "filter_env": {"attack": 0.002, "decay": 0.35, "sustain": 0},
+  "amp": {"attack": 0.002, "decay": 2.0, "sustain": 0.7, "velocity": 0.85},
+  "voice": {"glide": 0.05, "mode": "legato", "drift": 1, "glide_mode": "legato"},
+  "output": {"volume": 6.1},
+  "master": {"saturation": {"mode": "hard", "drive": 18.6, "tone": 5000}},
   "clip": {
     "bpm": 138,
     "length": 4,
@@ -37,96 +19,21 @@
     "grid": "1/16",
     "key": "C minor",
     "notes": [
-      {
-        "pitch": 36,
-        "start": 0.0,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 36,
-        "start": 0.25,
-        "length": 0.15,
-        "velocity": 84
-      },
-      {
-        "pitch": 39,
-        "start": 0.5,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 36,
-        "start": 0.75,
-        "length": 0.15,
-        "velocity": 84
-      },
-      {
-        "pitch": 41,
-        "start": 1.0,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 36,
-        "start": 1.25,
-        "length": 0.27,
-        "velocity": 84
-      },
-      {
-        "pitch": 43,
-        "start": 1.5,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 36,
-        "start": 1.75,
-        "length": 0.15,
-        "velocity": 84
-      },
-      {
-        "pitch": 46,
-        "start": 2.0,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 48,
-        "start": 2.25,
-        "length": 0.27,
-        "velocity": 120
-      },
-      {
-        "pitch": 51,
-        "start": 2.5,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 48,
-        "start": 2.75,
-        "length": 0.27,
-        "velocity": 84
-      },
-      {
-        "pitch": 43,
-        "start": 3.0,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 48,
-        "start": 3.5,
-        "length": 0.15,
-        "velocity": 120
-      },
-      {
-        "pitch": 46,
-        "start": 3.75,
-        "length": 0.15,
-        "velocity": 84
-      }
+      {"pitch": 36, "start": 0.0, "length": 0.15, "velocity": 120},
+      {"pitch": 36, "start": 0.25, "length": 0.15, "velocity": 84},
+      {"pitch": 39, "start": 0.5, "length": 0.15, "velocity": 120},
+      {"pitch": 36, "start": 0.75, "length": 0.15, "velocity": 84},
+      {"pitch": 41, "start": 1.0, "length": 0.15, "velocity": 120},
+      {"pitch": 36, "start": 1.25, "length": 0.27, "velocity": 84},
+      {"pitch": 43, "start": 1.5, "length": 0.15, "velocity": 120},
+      {"pitch": 36, "start": 1.75, "length": 0.15, "velocity": 84},
+      {"pitch": 46, "start": 2.0, "length": 0.15, "velocity": 120},
+      {"pitch": 48, "start": 2.25, "length": 0.27, "velocity": 120},
+      {"pitch": 51, "start": 2.5, "length": 0.15, "velocity": 120},
+      {"pitch": 48, "start": 2.75, "length": 0.27, "velocity": 84},
+      {"pitch": 43, "start": 3.0, "length": 0.15, "velocity": 120},
+      {"pitch": 48, "start": 3.5, "length": 0.15, "velocity": 120},
+      {"pitch": 46, "start": 3.75, "length": 0.15, "velocity": 84}
     ]
   }
 }

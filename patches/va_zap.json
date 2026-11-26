@@ -1,38 +1,15 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "va",
   "name": "va_zap",
   "description": "IDM blip / zap: saw + fifth with a falling pitch sweep, resonant filter, random stereo position per hit, thrown into a tempo-synced ping-pong echo (3/16 at 92 bpm).",
-  "params": {
-    "volume": 12.0,
-    "osc2_level": 0.5,
-    "drift": 0,
-    "pan_spread": 1,
-    "keytrack": 0,
-    "fenv_amount": 0,
-    "amp_attack": 0.0005,
-    "amp_sustain": 0,
-    "osc1_wave": "saw",
-    "osc2_wave": "pulse",
-    "osc2_semi": 7,
-    "cutoff": 2800,
-    "resonance": 6,
-    "pitch_env": -18,
-    "pitch_env_decay": 0.05,
-    "amp_decay": 0.09,
-    "amp_release": 0.04,
-    "amp_velocity": 0.6,
-    "delay_mix": 0.35,
-    "delay_time": 0.489,
-    "delay_pingpong": "on",
-    "delay_feedback": 0.5,
-    "delay_tone": 4500,
-    "delay_wow": 0.15
-  },
-  "audition": {
-    "notes": "C6 - - E6 - - - G5 - C6 - - - - A5 -",
-    "bpm": 92,
-    "step": 0.25,
-    "gate": 0.5
-  }
+  "osc1": {"waveform": "saw"},
+  "osc2": {"waveform": "pulse", "semitone": 7, "level": 0.5},
+  "filter": {"cutoff": 2800, "resonance": 6, "envelope_amount": 0, "keytrack": 0},
+  "amp": {"attack": 0.0005, "decay": 0.09, "sustain": 0, "release": 0.04, "velocity": 0.6},
+  "output": {"volume": 12.0},
+  "voice": {"drift": 0, "pan_spread": 1},
+  "pitch_env": {"amount": -18, "decay": 0.05},
+  "fx": {"delay": {"mix": 0.35, "time": 0.489, "feedback": 0.5, "tone": 4500, "wow": 0.15, "pingpong": "on"}},
+  "audition": {"notes": "C6 - - E6 - - - G5 - C6 - - - - A5 -", "bpm": 92, "step": 0.25, "gate": 0.5}
 }

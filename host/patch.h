@@ -1,6 +1,7 @@
-/* patch.h — sound patches as versioned JSON files (host side). A patch names an engine, sets
- * parameters in physical units (or labels for enumerated ones) — engine parameters and global ones
- * (master, effects: chorus_*, delay_*, reverb_*) — and carries an audition phrase.
+/* patch.h — sound patches as versioned JSON files (host side). A patch names an engine and sets its settings grouped
+ * by module, {"osc1": {"waveform": "saw"}, "filter": {"cutoff": 800}, "fx": {"delay": {"mix": 0.2}}}: each leaf's
+ * path is a parameter's role (the catalog's), its value in physical units or a label. It carries an audition phrase,
+ * a clip and named macros.
  * Format documented in docs/patch_format.md. */
 #ifndef PATCH_H
 #define PATCH_H
@@ -8,7 +9,7 @@
 #include "catalog.h"
 #include "demos.h"
 
-#define PATCH_VERSION 1
+#define PATCH_VERSION 2
 #define PATCH_MAX_PARAMS 512
 #define PATCH_MACROS 8 /* the part's macros (dsp/mod/partmod.h) */
 #define PATCH_MACRO_NAME 32
@@ -49,9 +50,20 @@ struct json;
 int patch_from_object(const struct json *obj, patch_t *p, char *err, size_t errlen, char *warn, size_t warnlen);
 
 struct json;
-/* Sets parameters from a JSON object {name: value}; later values override earlier ones.
- * Same error/warning conventions as patch_load. */
+/* Sets parameters from a tree of modules ({"filter": {"cutoff": 800}}, leaves by role); later values override
+ * earlier ones. Same error/warning conventions as patch_load. */
 int patch_set_params(patch_t *p, const struct json *params, char *err, size_t errlen, char *warn, size_t warnlen);
+
+/* A setting to write: its role ("filter.cutoff") and its value as JSON text (a number, or a quoted label). */
+typedef struct {
+    const char *role;
+    char value[64];
+} patch_setting_t;
+/* Writes settings as the patch's module tree, {"filter": {"cutoff": 300}}, through put(ctx, text): sorted by role in
+ * place (a module's settings come together), every line indented by `indent` spaces plus 2 per level. Writes the
+ * members only (the caller writes the braces around and a comma before when other members precede); nothing for
+ * n = 0. */
+void patch_write_settings(void (*put)(void *ctx, const char *text), void *ctx, patch_setting_t *s, int n, int indent);
 
 /* Adds engine selection + parameter events at t = 0. */
 void patch_apply(const patch_t *p, seq_t *s);

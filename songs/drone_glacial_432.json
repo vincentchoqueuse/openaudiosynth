@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "drone_glacial_432",
   "description": "Ten minutes of glacial drone at A4 = 432 Hz: a low A held throughout, three-note chords of A lydian moving one voice at a time every 32 s, rare high glass tones; the drone engine at its coldest.",
   "bpm": 60,
@@ -15,12 +15,9 @@
       "velocity": 90,
       "gate": 1,
       "params": {
-        "a4_hz": 432,
-        "density": 0.35,
-        "temperature": 0.1,
-        "sparkle": 0,
-        "amp_attack": 20,
-        "amp_release": 20
+        "drone": {"temperature": 0.1, "density": 0.35, "sparkle": 0},
+        "amp": {"attack": 20, "release": 20},
+        "tuning": {"a4": 432}
       }
     },
     {
@@ -32,11 +29,7 @@
       "reverb_send": 0.7,
       "velocity": 70,
       "gate": 1,
-      "params": {
-        "a4_hz": 432,
-        "amp_attack": 14,
-        "amp_release": 18
-      }
+      "params": {"amp": {"attack": 14, "release": 18}, "tuning": {"a4": 432}}
     },
     {
       "patch": "patches/drone_glacial.json",
@@ -48,24 +41,12 @@
       "velocity": 60,
       "gate": 0.5,
       "params": {
-        "a4_hz": 432,
-        "density": 0.15,
-        "sparkle": 0.6,
-        "amp_attack": 6,
-        "amp_release": 16,
-        "width": 1.0
+        "drone": {"density": 0.15, "sparkle": 0.6, "width": 1.0},
+        "amp": {"attack": 6, "release": 16},
+        "tuning": {"a4": 432}
       }
     }
   ],
-  "reverb": {
-    "decay": 0.96,
-    "damping_hz": 7000,
-    "predelay_s": 0.07,
-    "size": 2.0,
-    "return_db": 0
-  },
-  "master": {
-    "fade_in_s": 15,
-    "fade_out_s": 30
-  }
+  "reverb": {"decay": 0.96, "damping_hz": 7000, "predelay_s": 0.07, "size": 2.0, "return_db": 0},
+  "master": {"fade_in_s": 15, "fade_out_s": 30}
 }

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """scala_to_patch.py — converts a 12-note octave-repeating Scala tuning (.scl) into the synth's custom tuning
 parameters (tuning = custom, tune_0..tune_11 in cents away from equal temperament), printed as a JSON
-fragment to paste into a patch's "params", or merged into a patch with --patch.
+fragment to paste into a patch (its "tuning" module), or merged into a patch with --patch.
 
   python3 tools/scala_to_patch.py my_scale.scl [--root D] [--patch patches/x.json]
 
@@ -12,6 +12,9 @@ import argparse
 import json
 import math
 import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patchtree  # noqa: E402
 
 ROOTS = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
@@ -48,13 +51,13 @@ def main():
         params[f"tune_{k}"] = off
     if a.patch:
         doc = json.load(open(a.patch))
-        doc.setdefault("params", {}).update(params)
+        for k, v in params.items():
+            patchtree.set(doc, k, v)
         with open(a.patch, "w") as f:
-            json.dump(doc, f, indent=2)
-            f.write("\n")
+            f.write(patchtree.dumps(doc))
         print(f"{a.patch}: tuning '{desc}' from {a.root}")
     else:
-        print(json.dumps(params, indent=2))
+        print(patchtree.dumps(patchtree.tree("va", params)), end="")
 
 
 if __name__ == "__main__":

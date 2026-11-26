@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "jardin_de_verre",
   "description": "Original piece for the modal engine: a bowed singing-bowl drone, a kalimba pattern thrown into a ping-pong tape echo, church bells every 8 bars, a soft detuned saw pad with ensemble chorus, sub swells from the second cycle, and a long plate reverb.",
   "bpm": 70,
@@ -37,11 +37,9 @@
       "gain_db": -11,
       "reverb_send": 0.6,
       "params": {
-        "amp_attack": 2.0,
-        "amp_release": 3.0,
-        "cutoff": 800,
-        "chorus_mode": "ensemble",
-        "chorus_mix": 0.4
+        "filter": {"cutoff": 800},
+        "amp": {"attack": 2.0, "release": 3.0},
+        "fx": {"chorus": {"mode": "ensemble", "mix": 0.4}}
       }
     },
     {
@@ -52,15 +50,6 @@
       "reverb_send": 0.05
     }
   ],
-  "reverb": {
-    "decay": 0.9,
-    "damping_hz": 4000,
-    "predelay_s": 0.05,
-    "size": 1.8,
-    "return_db": -1
-  },
-  "master": {
-    "fade_in_s": 2,
-    "fade_out_s": 12
-  }
+  "reverb": {"decay": 0.9, "damping_hz": 4000, "predelay_s": 0.05, "size": 1.8, "return_db": -1},
+  "master": {"fade_in_s": 2, "fade_out_s": 12}
 }

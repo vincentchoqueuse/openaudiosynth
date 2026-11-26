@@ -78,13 +78,17 @@ Parameter fields: `type` (`float`, `int`, `enum`), `range` [min, max] or `choice
 ## 4. Patch
 
 ```json
-{"version": 1, "engine": "va", "name": "va_acid_bass", "description": "what it sounds like and why",
- "params": {"cutoff": 220, "osc2_wave": "pulse", "fx.delay.mix": 0.3},
+{"version": 2, "engine": "va", "name": "va_acid_bass", "description": "what it sounds like and why",
+ "osc2": {"waveform": "pulse"},
+ "filter": {"cutoff": 220},
+ "fx": {"delay": {"mix": 0.3}},
  "audition": {"notes": "C2! C2 C3~ D#2 - C2", "bpm": 124, "step": 0.25}}
 ```
 
-Only parameters that differ from the defaults are written. Keys are names or roles; values are
-physical numbers or choice names.
+A patch describes its instrument the way the instrument describes itself: its settings are grouped by module,
+each leaf's path being a parameter's **role** (`filter.cutoff`, `fx.delay.mix`), unique within an instrument.
+Only settings that differ from the defaults are written; values are physical numbers or choice names. Macro
+targets and modulation destinations name parameters by role too.
 
 ## 5. Controller map
 
@@ -107,7 +111,7 @@ One layout therefore drives every engine. The CC value 0..127 spans the paramete
   patterns plays as sections.
 - **Track**: `patch`, `notes` or `pattern`, `step` (beats), `start_step`, `repeat`, `gate`, `velocity`,
   `swing`, `humanize_velocity`, `humanize_ms`, `gain_db`, `pan`, `reverb_send`, `pump` (beat-locked
-  ducking), `params` (overrides, names or roles).
+  ducking), `params` (overrides, grouped by module like a patch's settings).
 - **Song**: `bpm`, `length_beats`, `tail_s`, `tracks`, `reverb`, `master`.
 
 ## 7. Roles

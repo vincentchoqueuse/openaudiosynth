@@ -1,53 +1,30 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "micro",
   "name": "micro_high_tone",
   "description": "Very high pure tones (a keyed sine around 10 to 15 kHz) in short exact blips, stuttered by a free-running gate at 40 steps a second; thin, piercing, precise.",
-  "params": {
-    "amp_attack": 0.0002,
-    "amp_decay": 0.08,
-    "decay_curve": 0.2,
-    "amp_sustain": 0,
+  "micro": {
     "phase": 0,
+    "decay_curve": 0.2,
     "gate_mode": "free",
     "gate_hz": 40,
     "gate_steps": 8,
     "gate_pattern": 183,
-    "gate_edge": 0.0002,
-    "velocity": 0.4,
-    "volume": 10,
-    "tempo": 120
+    "gate_edge": 0.0002
   },
+  "amp": {"attack": 0.0002, "decay": 0.08, "sustain": 0, "velocity": 0.4},
+  "output": {"volume": 10},
+  "tempo": {"bpm": 120},
   "clip": {
     "bpm": 120,
     "length": 8,
     "loop": true,
     "grid": "1/16",
     "notes": [
-      {
-        "pitch": 123,
-        "start": 0.75,
-        "length": 0.1,
-        "velocity": 100
-      },
-      {
-        "pitch": 127,
-        "start": 2.5,
-        "length": 0.1,
-        "velocity": 90
-      },
-      {
-        "pitch": 123,
-        "start": 4.75,
-        "length": 0.1,
-        "velocity": 100
-      },
-      {
-        "pitch": 125,
-        "start": 6.25,
-        "length": 0.1,
-        "velocity": 90
-      }
+      {"pitch": 123, "start": 0.75, "length": 0.1, "velocity": 100},
+      {"pitch": 127, "start": 2.5, "length": 0.1, "velocity": 90},
+      {"pitch": 123, "start": 4.75, "length": 0.1, "velocity": 100},
+      {"pitch": 125, "start": 6.25, "length": 0.1, "velocity": 90}
     ]
   }
 }

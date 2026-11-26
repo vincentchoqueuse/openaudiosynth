@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "electro_analog",
   "description": "Electro groove on the analog kit: syncopated booming kick, snare + clap, 16th hats with ghosts, the cowbell motif, tom fills; acid-ish bass, zaps in a ping-pong echo, a pad breakdown.",
   "bpm": 112,
@@ -9,11 +9,7 @@
     {
       "patch": "patches/drums_analog.json",
       "pattern": [
-        {
-          "kick": "X.....x...X...x.",
-          "chat": "x.xox.xox.xox.x.",
-          "repeat": 4
-        },
+        {"kick": "X.....x...X...x.", "chat": "x.xox.xox.xox.x.", "repeat": 4},
         {
           "kick": "X.....x...X...x.",
           "snare": "....X.......X...",
@@ -35,12 +31,7 @@
           "htom": "........x.......",
           "repeat": 1
         },
-        {
-          "cowbell": "..x.....x..x....",
-          "chat": "....x.......x...",
-          "clap": "............x...",
-          "repeat": 4
-        },
+        {"cowbell": "..x.....x..x....", "chat": "....x.......x...", "clap": "............x...", "repeat": 4},
         {
           "kick": "X.....x...X...x.",
           "snare": "....X.......X...",
@@ -77,11 +68,7 @@
       "humanize_ms": 2,
       "gain_db": 0,
       "reverb_send": 0.08,
-      "params": {
-        "stereo": 0.5,
-        "kick_level": -6,
-        "kick_decay": 0.7
-      }
+      "params": {"drum": {"stereo": 0.5, "kick": {"level": -6, "decay": 0.7}}}
     },
     {
       "patch": "patches/va_acid_bass.json",
@@ -90,12 +77,7 @@
       "gain_db": -5,
       "reverb_send": 0.05,
       "notes": "E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 - E1! - E1 - - E2 - E1 - - G1 - A1 - E1 -",
-      "params": {
-        "cutoff": 260,
-        "resonance": 5,
-        "fenv_amount": 3.5,
-        "osc2_level": 0.3
-      }
+      "params": {"osc2": {"level": 0.3}, "filter": {"cutoff": 260, "resonance": 5, "envelope_amount": 3.5}}
     },
     {
       "patch": "patches/va_zap.json",
@@ -104,9 +86,7 @@
       "gain_db": -8,
       "reverb_send": 0.3,
       "notes": "- - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - - - - - - - - E6 - - - - - - - - - - - B5 - - - - - - - - - - - - -",
-      "params": {
-        "delay_time": 0.402
-      }
+      "params": {"fx": {"delay": {"time": 0.402}}}
     },
     {
       "patch": "patches/va_warm_pad.json",
@@ -117,15 +97,6 @@
       "notes": "E3+G3+B3+D4 _ A2+C3+E3+G3 _"
     }
   ],
-  "reverb": {
-    "decay": 0.8,
-    "damping_hz": 5000,
-    "predelay_s": 0.02,
-    "size": 1.3,
-    "return_db": -4
-  },
-  "master": {
-    "fade_in_s": 0,
-    "fade_out_s": 4
-  }
+  "reverb": {"decay": 0.8, "damping_hz": 5000, "predelay_s": 0.02, "size": 1.3, "return_db": -4},
+  "master": {"fade_in_s": 0, "fade_out_s": 4}
 }

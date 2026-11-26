@@ -1,47 +1,39 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "modal",
   "name": "modal_piano_dream",
   "description": "A piano remembered: the ambient grand through a worn tape, into a long reverb whose tail rises a fifth and an octave (shimmer on the fifth), the echoes and the space drifting by themselves. Play few notes and leave room.",
-  "params": {
-    "volume": 3,
+  "resonator": {
     "model": "string",
     "modes": 32,
-    "inharmonicity": 0.0006,
-    "unison": 1.6,
-    "variation": 1.0,
     "decay": 14,
-    "decay_keytrack": 0.85,
     "damping": 1.4,
     "release": 2.5,
     "brightness": 0.6,
-    "position": 0.125,
-    "hardness": 0.6,
-    "vel_brightness": 0.8,
-    "noise": 0.04,
-    "pan_spread": 0.35,
-    "reverb_mix": 0.6,
-    "reverb_decay": 0.95,
-    "reverb_damping": 6000,
-    "reverb_predelay": 0.05,
-    "aftersound": 0,
-    "tape": "on",
-    "tape_wow": 0.4,
-    "tape_flutter": 0.15,
-    "tape_drive": 0.35,
-    "tape_hiss": 0.2,
-    "tape_tone": 6500,
-    "fx_slot1": "tape",
-    "reverb_shimmer": 0.5,
-    "reverb_shimmer_pitch": "fifth_up",
-    "delay_mix": 0.2,
-    "delay_time": 0.75,
-    "delay_feedback": 0.5,
-    "delay_tone": 2500,
-    "wander": 0.6,
-    "wander_rate": 0.07,
-    "master": -4
+    "variation": 1.0,
+    "inharmonicity": 0.0006,
+    "unison": 1.6,
+    "decay_keytrack": 0.85,
+    "aftersound": 0
   },
+  "exciter": {"position": 0.125, "hardness": 0.6, "noise": 0.04, "velocity_brightness": 0.8},
+  "output": {"volume": 3},
+  "voice": {"pan_spread": 0.35},
+  "master": {"level": -4},
+  "fx": {
+    "delay": {"mix": 0.2, "time": 0.75, "feedback": 0.5, "tone": 2500},
+    "reverb": {
+      "mix": 0.6,
+      "decay": 0.95,
+      "damping": 6000,
+      "predelay": 0.05,
+      "shimmer": 0.5,
+      "shimmer_pitch": "fifth_up"
+    },
+    "rack": {"slot1": "tape"},
+    "tape": {"mode": "on", "wow": 0.4, "flutter": 0.15, "drive": 0.35, "hiss": 0.2, "tone": 6500}
+  },
+  "wander": {"amount": 0.6, "rate": 0.07},
   "audition": {
     "notes": "C3+G3+E4 _ _ _ D4 E4 G4 _ C5 _ _ _ B4+G4+D4 _ _ _ A3+E4+C5 _ _ _ G4 _ E4 _ F3+C4+A4 _ _ _ _ _ _ _",
     "bpm": 66,
@@ -52,53 +44,15 @@
     "humanize_ms": 12
   },
   "macros": [
-    {
-      "name": "Echoes",
-      "value": 0.4,
-      "targets": [
-        {
-          "param": "delay_mix",
-          "from": 0.05,
-          "to": 0.4
-        }
-      ]
-    },
-    {
-      "name": "Space",
-      "value": 0.6,
-      "targets": [
-        {
-          "param": "reverb_mix",
-          "from": 0.35,
-          "to": 0.8
-        }
-      ]
-    },
-    {
-      "name": "Glow",
-      "value": 0.5,
-      "targets": [
-        {
-          "param": "reverb_shimmer",
-          "from": 0.2,
-          "to": 0.75
-        }
-      ]
-    },
+    {"name": "Echoes", "value": 0.4, "targets": [{"param": "fx.delay.mix", "from": 0.05, "to": 0.4}]},
+    {"name": "Space", "value": 0.6, "targets": [{"param": "fx.reverb.mix", "from": 0.35, "to": 0.8}]},
+    {"name": "Glow", "value": 0.5, "targets": [{"param": "fx.reverb.shimmer", "from": 0.2, "to": 0.75}]},
     {
       "name": "Wear",
       "value": 0.4,
       "targets": [
-        {
-          "param": "tape_wow",
-          "from": 0.15,
-          "to": 0.7
-        },
-        {
-          "param": "tape_tone",
-          "from": 8738.9,
-          "to": 3671.7
-        }
+        {"param": "fx.tape.wow", "from": 0.15, "to": 0.7},
+        {"param": "fx.tape.tone", "from": 8738.9, "to": 3671.7}
       ]
     }
   ]

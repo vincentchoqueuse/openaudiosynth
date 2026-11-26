@@ -276,7 +276,7 @@ int main(int argc, char **argv)
     pl->stop_processing(pl);
     pl->deactivate(pl);
     {
-        static const char b_state[] = "{\"version\": 1, \"engine\": \"va\", \"name\": \"b\", \"params\": {\"cutoff\": 300}}";
+        static const char b_state[] = "{\"version\": 2, \"engine\": \"va\", \"name\": \"b\", \"filter\": {\"cutoff\": 300}}";
         mem_t mb = {(char *)b_state, sizeof b_state - 1, 0};
         clap_istream_t isb = {&mb, mem_read};
         EXPECT(state->load(pl, &isb), "load B while inactive");
@@ -360,7 +360,7 @@ int main(int argc, char **argv)
         EXPECT(qs->load(q, &iss), "%s: its own state does not load back", want);
         free(ms.buf);
         char other[128];
-        snprintf(other, sizeof other, "{\"version\": 1, \"engine\": \"%s\", \"name\": \"x\", \"params\": {}}",
+        snprintf(other, sizeof other, "{\"version\": 2, \"engine\": \"%s\", \"name\": \"x\"}",
                  engine_registry[(e + 1) % SYNTH_ENGINE_COUNT]->name);
         mem_t mo = {other, strlen(other), 0};
         clap_istream_t iso = {&mo, mem_read};

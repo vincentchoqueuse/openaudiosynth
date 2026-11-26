@@ -1,10 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "drone",
   "name": "drone_minou_beach",
   "description": "Plage du Minou at sunset: sand, the long swell rolling in, the light turning gold. A Lydian, the warmest of the three: a low, muffled surf (the air layer, filtered down) under a gentle swell of the whole drone, a few sparkles on the water.",
-  "params": {
-    "volume": -4.3,
+  "drone": {
     "temperature": 0.72,
     "density": 0.5,
     "motion": 0.4,
@@ -13,32 +12,21 @@
     "sparkle": 0.15,
     "width": 0.9,
     "air_level": 0,
-    "amp_attack": 8,
-    "amp_release": 14,
-    "vlfo_wave": "wiener",
-    "vlfo_rate": 0.2,
-    "vroute1_source": "vlfo",
-    "vroute1_destination": "pitch",
-    "vroute1_amount": 0.004,
-    "chorus_mode": "I",
-    "chorus_mix": 0.2,
-    "reverb_mix": 0.45,
-    "reverb_decay": 0.93,
-    "reverb_damping": 3500,
-    "reverb_predelay": 0.04,
     "air_tone": -2,
-    "air_reso": 0.3,
-    "mlfo1_wave": "sine",
-    "mlfo1_rate": 0.06,
-    "route1_source": "mlfo1",
-    "route1_destination": "volume",
-    "route1_amount": 0.018,
-    "mlfo2_wave": "wiener",
-    "mlfo2_rate": 0.1,
-    "route2_source": "mlfo2",
-    "route2_destination": "volume",
-    "route2_amount": 0.012
+    "air_reso": 0.3
   },
+  "amp": {"attack": 8, "release": 14},
+  "output": {"volume": -4.3},
+  "fx": {
+    "chorus": {"mode": "I", "mix": 0.2},
+    "reverb": {"mix": 0.45, "decay": 0.93, "damping": 3500, "predelay": 0.04}
+  },
+  "mlfo1": {"rate": 0.06, "waveform": "sine"},
+  "mlfo2": {"rate": 0.1, "waveform": "wiener"},
+  "route1": {"source": "mlfo1", "destination": "output.volume", "amount": 0.018},
+  "route2": {"source": "mlfo2", "destination": "output.volume", "amount": 0.012},
+  "vlfo": {"rate": 0.2, "waveform": "wiener"},
+  "vroute1": {"source": "vlfo", "destination": "pitch", "amount": 0.004},
   "clip": {
     "bpm": 60,
     "length": 128,
@@ -46,60 +34,15 @@
     "grid": "1/4",
     "key": "A lydian",
     "notes": [
-      {
-        "pitch": 33,
-        "start": 0,
-        "length": 128,
-        "velocity": 92
-      },
-      {
-        "pitch": 40,
-        "start": 2,
-        "length": 124,
-        "velocity": 72
-      },
-      {
-        "pitch": 61,
-        "start": 6,
-        "length": 30,
-        "velocity": 80
-      },
-      {
-        "pitch": 68,
-        "start": 20,
-        "length": 26,
-        "velocity": 76
-      },
-      {
-        "pitch": 75,
-        "start": 40,
-        "length": 20,
-        "velocity": 70
-      },
-      {
-        "pitch": 71,
-        "start": 52,
-        "length": 30,
-        "velocity": 78
-      },
-      {
-        "pitch": 64,
-        "start": 70,
-        "length": 30,
-        "velocity": 80
-      },
-      {
-        "pitch": 66,
-        "start": 90,
-        "length": 30,
-        "velocity": 74
-      },
-      {
-        "pitch": 73,
-        "start": 100,
-        "length": 24,
-        "velocity": 72
-      }
+      {"pitch": 33, "start": 0, "length": 128, "velocity": 92},
+      {"pitch": 40, "start": 2, "length": 124, "velocity": 72},
+      {"pitch": 61, "start": 6, "length": 30, "velocity": 80},
+      {"pitch": 68, "start": 20, "length": 26, "velocity": 76},
+      {"pitch": 75, "start": 40, "length": 20, "velocity": 70},
+      {"pitch": 71, "start": 52, "length": 30, "velocity": 78},
+      {"pitch": 64, "start": 70, "length": 30, "velocity": 80},
+      {"pitch": 66, "start": 90, "length": 30, "velocity": 74},
+      {"pitch": 73, "start": 100, "length": 24, "velocity": 72}
     ]
   }
 }

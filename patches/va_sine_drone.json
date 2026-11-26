@@ -1,29 +1,14 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "va",
   "name": "va_sine_drone",
   "description": "Pure sine drone: two sines a few cents apart beat slowly (moving interference), no filter colour, slow swell. Microsound / installation backdrop.",
-  "params": {
-    "osc1_wave": "sine",
-    "osc2_wave": "sine",
-    "osc2_detune": 2.5,
-    "osc2_level": 1.0,
-    "cutoff": 20000,
-    "resonance": 0.7,
-    "fenv_amount": 0,
-    "keytrack": 0,
-    "amp_attack": 3,
-    "amp_sustain": 1,
-    "amp_release": 4,
-    "drift": 0,
-    "pan_spread": 0.8,
-    "lfo2_detune": 1.5,
-    "lfo2_rate": 0.05,
-    "volume": 3.2
-  },
-  "audition": {
-    "notes": "A1+A5 _ _ _",
-    "bpm": 60,
-    "step": 2
-  }
+  "osc1": {"waveform": "sine"},
+  "osc2": {"waveform": "sine", "detune": 2.5, "level": 1.0},
+  "filter": {"cutoff": 20000, "resonance": 0.7, "envelope_amount": 0, "keytrack": 0},
+  "amp": {"attack": 3, "sustain": 1, "release": 4},
+  "output": {"volume": 3.2},
+  "voice": {"drift": 0, "pan_spread": 0.8},
+  "motion": {"detune1": {"rate": 0.05, "depth": 1.5}},
+  "audition": {"notes": "A1+A5 _ _ _", "bpm": 60, "step": 2}
 }

@@ -1,8 +1,50 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "va",
   "name": "va_hazy_tape",
   "description": "Hazy tape pad: two detuned saws whose oscillators wander on their own (tolerance, slow drift, phase jitter), a Wiener wobble on the pitch like old tape, dark filter, chorus, worn tape delay; slow minor-ninth chords with a faint line on top.",
+  "osc1": {"waveform": "saw", "octave": 0, "semitone": 0, "pulse_width": 0.5, "level": 0.8, "sync": "off"},
+  "osc2": {"waveform": "saw", "octave": 0, "semitone": 0, "detune": 7, "pulse_width": 0.5, "level": 0.8},
+  "noise": {"level": 0.04},
+  "filter": {
+    "type": "ladder",
+    "cutoff": 1500,
+    "resonance": 0.8991,
+    "envelope_amount": 0.7,
+    "keytrack": 0.3,
+    "velocity": 1.0,
+    "character": 0.15,
+    "oversample": "1x"
+  },
+  "amp": {"attack": 0.35, "decay": 2.0, "sustain": 0.85, "release": 2.6, "velocity": 0.5},
+  "filter_env": {"attack": 0.8, "decay": 3.0, "sustain": 0.4, "release": 2.5},
+  "lfo": {
+    "rate": 5,
+    "waveform": "tri",
+    "to_pitch": 0.0,
+    "to_cutoff": 0.0,
+    "to_pulse_width": 0.0,
+    "wheel_vibrato": 0.2
+  },
+  "output": {"volume": 2.4},
+  "voice": {
+    "drift": 7,
+    "pan_spread": 0.7,
+    "bend_range": 2,
+    "glide": 0,
+    "tolerance": 4,
+    "drift_time": 7,
+    "jitter": 0.5
+  },
+  "fx": {
+    "chorus": {"mode": "I", "mix": 0.4},
+    "delay": {"mix": 0.25, "time": 0.62, "feedback": 0.42, "tone": 2000, "drive": 0.4, "wow": 0.6},
+    "reverb": {"mix": 0.32, "decay": 0.88, "damping": 3200}
+  },
+  "mlfo1": {"rate": 0.06, "waveform": "wiener"},
+  "route1": {"source": "mlfo1", "destination": "filter.cutoff", "amount": 0.06},
+  "vlfo": {"rate": 0.3, "waveform": "wiener"},
+  "vroute1": {"source": "vlfo", "destination": "pitch", "amount": 0.012},
   "clip": {
     "bpm": 72,
     "length": 32,
@@ -10,241 +52,34 @@
     "grid": "1/8",
     "key": "D minor",
     "notes": [
-      {
-        "pitch": 50,
-        "start": 0,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 53,
-        "start": 0,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 57,
-        "start": 0,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 60,
-        "start": 0,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 64,
-        "start": 0,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 46,
-        "start": 8,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 50,
-        "start": 8,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 53,
-        "start": 8,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 57,
-        "start": 8,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 41,
-        "start": 16,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 57,
-        "start": 16,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 60,
-        "start": 16,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 64,
-        "start": 16,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 48,
-        "start": 24,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 55,
-        "start": 24,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 62,
-        "start": 24,
-        "length": 7.5,
-        "velocity": 78
-      },
-      {
-        "pitch": 64,
-        "start": 24,
-        "length": 7.5,
-        "velocity": 92
-      },
-      {
-        "pitch": 69,
-        "start": 2.0,
-        "length": 1.425,
-        "velocity": 70
-      },
-      {
-        "pitch": 67,
-        "start": 3.5,
-        "length": 0.45,
-        "velocity": 64
-      },
-      {
-        "pitch": 65,
-        "start": 4.0,
-        "length": 3.8,
-        "velocity": 68
-      },
-      {
-        "pitch": 65,
-        "start": 10.0,
-        "length": 0.9,
-        "velocity": 66
-      },
-      {
-        "pitch": 62,
-        "start": 11.0,
-        "length": 0.9,
-        "velocity": 62
-      },
-      {
-        "pitch": 60,
-        "start": 12.0,
-        "length": 3.8,
-        "velocity": 66
-      },
-      {
-        "pitch": 64,
-        "start": 18.0,
-        "length": 1.425,
-        "velocity": 70
-      },
-      {
-        "pitch": 65,
-        "start": 19.5,
-        "length": 0.45,
-        "velocity": 62
-      },
-      {
-        "pitch": 67,
-        "start": 20.0,
-        "length": 3.8,
-        "velocity": 68
-      },
-      {
-        "pitch": 69,
-        "start": 26.0,
-        "length": 1.9,
-        "velocity": 70
-      },
-      {
-        "pitch": 67,
-        "start": 28.0,
-        "length": 3.6,
-        "velocity": 64
-      }
+      {"pitch": 50, "start": 0, "length": 7.5, "velocity": 78},
+      {"pitch": 53, "start": 0, "length": 7.5, "velocity": 92},
+      {"pitch": 57, "start": 0, "length": 7.5, "velocity": 78},
+      {"pitch": 60, "start": 0, "length": 7.5, "velocity": 92},
+      {"pitch": 64, "start": 0, "length": 7.5, "velocity": 78},
+      {"pitch": 46, "start": 8, "length": 7.5, "velocity": 78},
+      {"pitch": 50, "start": 8, "length": 7.5, "velocity": 92},
+      {"pitch": 53, "start": 8, "length": 7.5, "velocity": 78},
+      {"pitch": 57, "start": 8, "length": 7.5, "velocity": 92},
+      {"pitch": 41, "start": 16, "length": 7.5, "velocity": 78},
+      {"pitch": 57, "start": 16, "length": 7.5, "velocity": 92},
+      {"pitch": 60, "start": 16, "length": 7.5, "velocity": 78},
+      {"pitch": 64, "start": 16, "length": 7.5, "velocity": 92},
+      {"pitch": 48, "start": 24, "length": 7.5, "velocity": 78},
+      {"pitch": 55, "start": 24, "length": 7.5, "velocity": 92},
+      {"pitch": 62, "start": 24, "length": 7.5, "velocity": 78},
+      {"pitch": 64, "start": 24, "length": 7.5, "velocity": 92},
+      {"pitch": 69, "start": 2.0, "length": 1.425, "velocity": 70},
+      {"pitch": 67, "start": 3.5, "length": 0.45, "velocity": 64},
+      {"pitch": 65, "start": 4.0, "length": 3.8, "velocity": 68},
+      {"pitch": 65, "start": 10.0, "length": 0.9, "velocity": 66},
+      {"pitch": 62, "start": 11.0, "length": 0.9, "velocity": 62},
+      {"pitch": 60, "start": 12.0, "length": 3.8, "velocity": 66},
+      {"pitch": 64, "start": 18.0, "length": 1.425, "velocity": 70},
+      {"pitch": 65, "start": 19.5, "length": 0.45, "velocity": 62},
+      {"pitch": 67, "start": 20.0, "length": 3.8, "velocity": 68},
+      {"pitch": 69, "start": 26.0, "length": 1.9, "velocity": 70},
+      {"pitch": 67, "start": 28.0, "length": 3.6, "velocity": 64}
     ]
-  },
-  "params": {
-    "osc1_wave": "saw",
-    "osc1_oct": 0,
-    "osc1_semi": 0,
-    "osc1_pw": 0.5,
-    "osc1_level": 0.8,
-    "osc2_wave": "saw",
-    "osc2_oct": 0,
-    "osc2_semi": 0,
-    "osc2_detune": 7,
-    "osc2_pw": 0.5,
-    "osc2_level": 0.8,
-    "noise_level": 0.04,
-    "filter_mode": "ladder",
-    "cutoff": 1500,
-    "resonance": 0.8991,
-    "filter_character": 0.15,
-    "fenv_amount": 0.7,
-    "keytrack": 0.3,
-    "fenv_attack": 0.8,
-    "fenv_decay": 3.0,
-    "fenv_sustain": 0.4,
-    "fenv_release": 2.5,
-    "amp_attack": 0.35,
-    "amp_decay": 2.0,
-    "amp_sustain": 0.85,
-    "amp_release": 2.6,
-    "glide": 0,
-    "drift": 7,
-    "tolerance": 4,
-    "drift_time": 7,
-    "jitter": 0.5,
-    "pan_spread": 0.7,
-    "bend_range": 2,
-    "oversample": "1x",
-    "lfo_rate": 5,
-    "amp_velocity": 0.5,
-    "vel_cutoff": 1.0,
-    "lfo_wave": "tri",
-    "lfo_pitch": 0.0,
-    "lfo_pwm": 0.0,
-    "lfo_cutoff": 0.0,
-    "wheel_vibrato": 0.2,
-    "osc1_sync": "off",
-    "volume": 2.4,
-    "vlfo_wave": "wiener",
-    "vlfo_rate": 0.3,
-    "vroute1_source": "vlfo",
-    "vroute1_destination": "pitch",
-    "vroute1_amount": 0.012,
-    "mlfo1_wave": "wiener",
-    "mlfo1_rate": 0.06,
-    "route1_source": "mlfo1",
-    "route1_destination": "cutoff",
-    "route1_amount": 0.06,
-    "chorus_mode": "I",
-    "chorus_mix": 0.4,
-    "delay_mix": 0.25,
-    "delay_time": 0.62,
-    "delay_feedback": 0.42,
-    "delay_tone": 2000,
-    "delay_wow": 0.6,
-    "delay_drive": 0.4,
-    "reverb_mix": 0.32,
-    "reverb_decay": 0.88,
-    "reverb_damping": 3200
   }
 }

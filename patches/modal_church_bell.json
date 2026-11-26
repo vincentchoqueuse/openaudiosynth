@@ -1,24 +1,19 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "modal",
   "name": "modal_church_bell",
   "description": "Church bell: hum an octave below, minor-third tierce, long ring with shimmering, slightly detuned partials; hard clapper.",
-  "params": {
-    "volume": 6.7,
+  "resonator": {
     "model": "bell",
     "modes": 16,
     "decay": 9,
     "damping": 0.6,
     "release": 6,
     "brightness": 0.55,
-    "hardness": 0.85,
-    "noise": 0.05,
-    "variation": 3,
-    "pan_spread": 0.3
+    "variation": 3
   },
-  "audition": {
-    "notes": "D4 _ _ _ _ _ _ _ A3 _ _ _ _ _ _ _",
-    "bpm": 70,
-    "step": 1
-  }
+  "exciter": {"hardness": 0.85, "noise": 0.05},
+  "output": {"volume": 6.7},
+  "voice": {"pan_spread": 0.3},
+  "audition": {"notes": "D4 _ _ _ _ _ _ _ A3 _ _ _ _ _ _ _", "bpm": 70, "step": 1}
 }

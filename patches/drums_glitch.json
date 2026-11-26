@@ -1,17 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "drums",
   "name": "drums_glitch",
   "description": "Digital microsound kit: gated sub sine pulses, single-sample clicks, pure high beeps, white and decimated 2-bit data noise, modem chirps. For precise, minimal, glitch grids.",
-  "params": {
-    "volume": -4.4,
-    "kit": "glitch",
-    "stereo": 0.8,
-    "accent": 0.3
-  },
-  "audition": {
-    "notes": "C2!+C#2 F#2 - F#2 D2 - F#2 A#2 C2+F#2 - D#2 F#2 C3 F#2 G#3 -",
-    "bpm": 120,
-    "step": 0.25
-  }
+  "drum": {"kit": "glitch", "accent": 0.3, "stereo": 0.8},
+  "output": {"volume": -4.4},
+  "audition": {"notes": "C2!+C#2 F#2 - F#2 D2 - F#2 A#2 C2+F#2 - D#2 F#2 C3 F#2 G#3 -", "bpm": 120, "step": 0.25}
 }

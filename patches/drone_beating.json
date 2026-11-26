@@ -1,9 +1,9 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "drone",
   "name": "drone_beating",
   "description": "Beating: pure partials drifting far and slowly, so they beat against each other in long waves; hypnotic, for meditation.",
-  "params": {
+  "drone": {
     "temperature": 0.2,
     "density": 0.4,
     "motion": 0.12,
@@ -11,20 +11,12 @@
     "brightness": 0.5,
     "sparkle": 0.0,
     "width": 0.9,
-    "air_level": -18,
-    "amp_attack": 10,
-    "amp_release": 16,
-    "reverb_mix": 0.45,
-    "reverb_decay": 0.94,
-    "reverb_damping": 5000,
-    "reverb_predelay": 0.05,
-    "volume": -7.1
+    "air_level": -18
   },
-  "audition": {
-    "notes": "G2+D3 _ _ _ _ _ _ _",
-    "bpm": 60,
-    "step": 4
-  },
+  "amp": {"attack": 10, "release": 16},
+  "output": {"volume": -7.1},
+  "fx": {"reverb": {"mix": 0.45, "decay": 0.94, "damping": 5000, "predelay": 0.05}},
+  "audition": {"notes": "G2+D3 _ _ _ _ _ _ _", "bpm": 60, "step": 4},
   "clip": {
     "bpm": 60,
     "length": 128,
@@ -32,78 +24,18 @@
     "grid": "1/4",
     "key": "G major",
     "notes": [
-      {
-        "pitch": 43,
-        "start": 0,
-        "length": 128,
-        "velocity": 90
-      },
-      {
-        "pitch": 62,
-        "start": 2,
-        "length": 28,
-        "velocity": 73
-      },
-      {
-        "pitch": 57,
-        "start": 10,
-        "length": 16,
-        "velocity": 69
-      },
-      {
-        "pitch": 55,
-        "start": 28,
-        "length": 16,
-        "velocity": 78
-      },
-      {
-        "pitch": 59,
-        "start": 36,
-        "length": 16,
-        "velocity": 89
-      },
-      {
-        "pitch": 59,
-        "start": 46,
-        "length": 12,
-        "velocity": 91
-      },
-      {
-        "pitch": 62,
-        "start": 54,
-        "length": 28,
-        "velocity": 76
-      },
-      {
-        "pitch": 57,
-        "start": 64,
-        "length": 16,
-        "velocity": 85
-      },
-      {
-        "pitch": 64,
-        "start": 84,
-        "length": 28,
-        "velocity": 91
-      },
-      {
-        "pitch": 55,
-        "start": 88,
-        "length": 20,
-        "velocity": 91
-      },
-      {
-        "pitch": 59,
-        "start": 112,
-        "length": 16,
-        "velocity": 72
-      },
-      {
-        "pitch": 67,
-        "start": 114,
-        "length": 14,
-        "velocity": 67
-      }
+      {"pitch": 43, "start": 0, "length": 128, "velocity": 90},
+      {"pitch": 62, "start": 2, "length": 28, "velocity": 73},
+      {"pitch": 57, "start": 10, "length": 16, "velocity": 69},
+      {"pitch": 55, "start": 28, "length": 16, "velocity": 78},
+      {"pitch": 59, "start": 36, "length": 16, "velocity": 89},
+      {"pitch": 59, "start": 46, "length": 12, "velocity": 91},
+      {"pitch": 62, "start": 54, "length": 28, "velocity": 76},
+      {"pitch": 57, "start": 64, "length": 16, "velocity": 85},
+      {"pitch": 64, "start": 84, "length": 28, "velocity": 91},
+      {"pitch": 55, "start": 88, "length": 20, "velocity": 91},
+      {"pitch": 59, "start": 112, "length": 16, "velocity": 72},
+      {"pitch": 67, "start": 114, "length": 14, "velocity": 67}
     ]
   }
 }

@@ -1,222 +1,121 @@
 {
-  "version": 1,
+  "version": 2,
   "engine": "havoc",
   "name": "havoc_handshake",
   "description": "Two modems trying to agree: carriers, preambles, bursts at two speeds, the line full of aliases.",
-  "params": {
-    "g1_type": "modem",
-    "g1_pitch": 22,
-    "g1_track": "off",
-    "g1_a": 0.35,
-    "g1_b": 0.2,
-    "g1_fm": 0,
-    "g1_ring": 0,
-    "g1_life": "steady",
-    "g1_life_rate": 2.0,
-    "g1_life_shape": 0.5,
-    "g1_level": 0.6,
-    "g1_pan": -0.5,
-    "g2_type": "modem",
-    "g2_pitch": 31,
-    "g2_track": "off",
-    "g2_a": 0.8,
-    "g2_b": 0.9,
-    "g2_fm": 0,
-    "g2_ring": 0,
-    "g2_life": "bursts",
-    "g2_life_rate": 0.7,
-    "g2_life_shape": 0.6,
-    "g2_level": 0.5,
-    "g2_pan": 0.5,
-    "g3_lfo_rate": 0.13,
-    "g3_lfo_a": 0.3,
-    "g3_lfo_b": 0.2,
-    "g3_type": "alias",
-    "g3_pitch": -10,
-    "g3_track": "off",
-    "g3_a": 0.7,
-    "g3_b": 0.6,
-    "g3_fm": 0,
-    "g3_ring": 0,
-    "g3_life": "steady",
-    "g3_life_rate": 2.0,
-    "g3_life_shape": 0.5,
-    "g3_level": 0.15,
-    "g3_pan": 0.0,
-    "g4_type": "wind",
-    "g4_pitch": 36,
-    "g4_track": "off",
-    "g4_a": 0.1,
-    "g4_b": 0.3,
-    "g4_fm": 0,
-    "g4_ring": 0,
-    "g4_life": "steady",
-    "g4_life_rate": 2.0,
-    "g4_life_shape": 0.5,
-    "g4_level": 0.08,
-    "g4_pan": 0.0,
-    "x1_type": "bp",
-    "x1_p1": 0.7,
-    "x1_p2": 0.3,
-    "x1_mix": 1.0,
-    "x2_type": "crush",
-    "x2_p1": 0.15,
-    "x2_p2": 0.3,
-    "x2_mix": 0.5,
-    "amp_attack": 0.01,
-    "amp_release": 0.4,
-    "volume": 6.3
+  "amp": {"attack": 0.01, "release": 0.4},
+  "output": {"volume": 6.3},
+  "havoc": {
+    "proc1": {"type": "bp", "p1": 0.7, "p2": 0.3, "mix": 1.0},
+    "proc2": {"type": "crush", "p1": 0.15, "p2": 0.3, "mix": 0.5},
+    "gen1": {
+      "type": "modem",
+      "pitch": 22,
+      "track": "off",
+      "a": 0.35,
+      "b": 0.2,
+      "fm": 0,
+      "ring": 0,
+      "life": "steady",
+      "life_rate": 2.0,
+      "life_shape": 0.5,
+      "level": 0.6,
+      "pan": -0.5
+    },
+    "gen2": {
+      "type": "modem",
+      "pitch": 31,
+      "track": "off",
+      "a": 0.8,
+      "b": 0.9,
+      "fm": 0,
+      "ring": 0,
+      "life": "bursts",
+      "life_rate": 0.7,
+      "life_shape": 0.6,
+      "level": 0.5,
+      "pan": 0.5
+    },
+    "gen3": {
+      "type": "alias",
+      "pitch": -10,
+      "track": "off",
+      "a": 0.7,
+      "b": 0.6,
+      "fm": 0,
+      "ring": 0,
+      "life": "steady",
+      "life_rate": 2.0,
+      "life_shape": 0.5,
+      "level": 0.15,
+      "pan": 0.0,
+      "lfo_rate": 0.13,
+      "lfo_a": 0.3,
+      "lfo_b": 0.2
+    },
+    "gen4": {
+      "type": "wind",
+      "pitch": 36,
+      "track": "off",
+      "a": 0.1,
+      "b": 0.3,
+      "fm": 0,
+      "ring": 0,
+      "life": "steady",
+      "life_rate": 2.0,
+      "life_shape": 0.5,
+      "level": 0.08,
+      "pan": 0.0
+    }
   },
   "macros": [
     {
       "name": "Rot",
       "value": 0,
       "targets": [
-        {
-          "param": "g1_rot",
-          "from": 0,
-          "to": 0.7
-        },
-        {
-          "param": "g2_rot",
-          "from": 0,
-          "to": 0.7
-        },
-        {
-          "param": "g3_rot",
-          "from": 0,
-          "to": 0.7
-        },
-        {
-          "param": "g4_rot",
-          "from": 0,
-          "to": 0.7
-        }
+        {"param": "havoc.gen1.rot", "from": 0, "to": 0.7},
+        {"param": "havoc.gen2.rot", "from": 0, "to": 0.7},
+        {"param": "havoc.gen3.rot", "from": 0, "to": 0.7},
+        {"param": "havoc.gen4.rot", "from": 0, "to": 0.7}
       ]
     },
     {
       "name": "Motion",
       "value": 0,
       "targets": [
-        {
-          "param": "g1_lfo_a",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g1_lfo_b",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g2_lfo_a",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g2_lfo_b",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g3_lfo_a",
-          "from": 0.3,
-          "to": 0.8
-        },
-        {
-          "param": "g3_lfo_b",
-          "from": 0.2,
-          "to": 0.7
-        },
-        {
-          "param": "g4_lfo_a",
-          "from": 0,
-          "to": 0.5
-        },
-        {
-          "param": "g4_lfo_b",
-          "from": 0,
-          "to": 0.5
-        }
+        {"param": "havoc.gen1.lfo_a", "from": 0, "to": 0.5},
+        {"param": "havoc.gen1.lfo_b", "from": 0, "to": 0.5},
+        {"param": "havoc.gen2.lfo_a", "from": 0, "to": 0.5},
+        {"param": "havoc.gen2.lfo_b", "from": 0, "to": 0.5},
+        {"param": "havoc.gen3.lfo_a", "from": 0.3, "to": 0.8},
+        {"param": "havoc.gen3.lfo_b", "from": 0.2, "to": 0.7},
+        {"param": "havoc.gen4.lfo_a", "from": 0, "to": 0.5},
+        {"param": "havoc.gen4.lfo_b", "from": 0, "to": 0.5}
       ]
     },
     {
       "name": "Chaos",
       "value": 0,
-      "targets": [
-        {
-          "param": "feedback",
-          "from": 0,
-          "to": 0.8
-        },
-        {
-          "param": "mutate",
-          "from": 0,
-          "to": 0.8
-        }
-      ]
+      "targets": [{"param": "havoc.feedback", "from": 0, "to": 0.8}, {"param": "havoc.mutate", "from": 0, "to": 0.8}]
     },
     {
       "name": "Density",
       "value": 0,
       "targets": [
-        {
-          "param": "g1_life_rate",
-          "from": 2.0,
-          "to": 16.0
-        },
-        {
-          "param": "g2_life_rate",
-          "from": 0.7,
-          "to": 5.6
-        },
-        {
-          "param": "g3_life_rate",
-          "from": 2.0,
-          "to": 16.0
-        },
-        {
-          "param": "g4_life_rate",
-          "from": 2.0,
-          "to": 16.0
-        }
+        {"param": "havoc.gen1.life_rate", "from": 2.0, "to": 16.0},
+        {"param": "havoc.gen2.life_rate", "from": 0.7, "to": 5.6},
+        {"param": "havoc.gen3.life_rate", "from": 2.0, "to": 16.0},
+        {"param": "havoc.gen4.life_rate", "from": 2.0, "to": 16.0}
       ]
     },
-    {
-      "name": "Dark",
-      "value": 0,
-      "targets": [
-        {
-          "param": "dark",
-          "from": 0,
-          "to": 1.0
-        }
-      ]
-    },
-    {
-      "name": "Space",
-      "value": 0,
-      "targets": [
-        {
-          "param": "reverb_mix",
-          "from": 0.0,
-          "to": 0.6
-        }
-      ]
-    }
+    {"name": "Dark", "value": 0, "targets": [{"param": "havoc.dark", "from": 0, "to": 1.0}]},
+    {"name": "Space", "value": 0, "targets": [{"param": "fx.reverb.mix", "from": 0.0, "to": 0.6}]}
   ],
   "clip": {
     "bpm": 60,
     "length": 14,
     "loop": false,
     "grid": "1/4",
-    "notes": [
-      {
-        "pitch": 48,
-        "start": 0,
-        "length": 12,
-        "velocity": 100
-      }
-    ]
+    "notes": [{"pitch": 48, "start": 0, "length": 12, "velocity": 100}]
   }
 }

@@ -28,6 +28,8 @@ static void slug(const char *name, int index, char *out, size_t len)
     snprintf(out + k, len - k, "_%02d", index + 1);
 }
 
+static void put_file(void *f, const char *text) { fputs(text, f); }
+
 static int write_patch(const char *dir, const char *src, int index, const fm6_sysex_voice_t *v)
 {
     char file[256], path[1024], name[16];
@@ -50,15 +52,17 @@ static int write_patch(const char *dir, const char *src, int index, const fm6_sy
     for (char *c = from; *c; c++)
         if (*c == '"' || *c == '\\' || (unsigned char)*c < 32)
             *c = '/';
-    fprintf(f, "  \"description\": \"imported from %s, voice %d\",\n  \"params\": {\n", from, index + 1);
-    int first = 1;
+    fprintf(f, "  \"description\": \"imported from %s, voice %d\",\n", from, index + 1);
+    patch_setting_t set[FM6_P_COUNT];
+    int n = 0;
     for (int i = 0; i < FM6_P_COUNT; i++) {
         if (i == FM6_P_VOLUME || i == FM6_P_BEND_RANGE || i == FM6_P_SPREAD)
             continue;
-        fprintf(f, "%s    \"%s\": %g", first ? "" : ",\n", fm6_params[i].name, (double)v->p[i]);
-        first = 0;
+        set[n].role = fm6_params[i].role;
+        snprintf(set[n++].value, sizeof set[0].value, "%g", (double)v->p[i]);
     }
-    fprintf(f, "\n  },\n  \"audition\": {\"notes\": \"C3+E3+G3 _ _ _ C4 _ E4 _ G4 _ C5 _ _ _ - -\", \"bpm\": 100, \"step\": 0.5}\n}\n");
+    patch_write_settings(put_file, f, set, n, 2);
+    fprintf(f, ",\n  \"audition\": {\"notes\": \"C3+E3+G3 _ _ _ C4 _ E4 _ G4 _ C5 _ _ _ - -\", \"bpm\": 100, \"step\": 0.5}\n}\n");
     fclose(f);
     printf("%-10s -> %s\n", name, path);
     return 0;

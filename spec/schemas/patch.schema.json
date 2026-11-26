@@ -5,12 +5,11 @@
   "type": "object",
   "required": [
     "version",
-    "engine",
-    "params"
+    "engine"
   ],
   "properties": {
     "version": {
-      "const": 1
+      "const": 2
     },
     "engine": {
       "type": "string",
@@ -26,19 +25,6 @@
       "type": "string",
       "pattern": "^[a-z0-9_]+$",
       "description": "sample kit played by the sampler engine: a directory of NN_name.wav files (kits/NAME, or the demo kits built in build-host/kits)"
-    },
-    "params": {
-      "type": "object",
-      "propertyNames": {
-        "pattern": "^[a-z0-9_]+(\\.[a-z0-9_]+)*$"
-      },
-      "additionalProperties": {
-        "type": [
-          "number",
-          "string"
-        ]
-      },
-      "description": "parameter names, or roles (filter.cutoff) for portable patches"
     },
     "macros": {
       "type": "array",
@@ -67,7 +53,7 @@
               "properties": {
                 "param": {
                   "type": "string",
-                  "description": "an engine parameter that moves live (name or role)"
+                  "description": "an engine parameter that moves live, by its role (filter.cutoff)"
                 },
                 "from": {
                   "type": [
@@ -200,7 +186,32 @@
     }
   },
   "patternProperties": {
-    "^x-": {}
+    "^(?!(version|engine|name|description|kit|macros|audition|clip)$)[a-z0-9_]+$": {
+      "$ref": "#/$defs/module"
+    }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "module": {
+      "type": "object",
+      "propertyNames": {
+        "pattern": "^[a-z0-9_]+$"
+      },
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "type": [
+              "number",
+              "string"
+            ]
+          },
+          {
+            "$ref": "#/$defs/module"
+          }
+        ]
+      },
+      "description": "a module's settings: each key a part of a parameter's role, each leaf a value in its units or a label"
+    }
+  },
+  "description": "A sound: an engine and its settings grouped by module, {\"filter\": {\"cutoff\": 800}, \"fx\": {\"delay\": {\"mix\": 0.2}}}: each leaf's path is a parameter's role (catalog), its value in the parameter's units or one of its labels. Only what differs from the defaults."
 }

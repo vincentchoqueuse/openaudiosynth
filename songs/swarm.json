@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "swarm",
   "description": "Two chords on a supersaw swarm (14 detuned saws per note, each breathing on its own LFO), slow sub swells, glass bells and a very wet, dark plate reverb.",
   "bpm": 60,
@@ -39,15 +39,6 @@
       "reverb_send": 0.7
     }
   ],
-  "reverb": {
-    "decay": 0.94,
-    "damping_hz": 3200,
-    "predelay_s": 0.08,
-    "size": 2.0,
-    "return_db": 0
-  },
-  "master": {
-    "fade_in_s": 5,
-    "fade_out_s": 14
-  }
+  "reverb": {"decay": 0.94, "damping_hz": 3200, "predelay_s": 0.08, "size": 2.0, "return_db": 0},
+  "master": {"fade_in_s": 5, "fade_out_s": 14}
 }

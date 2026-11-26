@@ -4,6 +4,8 @@
 # kept under -1 dBFS. Usage: python tools/loudness.py <repo> <tmpdir> [--fix]
 import json, os, subprocess, sys
 import numpy as np, scipy.io.wavfile as wavfile
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import patchtree  # noqa: E402
 from scipy.signal import lfilter
 # K-weighting (ITU-R BS.1770) at 48 kHz: a high shelf, then a high-pass
 KB1, KA1 = [1.53512485958697, -2.69169618940638, 1.19839281085285], [1.0, -1.69065929318241, 0.73248077421585]
@@ -34,10 +36,10 @@ for n in names:
     gain = min(med - L, -1.0 - pk)  # toward the median, never a peak above -1 dBFS
     if '--fix' in sys.argv and abs(gain) > 0.5:
         path = f'{R}/patches/{n}'; p = json.load(open(path))
-        v0 = float(p['params'].get('volume', 0.0))
-        p['params']['volume'] = round(max(-60.0, min(24.0, v0 + gain)), 1)
-        json.dump(p, open(path, 'w'), indent=2); open(path, 'a').write('\n')
+        v0 = float(patchtree.get(p, 'volume', 0.0))
+        patchtree.set(p, 'volume', round(max(-60.0, min(24.0, v0 + gain)), 1))
+        open(path, 'w').write(patchtree.dumps(p))
         L2, pk2 = measure(path)
-        print(f'{n[:-5]:30s} {L:6.1f} -> {L2:6.1f} dB (volume {v0:+.1f} -> {p["params"]["volume"]:+.1f}, peak {pk2:5.1f})')
+        print(f'{n[:-5]:30s} {L:6.1f} -> {L2:6.1f} dB (volume {v0:+.1f} -> {patchtree.get(p, "volume"):+.1f}, peak {pk2:5.1f})')
     else:
         print(f'{n[:-5]:30s} {L:6.1f} dB, peak {pk:5.1f}: would move {gain:+.1f}')

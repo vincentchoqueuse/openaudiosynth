@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "name": "wavetable_drive",
   "description": "Original melodic-techno demo of the wt engine: hybrid kit, offbeat growl bass, evolving digital pad (A minor, Am-F-C-G), a glassy ping-pong pluck arpeggio from bar 5 and a wide unison hyper lead from bar 9, pumping on the beat; drums drop for the last 4 bars while the pad breathes out.",
   "bpm": 126,
@@ -9,11 +9,7 @@
     {
       "patch": "patches/drums_hybrid.json",
       "pattern": [
-        {
-          "kick": "X...x...X...x...",
-          "chat": "..o...o...o...o.",
-          "repeat": 4
-        },
+        {"kick": "X...x...X...x...", "chat": "..o...o...o...o.", "repeat": 4},
         {
           "kick": "X...x...X...x...",
           "chat": "xo.oxo.oxo.oxo.o",
@@ -21,10 +17,7 @@
           "clap": "....x.......x...",
           "repeat": 16
         },
-        {
-          "chat": "..o...o...o...o.",
-          "repeat": 4
-        }
+        {"chat": "..o...o...o...o.", "repeat": 4}
       ],
       "velocity": 100,
       "humanize_velocity": 6,
@@ -41,13 +34,8 @@
       "reverb_send": 0.0,
       "velocity": 105,
       "humanize_velocity": 6,
-      "pump": {
-        "depth_db": 6,
-        "release_s": 0.2
-      },
-      "params": {
-        "sub": 0.2
-      }
+      "pump": {"depth_db": 6, "release_s": 0.2},
+      "params": {"sub": {"level": 0.2}}
     },
     {
       "patch": "patches/wt_digital_pad.json",
@@ -57,10 +45,7 @@
       "gain_db": -5,
       "reverb_send": 0.35,
       "velocity": 90,
-      "pump": {
-        "depth_db": 8,
-        "release_s": 0.25
-      }
+      "pump": {"depth_db": 8, "release_s": 0.25}
     },
     {
       "patch": "patches/wt_pluck.json",
@@ -83,15 +68,6 @@
       "humanize_velocity": 6
     }
   ],
-  "reverb": {
-    "decay": 0.85,
-    "damping_hz": 6000,
-    "predelay_s": 0.02,
-    "size": 1.4,
-    "return_db": -4
-  },
-  "master": {
-    "fade_in_s": 0,
-    "fade_out_s": 5
-  }
+  "reverb": {"decay": 0.85, "damping_hz": 6000, "predelay_s": 0.02, "size": 1.4, "return_db": -4},
+  "master": {"fade_in_s": 0, "fade_out_s": 5}
 }

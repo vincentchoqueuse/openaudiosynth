@@ -107,6 +107,7 @@ anti-aliased oscillator: saw and pulse (PWM) via 2-point polyBLEP, triangle via 
 - `void osc_set_wave(osc_t *o, osc_wave_t w)`
 - `void osc_set(osc_t *o, float freq_hz, float pw)` — Target frequency (Hz) and pulse width (0..1): interpolated over the next block.
 - `void osc_process(osc_t *o, float *restrict out, int n)`
+- `void osc_process_pair(osc_t *a, osc_t *b, float *restrict out_a, float *restrict out_b, int sync, float fm_oct, float pwm, int n)` — Two oscillators sample by sample, a driven by b: a restarts at every wrap of b when sync is set (hard sync), its frequency follows b's output at audio rate (2^(fm_oct * b)) and its pulse width too (+ pwm * b). b runs ...
 - `float osc_blep(float t, float dt, float idt)` — polyBLEP residual of a rising unit step. idt ~= 1/dt (interpolated, hence the clamps).
 - `float osc_blamp(float t, float dt, float idt)` — polyBLAMP residual of a unit slope break (per sample).
 

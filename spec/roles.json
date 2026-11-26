@@ -350,6 +350,7 @@
     "pitch_env.rate3": "pitch envelope rate3",
     "pitch_env.rate4": "pitch envelope rate4",
     "polymod.source_filter_env": "poly-mod amount from the filter envelope",
+    "polymod.target": "what poly-mod moves on the driven oscillator: pitch, pulse width or both",
     "polymod.source_osc2": "poly-mod amount from oscillator 2",
     "polymod.to_cutoff": "poly-mod -> filter cutoff",
     "polymod.to_freq1": "poly-mod -> oscillator 1 frequency",

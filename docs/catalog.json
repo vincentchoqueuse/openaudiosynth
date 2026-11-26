@@ -586,7 +586,11 @@
         "oversample": {"type": "enum", "choices": ["1x", "2x", "4x"], "default": "2x", "realtime": false, "role": "filter.oversample", "help": "oversampling of the scream filter character (the others are linear): 1x lightest, 2x default, 4x cleanest screaming resonance"},
         "tolerance": {"type": "float", "range": [0, 10], "default": 2, "unit": "cent", "realtime": false, "role": "voice.tolerance", "help": "static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents"},
         "drift_time": {"type": "float", "range": [0.5, 20], "default": 3, "unit": "s", "scale": "log", "realtime": false, "role": "voice.drift_time", "help": "time constant of the drift: how slowly each oscillator wanders"},
-        "jitter": {"type": "float", "range": [0, 3], "default": 0.2, "unit": "cent", "realtime": false, "role": "voice.jitter", "help": "phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light)"}
+        "jitter": {"type": "float", "range": [0, 3], "default": 0.2, "unit": "cent", "realtime": false, "role": "voice.jitter", "help": "phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light)"},
+        "osc1_sync": {"type": "enum", "choices": ["off", "on"], "default": "off", "realtime": false, "role": "osc1.sync", "help": "hard sync: osc 1 restarts at every cycle of osc 2, so its own pitch (osc1_semi, a poly-mod sweep) moves the harmonics of osc 2's note: the classic sync lead"},
+        "polymod_osc2": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "polymod.source_osc2", "help": "poly-mod from osc 2 at audio rate: osc 1's pitch moves by up to 2 octaves with osc 2's wave (polymod_target): clangs, bells, growls"},
+        "polymod_env": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "polymod.source_filter_env", "help": "poly-mod from the filter envelope: osc 1 up by up to 2 octaves at its peak (with sync: the sweeping lead)"},
+        "polymod_target": {"type": "enum", "choices": ["pitch", "pw", "both"], "default": "pitch", "realtime": false, "role": "polymod.target", "help": "what poly-mod moves on osc 1: its pitch, its pulse width, or both"}
       }
     },
     "modal": {

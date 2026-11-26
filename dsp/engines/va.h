@@ -52,6 +52,9 @@ enum {
     VA_P_OVERSAMPLE,
     /* analog imperfections of each oscillator (dsp/voice/analog.h); drift above is its walk's deviation */
     VA_P_TOLERANCE, VA_P_DRIFT_TIME, VA_P_JITTER,
+    /* osc 1 driven by osc 2: hard sync, and poly-mod (osc 2 at audio rate and the filter envelope move osc 1's pitch
+     * or pulse width) */
+    VA_P_OSC1_SYNC, VA_P_PM_OSC2, VA_P_PM_ENV, VA_P_PM_TARGET,
     VA_P_COUNT
 };
 extern const param_desc_t va_params[VA_P_COUNT];

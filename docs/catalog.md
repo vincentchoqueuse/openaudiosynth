@@ -511,6 +511,10 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of 
 | `tolerance` | 0 .. 10 cent | 2 |  | `voice.tolerance` | static offset of each oscillator, drawn once (the tolerance of its parts): up to this many cents |
 | `drift_time` | 0.5 .. 20 s | 3 |  | `voice.drift_time` | time constant of the drift: how slowly each oscillator wanders |
 | `jitter` | 0 .. 3 cent | 0.2 |  | `voice.jitter` | phase jitter: a little white noise on each oscillator's pitch, irregular beats (keep it very light) |
+| `osc1_sync` | off, on | off |  | `osc1.sync` | hard sync: osc 1 restarts at every cycle of osc 2, so its own pitch (osc1_semi, a poly-mod sweep) moves the harmonics of osc 2's note: the classic sync lead |
+| `polymod_osc2` | 0 .. 1 | 0 | yes | `polymod.source_osc2` | poly-mod from osc 2 at audio rate: osc 1's pitch moves by up to 2 octaves with osc 2's wave (polymod_target): clangs, bells, growls |
+| `polymod_env` | 0 .. 1 | 0 | yes | `polymod.source_filter_env` | poly-mod from the filter envelope: osc 1 up by up to 2 octaves at its peak (with sync: the sweeping lead) |
+| `polymod_target` | pitch, pw, both | pitch |  | `polymod.target` | what poly-mod moves on osc 1: its pitch, its pulse width, or both |
 
 ## Engine `modal` (12 voices)
 

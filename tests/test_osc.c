@@ -165,6 +165,40 @@ void suite_osc(void)
         free(r);
     }
 
+    /* Pair: osc a hard-synced to b repeats at b's frequency whatever its own; its audio-rate poly-mod stays
+     * bounded; without sync or modulation it keeps its own pitch */
+    {
+        osc_t oa, ob;
+        float *c = malloc(sizeof(float) * (size_t)n);
+        for (int w = OSC_SAW; w <= OSC_PULSE; w++) {
+            osc_init(&oa, SR), osc_init(&ob, SR);
+            osc_set_wave(&oa, (osc_wave_t)w), osc_set_wave(&ob, OSC_SAW);
+            for (int i = 0; i < n; i += 32) { /* b at 240 Hz: a period of exactly 200 samples */
+                osc_set(&oa, 731.0f, 0.5f), osc_set(&ob, 240.0f, 0.5f);
+                osc_process_pair(&oa, &ob, a + i, c + i, 1, 0.0f, 0.0f, 32);
+            }
+            float rep = 0.0f; /* a synced repeats every period of b (a little float drift of b's phase allowed) */
+            for (int i = 4800; i < 9600; i++)
+                rep = fmaxf(rep, fabsf(a[i] - a[i + 200]));
+            CHECK(rep < 0.02f, "pair sync (%s): does not repeat with b's period (diff %.4f)", w == OSC_SAW ? "saw" : "pulse", (double)rep);
+            CHECK(all_finite_bounded(a, n, 1.6f), "pair sync: NaN or |x| = %.3f", (double)max_abs(a, n));
+            osc_init(&oa, SR), osc_init(&ob, SR);
+            osc_set_wave(&oa, (osc_wave_t)w), osc_set_wave(&ob, OSC_SINE);
+            for (int i = 0; i < n; i += 32) {
+                osc_set(&oa, 440.0f, 0.5f), osc_set(&ob, 220.0f, 0.5f);
+                osc_process_pair(&oa, &ob, a + i, c + i, 0, 0.0f, 0.0f, 32);
+            }
+            const float fa = estimate_freq(a, n, SR);
+            CHECK(fabsf(fa - 440.0f) < 0.5f, "pair without sync: %.2f Hz, expected its own 440", (double)fa);
+            for (int i = 0; i < n; i += 32) {
+                osc_set(&oa, 440.0f, 0.5f), osc_set(&ob, 330.0f, 0.5f);
+                osc_process_pair(&oa, &ob, a + i, c + i, 0, 2.0f, 0.45f, 32);
+            }
+            CHECK(all_finite_bounded(a, n, 2.5f), "pair poly-mod: NaN or |x| = %.3f", (double)max_abs(a, n));
+        }
+        free(c);
+    }
+
     /* Noise: mean ~0, values in [-1, 1), deterministic */
     {
         noise_t z1, z2;

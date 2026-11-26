@@ -12,6 +12,7 @@ static const char *const osc_wave_labels[] = {"sine", "saw", "pulse", "tri", NUL
 static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", "ladder", NULL};
 static const char *const filter2_labels[] = {"off", "lp", "bp", "hp", "notch", "formant", "scream", "ladder", NULL};
 static const char *const routing_labels[] = {"series", "parallel", NULL};
+static const char *const pm_target_labels[] = {"pitch", "pw", "both", NULL};
 
 const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_OSC1_WAVE, "osc1_wave", "osc1.waveform", 0.0f, 3.0f, 1.0f, PARAM_INT, "", 0, osc_wave_labels, "osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure; osc1_unison stacks detuned copies of it"),
@@ -100,6 +101,14 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM_OVERSAMPLE(VA_P_OVERSAMPLE, 1.0f, "oversampling of the scream filter character (the others are linear): "
                      "1x lightest, 2x default, 4x cleanest screaming resonance"),
     ANALOG_PARAMS(VA_P_TOLERANCE, VA_P_DRIFT_TIME, VA_P_JITTER),
+    PARAM(VA_P_OSC1_SYNC, "osc1_sync", "osc1.sync", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, param_onoff_labels,
+          "hard sync: osc 1 restarts at every cycle of osc 2, so its own pitch (osc1_semi, a poly-mod sweep) moves the harmonics of osc 2's note: the classic sync lead"),
+    PARAM(VA_P_PM_OSC2, "polymod_osc2", "polymod.source_osc2", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "poly-mod from osc 2 at audio rate: osc 1's pitch moves by up to 2 octaves with osc 2's wave (polymod_target): clangs, bells, growls"),
+    PARAM(VA_P_PM_ENV, "polymod_env", "polymod.source_filter_env", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "poly-mod from the filter envelope: osc 1 up by up to 2 octaves at its peak (with sync: the sweeping lead)"),
+    PARAM(VA_P_PM_TARGET, "polymod_target", "polymod.target", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, pm_target_labels,
+          "what poly-mod moves on osc 1: its pitch, its pulse width, or both"),
 };
 
 static const vpoly_ops_t va_poly_ops;
@@ -361,13 +370,20 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
     }
     const float *vm = vpoly_vmod(&e->poly, vi); /* per-voice modulation, microtuning, MPE */
     const float base = v->pitch + b->pitch + 0.01f * det[2] + penv_st + vm[VM_PITCH];
+    adsr_process(&v->fenv, env, n); /* the filter envelope (also a poly-mod source of osc 1) */
+    const float fe = env[n - 1];
+    /* osc 1 driven by osc 2 (sync, poly-mod): both oscillators alone, sample by sample (osc_process_pair) */
+    const int pm_t = (int)p[VA_P_PM_TARGET], sync = (int)p[VA_P_OSC1_SYNC];
+    const int pair = sync || p[VA_P_PM_OSC2] > 0.0f || p[VA_P_PM_ENV] > 0.0f;
+    const float pm_pitch = pm_t != 1 ? 24.0f * p[VA_P_PM_ENV] * fe : 0.0f; /* semitones */
+    const float pm_pw = pm_t != 0 ? 0.45f * p[VA_P_PM_ENV] * fe : 0.0f;
     const int wave[2] = {(int)p[VA_P_OSC1_WAVE], (int)p[VA_P_OSC2_WAVE]};
     const float freq[2] = {
-        fm_mtof(base + 12.0f * p[VA_P_OSC1_OCT] + p[VA_P_OSC1_SEMI] + 0.01f * (p[VA_P_OSC1_DETUNE] + det[1] + an[0])),
+        fm_mtof(base + 12.0f * p[VA_P_OSC1_OCT] + p[VA_P_OSC1_SEMI] + 0.01f * (p[VA_P_OSC1_DETUNE] + det[1] + an[0]) + pm_pitch),
         fm_mtof(base + 12.0f * p[VA_P_OSC2_OCT] + p[VA_P_OSC2_SEMI] + 0.01f * (p[VA_P_OSC2_DETUNE] + det[0] + an[1])),
     };
     /* each oscillator alone, or as a unison of detuned voices; the voice turns stereo while a unison has a width */
-    const int uni[2] = {(int)p[VA_P_OSC1_UNISON], (int)p[VA_P_OSC2_UNISON]};
+    const int uni[2] = {pair ? 1 : (int)p[VA_P_OSC1_UNISON], pair ? 1 : (int)p[VA_P_OSC2_UNISON]}; /* no unison while paired */
     const float width[2] = {uni[0] >= 2 ? p[VA_P_OSC1_UNI_WIDTH] : 0.0f, uni[1] >= 2 ? p[VA_P_OSC2_UNI_WIDTH] : 0.0f};
     static const int uni_id[2] = {VA_P_OSC1_UNI_DETUNE, VA_P_OSC2_UNI_DETUNE};
     int stereo = 0;
@@ -380,7 +396,7 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
             stereo |= VA_STEREO && heard && width[k] > 0.0f;
         } else {
             osc_set_wave(&v->osc[k], (osc_wave_t)wave[k]);
-            osc_set(&v->osc[k], freq[k], b->pw[k]);
+            osc_set(&v->osc[k], freq[k], k == 0 ? dsp_clampf(b->pw[k] + pm_pw, 0.05f, 0.95f) : b->pw[k]);
         }
     }
 #if VA_STEREO
@@ -392,8 +408,7 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
     v->stereo = stereo;
 
     /* cutoff (octaves): base + envelope + keytracking + velocity + LFO + drift */
-    adsr_process(&v->fenv, env, n);
-    const float cut = b->cut_oct + env[n - 1] * p[VA_P_FENV_AMT] +
+    const float cut = b->cut_oct + fe * p[VA_P_FENV_AMT] +
                       p[VA_P_KEYTRACK] * (v->pitch - 60.0f) * (1.0f / 12.0f) + v->vel_cut + b->lfo_cut +
                       an[0] * 0.005f + vm[VM_BRIGHT];
     const float reso01 = param_to_norm(&va_params[VA_P_RESO], b->res); /* formant and scream take 0..1 */
@@ -419,14 +434,23 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
     if (stereo)
         for (int i = 0; i < n; i++)
             xr[i] = 0.0f;
+    float tp[SYNTH_BLOCK]; /* osc 2's output when the pair runs (osc 1's goes in t) */
+    if (pair) /* osc 2 runs even when silent: it drives osc 1 */
+        osc_process_pair(&v->osc[0], &v->osc[1], t, tp, sync, pm_t != 1 ? 2.0f * p[VA_P_PM_OSC2] : 0.0f,
+                         pm_t != 0 ? 0.45f * p[VA_P_PM_OSC2] : 0.0f, n);
     for (int k = 0; k < 2; k++) {
         if (!(b->lvl0[k] > 0.0f || b->lvl1[k] > 0.0f))
             continue;
         const int spread = stereo && width[k] > 0.0f; /* this unison's voices go left and right */
-        if (uni[k] >= 2)
-            unison_process(&v->uni[k], t, spread ? tr : NULL, n);
-        else
-            osc_process(&v->osc[k], t, n);
+        if (!pair) {
+            if (uni[k] >= 2)
+                unison_process(&v->uni[k], t, spread ? tr : NULL, n);
+            else
+                osc_process(&v->osc[k], t, n);
+        } else if (k == 1) { /* the pair wrote osc 1 into t and osc 2 into tp */
+            for (int i = 0; i < n; i++)
+                t[i] = tp[i];
+        }
         dsp_ramp_mac(x, t, b->lvl0[k], b->lvl1[k], n);
         if (stereo)
             dsp_ramp_mac(xr, spread ? tr : t, b->lvl0[k], b->lvl1[k], n);
@@ -504,7 +528,7 @@ static DSP_FAST_CODE void va_render(void *st, float *L, float *R)
 
 /* signal chain, for UIs (engine.h) */
 static const engine_stage_t va_stages[] = {
-    {"osc1", "Osc 1", "source", "osc1_ unison_", "", NULL, "osc1_level", 0.0f, 1.0f},
+    {"osc1", "Osc 1", "source", "osc1_ unison_ polymod_", "", NULL, "osc1_level", 0.0f, 1.0f},
     {"osc2", "Osc 2", "source", "osc2_", "", NULL, "osc2_level", 0.0f, 0.6f},
     {"noise", "Noise", "source", "noise_level", "", NULL, "noise_level", 0.0f, 0.2f},
     {"filter1", "Filter", "filter", "filter_mode cutoff resonance keytrack vel_cutoff filter_character oversample", "osc1 osc2 noise",

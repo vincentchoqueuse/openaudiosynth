@@ -8,7 +8,6 @@
 #include "drums.h"
 #include "../core/fastmath.h"
 
-#define LOG2_1000 9.96578428f
 
 const char *const drums_instrument_names[DR_COUNT] = {"kick", "snare", "clap", "rim", "chat", "ohat",
                                                       "ltom", "mtom", "htom", "cymbal", "cowbell", "clave", "bass"};
@@ -85,10 +84,10 @@ int drums_instrument_for_note(int note)
 
 /* ---------------- set-up helpers ---------------- */
 
-static float t60c(const drums_t *e, float t60) { return fm_exp2(-LOG2_1000 / (dsp_maxf(t60, 0.0005f) * e->sr)); }
+static float t60c(const drums_t *e, float t60) { return fm_exp2(-FM_LOG2_1000 / (dsp_maxf(t60, 0.0005f) * e->sr)); }
 static float t60c_block(const drums_t *e, float t60)
 {
-    return fm_exp2(-LOG2_1000 * (float)SYNTH_BLOCK / (dsp_maxf(t60, 0.0005f) * e->sr));
+    return fm_exp2(-FM_LOG2_1000 * (float)SYNTH_BLOCK / (dsp_maxf(t60, 0.0005f) * e->sr));
 }
 
 /* resonator tuned to f (Hz), ringing for t60 (s), started at amplitude amp */
@@ -798,7 +797,7 @@ static void drums_init(void *st, float sample_rate)
         e->v[i].inst = -1;
         e->v[i].level = 0.0f;
         e->v[i].gain = 0.0f;
-        e->v[i].pan_l = e->v[i].pan_r = 0.70710678f;
+        e->v[i].pan_l = e->v[i].pan_r = VOICE_CENTER;
     }
 }
 

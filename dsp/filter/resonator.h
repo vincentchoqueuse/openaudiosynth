@@ -18,7 +18,7 @@ static inline void reso_clear(reso_t *r) { r->zr = r->zi = r->c = r->s = 0.0f; }
 /* Frequency in Hz (clamped to 0.45 x SR) and decay time to -60 dB in seconds. Keeps the state. */
 static inline void reso_tune(reso_t *r, float freq_hz, float t60_s, float sample_rate)
 {
-    const float radius = fm_exp2(-9.96578428f / (t60_s * sample_rate)); /* log2(1000) */
+    const float radius = fm_exp2(-FM_LOG2_1000 / (t60_s * sample_rate));
     const float ph = dsp_minf(freq_hz, 0.45f * sample_rate) / sample_rate;
     r->c = radius * fm_cos(ph);
     r->s = radius * fm_sin(ph);

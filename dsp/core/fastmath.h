@@ -14,6 +14,7 @@ extern const float fm_sin_table[FM_SIN_SIZE + 1];
 #define FM_TWO_PI 6.28318530717959f
 #define FM_LN2 0.693147180559945f
 #define FM_LOG2E 1.44269504088896f
+#define FM_LOG2_1000 9.96578428f /* a decay of 60 dB (amplitude / 1000) in octaves: T60 coefficients */
 
 /* Fractional part in [0, 1). Assumes |x| < 2^31. */
 static inline float fm_frac(float x)

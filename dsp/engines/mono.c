@@ -18,7 +18,6 @@ static const char *const range_labels[] = {"32", "16", "8", "4", "2", "lo", NULL
 static const char *const wave_labels[] = {"tri", "shark", "saw", "square", "wide", "narrow", NULL};
 static const char *const wave3_labels[] = {"tri", "rsaw", "saw", "square", "wide", "narrow", NULL};
 static const char *const mode_labels[] = {"mono", "legato", NULL};
-static const char *const glide_mode_labels[] = {"always", "legato", NULL};
 static const char *const color_labels[] = {"white", "pink", NULL};
 static const char *const mod_a_labels[] = {"osc3", "filter_eg", NULL};
 static const char *const mod_b_labels[] = {"noise", "lfo", NULL};
@@ -100,7 +99,7 @@ const param_desc_t mono_params[MONO_P_COUNT] = {
           "which held key sounds: last played, lowest (the original) or highest"),
     PARAM_OVERSAMPLE(MONO_P_OVERSAMPLE, 1.0f, "oversampling of the nonlinear filter: 1x (lightest), 2x (default: clean drive and resonance), 4x (cleanest self-oscillation and hard drive high up, about twice the filter cost of 2x)"),
     ANALOG_PARAMS(MONO_P_TOLERANCE, MONO_P_DRIFT_TIME, MONO_P_JITTER),
-    PARAM(MONO_P_GLIDE_MODE, "glide_mode", "voice.glide_mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, glide_mode_labels,
+    PARAM(MONO_P_GLIDE_MODE, "glide_mode", "voice.glide_mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, param_glide_mode_labels,
           "always = every note glides from the one before (the original); legato = only a note tied to the one before glides, the others start on pitch (the slides of a bass line)"),
 };
 

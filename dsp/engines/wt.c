@@ -8,8 +8,6 @@
 static const char *const warp_labels[] = {"off", "sync", "bend", "mirror", "fm", "ring", NULL};
 static const char *const filter_labels[] = {"off", "lp12", "bp12", "hp12", "notch", "lp24", "comb", "comb_neg", "formant",
                                             "scream", NULL};
-static const char *const lfo_labels[] = {"sine", "tri", "saw", "square", "sh", NULL};
-static const char *const voice_mode_labels[] = {"poly", "mono", "legato", NULL};
 static const char *const dist_labels[] = {"off", "soft", "tube", "hard", "fold", NULL};
 static const char *const place_labels[] = {"post", "pre", NULL};
 static const char *const sub_route_labels[] = {"filter", "direct", NULL};
@@ -66,7 +64,7 @@ static const float dst_scale[WT_DST_COUNT] = {0.0f, 24.0f, 1.0f, 1.0f, 1.0f, 1.0
 
 #define LFO(R, N, rate)                                                                                             \
     PARAM(R, "lfo" #N "_rate", "lfo" #N ".rate", 0.02f, 40.0f, rate, PARAM_EXP, "Hz", 1, NULL, "LFO " #N " rate"), \
-    PARAM(R + 1, "lfo" #N "_wave", "lfo" #N ".waveform", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, lfo_labels,          \
+    PARAM(R + 1, "lfo" #N "_wave", "lfo" #N ".waveform", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, param_lfo_wave_labels,          \
           "LFO " #N " shape (sh = random steps)"),                                                                  \
     PARAM(R + 2, "lfo" #N "_retrig", "lfo" #N ".retrigger", 0.0f, 1.0f, 1.0f, PARAM_INT, "", 0,                   \
           param_onoff_labels, "LFO " #N " restarts on each note (off = free running, voices drift apart)")
@@ -92,7 +90,7 @@ const param_desc_t wt_params[WT_P_COUNT] = {
     LFO(WT_P_LFO1_RATE, 1, 0.5f),
     LFO(WT_P_LFO2_RATE, 2, 5.0f),
     SLOT(0, 1), SLOT(1, 2), SLOT(2, 3), SLOT(3, 4), SLOT(4, 5), SLOT(5, 6),
-    PARAM(WT_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
+    PARAM(WT_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, param_voice_mode_labels,
           "poly; mono = last note, retriggers; legato = overlapping notes slide without retriggering"),
     PARAM(WT_P_GLIDE, "glide", "voice.glide", 0.0f, 2.0f, 0.0f, PARAM_LIN, "s", 1, NULL, "portamento time"),
     PARAM(WT_P_VELOCITY, "velocity", "amp.velocity", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL, "velocity -> loudness"),

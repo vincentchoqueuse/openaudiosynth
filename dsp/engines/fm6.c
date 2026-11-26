@@ -233,7 +233,7 @@ static void fm6_init(void *st, float sr)
         voice_silence(e, i);
         e->v[i].peg.level = 0.0f;
         e->v[i].peg.stage = ENV_RL_IDLE;
-        e->v[i].pan_l = e->v[i].pan_r = 0.70710678f;
+        e->v[i].pan_l = e->v[i].pan_r = VOICE_CENTER;
         e->v[i].gain_prev = 0.0f;
         e->v[i].note = 60;
     }

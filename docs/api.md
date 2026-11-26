@@ -262,7 +262,7 @@ modulation matrix evaluated at control rate (CLAUDE.md, "Modulation"): slots {sr
 parameter descriptors: the single source of truth for UIs, MIDI learn, presets, the generated catalog and AI agents. Each descriptor carries its range, default, unit, curve, the names of enumerated values and a one-line description of its effect on the sound. The only place where 0..1 normalization exists; the DSP itself works in physical units.
 - types: `param_curve_t`, `param_desc_t`
 - constants: `DSP_PARAM_TEXT` = 1
-- data: `const char *const param_onoff_labels[]`, `const char *const param_oversample_labels[]`
+- data: `const char *const param_onoff_labels[]`, `const char *const param_voice_mode_labels[]`, `const char *const param_glide_mode_labels[]`, `const char *const param_lfo_wave_labels[]`, `const char *const param_oversample_labels[]`
 - `float param_from_norm(const param_desc_t *d, float norm)` — Normalized value (clamped to 0..1) -> physical value.
 - `float param_to_norm(const param_desc_t *d, float value)` — Physical value -> normalized value 0..1.
 - `int param_find(const param_desc_t *table, int count, const char *name)` — Index of the parameter called name in a table, or -1.

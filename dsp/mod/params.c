@@ -3,6 +3,9 @@
 #include "../core/fastmath.h"
 
 const char *const param_onoff_labels[] = {"off", "on", NULL};
+const char *const param_voice_mode_labels[] = {"poly", "mono", "legato", NULL};
+const char *const param_glide_mode_labels[] = {"always", "legato", NULL};
+const char *const param_lfo_wave_labels[] = {"sine", "tri", "saw", "square", "sh", NULL};
 const char *const param_oversample_labels[] = {"1x", "2x", "4x", NULL};
 
 float param_from_norm(const param_desc_t *d, float norm)

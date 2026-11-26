@@ -170,7 +170,7 @@ static void poly_init(void *st, float sr)
         v->pitch = 60.0f;
         v->velgain = 1.0f;
         v->gain_prev = 0.0f;
-        v->pan_l = v->pan_r = 0.70710678f;
+        v->pan_l = v->pan_r = VOICE_CENTER;
         v->b_last = 0.0f;
         /* unison copies spread symmetrically, slightly irregular */
         v->unison_cents = ((float)i - 3.5f) / 3.5f * (i & 1 ? 1.0f : 0.83f);

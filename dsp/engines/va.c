@@ -12,9 +12,6 @@ static const char *const osc_wave_labels[] = {"sine", "saw", "pulse", "tri", "su
 static const char *const filter_mode_labels[] = {"lp", "bp", "hp", "notch", "formant", "scream", NULL};
 static const char *const filter2_labels[] = {"off", "lp", "bp", "hp", "notch", "formant", "scream", NULL};
 static const char *const routing_labels[] = {"series", "parallel", NULL};
-static const char *const lfo_wave_labels[] = {"sine", "tri", "saw", "square", "sh", NULL};
-static const char *const voice_mode_labels[] = {"poly", "mono", "legato", NULL};
-static const char *const glide_mode_labels[] = {"always", "legato", NULL};
 
 const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_OSC1_WAVE, "osc1_wave", "osc1.waveform", 0.0f, 4.0f, 1.0f, PARAM_INT, "", 0, osc_wave_labels, "osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure, supersaw = up to 7 detuned saws (see supersaw_*)"),
@@ -45,7 +42,7 @@ const param_desc_t va_params[VA_P_COUNT] = {
     PARAM(VA_P_FENV_S, "fenv_sustain", "filter_env.sustain", 0.0f, 1.0f, 0.2f, PARAM_LIN, "", 1, NULL, "filter envelope sustain level"),
     PARAM(VA_P_FENV_R, "fenv_release", "filter_env.release", 0.0005f, 30.0f, 0.4f, PARAM_EXP, "s", 1, NULL, "filter envelope release"),
     PARAM(VA_P_LFO_RATE, "lfo_rate", "lfo.rate", 0.01f, 30.0f, 5.0f, PARAM_EXP, "Hz", 1, NULL, "global LFO rate (vibrato 4.5-6.5 Hz, slow movement 0.1-1 Hz)"),
-    PARAM(VA_P_LFO_WAVE, "lfo_wave", "lfo.waveform", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, lfo_wave_labels, "LFO shape (sh = random steps)"),
+    PARAM(VA_P_LFO_WAVE, "lfo_wave", "lfo.waveform", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, param_lfo_wave_labels, "LFO shape (sh = random steps)"),
     PARAM(VA_P_LFO_PITCH, "lfo_pitch", "lfo.to_pitch", 0.0f, 12.0f, 0.0f, PARAM_LIN, "st", 1, NULL, "LFO -> pitch depth in semitones (0.1-0.3 = vibrato, more = siren)"),
     PARAM(VA_P_LFO_CUTOFF, "lfo_cutoff", "lfo.to_cutoff", 0.0f, 4.0f, 0.0f, PARAM_LIN, "oct", 1, NULL, "LFO -> cutoff depth in octaves (wah / slow breathing)"),
     PARAM(VA_P_LFO_PWM, "lfo_pwm", "lfo.to_pulse_width", 0.0f, 0.45f, 0.0f, PARAM_LIN, "", 1, NULL, "LFO -> pulse width (PWM: animated, string-ensemble-like pulse sound)"),
@@ -75,12 +72,12 @@ const param_desc_t va_params[VA_P_COUNT] = {
           "kick drum, +7..+12 = snare/tom snap, -12..-24 = laser zap)"),
     PARAM(VA_P_PENV_DECAY, "pitch_env_decay", "pitch_env.decay", 0.002f, 2.0f, 0.05f, PARAM_EXP, "s", 1, NULL,
           "time constant of the pitch envelope"),
-    PARAM(VA_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
+    PARAM(VA_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, param_voice_mode_labels,
           "poly = chords; mono = one voice, last note wins, every note retriggers the envelopes; legato = one "
           "voice, overlapping notes slide without retriggering (acid lines, leads, basses)"),
     PARAM(VA_P_GLIDE, "glide", "voice.glide", 0.0f, 2.0f, 0.0f, PARAM_LIN, "s", 1, NULL,
           "portamento time (constant time, like an RC glide): 0.03-0.08 s = acid slide, 0.2-0.5 s = lazy lead"),
-    PARAM(VA_P_GLIDE_MODE, "glide_mode", "voice.glide_mode", 0.0f, 1.0f, 1.0f, PARAM_INT, "", 0, glide_mode_labels,
+    PARAM(VA_P_GLIDE_MODE, "glide_mode", "voice.glide_mode", 0.0f, 1.0f, 1.0f, PARAM_INT, "", 0, param_glide_mode_labels,
           "always = every note glides from the previous one; legato = only overlapping (tied) notes glide"),
     PARAM(VA_P_F1_CHAR, "filter_character", "filter.character", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 1, NULL,
           "filter_mode formant: the vowel (0 a, 0.25 e, 0.5 i, 0.75 o, 1 u); scream: drive into the screaming feedback"),

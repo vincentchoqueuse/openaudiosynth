@@ -236,11 +236,11 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
     }
     int j = 0;
     for (; j + 1 < n_snd; j += 2) {
-        const int a = on[j], b = on[j + 1];
-        const float dia = (inc1[a] - v->inc[a]) * inv_n, dla = (al1[a] - v->al[a]) * inv_n, dra = (ar1[a] - v->ar[a]) * inv_n;
-        const float dib = (inc1[b] - v->inc[b]) * inv_n, dlb = (al1[b] - v->al[b]) * inv_n, drb = (ar1[b] - v->ar[b]) * inv_n;
-        float pha = v->phase[a], inca = v->inc[a], gla = v->al[a], gra = v->ar[a];
-        float phb = v->phase[b], incb = v->inc[b], glb = v->al[b], grb = v->ar[b];
+        const int ka = on[j], kb = on[j + 1];
+        const float dia = (inc1[ka] - v->inc[ka]) * inv_n, dla = (al1[ka] - v->al[ka]) * inv_n, dra = (ar1[ka] - v->ar[ka]) * inv_n;
+        const float dib = (inc1[kb] - v->inc[kb]) * inv_n, dlb = (al1[kb] - v->al[kb]) * inv_n, drb = (ar1[kb] - v->ar[kb]) * inv_n;
+        float pha = v->phase[ka], inca = v->inc[ka], gla = v->al[ka], gra = v->ar[ka];
+        float phb = v->phase[kb], incb = v->inc[kb], glb = v->al[kb], grb = v->ar[kb];
         for (int i = 0; i < n; i++) {
             inca += dia, gla += dla, gra += dra;
             incb += dib, glb += dlb, grb += drb;
@@ -254,8 +254,8 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
             xl[i] += glb * sb;
             xr[i] += grb * sb;
         }
-        v->phase[a] = pha, v->inc[a] = inc1[a], v->al[a] = al1[a], v->ar[a] = ar1[a];
-        v->phase[b] = phb, v->inc[b] = inc1[b], v->al[b] = al1[b], v->ar[b] = ar1[b];
+        v->phase[ka] = pha, v->inc[ka] = inc1[ka], v->al[ka] = al1[ka], v->ar[ka] = ar1[ka];
+        v->phase[kb] = phb, v->inc[kb] = inc1[kb], v->al[kb] = al1[kb], v->ar[kb] = ar1[kb];
     }
     if (j < n_snd) { /* an odd one left */
         const int k = on[j];

@@ -54,6 +54,9 @@ int param_label(const param_desc_t *d, const char *label);
 
 /* Labels of every on/off switch (min 0, max 1, PARAM_INT). */
 extern const char *const param_onoff_labels[];
+extern const char *const param_voice_mode_labels[]; /* poly, mono, legato */
+extern const char *const param_glide_mode_labels[]; /* always, legato */
+extern const char *const param_lfo_wave_labels[];   /* sine, tri, saw, square, sh */
 /* Labels of the oversampling setting of the nonlinear filters (0..2 -> 1x, 2x, 4x; factor = 1 << value). */
 extern const char *const param_oversample_labels[];
 #define PARAM_OVERSAMPLE(ID, def, help) \

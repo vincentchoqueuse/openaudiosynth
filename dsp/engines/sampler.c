@@ -59,7 +59,7 @@ static float pad(const sampler_t *e, int entry, int k)
 }
 
 /* per-sample multiplier that falls by 60 dB in t seconds */
-static float fall_coef(float t, float sr) { return fm_exp2(-9.96578428f / (t * sr)); }
+static float fall_coef(float t, float sr) { return fm_exp2(-FM_LOG2_1000 / (t * sr)); }
 
 /* ---------------- vpoly callbacks ---------------- */
 

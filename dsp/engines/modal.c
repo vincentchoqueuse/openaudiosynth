@@ -8,7 +8,6 @@
 #include "../core/fastmath.h"
 
 #define MODAL_VOICE_GAIN 0.125f /* -18 dBFS per voice */
-#define LOG2_1000 9.96578428f   /* T60: amplitude / 1000 */
 
 enum { M_HARMONIC = 0, M_STRING, M_BAR, M_MARIMBA, M_BELL, M_MEMBRANE, M_BOWL, M_TUBE, M_COUNT };
 
@@ -154,7 +153,7 @@ static void build_coeffs(modal_t *e, modal_voice_t *v, int note)
                 t60 *= u ? 1.6f + 0.4f * as : 0.45f - 0.15f * as;
             if (v->released)
                 t60 = dsp_minf(t60, t_rel);
-            const float r = fm_exp2(-LOG2_1000 * inv_sr / t60);
+            const float r = fm_exp2(-FM_LOG2_1000 * inv_sr / t60);
             v->ratio[slot] = ratio;
             v->decay[slot] = r;
             float cs = fm_cos(f * inv_sr), sn = fm_sin(f * inv_sr);

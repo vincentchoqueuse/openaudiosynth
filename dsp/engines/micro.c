@@ -10,7 +10,6 @@
 #define MICRO_GAIN 0.125f      /* -18 dBFS per voice */
 #define MICRO_CLICK_LIVE 0.25f /* s: how long the click filter keeps running after a hit */
 
-static const char *const voice_mode_labels[] = {"poly", "mono", "legato", NULL};
 static const char *const pitch_mode_labels[] = {"key", "fixed", NULL};
 static const char *const env_mode_labels[] = {"gate", "one_shot", NULL};
 static const char *const osc2_mode_labels[] = {"ratio", "hz", NULL};
@@ -50,7 +49,7 @@ static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15};
           "noise, low, the tone and the noise, or all")
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
-    PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, voice_mode_labels,
+    PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, param_voice_mode_labels,
           "poly, mono (every note retriggers) or legato (overlapping notes glide without retriggering)"),
     PARAM(MICRO_P_PITCH_MODE, "pitch_mode", "micro.pitch_mode", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0, pitch_mode_labels,
           "key: the note sets the pitch; fixed: every note plays `freq` (the note only triggers)"),
@@ -731,8 +730,8 @@ typedef struct {
 /* space hard: a pan snapped to left, centre or right, as exact gains (a side is 1 and 0, the centre equal power) */
 static inline void hard_pan(float x, float *l, float *r)
 {
-    *l = x > 0.33f ? 0.0f : x < -0.33f ? 1.0f : 0.70710678f;
-    *r = x > 0.33f ? 1.0f : x < -0.33f ? 0.0f : 0.70710678f;
+    *l = x > 0.33f ? 0.0f : x < -0.33f ? 1.0f : VOICE_CENTER;
+    *r = x > 0.33f ? 1.0f : x < -0.33f ? 0.0f : VOICE_CENTER;
 }
 
 /* sd: with space alternate, the side of each sample of the block (-1 left, +1 right; it changes on the sample of a
@@ -775,8 +774,8 @@ static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, 
     if (low_live) { /* the low layer in the centre, whatever the pan */
         dsp_guard_block(xw, n, &e->poly.nan_count);
         for (int i = 0; i < n; i++) {
-            L[i] += 0.70710678f * xw[i];
-            R[i] += 0.70710678f * xw[i];
+            L[i] += VOICE_CENTER * xw[i];
+            R[i] += VOICE_CENTER * xw[i];
         }
     }
     if (sd) { /* alternate: the sines and the noise fully on the side of their hit, the second sine opposite when split */

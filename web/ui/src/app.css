@@ -130,8 +130,6 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .dt .cog { width: 28px; height: 28px; border-radius: 7px; color: var(--muted); display: inline-grid; place-items: center; }
 .dt .cog:hover, .dt tr.sel .cog { background: var(--surface); color: var(--accent); box-shadow: 0 0 0 1px var(--line); }
 .dt .select { width: 100%; max-width: 15em; }
-.dt .fxpick { font-weight: 600; }
-.dt tr.dim .fxpick { font-weight: 400; color: var(--muted); }
 .dt-bar { display: inline-block; width: 100%; max-width: 110px; height: 4px; border-radius: 2px; background: var(--track); vertical-align: middle; overflow: hidden; }
 .dt-bar span { display: block; height: 100%; background: var(--accent); }
 
@@ -168,6 +166,28 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .ptable .param .label { font-weight: 600; }
 .ptable .param .sp-input { padding: 4px 8px; }
 
+/* sortable heads, the lock of a module always on, the count under a table */
+.dt .th-sort { display: inline-flex; align-items: center; gap: 4px; font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit; }
+.dt .th-sort:hover, .dt .th-sort.on { color: var(--text); }
+.dt .th-sort .arrow { width: .8em; }
+.dt .lock { display: inline-grid; place-items: center; width: 30px; height: 16px; color: var(--muted); }
+.dt-foot { margin: 8px 10px 0; font-size: 11.5px; color: var(--muted); }
+/* a toolbar's actions: text buttons with an icon, one height (the Synth table's, the Sequence view's) */
+.tool { box-sizing: border-box; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px; border: 1px solid var(--line); border-radius: 7px;
+  background: var(--surface); color: var(--text); font: inherit; font-size: 12px; white-space: nowrap; }
+.tool:hover:not(:disabled) { border-color: var(--accent); }
+.tool.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); width: auto; min-width: 0; }
+.tool.primary .caret { display: none; }
+.tool:disabled { opacity: .45; }
+.finder .tools { display: inline-flex; gap: 6px; margin-left: auto; }
+/* the path above the Synth view: instrument / sound / module open */
+.crumbs { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; font-size: 16px; font-weight: 500; color: var(--muted); }
+.crumbs .sep { opacity: .5; }
+.crumbs button { font: inherit; color: inherit; }
+.crumbs button:hover { color: var(--text); }
+.crumbs .last { color: var(--text); font-weight: 650; }
+.dt.kv textarea.sp-input { resize: vertical; line-height: 1.5; }
+
 /* the Synth table's finder: a search, then a tag per family */
 .finder { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 18px 0 12px; }
 .finder .search { box-sizing: border-box; margin: 0; flex: 1 1 260px; display: flex; align-items: center; gap: 8px; min-width: 0; height: 30px; padding: 0 4px 0 10px;
@@ -176,7 +196,6 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .finder .search input { flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: none; color: var(--text); font: inherit; font-size: 12.5px; }
 .finder .search input::-webkit-search-cancel-button { display: none; }
 .finder .search .iconbtn { width: 22px; height: 22px; }
-.finder .found { font-size: 11.5px; white-space: nowrap; margin-right: 4px; }
 .finder .seg { box-sizing: border-box; height: 30px; align-items: stretch; } /* one height with the search */
 .finder .seg button { display: inline-flex; align-items: center; padding: 0 10px; }
 .dt .tag { display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 10.5px; letter-spacing: .03em; background: var(--faint); color: var(--text); }
@@ -184,21 +203,12 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .dt .tag-effect { background: color-mix(in srgb, #3e8ed0 20%, transparent); }
 .dt .tag-modulation { background: color-mix(in srgb, var(--warn) 20%, transparent); }
 .dt .tag-macro { background: color-mix(in srgb, var(--ok) 20%, transparent); }
-.dt-slot { display: inline-flex; align-items: center; gap: 8px; width: 100%; }
 .iconbtn { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; color: var(--muted); }
 .iconbtn:hover:not(:disabled) { background: var(--faint); color: var(--text); }
 .iconbtn:disabled { opacity: .3; }
 /* the side panel's tabs, its tables of settings, its footer */
 .sp-tabs { padding: 0 18px; border-bottom: 1px solid var(--line); }
 .sp-tabs .tabs { margin: 0; border: 0; }
-/* what modulates a setting (ParamMods): its sources under the control, "+ Mod" when the row is pointed at */
-.pmods { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; margin: -4px 0 6px calc(8.5em + 10px); }
-.pmods:not(.has) { display: none; }
-.prow:hover .pmods, .prow:focus-within .pmods { display: flex; }
-.pmod { padding: 1px 8px; border-radius: 10px; font-size: 11px; color: var(--text); background: color-mix(in srgb, var(--warn) 18%, transparent); }
-.pmod .mono { color: var(--muted); }
-.pmod:hover { box-shadow: 0 0 0 1px var(--warn); }
-.pmods .pmod-add { width: auto; min-width: 0; padding: 1px 8px; font-size: 11px; border-style: dashed; color: var(--muted); }
 .sp-foot { position: sticky; bottom: -24px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px -18px -24px; padding: 12px 18px 14px;
   border-top: 1px solid var(--line); background: var(--surface); font-size: 11.5px; }
 .sp-foot .btn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; font-size: 12px; }
@@ -208,10 +218,6 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .param { display: grid; grid-template-columns: 8.5em 1fr 5.2em; gap: 10px; align-items: center; min-height: 27px; }
 .param .label { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
 .param.changed .label::after { content: ' •'; color: var(--accent); } /* moved since the sound was loaded */
-/* the macros that move this parameter */
-.param .macro-pill { display: inline-block; vertical-align: 1px; margin-right: 5px; padding: 0 5px; height: 15px; border: 0; border-radius: 8px; background: var(--warn); color: #fff;
-  font: inherit; font-size: 10px; line-height: 15px; font-weight: 600; cursor: pointer; }
-.param .macro-pill:hover { filter: brightness(1.15); }
 .param .cell, .param .select { grid-column: 2 / 4; }
 .param .cell .pills.icon button { flex: 1; width: auto; }
 .param .val { font-size: 11.5px; text-align: right; color: var(--muted); white-space: nowrap; }
@@ -220,10 +226,6 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .param input.val { width: 100%; min-width: 0; padding: 1px 4px; border: 1px solid var(--accent); border-radius: 5px; background: var(--bg); color: var(--text); font: inherit; font-size: 11.5px; }
 
 
-/* above the macros to play: what is playing, in one line */
-.playing { display: flex; align-items: baseline; gap: 14px; margin: 0 0 6px; min-width: 0; }
-.playing h2 { margin: 0; flex: none; }
-.playing span { font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 h3.sub { margin: 18px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 
 /* ---- toolbar: settings on the left (a label, then its control), actions on the right, one height ---- */
@@ -300,9 +302,6 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
   border-bottom: 1px solid var(--line); font-size: 12px; color: var(--muted); }
 .topbar .tb-left, .topbar .tb-right { flex: 1 1 0; display: flex; align-items: center; gap: 14px; min-width: 0; }
 .topbar .tb-right { justify-content: flex-end; }
-.topbar .tb-acts { display: inline-flex; flex: none; gap: 2px; padding-left: 10px; border-left: 1px solid var(--line); }
-.topbar .tb-act { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 7px; color: var(--muted); }
-.topbar .tb-act:hover { background: var(--faint); color: var(--text); }
 .topbar .tb-mid { flex: 0 1 auto; }
 .topbar .btn { padding: 5px 12px; }
 .topbar .namebox { display: flex; align-items: center; gap: 4px; min-width: 0; }
@@ -409,7 +408,6 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 10px 32px 
 }
 @container topbar (max-width: 860px) {
   .topbar .pills.lg button { width: 38px; padding: 6px 0; font-size: 0; gap: 0; }
-  .topbar .tb-acts { padding-left: 6px; }
   .topbar .tempo-unit { display: none; }
   .topbar .tb-left, .topbar .tb-right { gap: 8px; }
   .topbar .tempo input { width: 3.6em; }

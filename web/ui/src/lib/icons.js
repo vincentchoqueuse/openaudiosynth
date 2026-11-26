@@ -10,6 +10,8 @@ export const ICONS = {
   close: { d: 'M4 4l8 8M12 4l-8 8' },
   plus: { d: 'M8 3v10M3 8h10' },
   search: { d: `${circle(4.2).replace('M8', 'M7').replace(/a4.2 4.2 0 1 0 0 8.4/, 'a4.2 4.2 0 1 0 0 8.4')}M10.2 10.2 14 14` },
+  lock: { d: 'M4.5 7.5h7v5.5h-7zM6 7.5V5.5a2 2 0 0 1 4 0v2' },
+  sort: { d: 'M5 6.5 8 3.5l3 3M5 9.5l3 3 3-3' },
   menu: { d: 'M2.5 4h11M2.5 8h11M2.5 12h11' },
   volume: { d: 'M2 6.2h2.6L8 3.2v9.6L4.6 9.8H2zM10.6 5.8a3.2 3.2 0 0 1 0 4.4M12.6 3.8a6 6 0 0 1 0 8.4' },
   // the views and the Synth view's pills

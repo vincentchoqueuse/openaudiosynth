@@ -16,7 +16,8 @@
     const macros = s.macroNames.map((n, k) => (n || s.macroMaps.some((m) => m.macro === k && m.dst) ? s.macroName(k) : '')).filter(Boolean);
     return [
       ['Name', s.label],
-      ['Description', s.description || '—'],
+      ['File', s.current || 'not saved yet (Menu: Save to library, or Export sound)'],
+      ['Description', { value: s.description, set: (v) => (s.description = v), placeholder: 'What this sound is' }],
       ['Instrument', s.engine ? `${s.engine.name} — ${s.engine.description ?? ''}` : '—'],
       ...(s.engine?.voices ? [['Voices', String(s.engine.voices)]] : []),
       ...(s.engine?.name === 'sampler' ? [['Kit', `${s.kitName || 'dropped files'} · ${s.kit?.entries?.length ?? 0} samples`]] : []),

@@ -1,6 +1,6 @@
-<!-- MacroStrip.svelte — the macros to play, above the keyboard: the part's 8 macros as rows shaped like every other
-     parameter (name, slider, value in percent; double-click: back to the sound's value; Shift and the arrows as on every slider), 2 rows of 4 on a wide
-     screen; under each name, what it moves (its MIDI CC is in the tooltip). They are set up (names, CC, targets) in the Synth view (Macros: MacroTable, MacroPanel); a macro's
+<!-- MacroStrip.svelte — the macros to play, above the keyboard: the part's 8 macros on one line, each its name, its value and
+     a slider (double-click: back to the sound's value; Shift and the arrows as on every slider; two lines of 4 on a narrow
+     screen); what it moves and its MIDI CC are in the tooltip. They are set up (names, CC, targets) in the Synth view (Macros: MacroTable, MacroPanel); a macro's
      CC turns it in the synth. -->
 <script>
   import { human } from './naming.js';
@@ -15,30 +15,23 @@
 <div class="macrogrid">
   {#each moves as targets, k}
     {@const m = s.getP(`macro${k + 1}`)}
-    <div class="mrow" class:empty={!s.macroNames[k] && !targets.length}
-         title="{cc(k) ? `CC ${cc(k)}` : 'no CC'} · {targets.length ? targets.join(', ') : 'nothing assigned'}">
-      <div class="param" class:changed={Math.abs(m - base(k)) > 1e-3}>
-        <span class="label" title="double-click: back to the sound's value" ondblclick={() => s.setP(`macro${k + 1}`, base(k))} role="presentation">
-          {s.macroName(k)}
-          {#if targets.length && !(targets.length === 1 && targets[0].toLowerCase() === s.macroName(k).toLowerCase())}<small>{targets.length > 2 ? `${targets.length} settings` : targets.join(', ')}</small>{/if}
-        </span>
-        <input type="range" min="0" max="1" step="0.001" value={m} style="--p:{m * 100}%" aria-label={s.macroName(k)}
-               use:precise={{ value: () => s.getP(`macro${k + 1}`), set: (v) => s.setP(`macro${k + 1}`, v) }} ondblclick={() => s.setP(`macro${k + 1}`, base(k))} />
-        <span class="val">{Math.round(m * 100)} %</span>
-      </div>
-    </div>
+    <label class="mcell" class:empty={!s.macroNames[k] && !targets.length} class:changed={Math.abs(m - base(k)) > 1e-3}
+           title="{s.macroName(k)} · {Math.round(m * 100)} % · {cc(k) ? `CC ${cc(k)}` : 'no CC'} · {targets.length ? targets.join(', ') : 'nothing assigned'}">
+      <span class="mname"><span>{s.macroName(k)}</span><span class="mval mono">{Math.round(m * 100)}</span></span>
+      <input type="range" min="0" max="1" step="0.001" value={m} style="--p:{m * 100}%" aria-label={s.macroName(k)}
+             use:precise={{ value: () => s.getP(`macro${k + 1}`), set: (v) => s.setP(`macro${k + 1}`, v) }} ondblclick={() => s.setP(`macro${k + 1}`, base(k))} />
+    </label>
   {/each}
 </div>
 
 <style>
-  .macrogrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 26px; }
-  .macrogrid .param { grid-template-columns: 7.5em 1fr 3.2em; min-height: 26px; gap: 8px; }
-  .mrow { min-width: 0; }
-  .mrow.empty { opacity: .5; }
-  .macrogrid .label { display: flex; flex-direction: column; line-height: 1.2; }
-  .macrogrid .label small { font-size: 10px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; }
-  .macrogrid .param { min-height: 32px; }
-  /* a tablet keeps the four columns (the percentages go); a phone has two */
-  @media (max-width: 1180px) { .macrogrid { gap: 0 16px; } .macrogrid .param { grid-template-columns: 6em 1fr; } .macrogrid .val { display: none; } }
-  @media (max-width: 700px) { .macrogrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 14px; } .macrogrid .param { grid-template-columns: 5.5em 1fr; } }
+  .macrogrid { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 0 18px; }
+  .mcell { display: grid; gap: 2px; min-width: 0; margin: 0; }
+  .mcell.empty { opacity: .45; }
+  .mname { display: flex; justify-content: space-between; gap: 6px; font-size: 11.5px; color: var(--text); }
+  .mname span:first-child { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mcell.changed .mname span:first-child::after { content: ' •'; color: var(--accent); }
+  .mval { color: var(--muted); font-size: 10.5px; }
+  .mcell input { width: 100%; }
+  @media (max-width: 900px) { .macrogrid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px 14px; } }
 </style>

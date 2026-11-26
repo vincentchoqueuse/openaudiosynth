@@ -1,5 +1,5 @@
 <!-- SequenceTab.svelte — the clip in the Clip view's Sequencer (it belongs to the sound: Save in the Menu keeps
-     both): a toolbar (loop, position, grid, Settings; the tempo, Init and Randomize are in the top bar), then the piano roll
+     both): a toolbar (loop, position, grid; Init, Randomize, Settings; the tempo is in the top bar), then the piano roll
      with its editing tools. What is set once goes in the Clip settings dialog: the clip's length, its key and scale,
      the octave of Randomize, the loops of an exported song. -->
 <script>
@@ -19,6 +19,8 @@
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <label>Grid <Select bind:value={q.grid} label="Grid" options={GRIDS.map(([l, v]) => ({ value: v, label: l }))} /></label>
   <span class="spacer"></span>
+  <button class="tool" onclick={q.clear} title="Clear the clip"><Icon name="init" size={13} /> Init</button>
+  <button class="tool" onclick={q.random} title="New random notes in the clip, in its scale"><Icon name="dice" size={13} /> Randomize</button>
   <button class="ghost set" onclick={() => (s.clipSettingsOpen = true)} title="Clip settings: {summary}"><Icon name="settings" weight={1.2} /> Settings</button>
 </div>
 {#if q.message}<p class="message">{q.message}</p>{/if}

@@ -1,6 +1,6 @@
 <!-- TopBar.svelte — the one bar above everything, in three parts. Left: where you are, the three views (Sequence,
-     Synth, Code), pills of one width with their icon, then Init and Randomize for the view open (the clip's notes,
-     or the sound; in the Menu on a phone). Middle: what plays, the sound's name between Previous and Next
+     Synth, Code), pills of one width with their icon, (Init and Randomize live in each view's own toolbar; the
+     clip's are in the Menu on a phone). Middle: what plays, the sound's name between Previous and Next
      (through the library), a dot when settings have moved since it was loaded (a click on it reverts), and A/B to
      hear it as loaded, then the edit again. Right: playing, the CPU load and the output level (Meter, on a wide
      screen), the listening volume, the tempo and play / stop (Space); last, the Menu (Save to the library in
@@ -19,19 +19,8 @@
   // another sound, or a setting moved while the loaded sound is heard: the edit that waited is dropped
   $effect(() => { s.patchGen; s.edited = null; });
   $effect(() => { if (s.edited && s.changedCount) s.edited = null; });
-  // Init and Randomize act on the view open: the clip's notes in Sequence (cleared, or drawn at random in its scale),
-  // the sound in Synth (a new sound on the same instrument, every setting at its default; or every setting of the
-  // instrument thrown somewhere else). Undo brings back what they changed, but an Init of the sound is a new sound.
-  function init() {
-    if (view === 'clip') return q.clear();
-    if (s.changedCount && !confirm('Start a new sound on this instrument? The edits of this one are not kept.')) return;
-    s.newSound(s.engine.name);
-  }
-  const random = () => (view === 'clip' ? q.random() : s.randomize());
-  const acts = $derived(view === 'clip' ? { init: 'Clear the clip', random: 'New random notes in the clip, in its scale' }
-    : view === 'synth' ? { init: 'A new sound on this instrument: every setting at its default', random: 'Throw every setting of the instrument somewhere else (Undo brings the sound back)' } : null);
   const items = $derived([
-    ...(s.phone && acts ? [{ label: 'Init (clear the clip)', run: init }, { label: 'Randomize the clip', run: random }, '-'] : []),
+    ...(s.phone ? [{ label: 'Init (clear the clip)', run: q.clear }, { label: 'Randomize the clip', run: q.random }, '-'] : []),
     ...(s.canSave ? [{ label: 'Save to library…', run: s.openSave }] : []),
     { label: 'Export sound (JSON)', run: s.exportPatch },
     { label: 'Export song', run: q.exportSong },
@@ -49,12 +38,6 @@
 <header class="topbar">
   <div class="tb-left">
     {#if views.length > 1}<Pills items={views.map(({ id, label, icon }) => ({ id, label, icon }))} value={view} onpick={(id) => (view = id)} size="lg" tabs label="Views" />{/if}
-    {#if acts}
-      <span class="tb-acts">
-        <button class="tb-act" onclick={init} title="Init: {acts.init}" aria-label="Init: {acts.init}"><Icon name="init" size={15} /></button>
-        <button class="tb-act" onclick={random} title="Randomize: {acts.random}" aria-label="Randomize: {acts.random}"><Icon name="dice" size={15} /></button>
-      </span>
-    {/if}
   </div>
   <div class="tb-mid namebox">
     <button class="step" onclick={() => s.step(-1)} disabled={!s.patches.length} aria-label="Previous sound" title="Previous sound of the library">‹</button>

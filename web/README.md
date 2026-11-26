@@ -60,23 +60,20 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   and Preset with the sound's name; on the right the
   CPU load (time spent rendering over the audio's time, measured in the worklet) and the output level as meters,
   the volume and Sequencer ▶, each set apart by a rule (play / stop). **Sequence**: Live, wave or spectrum, then the sequencer
-  (tempo, loop, position, piano roll). **Synth**: a record with two tabs, like every record of the page. General: the sound as fields (`FieldTable`:
-  name, description, instrument, voices, the effects, modulation and macros in use, the settings moved) and its signal
-  path drawn (only what is active; a click on a block opens it). Settings: every module of the sound in one table
-  (`SynthTable` on `DataTable`): the instrument's stages in the order its signal flows (the sampler: its kit, then its
-  pads), the effect chain (input, the rack's six blocks, output), the sources of modulation (envelopes, LFOs, Wander,
-  the controllers) and the eight macros, with a search (names, settings, what a module moves), a tag per family and
-  On / Off. Every row has a switch (`lib/onoff.js`: a stage its own, the amp or the master fixed on; a source mutes its
-  routes, a macro detaches its settings, both kept to come back). A row's cog, or a click on it, opens the module in
-  the side panel (`SidePanel`) with the same two tabs, opening on Settings: General (what it does, its tag and role, on or off, where its
-  signal comes from and goes, what it moves and what moves it, then each setting with its help: `ModuleGeneral`) and
-  Settings (a stage's settings, each with what modulates it and + Mod: `ParamMods`; a modulator's editor and its
-  routes, set there; a macro's targets; the kit), with its actions in a footer. Every table, in the page and in the
-  panel, is one style (`.dt`). The panel lies over the page and its arrows step through the rows as shown. A block of
-  the rack holds the effect picked from the list in its row (an effect another block holds swaps with it); a sound
-  just loaded shows its effects in use first. Init and Randomize, in the top bar after the views, act on the view open:
-  the clip's notes in Sequence (cleared, or drawn at random in its scale), the sound in Synth (a new sound on the same
-  instrument, or every setting of the instrument thrown somewhere else). **Code**: the sound (the patch file) or the clip, in an editor as tall as
+  (tempo, loop, position, piano roll). **Synth**: laid out like a database admin. Its title is a path (instrument / sound / module open). Two tabs,
+  as for every record: Settings, the modules of the sound as the records of one table (`SynthTable` on `DataTable`),
+  and General, the sound as fields (`FieldTable`: name, file, description, edited in place, instrument, voices, what is
+  in use) with its signal path drawn. The table's columns are fields: Name, Tag (engine, effect, modulation, macro),
+  Type, On, Summary (the main settings), Moves (what a source or a macro moves); a click on a head sorts, the count is
+  under the table. Its toolbar: a search (names, settings, what a module moves), the tags, On / Off, then Init,
+  Randomize and Add effect. Every row has a switch (`lib/onoff.js`), or a lock when the module is always on. The
+  effects of the rack are records: Add effect adds one after those in use, Remove in its panel takes it out
+  (`lib/rack.svelte.js`). A row's cog, or a click on it, opens the record in the side panel (`SidePanel`), on
+  Settings: a stage's settings as a table, then Modulation, what moves them (routes set in place, macros: `ModLinks`);
+  a modulator's editor and its routes; a macro's targets; the kit. General there: what the module does, its role,
+  where its signal goes, each setting's help (`ModuleGeneral`). The panel's footer is the same everywhere: what can be
+  added, Reset to defaults, Remove. Every table, in the page and in the panel, is one style (`.dt`). The Sequence
+  view's toolbar has the clip's own Init and Randomize. **Code**: the sound (the patch file) or the clip, in an editor as tall as
   the page. Each view starts with its title and its icon. On a phone the page is for playing only: the top bar (the sound, the tempo, play, the menu), the live display,
   the macros and the keyboard, with the library in its drawer; no Synth or Code view, no piano roll (the clip plays
   from the top bar), no macro CC, no shortcuts sheet. Along the bottom, the 8 macros to play in a Macro control card (2 rows of 4) above the
@@ -98,7 +95,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
   - every list is a table (`DataTable`, `.dt`), in the page and in the panel (`.ptable`): a row reads in one line
     (its name, its tag, its switch, the line of its main settings or what it moves, `lib/stages.js`), the cog at its
     end opens it in the side panel, where every setting is; routes are set in the panel of their source;
-  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). Each block holds one effect type picked from the list in its row; Empty takes the effect out (switched off), an effect another block holds swaps places with this one, (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
+  - Effects reads as the signal: Input (output filter, crush), six blocks, Output (master, saturation, limiter). The effects of the rack are added with Add effect and removed from their panel, (`session.rack`, `setRack`, the parameters `fx_slot1..6`); the signal path of Summary follows that order;
   - in the panel, parameters are rows (label without the stage's own words, control, value in its unit), one stage
     of the engine at a time (every engine with stages gives each parameter to one, tested), all in view, the main
     ones first (`lib/engineui.js`, which also hides what the present choices do not use); a dot after a label: moved since the sound was loaded,

@@ -40,6 +40,7 @@ class Session {
   // the side panel of the Synth view: what a row's Configure opened ({kind, id}: kind 'stage' | 'mod' | 'route' |
   // 'macro'), or null; it stays open from page to page and closes with Escape or its cross
   panel = $state(null);
+  panelTitle = $state(''); // the name of what the panel shows, for the path above the view
   synthQuery = $state(''); // the Synth table's search
   synthState = $state('all'); // and on / off: all, on, off
   synthTag = $state('all'); // and its tag (all, engine, effect, modulation, macro)

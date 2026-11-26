@@ -82,13 +82,12 @@
       <TopBar bind:view={main} views={VIEWS} />
       <!-- Clip stays mounted: its scope measures the level of the top bar -->
       <div hidden={main !== 'clip'}>{#if !s.phone}<ViewTitle {...ALL_VIEWS[0]} />{/if}<ClipTab /></div>
-      {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} /><SynthTab />{/if}
+      {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} crumbs={[{ label: s.engine?.name ?? '' }, { label: s.label, onclick: s.closePanel }, ...(s.panelTitle ? [{ label: s.panelTitle }] : [])]} /><SynthTab />{/if}
       {#if main === 'code'}<ViewTitle {...ALL_VIEWS[2]} /><CodeView />{/if}
     </main>
 
     <footer>
       <Card plain class="macrocard">
-        <div class="playing"><h2>Macros</h2><span title={s.description}>{s.description || s.label}</span></div>
         <MacroStrip />
       </Card>
       <Keyboard synth={s.synth} held={lit} />

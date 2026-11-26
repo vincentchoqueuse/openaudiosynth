@@ -73,6 +73,7 @@
                                    fields: [['Tag', 'engine'], ['Kit', s.kitName || 'dropped files'], ['Samples', String(s.kit?.entries?.length ?? 0)]] };
     return null;
   });
+  $effect(() => { s.panelTitle = P?.title ?? ''; });
   $effect(() => { if (s.panel && !P) s.closePanel(); }); // its item is gone (another instrument, an effect taken out)
   const step = (d) => {
     const i = s.tableRows.findIndex((r) => r.key === s.panel?.id), r = i >= 0 ? s.tableRows[i + d] : null;

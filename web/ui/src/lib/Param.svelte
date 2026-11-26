@@ -2,8 +2,7 @@
      unit. A thin slider in normalized space (exp curves feel right), a switch for off / on, drawn buttons for a
      choice of waveforms, pills for a few choices, a menu for more, sixteen step buttons for a rhythm pattern. Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
      moved since the sound was loaded; double-click on the
-     label or the slider puts that value back. A small coloured pill before the label, with their numbers: the macros
-     that move this parameter (a click opens the first in the side panel). The descriptor's help text is the tooltip.
+     label or the slider puts that value back. The descriptor's help text is the tooltip.
      A slider is exact to set (slider.js): Shift while dragging is ten times finer, the arrows step it, and a
      double-click on the value types it (Enter sets it, Escape leaves it). -->
 <script>
@@ -26,7 +25,6 @@
   // a choice of waveforms: drawn buttons
   const waves = $derived(!!d.labels && /(^|_)wave$/.test(d.name) && d.labels.every(isWave));
   const toggle = $derived(d.labels?.length === 2 && d.labels[0] === 'off' && d.labels[1] === 'on');
-  const macros = $derived(session.macrosOf[d.id] ?? []); // the macros that move it
   // a rhythm of 16 steps kept as a number (bit k = step k + 1): drawn as steps
   const steps = $derived(/(^|_)pattern$/.test(d.name) && d.min === 0 && d.max === 65535);
   const bits = $derived(Math.round(value));
@@ -44,8 +42,7 @@
 </script>
 
 <div class="param" class:changed title={d.help ?? ''}>
-  <span class="label" role="button" tabindex="-1" title={changed ? 'moved · double-click: back to the sound\'s value' : ''} ondblclick={() => onchange(base)}>{#if macros.length}<button class="macro-pill" title={'moved by ' + macros.map((k) => `macro ${k + 1} (${session.macroName(k)})`).join(', ') + ' · click: assignments'}
-      aria-label={'Moved by macro ' + macros.map((k) => k + 1).join(', ') + ': open it'} onclick={() => session.openPanel('macro', 'm' + macros[0])}>{macros.map((k) => k + 1).join(' ')}</button>{/if}{label}</span>
+  <span class="label" role="button" tabindex="-1" title={changed ? 'moved · double-click: back to the sound\'s value' : ''} ondblclick={() => onchange(base)}>{label}</span>
   {#if steps}
     <div class="cell steps" role="group" aria-label={label}>
       {#each Array(16) as _, k}

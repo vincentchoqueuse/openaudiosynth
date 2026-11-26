@@ -100,42 +100,57 @@ DSP_FAST_CODE void delay_process(delay_t *d, const float *inL, const float *inR,
     d->drift = dsp_clampf(d->drift + (d->drift_target - d->drift) * dsp_minf(1.0f, 96.0f * block_s), -1.0f, 1.0f);
     const float drift_step = (d->drift - drift) / (float)n;
 
+    /* the state each sample reads and writes, in locals for the block (written back after it) */
+    float wow_phase = d->wow_phase, flutter_phase = d->flutter_phase;
+    float d_cur[2] = {d->d_cur[0], d->d_cur[1]}, hp[2] = {d->hp[0], d->hp[1]}, lp[2] = {d->lp[0], d->lp[1]};
+    const float wow_inc = d->wow_inc, flutter_inc = d->flutter_inc, wow_depth = d->wow_depth, flutter_depth = d->flutter_depth;
+    const float d_target[2] = {d->d_target[0], d->d_target[1]};
+    const int pingpong = d->pingpong, len = d->len;
+    int pos = d->pos;
+    float *b0 = d->buf[0], *b1 = d->buf[1];
     for (int i = 0; i < n; i++) {
-        d->wow_phase += d->wow_inc;
-        if (d->wow_phase >= 1.0f)
-            d->wow_phase -= 1.0f;
-        d->flutter_phase += d->flutter_inc;
-        if (d->flutter_phase >= 1.0f)
-            d->flutter_phase -= 1.0f;
+        wow_phase += wow_inc;
+        if (wow_phase >= 1.0f)
+            wow_phase -= 1.0f;
+        flutter_phase += flutter_inc;
+        if (flutter_phase >= 1.0f)
+            flutter_phase -= 1.0f;
         drift += drift_step;
-        const float wow = d->wow_depth * (0.7f * fm_sin(d->wow_phase) + 0.3f * drift);
-        const float flut = d->flutter_depth * fm_sin(d->flutter_phase);
+        const float wow = wow_depth * (0.7f * fm_sin(wow_phase) + 0.3f * drift);
+        const float flut = flutter_depth * fm_sin(flutter_phase);
 
         float y[2];
         for (int c = 0; c < 2; c++) {
-            d->d_cur[c] += (d->d_target[c] - d->d_cur[c]) * g;
+            d_cur[c] += (d_target[c] - d_cur[c]) * g;
             /* channels get slightly different wow (stereo tape heads) */
             const float m = c ? 0.8f * wow - flut : wow + flut;
-            y[c] = read_hermite(d->buf[c], d->len, d->pos, d->d_cur[c] + m);
+            y[c] = read_hermite(c ? b1 : b0, len, pos, d_cur[c] + m);
         }
 
         float w[2];
         for (int c = 0; c < 2; c++) {
             /* feedback path: high-pass, low-pass (tone), normalized soft saturation */
-            float v = y[d->pingpong ? 1 - c : c];
-            d->hp[c] += (v - d->hp[c]) * hpc;
-            v -= d->hp[c];
-            d->lp[c] += (v - d->lp[c]) * lpc;
-            v = fm_tanh(d->lp[c] * drv) * idrv;
+            float v = y[pingpong ? 1 - c : c];
+            hp[c] += (v - hp[c]) * hpc;
+            v -= hp[c];
+            lp[c] += (v - lp[c]) * lpc;
+            v = fm_tanh(lp[c] * drv) * idrv;
             w[c] = v * fb;
         }
         /* ping-pong: mono sum enters the left line only, repeats alternate L, R, L... */
-        const float xin = d->pingpong ? 0.5f * (inL[i] + inR[i]) : 0.0f;
-        d->buf[0][d->pos] = (d->pingpong ? xin : inL[i]) + w[0];
-        d->buf[1][d->pos] = (d->pingpong ? 0.0f : inR[i]) + w[1];
-        if (++d->pos >= d->len)
-            d->pos = 0;
+        if (pingpong) {
+            b0[pos] = 0.5f * (inL[i] + inR[i]) + w[0];
+            b1[pos] = 0.0f + w[1];
+        } else {
+            b0[pos] = inL[i] + w[0];
+            b1[pos] = inR[i] + w[1];
+        }
+        if (++pos >= len)
+            pos = 0;
         outL[i] = y[0];
         outR[i] = y[1];
     }
+    d->wow_phase = wow_phase, d->flutter_phase = flutter_phase, d->pos = pos;
+    for (int c = 0; c < 2; c++)
+        d->d_cur[c] = d_cur[c], d->hp[c] = hp[c], d->lp[c] = lp[c];
 }

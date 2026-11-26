@@ -615,10 +615,28 @@ static inline float softclip(float x)
  * 0.25 (-12 dBFS): scaled up into it and back down. Faded in and out over 8 blocks (its oversampling delays the
  * signal); it runs only while on or fading. */
 #define SAT_SCALE 2.8f
+#define MASTER_FADE_STEP 0.125f /* the saturation and the limiter fade in and out over 8 blocks */
+
+/* the fade of a master stage one block further toward its target (0 off, 1 on) */
+static inline float fade_step(float m0, float target)
+{
+    return target > m0 ? dsp_minf(m0 + MASTER_FADE_STEP, target) : dsp_maxf(m0 - MASTER_FADE_STEP, target);
+}
+
+/* the processed signal y (times post) mixed into L and R by a fade ramping from m0 to m1 over the block */
+static inline void fade_into(float *L, float *R, const float *yl, const float *yr, float post, float m0, float m1, int n)
+{
+    const float dm = (m1 - m0) / (float)n;
+    for (int i = 0; i < n; i++) {
+        const float m = m0 + dm * (float)(i + 1);
+        L[i] += (yl[i] * post - L[i]) * m;
+        R[i] += (yr[i] * post - R[i]) * m;
+    }
+}
+
 static void master_saturate(synth_t *s, float *L, float *R, int n)
 {
-    const float m0 = s->sat_mix_prev;
-    const float m1 = s->sat_mix > m0 ? dsp_minf(m0 + 0.125f, s->sat_mix) : dsp_maxf(m0 - 0.125f, s->sat_mix);
+    const float m0 = s->sat_mix_prev, m1 = fade_step(m0, s->sat_mix);
     s->sat_mix_prev = m1;
     if (m0 <= 0.0f && m1 <= 0.0f)
         return;
@@ -629,20 +647,14 @@ static void master_saturate(synth_t *s, float *L, float *R, int n)
         yl[i] = L[i] * SAT_SCALE, yr[i] = R[i] * SAT_SCALE;
     dist_process(&s->sat[0], yl, yl, n);
     dist_process(&s->sat[1], yr, yr, n);
-    const float dm = (m1 - m0) / (float)n;
-    for (int i = 0; i < n; i++) {
-        const float m = m0 + dm * (float)(i + 1);
-        L[i] += (yl[i] * (1.0f / SAT_SCALE) - L[i]) * m;
-        R[i] += (yr[i] * (1.0f / SAT_SCALE) - R[i]) * m;
-    }
+    fade_into(L, R, yl, yr, 1.0f / SAT_SCALE, m0, m1, n);
 }
 
 /* The limiter, faded in and out over 8 blocks (about 5 ms) when switched, since it delays the signal by its
  * look-ahead; it runs only while on or fading, and starts empty. */
 static void master_limit(synth_t *s, float *L, float *R, int n)
 {
-    const float m0 = s->lim_mix_prev;
-    const float m1 = s->lim_mix > m0 ? dsp_minf(m0 + 0.125f, s->lim_mix) : dsp_maxf(m0 - 0.125f, s->lim_mix);
+    const float m0 = s->lim_mix_prev, m1 = fade_step(m0, s->lim_mix);
     s->lim_mix_prev = m1;
     if (m0 <= 0.0f && m1 <= 0.0f)
         return;
@@ -656,12 +668,7 @@ static void master_limit(synth_t *s, float *L, float *R, int n)
     for (int i = 0; i < n; i++)
         yl[i] = L[i], yr[i] = R[i];
     limiter_process(&s->lim, yl, yr, n);
-    const float dm = (m1 - m0) / (float)n;
-    for (int i = 0; i < n; i++) {
-        const float m = m0 + dm * (float)(i + 1);
-        L[i] += (yl[i] - L[i]) * m;
-        R[i] += (yr[i] - R[i]) * m;
-    }
+    fade_into(L, R, yl, yr, 1.0f, m0, m1, n);
 }
 
 /* 1 if every sample of the stereo block is finite: x * 0 is 0 for any finite x, NaN for NaN and Inf */

@@ -1,11 +1,11 @@
 // engines.js — how the engines are presented: the order of the families and one color each, the same as on
 // the board's screen (target/h745/app/m4/app_m4.c), so an instrument looks the same everywhere.
-export const ENGINE_ORDER = ['va', 'mono', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'drone', 'havoc', 'micro'];
+export const ENGINE_ORDER = ['va', 'mono', 'wt', 'fm6', 'modal', 'drums', 'sampler', 'drone', 'micro'];
 
 const COLORS = {
   va: '#5ab4e0', mono: '#e5a33d', fm6: '#9b8cff', modal: '#4fd1c5',
   drums: '#e5534b', wt: '#56d39a', sampler: '#f08fb8', drone: '#8fc9e8',
-  micro: '#e8e2d0', havoc: '#d4ff3a',
+  micro: '#e8e2d0',
 };
 
 export const engineColor = (name) => COLORS[name] ?? '#9aa5b1';
@@ -20,7 +20,7 @@ export const engineRank = (name) => {
 // the delay and reverb sends (an entry may also be a scene: a name and several parameters). A sound without macros of its own gets them (session.defaultMacros).
 // A new sound is bare (session.newSound): beyond the switches turned off, the settings of an instrument that would still
 // move or add to its first source at their defaults: a second oscillator in a fixed mixer, the filter envelope, the
-// mod wheel's vibrato, the analog drift, the voices' spread, the motion of a drone, havoc's mutation.
+// mod wheel's vibrato, the analog drift, the voices' spread, the motion of a drone.
 export const BARE = {
   va: { osc2_level: 0, fenv_amount: 0, wheel_vibrato: 0, drift: 0, tolerance: 0, jitter: 0, pan_spread: 0, lfo2_spread: 0 },
   mono: { osc2_level: 0, mod_pitch: 0, drift: 0, tolerance: 0, jitter: 0 },
@@ -28,21 +28,11 @@ export const BARE = {
   wt: { pan_spread: 0 },
   modal: { pan_spread: 0 },
   drone: { motion: 0, depth: 0 },
-  havoc: { mutate_depth: 0 },
 };
 
 export const DEFAULT_MACROS = {
   va: ['cutoff', 'resonance', 'fenv_amount', 'fenv_decay', 'amp_attack', 'amp_release'],
   mono: ['cutoff', 'emphasis', 'contour', 'fenv_decay', 'mixer_drive', 'glide'],
-  // scenes: each macro moves several settings, upwards from where they are ([name, [parameter, travel]...], the
-  // travel in normalized units)
-  havoc: [['Rot', ['g1_rot', 0.7], ['g2_rot', 0.7], ['g3_rot', 0.7], ['g4_rot', 0.7]],
-          ['Motion', ['g1_lfo_a', 0.25], ['g2_lfo_a', 0.25], ['g3_lfo_a', 0.25], ['g4_lfo_a', 0.25],
-                     ['g1_lfo_b', 0.25], ['g2_lfo_b', 0.25], ['g3_lfo_b', 0.25], ['g4_lfo_b', 0.25]],
-          ['Chaos', ['feedback', 0.8], ['mutate', 0.8]],
-          ['Density', ['g1_life_rate', 0.4], ['g2_life_rate', 0.4], ['g3_life_rate', 0.4], ['g4_life_rate', 0.4]],
-          ['Dark', ['dark', 1]],
-          ['Space', ['reverb_mix', 0.6]]],
   fm6: ['op2_level', 'op4_level', 'op6_level', 'feedback', 'lfo_speed', 'lfo_pmd'],
   wt: ['a_position', 'b_position', 'a_warp', 'cutoff', 'resonance', 'amp_release'],
   modal: ['brightness', 'position', 'hardness', 'damping', 'decay', 'inharmonicity'],

@@ -1,7 +1,6 @@
 /* registry.c — the list of engines, indexed by synth_engine_t. Add new engines here. */
 #include "engine.h"
 #include "drums.h"
-#include "havoc.h"
 #include "fm6.h"
 #include "micro.h"
 #include "wt.h"
@@ -21,7 +20,6 @@ const engine_ops_t *const engine_registry[SYNTH_ENGINE_COUNT] = {
     [SYNTH_ENGINE_SAMPLER] = &sampler_engine,
     [SYNTH_ENGINE_DRONE] = &drone_engine,
     [SYNTH_ENGINE_MICRO] = &micro_engine,
-    [SYNTH_ENGINE_HAVOC] = &havoc_engine,
 };
 
 static int same(const char *a, const char *b)

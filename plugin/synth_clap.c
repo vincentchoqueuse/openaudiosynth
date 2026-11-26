@@ -821,7 +821,7 @@ static void build_descriptors(void)
             .version = "0.1.0",
             .description = en ? en->description
                               : "Every engine in one plugin (va, mono, poly, wt, fm6, modal, drums, sampler, "
-                                "drone, micro, havoc), chosen by the engine parameter; the state is a patch file",
+                                "drone, micro), chosen by the engine parameter; the state is a patch file",
             .features = (const char **)(en && (!strcmp(en->name, "drums") || !strcmp(en->name, "sampler")) ? drum_features : features),
         };
     }

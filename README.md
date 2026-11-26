@@ -48,7 +48,6 @@ settings), then the instrument's cards in the order the signal flows.*
 | `va` | a two-oscillator virtual analog: noise, two filters in series or parallel (SVF, ladder, formant, screaming 2-pole), two envelopes, two LFOs, each oscillator a unison of up to 16 detuned voices spread in stereo |
 | `mono` | the classic three-oscillator monosynth panel: free-running oscillators, overloading mixer with output feedback, 24 dB ladder, ADS contours, modulation mix, note priority, glide |
 | `poly` | the late-70s programmable polysynth: two oscillators with sync, 24 dB ladder, poly-mod, unison |
-| `havoc` | a noise machine with a wide palette: four generators, each one of sixteen processes (feedback sine, logistic map, integer formula, dust, wind, pulsar, cellular automaton, swarm, jumping tone, rumble, bleeps, glitches, formant voice, data transmission, model neuron, aliased saw), cross-modulated, then two processors |
 | `fm6` | six-operator phase modulation: 32 algorithms, rate/level envelopes, keyboard scaling, feedback, sysex bank import |
 | `wt` | a modern wavetable synth: morphing tables, unison, warps, SVF / ladder / comb / formant filters |
 | `modal` | banks of damped resonators (strings, bars, bells, membranes, tubes) and a physical piano |

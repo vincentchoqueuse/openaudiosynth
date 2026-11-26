@@ -47,7 +47,6 @@ static const struct {
     {"drums", {"drive", "kick_tune", "kick_decay", "snare_tone", "snare_decay", "chat_decay"}},
     {"sampler", {"tune", "resonance", "release", "pad1_decay", "pad2_decay", "pad3_decay"}},
     {"drone", {"temperature", "density", "motion", "depth", "brightness", "sparkle"}},
-    {"havoc", {"g1_a", "g1_b", "g1_rot", "feedback", "mutate", "dark"}},
     {"micro", {"freq", "pitch_amount", "pitch_time", "amp_decay", "drive", "click_level"}},
 };
 /* macros 7 and 8 on every engine: the effect sends */

@@ -21,7 +21,6 @@ typedef enum {
     SYNTH_ENGINE_SAMPLER,  /* drum sampler: a kit of samples (synth_part_kit), 16 pads with their own settings */
     SYNTH_ENGINE_DRONE,    /* drone machine: wandering partials, warm body, air, sparkles; glacial .. warm */
     SYNTH_ENGINE_MICRO,    /* precision sines: per-sample envelopes, fixed pitch, clicks, bursts, ratchets, gates */
-    SYNTH_ENGINE_HAVOC,    /* noise machine: 4 generators of 16 processes each, cross-modulated, 2 processors */
     SYNTH_ENGINE_COUNT
 } synth_engine_t;
 

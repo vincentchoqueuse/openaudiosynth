@@ -5,7 +5,6 @@
 
 #include "drone.h"
 #include "drums.h"
-#include "havoc.h"
 #include "fm6.h"
 #include "micro.h"
 #include "modal.h"
@@ -24,7 +23,6 @@ typedef union {
     sampler_t sampler;
     drone_t drone;
     micro_t micro;
-    havoc_t havoc;
 } engine_state_t;
 
 #endif /* ENGINE_REGISTRY_H */

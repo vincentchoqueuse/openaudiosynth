@@ -134,8 +134,8 @@ static float level_scaling_db(const float *op, int note)
     return dsp_clampf(db, -60.0f, 30.0f);
 }
 
-/* Operator frequency (Hz) for a pitch in semitones. */
-static float op_freq(const float *op, float pitch)
+/* Operator frequency (Hz) for the note's frequency `hz` (fm_mtof of its pitch, computed once for the six). */
+static float op_freq(const float *op, float hz)
 {
     const float detune = fm_exp2((op[FM6_DETUNE] - 7.0f) * (1.0f / 1200.0f));
     if ((int)op[FM6_MODE] == 1) { /* fixed */
@@ -143,7 +143,7 @@ static float op_freq(const float *op, float pitch)
         return range[(int)op[FM6_COARSE] & 3] * fm_exp2(op[FM6_FINE] * 0.0332193f) * detune; /* x 10^(fine/100) */
     }
     const float coarse = op[FM6_COARSE] < 0.5f ? 0.5f : op[FM6_COARSE];
-    return fm_mtof(pitch) * coarse * (1.0f + op[FM6_FINE] * 0.01f) * detune;
+    return hz * coarse * (1.0f + op[FM6_FINE] * 0.01f) * detune;
 }
 
 /* ---------------- vpoly callbacks ---------------- */
@@ -280,7 +280,7 @@ static DSP_FAST_CODE void voice_render(fm6_t *e, int vi, float lfo, float lfo_un
     /* per operator: envelope (dB), level, scaling, velocity, LFO amp mod -> target amplitude; frequency */
     int sounding = 0;
     static const float ams_db[4] = {0.0f, 6.0f, 18.0f, 48.0f};
-    const float inv_n = 1.0f / (float)n;
+    const float inv_n = 1.0f / (float)n, hz = fm_mtof(pitch);
     for (int k = 0; k < FM6_OPS; k++) {
         const float *op = &p[FM6_OP(k, 0)];
         const float rates[4] = {op[FM6_R1], op[FM6_R2], op[FM6_R3], op[FM6_R4]};
@@ -292,7 +292,7 @@ static DSP_FAST_CODE void voice_render(fm6_t *e, int vi, float lfo, float lfo_un
                          lfo_uni * lfo_fade * p[FM6_P_LFO_AMD] * (1.0f / 99.0f) * ams_db[dsp_clampi((int)op[FM6_AMP_SENS], 0, 3)] +
                          ((alg->carriers & (1u << k)) ? 0.0f : 6.0f * vm[VM_BRIGHT]); /* brightness: modulator index */
         const float a1 = db <= -90.0f ? 0.0f : fm_exp2(db * (1.0f / 6.0206f));
-        fm_op_block(&v->op[k], dsp_minf(op_freq(op, pitch) / e->sr, 0.45f), a1, inv_n);
+        fm_op_block(&v->op[k], dsp_minf(op_freq(op, hz) / e->sr, 0.45f), a1, inv_n);
         if ((alg->carriers & (1u << k)) && (v->eg[k].stage < ENV_RL_IDLE || a1 > 0.0f))
             sounding = 1;
     }

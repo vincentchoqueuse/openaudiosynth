@@ -271,6 +271,7 @@ static DSP_FAST_CODE void voice_render(poly_t *e, int vi, int note, const poly_b
     const float pwa_base = p[POLY_P_OSCA_PW] + pw_lfo + (to_pw ? 0.45f * pm_f : 0.0f);
     const int a_saw = (int)p[POLY_P_OSCA_SAW], a_pul = (int)p[POLY_P_OSCA_PULSE], sync = (int)p[POLY_P_OSCA_SYNC];
     const int b_saw = (int)p[POLY_P_OSCB_SAW], b_tri = (int)p[POLY_P_OSCB_TRI], b_pul = (int)p[POLY_P_OSCB_PULSE];
+    const int nwb = dsp_clampi(b_saw + b_tri + b_pul, 1, 3); /* osc B's waveforms in use */
     const float mix_a = p[POLY_P_MIX_A] * (a_saw && a_pul ? 0.7f : 1.0f);
     const float mix_b = p[POLY_P_MIX_B] / (float)dsp_clampi(b_saw + b_tri + b_pul, 1, 3);
     const float mix_n = p[POLY_P_NOISE];
@@ -299,7 +300,7 @@ static DSP_FAST_CODE void voice_render(poly_t *e, int vi, int note, const poly_b
                 t2 += 1.0f;
             ob += (pb < pwb ? 1.0f : -1.0f) + 2.0f * osc_blep(pb, dtb, idtb) - 2.0f * osc_blep(t2, dtb, idtb);
         }
-        const float bmod = ob / (float)dsp_clampi(b_saw + b_tri + b_pul, 1, 3);
+        const float bmod = nwb == 3 ? ob / 3.0f : nwb == 2 ? ob * 0.5f : ob; /* the same as ob / count, exactly, without a division per sample for 1 or 2 */
         bsum += bmod;
 
         /* osc A: audio-rate poly-mod from B, events with one-sample-delayed BLEPs */

@@ -1203,12 +1203,14 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
             const float div = tempo_div_beats[(int)q[MICRO_PU_DIV]];
             const int64_t len = pulse_q((div > 0.0f ? div : 0.25f) * 60.0f * e->sr / e->bpm);
             int64_t sq = (e->clk << 16) / len, nb = pulse_boundary(sq + 1, len);
+            uint8_t step = (uint8_t)((sq + b.pu_off[k]) % b.pu_steps[k]); /* the 64-bit modulo once per step, not per sample */
             for (int i = 0; i < n; i++) {
                 if (e->clk + i >= nb) {
                     sq++;
                     nb = pulse_boundary(sq + 1, len);
+                    step = (uint8_t)((sq + b.pu_off[k]) % b.pu_steps[k]);
                 }
-                b.pu_step[k][i] = (uint8_t)((sq + b.pu_off[k]) % b.pu_steps[k]);
+                b.pu_step[k][i] = step;
             }
         } else if (b.pu_mode[k] == 2) {
             b.pu_len[k] = pulse_len_q(e, k);

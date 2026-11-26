@@ -229,7 +229,6 @@ static void fm6_init(void *st, float sr)
     e->lfo_sh = 0.0f;
     e->bend = e->modwheel = 0.0f;
     e->rng = dsp_seed(0xD7u);
-    e->nan_count = 0;
     for (int i = 0; i < FM6_VOICES; i++) {
         voice_silence(e, i);
         e->v[i].peg.level = 0.0f;
@@ -334,7 +333,7 @@ static DSP_FAST_CODE void voice_render(fm6_t *e, int vi, float lfo, float lfo_un
     const float g1 = FM6_GAIN * fm_db2lin(p[FM6_P_VOLUME]);
     dsp_ramp_mul(x, v->gain_prev, g1, n);
     v->gain_prev = g1;
-    voice_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->nan_count);
+    voice_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, vi, sounding);
 }
 

@@ -230,7 +230,6 @@ static void havoc_init(void *st, float sr)
     for (int i = 0; i < HAVOC_P_COUNT; i++)
         e->p[i] = havoc_params[i].def;
     e->bend = 0.0f;
-    e->nan_count = 0;
     for (int i = 0; i < HAVOC_VOICES; i++) {
         havoc_voice_t *v = &e->v[i];
         voice_clear(v);
@@ -860,7 +859,7 @@ static DSP_FAST_CODE void gen_render(havoc_t *e, havoc_voice_t *v, int g, float 
             out[i] = 0.0f;
         s->s0 = 0.4f;
         s->s1 = s->ic1 = s->ic2 = s->ph = s->ph2 = 0.0f;
-        e->nan_count++;
+        e->poly.nan_count++;
     }
 }
 
@@ -1230,7 +1229,7 @@ static DSP_FAST_CODE void voice_render(havoc_t *e, int vi, float *L, float *R)
     dsp_ramp_mul(xr, g0, g1, n);
     v->gain_prev = g1;
 
-    voice_out_stereo(&e->poly, vi, xl, xr, n, L, R, &e->nan_count);
+    voice_out_stereo(&e->poly, vi, xl, xr, n, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, vi, v->gate || v->env > 0.0f);
 }
 

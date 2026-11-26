@@ -604,7 +604,6 @@ static void micro_init(void *st, float sample_rate)
     e->beat0 = e->beat1 = 0.0f;
     e->have_beat = 0;
     e->click_mode_set = e->noise_filter_set = -1;
-    e->nan_count = 0;
     smooth_init(&e->vol, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(e->p[MICRO_P_VOLUME]));
     e->vol_prev = e->vol.y;
     vpoly_init(&e->poly, MICRO_VOICES, sample_rate, &micro_poly_ops, e);
@@ -771,10 +770,10 @@ static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, 
         d = dsp_clampf(vm[VM_PAN], -1.0f, 1.0f);
     }
     v->vm_fresh = 0;
-    dsp_guard_block(xa, n, &e->nan_count);
-    dsp_guard_block(xb, n, &e->nan_count);
+    dsp_guard_block(xa, n, &e->poly.nan_count);
+    dsp_guard_block(xb, n, &e->poly.nan_count);
     if (low_live) { /* the low layer in the centre, whatever the pan */
-        dsp_guard_block(xw, n, &e->nan_count);
+        dsp_guard_block(xw, n, &e->poly.nan_count);
         for (int i = 0; i < n; i++) {
             L[i] += 0.70710678f * xw[i];
             R[i] += 0.70710678f * xw[i];
@@ -782,7 +781,7 @@ static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, 
     }
     if (sd) { /* alternate: the sines and the noise fully on the side of their hit, the second sine opposite when split */
         if (ln > 0.0f)
-            dsp_guard_block(xn, n, &e->nan_count);
+            dsp_guard_block(xn, n, &e->poly.nan_count);
         for (int i = 0; i < n; i++) {
             const float l = sd[i] < 0.0f ? 1.0f : 0.0f, r = 1.0f - l;
             const float a = xa[i] + (ln > 0.0f ? xn[i] : 0.0f);
@@ -793,7 +792,7 @@ static DSP_FAST_CODE void voice_mix(micro_t *e, int vi, const micro_block_t *b, 
     }
     const int hard = b->space == 1;
     if (ln > 0.0f) { /* the noise at its own place */
-        dsp_guard_block(xn, n, &e->nan_count);
+        dsp_guard_block(xn, n, &e->poly.nan_count);
         float nl, nr;
         const float np = dsp_clampf(p[MICRO_P_PAN] + d + p[MICRO_P_NOISE_PAN], -1.0f, 1.0f);
         if (hard)

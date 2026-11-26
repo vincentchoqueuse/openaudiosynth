@@ -56,7 +56,6 @@ typedef struct {
     float pitch, vel, gain_prev, bend, modwheel;
     int has_note, env_dirty;
     int slide; /* this note was tied to the one before (glide_mode legato glides only then) */
-    uint32_t nan_count;
     vpoly_t poly;
 } mono_t;
 

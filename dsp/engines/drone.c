@@ -111,7 +111,6 @@ static void drone_init(void *st, float sr)
     for (int i = 0; i < DRN_P_COUNT; i++)
         e->p[i] = drone_params[i].def;
     e->bend = 0.0f;
-    e->nan_count = 0;
     for (int i = 0; i < DRN_VOICES; i++) {
         drone_voice_t *v = &e->v[i];
         for (int k = 0; k < DRN_SINES; k++) {
@@ -359,7 +358,7 @@ static DSP_FAST_CODE void voice_render(drone_t *e, int vi, float *L, float *R)
         xl[i] *= g, xr[i] *= g;
     }
     v->gain_prev = g1;
-    voice_out_stereo(&e->poly, vi, xl, xr, SYNTH_BLOCK, L, R, &e->nan_count);
+    voice_out_stereo(&e->poly, vi, xl, xr, SYNTH_BLOCK, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, vi, v->gate || v->env > 0.0f);
 }
 

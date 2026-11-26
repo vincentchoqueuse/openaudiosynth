@@ -208,7 +208,6 @@ static void wt_init(void *st, float sr)
     e->has_last = 0;
     e->env_dirty = 1;
     e->rng = dsp_seed(0x3A7Eu);
-    e->nan_count = 0;
     for (int i = 0; i < WT_VOICES; i++) {
         wt_voice_t *v = &e->v[i];
         wt_osc_reset(&v->osc[0], &e->rng);
@@ -426,7 +425,7 @@ static DSP_FAST_CODE void voice_render(wt_t *e, int vi, float *L, float *R)
     v->gain_prev = g1;
     float pan_l, pan_r;
     voice_pan(dsp_clampf(v->pan_pos + dst[WT_DST_PAN], -1.0f, 1.0f), &pan_l, &pan_r);
-    voice_out(&e->poly, vi, x, n, pan_l, pan_r, L, R, &e->nan_count);
+    voice_out(&e->poly, vi, x, n, pan_l, pan_r, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, vi, adsr_active(&v->amp));
 }
 

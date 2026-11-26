@@ -115,7 +115,6 @@ typedef struct {
     int click_mode_set, noise_filter_set;
     smooth_t vol;
     float vol_prev;
-    uint32_t nan_count;
     vpoly_t poly;
     micro_voice_t v[MICRO_VOICES];
     float dly[2][MICRO_DELAY_MAX]; /* space_delay: the last samples of each channel */

@@ -978,7 +978,15 @@ void *synth_debug_engine_state(synth_t *s, int part)
     return part >= 0 && part < SYNTH_PARTS && s->part[part].ops ? (void *)&s->part[part].eng : 0;
 }
 
-uint32_t synth_debug_nan_count(const synth_t *s) { return s->nan_count; }
+/* the master's guard, plus each part's voices (counted in its vpoly by the voice guard) */
+uint32_t synth_debug_nan_count(const synth_t *s)
+{
+    uint32_t n = s->nan_count;
+    for (int k = 0; k < SYNTH_PARTS; k++)
+        if (s->part[k].ops)
+            n += s->part[k].ops->poly((void *)&s->part[k].eng)->nan_count;
+    return n;
+}
 
 /* ---------------- public API ---------------- */
 

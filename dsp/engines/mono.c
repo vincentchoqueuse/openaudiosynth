@@ -213,7 +213,6 @@ static void mono_init(void *st, float sr)
     e->bend = e->modwheel = 0.0f;
     e->has_note = 0;
     e->env_dirty = 1;
-    e->nan_count = 0;
     vpoly_init(&e->poly, 1, sr, &mono_poly_ops, e);
     vpoly_set_mode(&e->poly, VPOLY_LEGATO);
 }
@@ -386,7 +385,7 @@ static DSP_FAST_CODE void mono_render(void *st, float *L, float *R)
         dsp_ramp_env_mul(x, env, e->gain_prev, g1, n);
     }
     e->gain_prev = g1;
-    voice_out(&e->poly, 0, x, n, VOICE_CENTER, VOICE_CENTER, L, R, &e->nan_count);
+    voice_out(&e->poly, 0, x, n, VOICE_CENTER, VOICE_CENTER, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, 0, adsr_active(&e->amp));
 }
 

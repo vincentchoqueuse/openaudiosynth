@@ -60,7 +60,7 @@ typedef struct {
     float bend;
     smooth_t vol;
     float vol_prev;
-    uint32_t rng, nan_count;
+    uint32_t rng;
     vpoly_t poly;
     modal_voice_t v[MODAL_VOICES];
 } modal_t;

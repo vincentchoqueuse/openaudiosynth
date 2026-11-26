@@ -772,7 +772,7 @@ static DSP_FAST_CODE void voice_render(drums_t *e, int vi, float *L, float *R)
                 reso_ring(&v->reso[r], y, n);
     }
 
-    voice_out(&e->poly, vi, y, n, v->gain * v->pan_l, v->gain * v->pan_r, L, R, &e->nan_count);
+    voice_out(&e->poly, vi, y, n, v->gain * v->pan_l, v->gain * v->pan_r, L, R, &e->poly.nan_count);
 
     /* rough remaining amplitude: the voice ends at -80 dB */
     float lvl = v->env_tone * v->mix_tone + (v->env_noise + v->env_burst) * v->mix_noise +
@@ -792,7 +792,6 @@ static void drums_init(void *st, float sample_rate)
     for (int i = 0; i < DRUMS_P_COUNT; i++)
         e->p[i] = drums_params[i].def;
     e->rng = dsp_seed(0xD5u);
-    e->nan_count = 0;
     vpoly_init(&e->poly, DRUMS_VOICES, sample_rate, &drums_poly_ops, e);
     for (int i = 0; i < DRUMS_VOICES; i++) {
         clear_parts(&e->v[i]);

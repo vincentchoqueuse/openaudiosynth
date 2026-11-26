@@ -164,7 +164,6 @@ static void poly_init(void *st, float sr)
     e->env_dirty = 1;
     e->unison = 0;
     e->rng = dsp_seed(0x9A9Au);
-    e->nan_count = 0;
     for (int i = 0; i < POLY_VOICES; i++) {
         poly_voice_t *v = &e->v[i];
         v->pa = v->pb = v->ya_prev = 0.0f;
@@ -352,9 +351,9 @@ static DSP_FAST_CODE void voice_render(poly_t *e, int vi, int note, const poly_b
         for (int i = 0; i < n; i++)
             x[i] *= b->fade[i];
     if (!e->unison) /* unison copies share one vpoly voice: per-voice level and pan only without unison */
-        voice_vmod_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->nan_count);
+        voice_vmod_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
     else
-        voice_pan_out(x, n, v->pan_l, v->pan_r, L, R, &e->nan_count);
+        voice_pan_out(x, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
 }
 
 static DSP_FAST_CODE void poly_render(void *st, float *L, float *R)

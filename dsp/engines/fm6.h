@@ -48,7 +48,7 @@ typedef struct {
     float sr;
     float p[FM6_P_COUNT];
     float lfo_phase, lfo_sh, bend, modwheel;
-    uint32_t rng, nan_count;
+    uint32_t rng;
     vpoly_t poly;
     fm6_voice_t v[FM6_VOICES];
 } fm6_t;

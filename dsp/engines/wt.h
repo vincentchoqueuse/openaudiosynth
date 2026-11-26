@@ -77,7 +77,7 @@ typedef struct {
     int bank_count;
     float bend, modwheel, last_note;
     int has_last, env_dirty;
-    uint32_t rng, nan_count;
+    uint32_t rng;
     vpoly_t poly;
     wt_voice_t v[WT_VOICES];
 } wt_t;

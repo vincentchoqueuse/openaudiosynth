@@ -51,7 +51,6 @@ typedef struct {
     float sr;
     float p[DRN_P_COUNT];
     float bend;
-    uint32_t nan_count;
     vpoly_t poly;
     drone_voice_t v[DRN_VOICES];
 } drone_t;

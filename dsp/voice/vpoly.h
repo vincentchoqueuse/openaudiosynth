@@ -60,6 +60,7 @@ typedef struct {
     voicemod_t vm[VALLOC_MAX];
     uint8_t vm_done[VALLOC_MAX];  /* out[] computed for this block */
     const voicemod_cfg_t *vm_cfg; /* NULL: nothing modulated per voice */
+    uint32_t nan_count;           /* voice blocks with a NaN or an Inf, zeroed (debug guard, voice.h) */
 } vpoly_t;
 
 void vpoly_init(vpoly_t *p, int n_voices, float sample_rate, const vpoly_ops_t *ops, void *eng);

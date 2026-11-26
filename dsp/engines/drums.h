@@ -75,7 +75,7 @@ typedef struct {
 typedef struct {
     float sr;
     float p[DRUMS_P_COUNT];
-    uint32_t rng, nan_count;
+    uint32_t rng;
     vpoly_t poly;
     drum_voice_t v[DRUMS_VOICES];
     float bass_pitch; /* the last bass drum note (MIDI, with its tune), where the next one slides from */

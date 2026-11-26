@@ -276,7 +276,6 @@ static void modal_init(void *st, float sample_rate)
     smooth_init(&e->vol, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(e->p[MODAL_P_VOLUME]));
     e->vol_prev = e->vol.y;
     e->rng = dsp_seed(0x30DA1u);
-    e->nan_count = 0;
     vpoly_init(&e->poly, MODAL_VOICES, sample_rate, &modal_poly_ops, e);
     for (int i = 0; i < MODAL_VOICES; i++) {
         modal_voice_t *v = &e->v[i];
@@ -448,7 +447,7 @@ static DSP_FAST_CODE void voice_render(modal_t *e, int vi, float vol0, float vol
 
     /* gain (volume ramp) and steal fade */
     dsp_ramp_mul(y, MODAL_VOICE_GAIN * vol0, MODAL_VOICE_GAIN * vol1, n);
-    voice_out(&e->poly, vi, y, n, v->pan_l, v->pan_r, L, R, &e->nan_count);
+    voice_out(&e->poly, vi, y, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
     /* silent: -100 dB of mode energy, strike over, no bow */
     const int sounding = energy > 1e-10f || v->strike_pos < v->strike_len || v->bow_env > 1e-5f || bow_target > 0.0f;
     vpoly_end_block(&e->poly, vi, sounding);

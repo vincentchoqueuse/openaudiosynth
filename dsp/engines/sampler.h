@@ -62,7 +62,6 @@ typedef struct {
     float p[SAMPLER_P_COUNT];
     smooth_t vol;
     float vol_prev, bend_semi;
-    uint32_t nan_count;
     int count;                         /* samples in the kit */
     sampler_sample_t smp[KIT_MAX];
     int8_t note_map[128];              /* kit entry of each note, -1 none */

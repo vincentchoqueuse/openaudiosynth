@@ -79,7 +79,7 @@ typedef struct {
     float last_note; /* last note played, where the next glide starts from */
     int has_last;
     int env_dirty;
-    uint32_t rng, nan_count;
+    uint32_t rng;
     lfo_t lfo;
     vpoly_t poly;
     va_voice_t v[VA_VOICES];

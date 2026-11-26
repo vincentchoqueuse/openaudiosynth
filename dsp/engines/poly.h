@@ -54,7 +54,7 @@ typedef struct {
     lfo_t lfo;
     float bend, modwheel, last_note;
     int has_last, env_dirty, unison;
-    uint32_t rng, nan_count;
+    uint32_t rng;
     vpoly_t poly;
     poly_voice_t v[POLY_VOICES];
 } poly_t;

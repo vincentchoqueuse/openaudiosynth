@@ -106,7 +106,6 @@ typedef struct {
     float sr;
     float p[HAVOC_P_COUNT];
     float bend;
-    uint32_t nan_count;
     vpoly_t poly;
     havoc_voice_t v[HAVOC_VOICES];
 } havoc_t;

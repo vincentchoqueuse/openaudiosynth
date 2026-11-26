@@ -144,7 +144,6 @@ static void sampler_init(void *st, float sample_rate)
     smooth_init(&e->vol, 0.005f, sample_rate / (float)SYNTH_BLOCK, fm_db2lin(e->p[SAMPLER_P_VOLUME]));
     e->vol_prev = e->vol.y;
     e->bend_semi = 0.0f;
-    e->nan_count = 0;
     e->count = 0;
     for (int k = 0; k < 128; k++)
         e->note_map[k] = -1;
@@ -273,7 +272,7 @@ static DSP_FAST_CODE void sampler_render(void *st, float *L, float *R)
         dsp_ramp_mul(x, v->gain_prev * vol0, gain * vol1, n);
         float pl, pr;
         voice_pan(pad(e, en, SAMPLER_PAN), &pl, &pr);
-        voice_out(&e->poly, vi, x, n, pl, pr, L, R, &e->nan_count);
+        voice_out(&e->poly, vi, x, n, pl, pr, L, R, &e->poly.nan_count);
         v->rate_prev = rate;
         v->gain_prev = gain;
         v->cut_prev = cut;

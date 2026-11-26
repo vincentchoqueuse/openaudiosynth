@@ -126,7 +126,6 @@ static void va_init(void *st, float sample_rate)
     e->has_last = 0;
     e->env_dirty = 1;
     e->rng = dsp_seed(0x5EEDu);
-    e->nan_count = 0;
     lfo_init(&e->lfo, sample_rate, 0x1F0u);
     lfo_set(&e->lfo, e->p[VA_P_LFO_RATE], (lfo_wave_t)(int)e->p[VA_P_LFO_WAVE]);
     vpoly_init(&e->poly, VA_VOICES, sample_rate, &va_poly_ops, e);
@@ -400,7 +399,7 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
     const float g1 = VA_VOICE_GAIN * v->velgain * b->vol;
     dsp_ramp_env_mul(x, env, v->gain_prev, g1, n);
     v->gain_prev = g1;
-    voice_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->nan_count);
+    voice_out(&e->poly, vi, x, n, v->pan_l, v->pan_r, L, R, &e->poly.nan_count);
     vpoly_end_block(&e->poly, vi, adsr_active(&v->amp));
 }
 

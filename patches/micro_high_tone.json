@@ -6,11 +6,7 @@
   "micro": {
     "phase": 0,
     "decay_curve": 0.2,
-    "gate_mode": "free",
-    "gate_hz": 40,
-    "gate_steps": 8,
-    "gate_pattern": 183,
-    "gate_edge": 0.0002
+    "pulse1": {"mode": "free", "hz": 40, "steps": 8, "edge": 0.0002, "pattern": 183, "open": 3}
   },
   "amp": {"attack": 0.0002, "decay": 0.08, "sustain": 0, "velocity": 0.4},
   "output": {"volume": 10},

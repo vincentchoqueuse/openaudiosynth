@@ -1106,7 +1106,7 @@ drone machine: each note an endless drone of wandering harmonic partials, a warm
 
 ## Engine `micro` (8 voices)
 
-precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, the main sine turned toward noise (ortho), noise layer, low layer (a sub with its own sample-exact envelope and pitch drop), tone bursts, ratchets, five gate LFOs (on / off rhythms exact to the sample: the first steps the noise and low layers, the others open, close or trigger any layer) (8 voices)
+precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, click, the main sine turned toward noise (ortho), noise layer, low layer (a sub with its own sample-exact envelope and pitch drop), tone bursts, ratchets, four gate LFOs (on / off rhythms exact to the sample that open and close any layer, or its inverse, as binary masks, and tick or hit them) (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
@@ -1150,13 +1150,6 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `ratchet_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/32 |  | `micro.ratchet_div` | interval between the repeats on the tempo (off: `ratchet_hz`) |
 | `ratchet_hz` | 0.5 .. 500 Hz | 16 | yes | `micro.ratchet_hz` | repeat rate when not on the tempo |
 | `ratchet_decay` | -24 .. 6 dB | -3 | yes | `micro.ratchet_decay` | level change at each repeat (< 0: dying away, > 0: growing toward full level) |
-| `gate_mode` | off, sync, free | off |  | `micro.gate_mode` | 16-step gate pattern: on the song's beat (sync) or from the note at `gate_hz` (free, up to audio rates) |
-| `gate_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.gate_div` | length of a step in sync mode |
-| `gate_hz` | 0.5 .. 2000 Hz | 32 | yes | `micro.gate_hz` | steps per second in free mode |
-| `gate_steps` | 1 .. 16 | 16 |  | `micro.gate_steps` | length of the pattern |
-| `gate_pattern` | 0 .. 65535 | 43690 |  | `micro.gate_pattern` | the pattern as 16 bits, step 1 = the lowest bit (43690 = every other step, from step 2) |
-| `gate_depth` | 0 .. 1 | 1 | yes | `micro.gate_depth` | how far a closed step cuts the sound (1 = silence) |
-| `gate_edge` | 2e-05 .. 0.02 s | 0.001 | yes | `micro.gate_edge` | time of each gate edge (the bottom = one sample: hard, digital) |
 | `pan` | -1 .. 1 | 0 | yes | `micro.pan` | position in the stereo field |
 | `volume` | -60 .. 24 dB | 0 | yes | `output.volume` | engine volume |
 | `noise_level` | -60 .. 12 dB | -60 | yes | `noise.level` | level of the noise layer (the bottom = off); it bypasses the drive |
@@ -1165,10 +1158,8 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `noise_filter` | off, lp, bp, hp | hp |  | `micro.noise_filter` | filter of the noise: off, low-pass, band-pass or high-pass |
 | `noise_cutoff` | 20 .. 20000 Hz | 6000 | yes | `micro.noise_cutoff` | frequency of the noise filter |
 | `noise_q` | 0.5 .. 20 | 0.7071 | yes | `micro.noise_q` | resonance of the noise filter (high = a narrow, whistling band) |
-| `noise_env` | amp, hit, step | amp |  | `micro.noise_env` | amp: the noise follows the amplitude envelope; hit: its own decay from every hit; step: its own decay, restarted on every step where its gate opens (a tick per step) |
+| `noise_env` | amp, hit, step | amp |  | `micro.noise_env` | amp: the noise follows the amplitude envelope; hit: its own decay from every hit; step: its own decay, restarted on every step a gate LFO opens it on (a tick per step) |
 | `noise_decay` | 0.0005 .. 4 s | 0.05 | yes | `micro.noise_decay` | length of the noise's own decay (hit and step modes; time to -60 dB) |
-| `noise_gate` | off, same, inverse, pattern | off |  | `micro.noise_gate` | the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode` |
-| `noise_pattern` | 0 .. 65535 | 21845 |  | `micro.noise_pattern` | the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1) |
 | `noise_pan` | -1 .. 1 | 0 | yes | `micro.noise_pan` | position of the noise, relative to `pan` |
 | `low_level` | -60 .. 12 dB | -60 | yes | `micro.low_level` | level of the low layer, the weight (the bottom = off): a sine in the centre, out of the drive, with its own envelope counted in samples |
 | `low_mode` | fixed, note | fixed |  | `micro.low_mode` | fixed: always at `low_freq`; note: the note played, brought into the octave that starts at `low_freq` (any key gives a low in the same range) |
@@ -1181,8 +1172,6 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `low_decay` | 0.002 .. 10 s | 0.4 | yes | `micro.low_decay` | decay to silence, reached exactly at its end |
 | `low_curve` | -1 .. 1 | 0.5 |  | `micro.low_curve` | curve of the decay: 0 = a straight line, towards 1 = a fast fall then a long tail, towards -1 = held then cut |
 | `low_drive` | 0 .. 1 | 0 | yes | `micro.low_drive` | saturation of the low sine: harmonics that carry it on small speakers, towards a square at the top |
-| `low_gate` | off, same, inverse, pattern | off |  | `micro.low_gate` | off: one hit per note (and per ratchet); else a hit on every step that opens while the note is held: the same steps as the tone, the inverse ones, or its own `low_pattern`; needs `gate_mode` |
-| `low_pattern` | 0 .. 65535 | 4369 |  | `micro.low_pattern` | the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1) |
 | `low_beat` | -30 .. 30 Hz | 0 | yes | `micro.low_beat` | a second low sine this many hertz away from the first (0 = none): the two interfere, the level swells and falls `low_beat` times a second, starting full on every hit |
 | `low_beat_mix` | 0 .. 1 | 0.5 | yes | `micro.low_beat_mix` | share of the second sine: 0.5 = equal, the sound falls to silence at every beat; less = a shallower swell |
 | `lock` | off, 1/64, 1/32, 1/16, 1/8, 1/4, 1/2, bar | off |  | `micro.lock` | frequencies on the grid: each sine (main, low) moves to the nearest frequency that makes a whole number of cycles in this length of the tempo, and the beatings (osc2 offset, low_beat) a whole number of beats; with phase_reset a hit on the grid starts and ends on the same point of its wave, every loop identical |
@@ -1198,7 +1187,8 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `pulse1_offset` | 0 .. 15 | 0 |  | `micro.pulse1.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
 | `pulse1_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse1.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
 | `pulse1_depth` | 0 .. 1 | 1 | yes | `micro.pulse1.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
-| `pulse1_target` | main, sine2, sines, noise, low, tone_noise, all, ortho, trigger | main |  | `micro.pulse1.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, all; ortho: the main sine is its ortho noise on an open step and the sine on a closed one; trigger: every step that opens restarts the noise's envelope and hits the low layer |
+| `pulse1_open` | 0 .. 127 | 0 |  | `micro.pulse1.open` | what its open steps open, as bits: 1 main (sine, sub, click), 2 second sine, 4 noise, 8 low, 16 ortho (the main sine is its ortho noise when open, the sine when closed), 32 a hit of the low layer on each step that opens, 64 the noise's own envelope restarted on each step that opens (1 + 4 = 5: the tone and the noise) |
+| `pulse1_open_not` | 0 .. 127 | 0 |  | `micro.pulse1.open_not` | what its closed steps open (the pulse inverted, NOT), with the same bits as `open`: the tone on `open` and the noise on `open_not` interlock exactly |
 | `pulse2_mode` | off, sync, free | off |  | `micro.pulse2.mode` | pulse 2: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
 | `pulse2_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse2.div` | length of a step on the beat |
 | `pulse2_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse2.hz` | steps per second in free mode |
@@ -1207,7 +1197,8 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `pulse2_offset` | 0 .. 15 | 0 |  | `micro.pulse2.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
 | `pulse2_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse2.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
 | `pulse2_depth` | 0 .. 1 | 1 | yes | `micro.pulse2.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
-| `pulse2_target` | main, sine2, sines, noise, low, tone_noise, all, ortho, trigger | main |  | `micro.pulse2.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, all; ortho: the main sine is its ortho noise on an open step and the sine on a closed one; trigger: every step that opens restarts the noise's envelope and hits the low layer |
+| `pulse2_open` | 0 .. 127 | 0 |  | `micro.pulse2.open` | what its open steps open, as bits: 1 main (sine, sub, click), 2 second sine, 4 noise, 8 low, 16 ortho (the main sine is its ortho noise when open, the sine when closed), 32 a hit of the low layer on each step that opens, 64 the noise's own envelope restarted on each step that opens (1 + 4 = 5: the tone and the noise) |
+| `pulse2_open_not` | 0 .. 127 | 0 |  | `micro.pulse2.open_not` | what its closed steps open (the pulse inverted, NOT), with the same bits as `open`: the tone on `open` and the noise on `open_not` interlock exactly |
 | `pulse3_mode` | off, sync, free | off |  | `micro.pulse3.mode` | pulse 3: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
 | `pulse3_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse3.div` | length of a step on the beat |
 | `pulse3_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse3.hz` | steps per second in free mode |
@@ -1216,7 +1207,8 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `pulse3_offset` | 0 .. 15 | 0 |  | `micro.pulse3.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
 | `pulse3_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse3.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
 | `pulse3_depth` | 0 .. 1 | 1 | yes | `micro.pulse3.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
-| `pulse3_target` | main, sine2, sines, noise, low, tone_noise, all, ortho, trigger | main |  | `micro.pulse3.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, all; ortho: the main sine is its ortho noise on an open step and the sine on a closed one; trigger: every step that opens restarts the noise's envelope and hits the low layer |
+| `pulse3_open` | 0 .. 127 | 0 |  | `micro.pulse3.open` | what its open steps open, as bits: 1 main (sine, sub, click), 2 second sine, 4 noise, 8 low, 16 ortho (the main sine is its ortho noise when open, the sine when closed), 32 a hit of the low layer on each step that opens, 64 the noise's own envelope restarted on each step that opens (1 + 4 = 5: the tone and the noise) |
+| `pulse3_open_not` | 0 .. 127 | 0 |  | `micro.pulse3.open_not` | what its closed steps open (the pulse inverted, NOT), with the same bits as `open`: the tone on `open` and the noise on `open_not` interlock exactly |
 | `pulse4_mode` | off, sync, free | off |  | `micro.pulse4.mode` | pulse 4: an on / off rhythm exact to the sample, on the song's beat (sync) or from the note at its own rate (free, up to audio rates); several pulses on one layer multiply |
 | `pulse4_div` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | 1/16 |  | `micro.pulse4.div` | length of a step on the beat |
 | `pulse4_hz` | 0.5 .. 2000 Hz | 16 | yes | `micro.pulse4.hz` | steps per second in free mode |
@@ -1225,4 +1217,5 @@ precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, sec
 | `pulse4_offset` | 0 .. 15 | 0 |  | `micro.pulse4.offset` | steps the pattern is shifted by (a pulse against another, on the offbeat) |
 | `pulse4_edge` | 2e-05 .. 0.02 s | 2e-05 | yes | `micro.pulse4.edge` | length of its edges: one sample is a cut with its click, a few milliseconds soften it |
 | `pulse4_depth` | 0 .. 1 | 1 | yes | `micro.pulse4.depth` | how far a closed step goes down: 1 to silence, less leaves some of the layer through |
-| `pulse4_target` | main, sine2, sines, noise, low, tone_noise, all, ortho, trigger | main |  | `micro.pulse4.target` | the layers it opens and closes: main (sine, sub, click), sine2, both sines, noise, low, the tone and the noise, all; ortho: the main sine is its ortho noise on an open step and the sine on a closed one; trigger: every step that opens restarts the noise's envelope and hits the low layer |
+| `pulse4_open` | 0 .. 127 | 0 |  | `micro.pulse4.open` | what its open steps open, as bits: 1 main (sine, sub, click), 2 second sine, 4 noise, 8 low, 16 ortho (the main sine is its ortho noise when open, the sine when closed), 32 a hit of the low layer on each step that opens, 64 the noise's own envelope restarted on each step that opens (1 + 4 = 5: the tone and the noise) |
+| `pulse4_open_not` | 0 .. 127 | 0 |  | `micro.pulse4.open_not` | what its closed steps open (the pulse inverted, NOT), with the same bits as `open`: the tone on `open` and the noise on `open_not` interlock exactly |

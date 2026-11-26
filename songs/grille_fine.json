@@ -35,7 +35,7 @@
       "gain_db": -3,
       "velocity": 100,
       "gate": 1,
-      "params": {"micro": {"gate_pattern": 46261}}
+      "params": {"micro": {"pulse1": {"pattern": 46261}}}
     },
     {
       "patch": "patches/micro_deep_kick.json",

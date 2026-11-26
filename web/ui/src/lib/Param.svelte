@@ -1,6 +1,7 @@
 <!-- Param.svelte — one parameter from the descriptor table, as a row: its label, its control, its value in its
      unit. A thin slider in normalized space (exp curves feel right), a switch for off / on, drawn buttons for a
-     choice of waveforms, pills for a few choices, a menu for more, sixteen step buttons for a rhythm pattern. Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
+     choice of waveforms, pills for a few choices, a menu for more, sixteen step buttons for a rhythm pattern, a row
+     of named toggles for a mask (what a gate LFO opens: MASKS). Its value, the sound's value (`base`) and the setter come from the session unless given. A dot after the label:
      moved since the sound was loaded; double-click on the
      label or the slider puts that value back. The descriptor's help text is the tooltip.
      A slider is exact to set (slider.js): Shift while dragging is ten times finer, the arrows step it, and a
@@ -14,6 +15,7 @@
   import Select from './Select.svelte';
   import { session } from './session.svelte.js';
   import { precise, parseValue } from './slider.js';
+  import { MASKS } from './engineui.js';
   // the value, the sound's value and the setter default to the session's: pass them only for something else
   let { d, label, value: given, base: givenBase, onchange: given_set } = $props();
   const value = $derived(given ?? session.values[d.id] ?? d.def);
@@ -28,8 +30,10 @@
   // a rhythm of 16 steps kept as a number (bit k = step k + 1): drawn as steps
   const steps = $derived(/(^|_)pattern$/.test(d.name) && d.min === 0 && d.max === 65535);
   const bits = $derived(Math.round(value));
-  // its length: the steps of the same name ("pulse1_pattern" -> "pulse1_steps"), else the gate's; the steps past it are dimmed
-  const used = $derived(steps ? Math.round(session.byName[d.name.replace(/pattern$/, 'steps')] ? session.getP(d.name.replace(/pattern$/, 'steps')) : session.byName.gate_steps ? session.getP('gate_steps') : 16) : 16);
+  // its length: the steps of the same name ("pulse1_pattern" -> "pulse1_steps"); the steps past it are dimmed
+  const used = $derived(steps ? Math.round(session.byName[d.name.replace(/pattern$/, 'steps')] ? session.getP(d.name.replace(/pattern$/, 'steps')) : 16) : 16);
+  // a mask kept as a number: its bits by name, each a toggle
+  const mask = $derived(Object.entries(MASKS).find(([re]) => new RegExp(re).test(d.name))?.[1] ?? null);
   let typing = $state(false); // the value is being typed
   function typed(e) {
     if (e.key === 'Escape') { e.stopPropagation(); typing = false; return; }
@@ -47,6 +51,12 @@
     <div class="cell steps" role="group" aria-label={label}>
       {#each Array(16) as _, k}
         <button class:on={(bits >> k) & 1} class:past={k >= used} aria-pressed={!!((bits >> k) & 1)} aria-label="Step {k + 1}" onclick={() => onchange(bits ^ (1 << k))}></button>
+      {/each}
+    </div>
+  {:else if mask}
+    <div class="cell masks" role="group" aria-label={label}>
+      {#each mask as name, k}
+        <button class:on={(bits >> k) & 1} aria-pressed={!!((bits >> k) & 1)} onclick={() => onchange(bits ^ (1 << k))}>{name}</button>
       {/each}
     </div>
   {:else if toggle}

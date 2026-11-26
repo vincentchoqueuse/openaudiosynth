@@ -364,6 +364,11 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 3px 32px 1
 .steps button.on { background: var(--accent); }
 .steps button.past { opacity: .3; } /* past the pattern's length: not played */
 .steps button:hover { filter: brightness(1.25); }
+/* a mask: its bits as named toggles (what a gate LFO opens) */
+.masks { display: flex; flex-wrap: wrap; gap: 3px; }
+.masks button { height: 20px; padding: 0 7px; border-radius: 4px; background: var(--track); color: var(--muted); font-size: 11px; }
+.masks button.on { background: var(--accent); color: var(--on-accent, #fff); }
+.masks button:hover { filter: brightness(1.2); }
 .keys { position: relative; display: flex; flex: 1; height: 64px; gap: 2px; user-select: none; touch-action: none; }
 .keys .w { flex: 1; background: var(--key-w); border-radius: 0 0 5px 5px; box-shadow: inset 0 0 0 1px var(--line); }
 .keys .b { position: absolute; top: 0; width: 2.6%; height: 58%; background: var(--key-b); border-radius: 0 0 4px 4px; z-index: 1; }

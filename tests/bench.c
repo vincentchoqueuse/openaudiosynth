@@ -50,10 +50,10 @@ static void bench_engine_os(const char *name, synth_engine_t eng, int voices, in
             synth_set_param(synth_default(), WT_P_SUB, 1.0f);
             synth_set_param(synth_default(), WT_P_FILTER_TYPE, 1.0f);
         }
-    } else if (eng == SYNTH_ENGINE_MICRO) { /* worst case: held, both sines, sub, drive, free gate, pitch envelope */
+    } else if (eng == SYNTH_ENGINE_MICRO) { /* worst case: held, both sines, sub, drive, a free pulse, pitch envelope */
         const struct { int id; float v; } set[] = {
             {MICRO_P_SUSTAIN, 1.0f}, {MICRO_P_OSC2_LEVEL, 0.0f}, {MICRO_P_SUB_LEVEL, 0.0f}, {MICRO_P_DRIVE, 12.0f},
-            {MICRO_P_GATE_MODE, 2.0f}, {MICRO_P_PITCH_AMOUNT, 24.0f}, {MICRO_P_PITCH_TIME, 4.0f},
+            {MICRO_PU(0, MICRO_PU_MODE), 2.0f}, {MICRO_PU(0, MICRO_PU_OPEN), 1.0f}, {MICRO_P_PITCH_AMOUNT, 24.0f}, {MICRO_P_PITCH_TIME, 4.0f},
             {MICRO_P_CLICK_MODE, 2.0f}};
         for (unsigned k = 0; k < sizeof set / sizeof set[0]; k++)
             synth_set_param(synth_default(), set[k].id, param_to_norm(&micro_params[set[k].id], set[k].v));

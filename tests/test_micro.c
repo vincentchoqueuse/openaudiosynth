@@ -150,15 +150,15 @@ static void grid_and_space(void)
           first_nonzero(L, 9600), first_nonzero(R, 9600));
 }
 
-/* the pulses: on / off on the exact sample, lengths that drift apart, an offset, the edge, the target */
-static void set_pulse(int k, float mode, float div, float steps, float pattern, float offset, float target)
+/* the pulses: on / off on the exact sample, lengths that drift apart, an offset, the edge, what they open (a mask) */
+static void set_pulse(int k, float mode, float div, float steps, float pattern, float offset, float open)
 {
     setp(MICRO_PU(k, MICRO_PU_MODE), mode);
     setp(MICRO_PU(k, MICRO_PU_DIV), div);
     setp(MICRO_PU(k, MICRO_PU_STEPS), steps);
     setp(MICRO_PU(k, MICRO_PU_PATTERN), pattern);
     setp(MICRO_PU(k, MICRO_PU_OFFSET), offset);
-    setp(MICRO_PU(k, MICRO_PU_TARGET), target);
+    setp(MICRO_PU(k, MICRO_PU_OPEN), open);
 }
 static void pulses(void)
 {
@@ -166,7 +166,7 @@ static void pulses(void)
      * change on the sample where its step starts (edge one sample) */
     fresh();
     setp(MICRO_P_SUSTAIN, 1.0f);
-    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, 0.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, 1.0f);
     note_at(69, 0);
     beat_pos = 0.0f;
     run(L, R, 30000, 120.0f);
@@ -179,7 +179,7 @@ static void pulses(void)
     /* an offset of one step: the same pattern shifted (shut, open, shut) */
     fresh();
     setp(MICRO_P_SUSTAIN, 1.0f);
-    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 1.0f, 0.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 1.0f, 1.0f);
     note_at(69, 0);
     beat_pos = 0.0f;
     run(L, R, 18000, 120.0f);
@@ -189,8 +189,8 @@ static void pulses(void)
      * open, every 6 steps (steps 0 and 6), and nowhere else */
     fresh();
     setp(MICRO_P_SUSTAIN, 1.0f);
-    set_pulse(0, 1.0f, 3.0f, 3.0f, 1.0f, 0.0f, 0.0f);
-    set_pulse(1, 1.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f);
+    set_pulse(0, 1.0f, 3.0f, 3.0f, 1.0f, 0.0f, 1.0f);
+    set_pulse(1, 1.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f);
     note_at(69, 0);
     beat_pos = 0.0f;
     run(L, R, 48000, 120.0f);
@@ -205,7 +205,7 @@ static void pulses(void)
     setp(MICRO_P_SUSTAIN, 1.0f);
     setp(MICRO_P_PITCH_MODE, 1.0f);
     setp(MICRO_P_FREQ, 4000.0f);
-    set_pulse(0, 1.0f, 3.0f, 16.0f, 2.0f, 0.0f, 0.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 2.0f, 0.0f, 1.0f);
     setp(MICRO_PU(0, MICRO_PU_EDGE), 0.005f);
     note_at(69, 0);
     beat_pos = 0.0f;
@@ -217,7 +217,7 @@ static void pulses(void)
     /* the target: a pulse on the noise leaves the sine alone */
     fresh();
     setp(MICRO_P_SUSTAIN, 1.0f);
-    set_pulse(0, 1.0f, 3.0f, 16.0f, 0.0f, 0.0f, 3.0f); /* always shut, on the noise */
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 0.0f, 0.0f, 4.0f); /* always shut, on the noise */
     note_at(69, 0);
     beat_pos = 0.0f;
     run(L, R, 9600, 120.0f);
@@ -225,7 +225,7 @@ static void pulses(void)
     /* free mode at 1 kHz on 2 steps (pattern 1): a 500 Hz on / off, the first switch 48 samples after the note */
     fresh();
     setp(MICRO_P_SUSTAIN, 1.0f);
-    set_pulse(0, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 0.0f);
+    set_pulse(0, 2.0f, 3.0f, 2.0f, 1.0f, 0.0f, 1.0f);
     setp(MICRO_PU(0, MICRO_PU_HZ), 1000.0f);
     note_at(69, 16);
     beat_pos = 0.0f;
@@ -243,8 +243,8 @@ static void pulses(void)
     CHECK(z0 == h + 48 && o1 == h + 96, "free pulse 1 kHz: hit at %d, shut from %d, open again at %d", h, z0, o1);
 }
 
-/* the two newer pulse targets: ortho (an open step is the ortho noise, a closed one the sine) and trigger (every step
- * that opens hits the low layer on its own sample) */
+/* what a pulse opens beyond the layers: ortho (an open step is the ortho noise, a closed one the sine) and the low
+ * layer's hit (every step that opens hits it on its own sample) */
 static void pulse_targets(void)
 {
     /* the reference: the plain sine, no pulse */
@@ -257,7 +257,7 @@ static void pulse_targets(void)
     fresh();
     setp(MICRO_P_SUSTAIN, 1.0f);
     setp(MICRO_P_ORTHO, 1.0f);
-    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, 7.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, 16.0f);
     note_at(69, 0);
     beat_pos = 0.0f;
     run(L, R, 18000, 120.0f);
@@ -275,15 +275,15 @@ static void pulse_targets(void)
     setp(MICRO_P_SUSTAIN, 1.0f);
     setp(MICRO_P_LOW_LEVEL, 0.0f);
     setp(MICRO_P_LOW_DECAY, 0.02f);
-    set_pulse(0, 1.0f, 3.0f, 16.0f, 273.0f, 0.0f, 8.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 273.0f, 0.0f, 32.0f);
     note_at(69, 0);
     beat_pos = 0.0f;
     run(L, R, 60000, 120.0f);
     const float h4 = max_abs(L + 24000, 2000), gap = max_abs(L + 15000, 9000), h8 = max_abs(L + 48000, 2000);
     const int f4 = first_nonzero(L + 23000, 2000), on4 = f4 == 1000 || f4 == 1001; /* the low sine starts at phase 0 */
-    printf("  pulse trigger: hits %.3f and %.3f on steps 5 and 9, %.2g between; the hit on sample 24000: %s\n",
+    printf("  pulse low hits: hits %.3f and %.3f on steps 5 and 9, %.2g between; the hit on sample 24000: %s\n",
            (double)h4, (double)h8, (double)gap, on4 ? "yes" : "no");
-    CHECK(h4 > 0.05f && h8 > 0.05f && gap < 1e-4f && on4, "pulse trigger: %g %g, between %g, first sound at %d", (double)h4,
+    CHECK(h4 > 0.05f && h8 > 0.05f && gap < 1e-4f && on4, "pulse low hits: %g %g, between %g, first sound at %d", (double)h4,
           (double)h8, (double)gap, 23000 + f4);
 }
 
@@ -464,42 +464,44 @@ void suite_micro(void)
               (double)pk[2], (double)pk[3], (double)pk[4], on);
     }
 
-    /* gate pattern on 1/16 at 120 BPM (6000 samples a step): steps 1, 3, 5... open (0x5555) */
-    fresh();
-    beat_pos = 0.0f;
-    setp(MICRO_P_SUSTAIN, 1.0f);
-    setp(MICRO_P_GATE_MODE, 1.0f);
-    setp(MICRO_P_GATE_DIV, 3.0f);
-    setp(MICRO_P_GATE_PATTERN, 21845.0f);
-    note_at(81, 0);
-    run(L, R, 48000, 120.0f);
-    {
-        const float open = rms(L + 6000 * 2 + 500, 5000), shut = rms(L + 6000 * 3 + 500, 5000);
-        CHECK(open > 0.03f && shut < 1e-6f, "micro gate pattern: open step %g, closed step %g", (double)open,
-              (double)shut);
-    }
-
-    /* noise layer on the inverse gate: silent on the tone's open steps, loud in its holes; with the tone on too,
-     * no step is silent (tone and noise interlock) */
+    /* the noise on the pulse's inverse (NOT): silent on the tone's open steps, loud in its holes; with the tone on
+     * the pulse too, no step is silent (tone and noise interlock) */
     for (int with_tone = 0; with_tone < 2; with_tone++) {
         fresh();
         beat_pos = 0.0f;
         setp(MICRO_P_SUSTAIN, 1.0f);
-        setp(MICRO_P_GATE_MODE, 1.0f);
-        setp(MICRO_P_GATE_DIV, 3.0f);
-        setp(MICRO_P_GATE_PATTERN, 21845.0f);
+        set_pulse(0, 1.0f, 3.0f, 16.0f, 21845.0f, 0.0f, with_tone ? 1.0f : 0.0f);
+        setp(MICRO_PU(0, MICRO_PU_OPEN_NOT), 4.0f);
         setp(MICRO_P_SINE_LEVEL, with_tone ? 0.0f : -60.0f);
         setp(MICRO_P_NOISE_LEVEL, 0.0f);
-        setp(MICRO_P_NOISE_GATE, 2.0f);
         note_at(81, 0);
         run(L, R, 48000, 120.0f);
         const float tone_step = rms(L + 6000 * 2 + 500, 5000), hole = rms(L + 6000 * 3 + 500, 5000);
         if (!with_tone)
-            CHECK(tone_step < 1e-6f && hole > 0.01f, "micro noise inverse gate: tone step %g, hole %g",
-                  (double)tone_step, (double)hole);
+            CHECK(tone_step < 1e-6f && hole > 0.01f, "micro noise on NOT: tone step %g, hole %g", (double)tone_step,
+                  (double)hole);
         else
             CHECK(tone_step > 0.03f && hole > 0.01f, "micro tone + noise interlock: tone step %g, hole %g",
                   (double)tone_step, (double)hole);
+    }
+    /* and exactly complementary: tone alone plus noise alone, rendered apart, is the two together */
+    {
+        static float a[48000], b[48000];
+        for (int part = 0; part < 3; part++) {
+            fresh();
+            beat_pos = 0.0f;
+            setp(MICRO_P_SUSTAIN, 1.0f);
+            set_pulse(0, 1.0f, 3.0f, 16.0f, 46261.0f, 0.0f, 1.0f);
+            setp(MICRO_PU(0, MICRO_PU_OPEN_NOT), 4.0f);
+            setp(MICRO_P_SINE_LEVEL, part == 1 ? -60.0f : 0.0f);
+            setp(MICRO_P_NOISE_LEVEL, part == 0 ? -60.0f : 0.0f);
+            note_at(81, 0);
+            run(part == 0 ? a : part == 1 ? b : L, R, 48000, 120.0f);
+        }
+        float d = 0.0f;
+        for (int i = 0; i < 48000; i++)
+            d = fmaxf(d, fabsf(L[i] - (a[i] + b[i])));
+        CHECK(d < 1e-5f, "micro open / open_not not complementary: %g", (double)d);
     }
 
     /* step envelope: every step opens a 10 ms tick of noise; loud at its start, gone well before the next one */
@@ -507,9 +509,7 @@ void suite_micro(void)
     beat_pos = 0.0f;
     setp(MICRO_P_SUSTAIN, 1.0f);
     setp(MICRO_P_SINE_LEVEL, -60.0f);
-    setp(MICRO_P_GATE_MODE, 1.0f);
-    setp(MICRO_P_GATE_DIV, 3.0f);
-    setp(MICRO_P_GATE_PATTERN, 65535.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 65535.0f, 0.0f, 4.0f); /* every step opens the noise */
     setp(MICRO_P_NOISE_LEVEL, 0.0f);
     setp(MICRO_P_NOISE_ENV, 2.0f);
     setp(MICRO_P_NOISE_DECAY, 0.01f);
@@ -639,17 +639,13 @@ void suite_micro(void)
               (double)full);
     }
 
-    /* on its own gate pattern (one step in four of sixteenths at 120 bpm): a hit every 0.5 s while the note is held */
+    /* hit by a pulse (one step in four of sixteenths at 120 bpm): a hit every 0.5 s while the note is held */
     fresh();
     beat_pos = 0.0f;
     setp(MICRO_P_SUSTAIN, 1.0f);
     setp(MICRO_P_SINE_LEVEL, -60.0f);
-    setp(MICRO_P_GATE_MODE, 1.0f);
-    setp(MICRO_P_GATE_DIV, 3.0f);
-    setp(MICRO_P_GATE_PATTERN, 65535.0f);
     setp(MICRO_P_LOW_LEVEL, 0.0f);
-    setp(MICRO_P_LOW_GATE, 3.0f);
-    setp(MICRO_P_LOW_PATTERN, 4369.0f);
+    set_pulse(0, 1.0f, 3.0f, 16.0f, 4369.0f, 0.0f, 32.0f);
     setp(MICRO_P_LOW_HOLD, 0.0f);
     setp(MICRO_P_LOW_DECAY, 0.1f);
     note_at(60, 0);
@@ -660,7 +656,7 @@ void suite_micro(void)
             head = fminf(head, rms(L + 24000 * k, 2000));
             tail = fmaxf(tail, rms(L + 24000 * k + 8000, 12000));
         }
-        CHECK(head > 0.02f && tail < 1e-5f, "micro low gate: rms %g on its steps, %g between", (double)head, (double)tail);
+        CHECK(head > 0.02f && tail < 1e-5f, "micro low on a pulse: rms %g on its steps, %g between", (double)head, (double)tail);
     }
 
     /* every parameter at its top, then its bottom, a cluster through the synth: finite, bounded, deterministic */

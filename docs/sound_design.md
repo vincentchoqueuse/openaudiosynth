@@ -239,14 +239,16 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
 - **Ticks**: `burst` 1–4 cycles of a fixed 2–5 kHz sine plus a noise click of 1–3 ms (`micro_click_grid`);
   `sine_level` at the bottom leaves the click alone.
 - **Rolls**: `ratchet` 4–8 on 1/32 with `ratchet_decay` −2 dB (`micro_data_ratchet`).
-- **Carved tones**: a held sine cut by `gate_mode` sync, a 16-bit `gate_pattern` (step 1 = lowest bit) and
-  sub-millisecond `gate_edge` (`micro_gated_tone`); `gate_mode` free at 20–2000 Hz stutters a note or, fast,
-  becomes a rhythmic ring modulation (`micro_high_tone`).
-- **Tone against noise**: the noise layer has its own gate on the same steps. `noise_gate` inverse puts it in
-  the tone's holes, `noise_env` step gives each opening step its own tick (`noise_decay` 10–80 ms). `stepped`
+- **Carved tones**: a held sine cut by a gate LFO (`pulse1`: `mode` sync, a 16-bit `pattern`, step 1 = lowest
+  bit, `open` main and sine 2, a sub-millisecond `edge`; `micro_gated_tone`); `mode` free at 20–2000 Hz stutters
+  a note or, fast, becomes a rhythmic ring modulation (`micro_high_tone`).
+- **Tone against noise**: a gate LFO opens layers as binary masks: `open` on its open steps, `open_not` on its
+  closed ones (the pulse inverted, NOT). The tone on `open` and the noise on `open_not` interlock exactly, the
+  noise in the tone's holes; `noise_env` step gives each step that opens the noise its own tick (`noise_decay`
+  10–80 ms). Two pulses on a layer multiply (AND); with NOT, OR and XOR come from two pulses. `stepped`
   noise at 8–16 kHz through a high-pass at 4–6 kHz sounds like digital grain (`micro_noise_interlock`). A
-  `periodic` noise (a 7-bit register: a buzz at `noise_rate` / 127) through a band-pass, on its own
-  `noise_pattern` and panned away from the tone, sounds like a data stream (`micro_data_burst`). The stepped
+  `periodic` noise (a 7-bit register: a buzz at `noise_rate` / 127) through a band-pass, on its own pulse
+  and panned away from the tone, sounds like a data stream (`micro_data_burst`). The stepped
   and periodic kinds are not band-limited on purpose; their high-passed steps make sharp peaks, so start low
   with `noise_level`.
 - **Low layer** (`low_level` up from its bottom): the weight, a sine between 20 and 160 Hz apart from the rest
@@ -255,9 +257,9 @@ then slow) or gate-like (< 0). For exact rhythms built from pure tones.
   its last one. `low_drop` and `low_drop_time` are the punch (24 st in 30 ms = a kick, 7 st in 15 ms = a pluck);
   `low_curve` towards 1 leaves a tail, towards -1 holds then cuts; `low_drive` adds the harmonics small speakers
   need. `low_mode` note brings any key into the octave above `low_freq`: a bass line that stays between 41 and
-  82 Hz (`micro_low_line`). With the gate on, `low_gate` gives it a hit on every step that opens: the tone's
-  steps, its holes, or its own `low_pattern` (`micro_low_pulse`; with the tone and the noise,
-  `micro_low_interlock`). Long attack and hold make pressure instead of hits (`micro_low_pressure`). `low_beat`
+  82 Hz (`micro_low_line`). A pulse with `low hit` (32) in a mask gives it a hit on every step that
+  opens it: on the pulse's steps, or in its holes with `open_not` (`micro_low_pulse`; with the tone and the
+  noise, `micro_low_interlock`). Long attack and hold make pressure instead of hits (`micro_low_pressure`). `low_beat`
   adds a second low sine an exact number of hertz away: the two interfere and the level swells `low_beat` times
   a second; both restart together, so the swell falls on the same samples at every hit (`micro_low_beating`:
   3 Hz under a higher pair split left and right at 2 Hz). `low_beat_mix` 0.5 falls to silence at every beat,
@@ -273,6 +275,6 @@ See `songs/grille_fine.json` and `songs/trame_blanche.json`.
 
 - **The grid** (`lock`: 1/64 .. bar): each sine (the main one, the low layer) moves to the nearest frequency that makes a whole number of cycles in that length of the tempo (1003 Hz at 1/16 and 120 BPM: 1000 Hz, 125 cycles), and the beatings (`osc2_offset` in hz mode, `low_beat`) to a whole number of beats. With `phase_reset` on, a hit on the grid starts and ends on the same point of its wave: every repeat is identical to the sample. The pitch is set when the note starts, from the tempo then.
 - **The space** (`space`): `hard` snaps every pan to left, centre or right, as exact gains (one side is exactly silent); `alternate` puts each hit, a note or a ratchet repeat, fully on the other side, the switch on the hit's own sample (the low layer stays in the centre). `space_delay` makes one channel late by an exact number of samples (positive: the right): a few samples widen, twenty and more split a click in two (`micro_grid_tick`).
-- **Pulses** (`pulse1..4`): four on / off rhythms exact to the sample, each with its mode (on the beat, or free from the note up to audio rates), its step length or rate, its own pattern length (1..16), a pattern of 16 steps, an offset in steps, an edge (one sample: a cut with its click; a few milliseconds soften it), a depth, and its targets (main: sine, sub and click; sine2; both sines; noise; low; the tone and the noise; all). Several pulses on one layer multiply: the layer sounds where all are open. Different lengths (16, 15, 13, 7) drift apart and meet again only after a long cycle (`micro_pulse_lattice`). On the beat they count whole samples from the song's beat 0, so a step of a whole number of samples (6000 at 1/16 and 120 BPM, 48 kHz) is exactly that, every time; free, a step counts from the note (48 samples at 1000 Hz). The older `gate` stays as it was: it is also what the noise and the low layer use to retrigger.
+- **Pulses** (`pulse1..4`): four on / off rhythms exact to the sample, each with its mode (on the beat, or free from the note up to audio rates), its step length or rate, its own pattern length (1..16), a pattern of 16 steps, an offset in steps, an edge (one sample: a cut with its click; a few milliseconds soften it), a depth, and two masks: `open`, what its open steps open, and `open_not`, what its closed ones open (the pulse inverted), with the bits 1 main (sine, sub and click), 2 sine 2, 4 noise, 8 low, 16 ortho, 32 a hit of the low layer, 64 a restart of the noise's own envelope (the web draws them as toggles). Several pulses on one layer multiply (AND): the layer sounds where all are open. Different lengths (16, 15, 13, 7) drift apart and meet again only after a long cycle (`micro_pulse_lattice`). On the beat they count whole samples from the song's beat 0, so a step of a whole number of samples (6000 at 1/16 and 120 BPM, 48 kHz) is exactly that, every time; free, a step counts from the note (48 samples at 1000 Hz).
 
-**micro, sine to noise (`ortho`).** The main sine can turn into a band of noise centred exactly on the note: `ortho` 0 is the sine itself, then the band opens from 2 Hz wide (a sine that breathes, its amplitude and phase wandering) to 12 kHz (noise), the level kept at the sine's. `ortho_mode`: smooth (a breath), stepped (held values: a digital grain, clicks at twice the band's width per second) or sparse (impulses of random sign: a dry crackle). Each key draws the same noise every time. A macro on `ortho` sweeps a tone into noise and back (`micro_ortho_field`: 1 kHz, stepped, halfway). A gate LFO (`pulseN_target` ortho) switches it at each step: noise on the open steps, the sine on the closed ones; `trigger` makes each open step hit the low layer and restart the noise's envelope.
+**micro, sine to noise (`ortho`).** The main sine can turn into a band of noise centred exactly on the note: `ortho` 0 is the sine itself, then the band opens from 2 Hz wide (a sine that breathes, its amplitude and phase wandering) to 12 kHz (noise), the level kept at the sine's. `ortho_mode`: smooth (a breath), stepped (held values: a digital grain, clicks at twice the band's width per second) or sparse (impulses of random sign: a dry crackle). Each key draws the same noise every time. A macro on `ortho` sweeps a tone into noise and back (`micro_ortho_field`: 1 kHz, stepped, halfway). A gate LFO with ortho (16) in `open` switches it at each step: noise on the open steps, the sine on the closed ones; `low hit` (32) and `noise env` (64) make each step that opens hit the low layer and restart the noise's envelope.

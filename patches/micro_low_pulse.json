@@ -6,10 +6,6 @@
   "osc1": {"level": -60},
   "amp": {"sustain": 1, "velocity": 0},
   "micro": {
-    "gate_mode": "sync",
-    "gate_div": "1/16",
-    "gate_steps": 16,
-    "gate_pattern": 65535,
     "low_level": 6,
     "low_freq": 45,
     "low_drop": 24,
@@ -19,8 +15,7 @@
     "low_decay": 0.32,
     "low_curve": 0.5,
     "low_drive": 0.3,
-    "low_gate": "pattern",
-    "low_pattern": 4369
+    "pulse1": {"mode": "sync", "div": "1/16", "steps": 16, "edge": 0.001, "pattern": 4369, "open": 32}
   },
   "output": {"volume": 3.2},
   "tempo": {"bpm": 120},

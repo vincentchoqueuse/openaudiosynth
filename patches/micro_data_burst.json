@@ -6,11 +6,6 @@
   "micro": {
     "pitch_mode": "fixed",
     "freq": 1000,
-    "gate_mode": "sync",
-    "gate_div": "1/32",
-    "gate_steps": 16,
-    "gate_pattern": 4369,
-    "gate_edge": 2e-05,
     "pan": -0.3,
     "noise_type": "periodic",
     "noise_rate": 24000,
@@ -19,9 +14,9 @@
     "noise_q": 2,
     "noise_env": "step",
     "noise_decay": 0.012,
-    "noise_gate": "pattern",
-    "noise_pattern": 52428,
-    "noise_pan": 0.7
+    "noise_pan": 0.7,
+    "pulse1": {"mode": "sync", "div": "1/32", "steps": 16, "edge": 2e-05, "pattern": 4369, "open": 3},
+    "pulse2": {"mode": "sync", "div": "1/32", "steps": 16, "edge": 2e-05, "pattern": 52428, "open": 4}
   },
   "osc1": {"level": -8},
   "amp": {"attack": 2e-05, "sustain": 1, "release": 0.01, "velocity": 0},

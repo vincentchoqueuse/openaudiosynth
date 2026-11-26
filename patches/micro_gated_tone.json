@@ -9,11 +9,7 @@
     "osc2_mode": "ratio",
     "osc2_ratio": 16,
     "osc2_pitch_env": "off",
-    "gate_mode": "sync",
-    "gate_div": "1/16",
-    "gate_steps": 16,
-    "gate_pattern": 46261,
-    "gate_edge": 0.0003
+    "pulse1": {"mode": "sync", "div": "1/16", "steps": 16, "edge": 0.0003, "pattern": 46261, "open": 3}
   },
   "amp": {"attack": 0.002, "sustain": 1, "release": 0.05, "velocity": 0},
   "osc2": {"level": -26},

@@ -22,6 +22,12 @@ const choice = (s, name) => { const d = s.byName[name]; return d?.labels?.[Math.
 const listed = (list, name) => list.some((x) => (typeof x === 'string' ? x === name : x.test(name)));
 const fold = (more, hide) => (d, s) => (hide?.(d.name, s) ? 'hide' : listed(more, d.name) ? 'more' : 'main');
 
+// masks kept as numbers, drawn as named toggles (Param.svelte): micro's gate LFOs open, on their open steps
+// (open) or their closed ones (open_not), the layers and events of these bits
+export const MASKS = {
+  '^pulse\\d_open(_not)?$': ['main', 'sine 2', 'noise', 'low', 'ortho', 'low hit', 'noise env'],
+};
+
 export const ENGINE_UI = {
   // va: the two oscillators, the filters, the envelopes and the LFO in view; fine tuning, routing and the analog
   // imperfections under More; what the chosen waves and filters do not use is hidden
@@ -64,10 +70,10 @@ export const ENGINE_UI = {
   // what the chosen modes do not use is hidden
   micro: {
     place: fold(
-      ['fine', 'phase', 'phase_reset', 'burst', 'osc2_split', 'osc2_pitch_env', 'noise_q', 'noise_gate', 'noise_pan',
-       'low_phase', 'low_drop_time', 'low_attack', 'low_hold', 'low_curve', 'low_drive', 'low_gate', 'low_pattern', 'low_beat',
-       'low_beat_mix', 'amp_hold', 'attack_curve', 'decay_curve', 'velocity', 'pan', 'pitch_curve', 'gate_depth', 'gate_edge',
-       'noise_pattern', 'bend_range', /^pulse\d_(offset|edge|depth)$/],
+      ['fine', 'phase', 'phase_reset', 'burst', 'osc2_split', 'osc2_pitch_env', 'noise_q', 'noise_pan',
+       'low_phase', 'low_drop_time', 'low_attack', 'low_hold', 'low_curve', 'low_drive', 'low_beat',
+       'low_beat_mix', 'amp_hold', 'attack_curve', 'decay_curve', 'velocity', 'pan', 'pitch_curve',
+       'bend_range', /^pulse\d_(offset|edge|depth)$/],
       (n, s) => {
         if (n === 'freq') return choice(s, 'pitch_mode') !== 'fixed';
         if (n === 'ortho_mode') return s.getP('ortho') === 0; // a pure sine: no kind of noise to choose
@@ -75,12 +81,7 @@ export const ENGINE_UI = {
         if (n === 'osc2_offset') return choice(s, 'osc2_mode') !== 'hz';
         if (n === 'noise_decay') return choice(s, 'noise_env') === 'amp';
         if (n === 'noise_rate') return choice(s, 'noise_type') === 'white';
-        if (n === 'noise_pattern') return choice(s, 'noise_gate') !== 'pattern';
-        if (n === 'low_pattern') return choice(s, 'low_gate') !== 'pattern';
         if (n === 'low_beat_mix') return s.getP('low_beat') === 0;
-        if (n === 'gate_div') return choice(s, 'gate_mode') !== 'sync';
-        if (n === 'gate_hz') return choice(s, 'gate_mode') !== 'free';
-        if (/^gate_(steps|pattern|depth|edge)$/.test(n)) return choice(s, 'gate_mode') === 'off';
         if (/^click_(level|tone|decay)$/.test(n)) return choice(s, 'click_mode') === 'off';
         let m = /^pulse(\d)_(div|hz)$/.exec(n); // a pulse shows its step length on the beat, or its rate when free
         if (m) return choice(s, `pulse${m[1]}_mode`) !== (m[2] === 'div' ? 'sync' : 'free');

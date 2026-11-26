@@ -1,6 +1,6 @@
 /* micro.c — precision sine engine (see micro.h). Unlike the other engines, everything that shapes a hit runs per
  * sample: the amplitude and pitch envelopes (exact lengths in samples, curved segments recomputed exactly at each
- * block start), the glide, the ratchet clock, the gate pattern; a note starts on the sample the host asked for
+ * block start), the glide, the ratchet clock, the gate LFOs (pulses); a note starts on the sample the host asked for
  * (vpoly_t.onset), and the tempo-synced parts read the beat position handed over by synth.c (engine_ops_t.tempo).
  * Curve c in -1..1: 0 = linear, > 0 = fast start (an RC discharge, the classic punchy decay), < 0 = slow start. */
 #include "micro.h"
@@ -18,16 +18,11 @@ static const char *const gate_mode_labels[] = {"off", "sync", "free", NULL};
 static const char *const noise_type_labels[] = {"white", "stepped", "periodic", NULL};
 static const char *const noise_filter_labels[] = {"off", "lp", "bp", "hp", NULL};
 static const char *const noise_env_labels[] = {"amp", "hit", "step", NULL};
-static const char *const noise_gate_labels[] = {"off", "same", "inverse", "pattern", NULL};
 static const char *const low_mode_labels[] = {"fixed", "note", NULL};
 static const char *const lock_labels[] = {"off", "1/64", "1/32", "1/16", "1/8", "1/4", "1/2", "bar", NULL};
 static const float lock_beats[] = {0.0f, 0.0625f, 0.125f, 0.25f, 0.5f, 1.0f, 2.0f, 4.0f};
 static const char *const space_labels[] = {"free", "hard", "alternate", NULL};
 static const char *const ortho_labels[] = {"smooth", "stepped", "sparse", NULL};
-/* what a pulse opens and closes, as a mask: 1 the main sine (with sub and click), 2 the second sine, 4 the noise, 8 the low layer */
-static const char *const pulse_target_labels[] = {"main", "sine2", "sines", "noise", "low", "tone_noise", "all", "ortho", "trigger", NULL};
-/* bits: 1 main, 2 second sine, 4 noise, 8 low, 16 ortho (open = the noise of ortho, closed = the sine), 32 trigger */
-static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15, 16, 32};
 #define PULSE(K)                                                                                                       \
     PARAM(MICRO_PU(K - 1, MICRO_PU_MODE), "pulse" #K "_mode", "micro.pulse" #K ".mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0,  \
           gate_mode_labels, "pulse " #K ": an on / off rhythm exact to the sample, on the song's beat (sync) or from the " \
@@ -46,10 +41,13 @@ static const uint8_t pulse_target_mask[] = {1, 2, 3, 4, 8, 7, 15, 16, 32};
           "s", 1, NULL, "length of its edges: one sample is a cut with its click, a few milliseconds soften it"),       \
     PARAM(MICRO_PU(K - 1, MICRO_PU_DEPTH), "pulse" #K "_depth", "micro.pulse" #K ".depth", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, \
           NULL, "how far a closed step goes down: 1 to silence, less leaves some of the layer through"),             \
-    PARAM(MICRO_PU(K - 1, MICRO_PU_TARGET), "pulse" #K "_target", "micro.pulse" #K ".target", 0.0f, 8.0f, 0.0f, PARAM_INT, \
-          "", 0, pulse_target_labels, "the layers it opens and closes: main (sine, sub, click), sine2, both sines, "   \
-          "noise, low, the tone and the noise, all; ortho: the main sine is its ortho noise on an open step and the sine on a "  \
-          "closed one; trigger: every step that opens restarts the noise's envelope and hits the low layer")
+    PARAM(MICRO_PU(K - 1, MICRO_PU_OPEN), "pulse" #K "_open", "micro.pulse" #K ".open", 0.0f, 127.0f, 0.0f, PARAM_INT, "", \
+          0, NULL, "what its open steps open, as bits: 1 main (sine, sub, click), 2 second sine, 4 noise, 8 low, 16 ortho " \
+          "(the main sine is its ortho noise when open, the sine when closed), 32 a hit of the low layer on each step " \
+          "that opens, 64 the noise's own envelope restarted on each step that opens (1 + 4 = 5: the tone and the noise)"), \
+    PARAM(MICRO_PU(K - 1, MICRO_PU_OPEN_NOT), "pulse" #K "_open_not", "micro.pulse" #K ".open_not", 0.0f, 127.0f, 0.0f, \
+          PARAM_INT, "", 0, NULL, "what its closed steps open (the pulse inverted, NOT), with the same bits as `open`: " \
+          "the tone on `open` and the noise on `open_not` interlock exactly")
 
 const param_desc_t micro_params[MICRO_P_COUNT] = {
     PARAM(MICRO_P_VOICE_MODE, "voice_mode", "voice.mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, param_voice_mode_labels,
@@ -131,20 +129,6 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           "repeat rate when not on the tempo"),
     PARAM(MICRO_P_RATCHET_DECAY, "ratchet_decay", "micro.ratchet_decay", -24.0f, 6.0f, -3.0f, PARAM_LIN, "dB", 1,
           NULL, "level change at each repeat (< 0: dying away, > 0: growing toward full level)"),
-    PARAM(MICRO_P_GATE_MODE, "gate_mode", "micro.gate_mode", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, gate_mode_labels,
-          "16-step gate pattern: on the song's beat (sync) or from the note at `gate_hz` (free, up to audio rates)"),
-    PARAM(MICRO_P_GATE_DIV, "gate_div", "micro.gate_div", 1.0f, (float)(TEMPO_DIV_COUNT - 1), 3.0f, PARAM_INT, "", 0,
-          tempo_div_labels, "length of a step in sync mode"),
-    PARAM(MICRO_P_GATE_HZ, "gate_hz", "micro.gate_hz", 0.5f, 2000.0f, 32.0f, PARAM_EXP, "Hz", 1, NULL,
-          "steps per second in free mode"),
-    PARAM(MICRO_P_GATE_STEPS, "gate_steps", "micro.gate_steps", 1.0f, 16.0f, 16.0f, PARAM_INT, "", 0, NULL,
-          "length of the pattern"),
-    PARAM(MICRO_P_GATE_PATTERN, "gate_pattern", "micro.gate_pattern", 0.0f, 65535.0f, 43690.0f, PARAM_INT, "", 0,
-          NULL, "the pattern as 16 bits, step 1 = the lowest bit (43690 = every other step, from step 2)"),
-    PARAM(MICRO_P_GATE_DEPTH, "gate_depth", "micro.gate_depth", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
-          "how far a closed step cuts the sound (1 = silence)"),
-    PARAM(MICRO_P_GATE_EDGE, "gate_edge", "micro.gate_edge", 0.00002f, 0.02f, 0.001f, PARAM_EXP, "s", 1, NULL,
-          "time of each gate edge (the bottom = one sample: hard, digital)"),
     PARAM(MICRO_P_PAN, "pan", "micro.pan", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, "position in the stereo field"),
     PARAM(MICRO_P_VOLUME, "volume", "output.volume", -60.0f, 24.0f, 0.0f, PARAM_DB, "dB", 1, NULL, "engine volume"),
     PARAM(MICRO_P_NOISE_LEVEL, "noise_level", "noise.level", -60.0f, 12.0f, -60.0f, PARAM_DB, "dB", 1, NULL,
@@ -162,14 +146,9 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           "resonance of the noise filter (high = a narrow, whistling band)"),
     PARAM(MICRO_P_NOISE_ENV, "noise_env", "micro.noise_env", 0.0f, 2.0f, 0.0f, PARAM_INT, "", 0, noise_env_labels,
           "amp: the noise follows the amplitude envelope; hit: its own decay from every hit; step: its own decay, "
-          "restarted on every step where its gate opens (a tick per step)"),
+          "restarted on every step a gate LFO opens it on (a tick per step)"),
     PARAM(MICRO_P_NOISE_DECAY, "noise_decay", "micro.noise_decay", 0.0005f, 4.0f, 0.05f, PARAM_EXP, "s", 1, NULL,
           "length of the noise's own decay (hit and step modes; time to -60 dB)"),
-    PARAM(MICRO_P_NOISE_GATE, "noise_gate", "micro.noise_gate", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0,
-          noise_gate_labels, "the noise on the gate's steps: off (not gated), same steps as the tone, inverse (the "
-          "noise fills the tone's holes) or its own `noise_pattern`; needs `gate_mode`"),
-    PARAM(MICRO_P_NOISE_PATTERN, "noise_pattern", "micro.noise_pattern", 0.0f, 65535.0f, 21845.0f, PARAM_INT, "", 0,
-          NULL, "the noise's own pattern, 16 bits, step 1 = the lowest bit (21845 = every other step, from step 1)"),
     PARAM(MICRO_P_NOISE_PAN, "noise_pan", "micro.noise_pan", -1.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
           "position of the noise, relative to `pan`"),
     PARAM(MICRO_P_LOW_LEVEL, "low_level", "micro.low_level", -60.0f, 12.0f, -60.0f, PARAM_DB, "dB", 1, NULL,
@@ -196,11 +175,6 @@ const param_desc_t micro_params[MICRO_P_COUNT] = {
           "curve of the decay: 0 = a straight line, towards 1 = a fast fall then a long tail, towards -1 = held then cut"),
     PARAM(MICRO_P_LOW_DRIVE, "low_drive", "micro.low_drive", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
           "saturation of the low sine: harmonics that carry it on small speakers, towards a square at the top"),
-    PARAM(MICRO_P_LOW_GATE, "low_gate", "micro.low_gate", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, noise_gate_labels,
-          "off: one hit per note (and per ratchet); else a hit on every step that opens while the note is held: the "
-          "same steps as the tone, the inverse ones, or its own `low_pattern`; needs `gate_mode`"),
-    PARAM(MICRO_P_LOW_PATTERN, "low_pattern", "micro.low_pattern", 0.0f, 65535.0f, 4369.0f, PARAM_INT, "", 0, NULL,
-          "the low layer's own pattern, 16 bits, step 1 = the lowest bit (4369 = one step in four, from step 1)"),
     PARAM(MICRO_P_LOW_BEAT, "low_beat", "micro.low_beat", -30.0f, 30.0f, 0.0f, PARAM_LIN, "Hz", 1, NULL,
           "a second low sine this many hertz away from the first (0 = none): the two interfere, the level swells "
           "and falls `low_beat` times a second, starting full on every hit"),
@@ -448,6 +422,16 @@ static void low_next(micro_t *e, micro_voice_t *v)
     }
 }
 
+/* a pulse that hits the low layer on its steps (bit 32 in either mask) */
+static int low_on_steps(const micro_t *e)
+{
+    for (int k = 0; k < MICRO_PULSES; k++)
+        if ((int)e->p[MICRO_PU(k, MICRO_PU_MODE)] > 0 &&
+            (((int)e->p[MICRO_PU(k, MICRO_PU_OPEN)] | (int)e->p[MICRO_PU(k, MICRO_PU_OPEN_NOT)]) & MICRO_M_HIT))
+            return 1;
+    return 0;
+}
+
 /* a hit: the note's first one or a ratchet repeat */
 static void hit(micro_t *e, micro_voice_t *v)
 {
@@ -487,10 +471,8 @@ static void hit(micro_t *e, micro_voice_t *v)
     }
     if ((int)e->p[MICRO_P_NOISE_ENV] > 0)
         v->noise_amp = 1.0f;
-    if (e->p[MICRO_P_LOW_LEVEL] > -59.9f && ((int)e->p[MICRO_P_GATE_MODE] == 0 || (int)e->p[MICRO_P_LOW_GATE] == 0))
+    if (e->p[MICRO_P_LOW_LEVEL] > -59.9f && !low_on_steps(e)) /* a low layer hit by the pulses waits for their steps */
         low_hit(e, v);
-    if ((int)e->p[MICRO_P_GATE_MODE] == 2 && v->hit_index == 0)
-        v->gate_phase = 0.0f;
     if (v->hit_index == 0) /* free pulses start from the note: step 0 on this sample */
         for (int k = 0; k < MICRO_PULSES; k++) {
             v->pu_n[k] = 0;
@@ -537,16 +519,12 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         dist_reset(&v->dist);
         svf_reset(&v->noise_f);
         v->noise_amp = 0.0f;
-        v->ngate_g = -1.0f;
-        v->nstep = -1;
-        v->lstep = -1;
         v->low_stage = MICRO_ENV_IDLE;
         v->low_amp.y = v->low_tail = 0.0f;
         v->low_pitch_on = 0;
         v->vm_fresh = 1;
-        v->gate_g = -1.0f; /* set on the first sample */
-        for (int k = 0; k < MICRO_PULSES; k++)
-            v->pu_g[k] = -1.0f, v->pu_last[k] = -1;
+        for (int k = 0; k < MICRO_PULSES; k++) /* set on the first sample */
+            v->pu_g[k] = v->pu_gn[k] = -1.0f, v->pu_last[k] = -1;
     }
     const float vs = e->p[MICRO_P_VELOCITY];
     v->vel = 1.0f - vs + vs * vel;
@@ -639,10 +617,7 @@ static void micro_init(void *st, float sample_rate)
         v->low_amp.y = v->low_tail = v->low_tail_d = v->low_ph = v->low_ph2 = 0.0f;
         v->low_semi = 28.0f;
         v->low_pitch_on = 0;
-        v->lstep = -1;
         v->lfsr = 0x7Fu;
-        v->ngate_g = -1.0f;
-        v->nstep = -1;
     }
 }
 
@@ -716,24 +691,19 @@ typedef struct {
     float o2ratio, o2off, sub_mul, pamt, glide_c;
     int cm, drive_on;
     float click_g, click_mul;
-    int gmode, gsteps;                        /* the gate pattern */
-    uint32_t gpat;
-    float gfloor, gslew, ginv, ghz, db;
+    float db;                                 /* beats per sample */
     float pan_l, pan_r;
     float ln;                                 /* the noise layer */
-    int ntype, nfilt, nenv, ngate;
+    int ntype, nfilt, nenv;
     float nrate, nmul;
-    uint32_t npat;
     float ll;                                 /* the low layer */
-    int lgate;
-    uint32_t lpat;
     float ldg, lnorm, ldrop, lbeat, lmix;
     int space;                                /* free, hard, alternate */
     int pulses;                               /* pulses on (0: none, the loop skips them) */
-    int pu_ortho;                             /* a pulse targets ortho (and ortho is on) */
+    int pu_ortho;                             /* a pulse opens ortho (and ortho is on) */
     int pu_mode[MICRO_PULSES], pu_steps[MICRO_PULSES], pu_off[MICRO_PULSES];
     uint32_t pu_pat[MICRO_PULSES];
-    uint8_t pu_mask[MICRO_PULSES];
+    uint8_t pu_open[MICRO_PULSES], pu_not[MICRO_PULSES]; /* its masks (MICRO_M_*): on its open steps, on its closed ones */
     float pu_slew[MICRO_PULSES], pu_floor[MICRO_PULSES];
     int64_t pu_len[MICRO_PULSES];             /* free pulses: a step, in 1/65536 samples */
     uint8_t pu_step[MICRO_PULSES][SYNTH_BLOCK]; /* pulses on the beat: the step of each sample (the same for every voice) */
@@ -749,7 +719,7 @@ static inline void hard_pan(float x, float *l, float *r)
 }
 
 /* A gate's gain one sample further toward its target, by at most `slew` (its edge); a gain below 0 has just
- * started and takes the target at once. The gate, the noise gate and the pulses all move this way. */
+ * started and takes the target at once. The pulses move this way. */
 static inline float gate_slew(float g, float target, float slew)
 {
     if (g < 0.0f)
@@ -869,16 +839,10 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
     const float glide_c = blk->glide_c;
     const int cm = blk->cm, drive_on = blk->drive_on;
     const float click_g = blk->click_g, click_mul = blk->click_mul;
-    const int gmode = blk->gmode, gsteps = blk->gsteps;
-    const uint32_t gpat = blk->gpat;
-    const float gfloor = blk->gfloor, gslew = blk->gslew, ginv = blk->ginv, ghz = blk->ghz, db = blk->db;
     const float ln = blk->ln;
-    const int ntype = blk->ntype, nfilt = blk->nfilt, nenv = blk->nenv, ngate = blk->ngate;
+    const int ntype = blk->ntype, nfilt = blk->nfilt, nenv = blk->nenv;
     const float nrate = blk->nrate, nmul = blk->nmul;
-    const uint32_t npat = blk->npat;
     const float ll = blk->ll;
-    const int lgate = blk->lgate;
-    const uint32_t lpat = blk->lpat;
     const float ldg = blk->ldg, lnorm = blk->lnorm, ldrop = blk->ldrop, lbeat = blk->lbeat, lmix = blk->lmix;
 
     micro_voice_t *v = &e->v[vi];
@@ -917,11 +881,12 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
             v->off_in--;
         }
 
-        /* pulses: each one's step on the beat or from the note, its pattern, its slewed gain into the layers it
-         * targets (m, applied at the end of the sample); a trigger pulse stepping into an open step restarts the noise
-         * and the low layer on this very sample */
+        /* pulses: each one's step on the beat or from the note, its pattern; its slewed gain into what its open
+         * steps open, its inverse's into what its closed steps open (m, applied at the end of the sample). A new step
+         * acts on this very sample on what it opens: a tick of the noise (its step envelope), a restart of the noise's
+         * own envelope, a hit of the low layer */
         float m[5] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f}; /* main, second sine, noise, low, ortho */
-        int trig = 0;
+        unsigned events = 0;
         if (blk->pulses)
             for (int k = 0; k < MICRO_PULSES; k++) {
                 const int mode = blk->pu_mode[k];
@@ -939,13 +904,22 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                     v->pu_n[k]++;
                 }
                 const int open = (int)((blk->pu_pat[k] >> ps) & 1u);
-                if ((blk->pu_mask[k] & 32u) && ps != v->pu_last[k] && open)
-                    trig = 1;
+                if (ps != v->pu_last[k])
+                    events |= open ? blk->pu_open[k] : blk->pu_not[k];
                 v->pu_last[k] = (int8_t)ps;
-                const float pg = v->pu_g[k] = gate_slew(v->pu_g[k], open ? 1.0f : blk->pu_floor[k], blk->pu_slew[k]);
-                for (int t = 0; t < 5; t++)
-                    if (blk->pu_mask[k] & (1u << t))
-                        m[t] *= pg;
+                const unsigned mo = blk->pu_open[k] & 31u, mn = blk->pu_not[k] & 31u;
+                if (mo) {
+                    const float pg = v->pu_g[k] = gate_slew(v->pu_g[k], open ? 1.0f : blk->pu_floor[k], blk->pu_slew[k]);
+                    for (int t = 0; t < 5; t++)
+                        if (mo & (1u << t))
+                            m[t] *= pg;
+                }
+                if (mn) {
+                    const float pg = v->pu_gn[k] = gate_slew(v->pu_gn[k], open ? blk->pu_floor[k] : 1.0f, blk->pu_slew[k]);
+                    for (int t = 0; t < 5; t++)
+                        if (mn & (1u << t))
+                            m[t] *= pg;
+                }
             }
 
         /* amplitude envelope */
@@ -997,29 +971,12 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
             }
         }
 
-        /* gate pattern */
-        float gg = 1.0f;
-        int step = -1;
-        if (gmode > 0) {
-            if (gmode == 1) {
-                const float beat = e->beat0 + db * (float)i;
-                step = (int)(beat * ginv) % gsteps;
-            } else {
-                step = (int)v->gate_phase;
-                v->gate_phase += ghz;
-                if (v->gate_phase >= (float)gsteps)
-                    v->gate_phase -= (float)gsteps;
-            }
-            const float target = (gpat >> step) & 1u ? 1.0f : gfloor;
-            gg = v->gate_g = gate_slew(v->gate_g, target, gslew);
-        }
-
-        const float g = env * gg;
+        const float g = env;
         xa[i] = a * g;
         xd[i] = od * g;
         xb[i] = b * g;
 
-        /* noise layer: generator, its gate (its own slew), its envelope */
+        /* noise layer: generator, its envelope (a tick or a restart on a pulse's step) */
         if (ln > 0.0f) {
             float x;
             if (ntype == 0) {
@@ -1038,21 +995,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                 }
                 x = v->noise_hold;
             }
-            float ng = 1.0f;
-            int open = 1;
-            if (step >= 0) {
-                if (ngate > 0) {
-                    open = (int)((npat >> step) & 1u);
-                    const float target = open ? 1.0f : gfloor;
-                    ng = v->ngate_g = gate_slew(v->ngate_g, target, gslew);
-                }
-                if (step != v->nstep) { /* a new step: a tick if the noise opens on it and the note is held */
-                    if (nenv == 2 && open && v->gate)
-                        v->noise_amp = 1.0f;
-                    v->nstep = step;
-                }
-            }
-            if (trig && nenv > 0 && v->gate) /* a trigger pulse: the noise's own envelope starts again */
+            if ((((events & MICRO_M_NOISE) && nenv == 2) || ((events & MICRO_M_RESTART) && nenv > 0)) && v->gate)
                 v->noise_amp = 1.0f;
             float ne;
             if (nenv == 0) {
@@ -1061,21 +1004,14 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                 ne = v->noise_amp;
                 v->noise_amp *= nmul;
             }
-            xn[i] = x * ne * ng;
+            xn[i] = x * ne;
         }
 
-        /* low layer: a hit on every step its gate opens, then its sine under its own envelope */
+        /* low layer: a hit on every step a pulse opens it on, then its sine under its own envelope */
         if (low_live) {
-            if (trig && ll > 0.0f && v->gate) { /* a trigger pulse: a hit of the low layer */
+            if ((events & MICRO_M_HIT) && ll > 0.0f && v->gate) { /* a pulse's step: a hit of the low layer */
                 low_hit(e, v);
                 linc = inc_of(v->low_semi + (v->low_pitch_on ? ldrop : 0.0f), inv_sr);
-            }
-            if (lgate > 0 && step >= 0 && step != v->lstep) {
-                if (ll > 0.0f && v->gate && ((lpat >> step) & 1u)) {
-                    low_hit(e, v);
-                    linc = inc_of(v->low_semi + (v->low_pitch_on ? ldrop : 0.0f), inv_sr);
-                }
-                v->lstep = step;
             }
             if (v->low_semi != lseen) { /* a hit moved it (also the note's own, a few lines up) */
                 lseen = v->low_semi;
@@ -1118,9 +1054,9 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
             c = v->click_amp * dsp_rand_bipolar(&v->noise);
             v->click_amp *= click_mul;
         }
-        ck[i] = c * gg;
+        ck[i] = c;
 
-        /* pulses: their gains, computed at the top of the sample (above), applied to the layers they target */
+        /* pulses: their gains, computed at the top of the sample (above), applied to the layers they open */
         if (blk->pulses) {
             xa[i] *= m[0];
             ck[i] *= m[0];
@@ -1129,7 +1065,7 @@ static DSP_FAST_CODE void voice_render(micro_t *e, int vi, const micro_block_t *
                 xn[i] *= m[2];
             if (low_live)
                 xw[i] *= m[3];
-            if (blk->pu_ortho) /* ortho target: from the ortho noise (open) back toward the sine (closed) */
+            if (blk->pu_ortho) /* ortho: from the ortho noise (open) back toward the sine (closed) */
                 xa[i] -= (1.0f - m[4]) * xd[i];
         }
         any_click |= c != 0.0f;
@@ -1193,27 +1129,16 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
     b.click_g = fm_db2lin(p[MICRO_P_CLICK_LEVEL]);
     b.click_mul = fm_exp2(-9.966f / (p[MICRO_P_CLICK_DECAY] * e->sr)); /* -60 dB after click_decay */
     b.drive_on = p[MICRO_P_DRIVE] > 0.05f;
-    b.gmode = (int)p[MICRO_P_GATE_MODE];
-    b.gsteps = (int)p[MICRO_P_GATE_STEPS];
-    b.gpat = (uint32_t)p[MICRO_P_GATE_PATTERN];
-    b.gfloor = 1.0f - p[MICRO_P_GATE_DEPTH];
-    b.gslew = 1.0f / ((float)samples_of(p[MICRO_P_GATE_EDGE], e->sr));
-    const float gdiv = tempo_div_beats[(int)p[MICRO_P_GATE_DIV]];
-    b.ginv = gdiv > 0.0f ? 1.0f / gdiv : 4.0f;
-    b.ghz = p[MICRO_P_GATE_HZ] * inv_sr;
     b.db = (e->beat1 - e->beat0) / (float)n;
     voice_pan(p[MICRO_P_PAN], &b.pan_l, &b.pan_r);
     /* the noise layer */
     b.ln = p[MICRO_P_NOISE_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_NOISE_LEVEL]);
     b.ntype = (int)p[MICRO_P_NOISE_TYPE], b.nfilt = (int)p[MICRO_P_NOISE_FILTER];
-    b.nenv = (int)p[MICRO_P_NOISE_ENV], b.ngate = b.gmode > 0 ? (int)p[MICRO_P_NOISE_GATE] : 0;
+    b.nenv = (int)p[MICRO_P_NOISE_ENV];
     b.nrate = dsp_minf(p[MICRO_P_NOISE_RATE] * inv_sr, 1.0f);
     b.nmul = fm_exp2(-9.966f / (p[MICRO_P_NOISE_DECAY] * e->sr)); /* -60 dB after noise_decay */
-    b.npat = b.ngate == 1 ? b.gpat : b.ngate == 2 ? ~b.gpat : (uint32_t)p[MICRO_P_NOISE_PATTERN];
     /* the low layer */
     b.ll = p[MICRO_P_LOW_LEVEL] <= -59.9f ? 0.0f : fm_db2lin(p[MICRO_P_LOW_LEVEL]);
-    b.lgate = b.gmode > 0 ? (int)p[MICRO_P_LOW_GATE] : 0;
-    b.lpat = b.lgate == 1 ? b.gpat : b.lgate == 2 ? ~b.gpat : (uint32_t)p[MICRO_P_LOW_PATTERN];
     b.ldg = 1.0f + 7.0f * p[MICRO_P_LOW_DRIVE], b.lnorm = 1.0f / fm_tanh(b.ldg), b.ldrop = p[MICRO_P_LOW_DROP];
     b.space = (int)p[MICRO_P_SPACE];
     b.pulses = 0;
@@ -1225,8 +1150,9 @@ static DSP_FAST_CODE void micro_render(void *st, float *L, float *R)
         b.pu_steps[k] = dsp_clampi((int)q[MICRO_PU_STEPS], 1, 16);
         b.pu_off[k] = (int)q[MICRO_PU_OFFSET];
         b.pu_pat[k] = (uint32_t)q[MICRO_PU_PATTERN];
-        b.pu_mask[k] = pulse_target_mask[dsp_clampi((int)q[MICRO_PU_TARGET], 0, 8)];
-        b.pu_ortho |= b.pu_mode[k] > 0 && (b.pu_mask[k] & 16u) && b.ortho.on;
+        b.pu_open[k] = (uint8_t)dsp_clampi((int)q[MICRO_PU_OPEN], 0, MICRO_M_ALL);
+        b.pu_not[k] = (uint8_t)dsp_clampi((int)q[MICRO_PU_OPEN_NOT], 0, MICRO_M_ALL);
+        b.pu_ortho |= b.pu_mode[k] > 0 && ((b.pu_open[k] | b.pu_not[k]) & MICRO_M_ORTHO) && b.ortho.on;
         if (b.pu_mode[k] == 1) {
             /* on the beat: the step of each sample from the integer clock and a step length in 1/65536 samples,
              * so a step of a whole number of samples is exactly that */
@@ -1299,11 +1225,10 @@ static const engine_stage_t micro_stages[] = {
                           "velocity pan volume", "drive osc2 noise low", NULL, NULL, 0.0f, 0.0f},
     {"pitch_env", "Pitch env", "mod", "pitch_amount pitch_time pitch_curve", "", "sine osc2 sub", NULL, 0.0f, 0.0f},
     {"ratchet", "Ratchet", "mod", "ratchet ratchet_div ratchet_hz ratchet_decay", "", "amp", "ratchet", 1.0f, 4.0f},
-    {"gate", "Gate LFO 1", "mod", "gate_", "", "amp noise low", "gate_mode", 0.0f, 1.0f},
-    {"pulse1", "Gate LFO 2", "mod", "pulse1_", "", "sine osc2 noise low", "pulse1_mode", 0.0f, 1.0f},
-    {"pulse2", "Gate LFO 3", "mod", "pulse2_", "", "sine osc2 noise low", "pulse2_mode", 0.0f, 1.0f},
-    {"pulse3", "Gate LFO 4", "mod", "pulse3_", "", "sine osc2 noise low", "pulse3_mode", 0.0f, 1.0f},
-    {"pulse4", "Gate LFO 5", "mod", "pulse4_", "", "sine osc2 noise low", "pulse4_mode", 0.0f, 1.0f},
+    {"pulse1", "Gate LFO 1", "mod", "pulse1_", "", "sine osc2 noise low", "pulse1_mode", 0.0f, 1.0f},
+    {"pulse2", "Gate LFO 2", "mod", "pulse2_", "", "sine osc2 noise low", "pulse2_mode", 0.0f, 1.0f},
+    {"pulse3", "Gate LFO 3", "mod", "pulse3_", "", "sine osc2 noise low", "pulse3_mode", 0.0f, 1.0f},
+    {"pulse4", "Gate LFO 4", "mod", "pulse4_", "", "sine osc2 noise low", "pulse4_mode", 0.0f, 1.0f},
     {"grid", "Grid and space", "mod", "lock space space_delay", "", "sine osc2 low noise", NULL, 0.0f, 0.0f},
     {"voice", "Voice", "voice", "voice_mode glide bend_range", "", NULL, NULL, 0.0f, 0.0f},
 };
@@ -1312,8 +1237,8 @@ const engine_ops_t micro_engine = {
     .name = "micro",
     .description = "precision sines: per-sample envelopes, fixed or keyed pitch, pitch envelope, second sine, sub, "
                    "click, the main sine turned toward noise (ortho), noise layer, low layer (a sub with its own sample-exact "
-                   "envelope and pitch drop), tone bursts, ratchets, five gate LFOs (on / off rhythms exact to the sample: "
-                   "the first steps the noise and low layers, the others open, close or trigger any layer) (8 voices)",
+                   "envelope and pitch drop), tone bursts, ratchets, four gate LFOs (on / off rhythms exact to the sample "
+                   "that open and close any layer, or its inverse, as binary masks, and tick or hit them) (8 voices)",
     .params = micro_params,
     .param_count = MICRO_P_COUNT,
     .voices = MICRO_VOICES,

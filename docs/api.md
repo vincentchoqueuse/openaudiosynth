@@ -293,7 +293,7 @@ parameter descriptors: the single source of truth for UIs, MIDI learn, presets, 
 ## `dsp/mod/partmod.h`
 parameter and modulation layer of a part, the same for every engine. Parameter changes made while notes sound (knobs, CCs, macros, routes) glide to their target with a 5 ms one-pole, for every engine; with nothing sounding they apply at once (patch loading stays exact). Modulation: 8 macros, 2 LFOs (free or tempo-synced), 2 MSEGs, MIDI sources (mod wheel, aftertouch, pitch bend, velocity, note, random per note) and 8 routes {source, destination, amount, via} onto any `realtime` parameter of the part's engine. Evaluated once per block: each modulated parameter gets base + sum of its routes (normalized domain, clamped) through the engine's set_param; when a route goes away the base value is restored. One value per part (all voices). Wander: eight slow random walks, one per macro at rates that share no period; `wander` adds each to its macro (the sound drifts through what its macros reach, never twice the same way), and the first is a source.
 - types: `partmod_t`
-- constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_WANDER`, `PM_WANDER_RATE`, `PM_COUNT`, `PM_WAVE_FOURIER` = 5, `PM_WAVE_WIENER` = 6
+- constants: `PM_MACROS` = 8, `PM_LFOS` = 2, `PM_MSEGS` = 2, `PM_ROUTES` = 8, `PM_ENGINE_PARAMS` = 256, `PM_SMOOTH_S` = 0.005f, `PM_VBASE`, `PM_WANDER`, `PM_WANDER_RATE`, `PM_WAVE_FOURIER` = 5, `PM_WAVE_WIENER` = 6
 - data: `const param_desc_t partmod_params[PM_COUNT]`
 - `int pm_global_target(int id)` — ids below this one
 - `void partmod_init(partmod_t *m, float sample_rate, uint32_t seed)`

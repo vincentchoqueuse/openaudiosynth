@@ -4049,4 +4049,4 @@ const preset_t presets[] = {
 };
 
 const int preset_count = 110;
-const uint32_t preset_catalog = 0x20941CC5u; /* catalog_hash() */
+const uint32_t preset_catalog = 0x4AD67BFBu; /* catalog_hash() */

@@ -61,6 +61,7 @@ class Session {
   settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)
+  played = $state(new Set()); // notes held on the on-screen or computer keyboard (the piano roll lights them, with held)
   saving = $state(null); // the save dialog: {name, description, exists, error}
   toast = $state(null); // {text, kind}: a short notice at the bottom
   meter = $state({ level: 0, hold: -Infinity }); // the output level (0..1 of -90..0 dBFS) and its held peak (dBFS)

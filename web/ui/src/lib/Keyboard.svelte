@@ -4,6 +4,7 @@
      The computer's keys play only while `active` (the Live player shown); folding it releases the keys down. -->
 <script>
   import { keyIsForControl } from './keys.js';
+  import { session } from './session.svelte.js';
   let { synth, held = new Set(), active = true } = $props();
   let octave = $state(3);
   let down = $state(new Set());
@@ -46,6 +47,7 @@
   function ku(e) { const n = keyNote(e.code); if (n >= 0) off(n); }
   $effect(() => { if (!active) [...down].forEach(off); }); // folded: what the keys held is let go
   const lit = (n) => down.has(n) || latched.has(n) || held.has(n);
+  $effect(() => { session.played = new Set([...down, ...latched]); }); // shown on the piano roll
   const blackX = (i) => (whites.filter((w) => w.i < i).length * 100) / whites.length;
   function press(e, n) { e.currentTarget.setPointerCapture(e.pointerId); on(n); }
 </script>

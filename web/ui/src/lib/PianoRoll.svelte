@@ -82,6 +82,17 @@
     return () => ro.disconnect();
   });
   const black = (p) => [1, 3, 6, 8, 10].includes(p % 12);
+  // the notes being played (on-screen or computer keyboard, MIDI input): their key and lane light up, and the roll
+  // scrolls to show the newest one when it is out of view
+  const sounding = $derived(new Set([...session.played, ...session.held]));
+  let lastSounding = new Set();
+  $effect(() => {
+    const now = sounding, fresh = [...now].filter((p) => !lastSounding.has(p));
+    lastSounding = now;
+    if (!fresh.length || !scroller) return;
+    const y = (top - fresh[fresh.length - 1]) * ROW, h = scroller.clientHeight;
+    if (y < scroller.scrollTop || y + ROW > scroller.scrollTop + h) scroller.scrollTo({ top: Math.max(0, y - h / 2), behavior: 'smooth' });
+  });
   const bars = $derived(Array.from({ length: Math.ceil(q.length / 4) }, (_, i) => i));
 
   let tool = $state('draw'); // 'draw' | 'select'
@@ -392,7 +403,7 @@
   <div class="scroll" bind:this={scroller} style="height:{boxH}px">
     <div class="pkeys">
       {#each pitches as p (p)}
-        <button class="key" class:black={black(p)} class:c={p % 12 === 0} onpointerdown={() => sound(p)} tabindex="-1">
+        <button class="key" class:black={black(p)} class:c={p % 12 === 0} class:lit={sounding.has(p)} onpointerdown={() => sound(p)} tabindex="-1">
           {p % 12 === 0 || !black(p) ? noteName(p) : ''}</button>
       {/each}
     </div>
@@ -400,7 +411,7 @@
          onpointerdown={down} onpointermove={move} onpointerup={up} onpointercancel={up}
          ondblclick={dbl} oncontextmenu={context} role="application" aria-label="Piano roll" tabindex="-1">
       {#each pitches as p, i (p)}
-        <div class="lane" class:black={black(p)} class:out={!inScale(p, q.root, q.scale)} style="top:{i * ROW}px"></div>
+        <div class="lane" class:black={black(p)} class:out={!inScale(p, q.root, q.scale)} class:lit={sounding.has(p)} style="top:{i * ROW}px"></div>
       {/each}
       <div class="lines">{#each vlines as l}<span class="vl {l.kind}" style="left:{l.x}px"></span>{/each}</div>
       {#each q.notes as n (n.id)}
@@ -440,11 +451,13 @@
   .key.black { background: var(--faint); }
   .key.c { color: var(--text); }
   .key:hover { background: var(--accent-soft); }
+  .key.lit { background: var(--accent); color: var(--on-accent, #fff); }
   .area { position: relative; cursor: crosshair; touch-action: none; overflow: hidden; outline: none; }
   .area.select { cursor: default; }
   .lane { position: absolute; left: 0; right: 0; height: var(--row); border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); }
   .lane.black { background: color-mix(in srgb, var(--faint) 55%, transparent); }
   .lane.out { background: color-mix(in srgb, var(--faint) 90%, transparent); }
+  .lane.lit { background: color-mix(in srgb, var(--accent) 22%, transparent); }
   .lines { position: absolute; inset: 0; pointer-events: none; }
   .vl { position: absolute; top: 0; bottom: 0; width: 1px; background: color-mix(in srgb, var(--line) 30%, transparent); }
   .vl.beat { background: color-mix(in srgb, var(--line) 60%, transparent); }

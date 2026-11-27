@@ -1,6 +1,6 @@
 <!-- CodeView.svelte — a record's Code tab: the instrument (the sound's patch file, in Synth) or the sequencer (the
      clip, in Sequence), in a code editor as tall as the page (CodeEditor: line numbers, colors, errors underlined). Apply (or Cmd/Ctrl+Enter) reads it back: the engine's patch reader for the sound, fromDoc for the clip,
-     whose message says what is wrong. Reload writes it again from what plays; the text follows what plays until
+     whose message says what is wrong. Copy puts the whole text in the clipboard. Reload writes it again from what plays; the text follows what plays until
      it is typed in. -->
 <script>
   import { untrack } from 'svelte';
@@ -35,6 +35,24 @@
     if (!error) text = shown;
   }
   function reload() { error = ''; text = shown; }
+  // the whole text to the clipboard (as it is in the editor, typed in or not)
+  let copied = $state(false), copyTimer;
+  async function copy() {
+    let ok = false;
+    try { await navigator.clipboard.writeText(text); ok = true; } catch { /* refused: the older way below */ }
+    if (!ok) { // a selected text area and the copy command, which more browsers allow on a click
+      const ta = Object.assign(document.createElement('textarea'), { value: text });
+      ta.style.cssText = 'position:fixed;left:-9999px;top:0';
+      document.body.appendChild(ta);
+      ta.select();
+      try { ok = document.execCommand('copy'); } catch { ok = false; }
+      ta.remove();
+    }
+    if (!ok) { s.notify('Could not copy: the browser refused the clipboard'); return; }
+    copied = true;
+    clearTimeout(copyTimer);
+    copyTimer = setTimeout(() => (copied = false), 1500);
+  }
 </script>
 
 <div class="codeview">
@@ -43,6 +61,7 @@
       {syntax ? `JSON: ${syntax}` : error || (edited ? 'Edited, not applied' : '')}
     </span>
     <span class="spacer"></span>
+    <button class="btn ghost" onclick={copy} title="the whole text to the clipboard">{copied ? 'Copied' : 'Copy'}</button>
     <button class="btn ghost" onclick={reload} disabled={!edited && !error} title="the text again from what plays">Reload</button>
     <button class="btn" onclick={apply} disabled={!!syntax || busy || !edited} title="Cmd/Ctrl+Enter">Apply</button>
   </div>

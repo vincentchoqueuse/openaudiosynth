@@ -1,6 +1,6 @@
 <!-- SequenceTab.svelte — the clip in the Clip view's Sequencer (it belongs to the sound: Save in the Menu keeps
      both): a toolbar (loop, position, grid; Init, Randomize, Settings; the tempo is in the top bar), then the piano roll
-     with its editing tools. What is set once goes in the Clip settings dialog: the clip's length, its key and scale,
+     with its editing tools; the clip's length in the toolbar too. What is set once goes in the Clip settings dialog: its key and scale,
      the octave of Randomize, the loops of an exported song. -->
 <script>
   import PianoRoll from './PianoRoll.svelte';
@@ -11,6 +11,9 @@
   import { sequence as q, LOOPS } from './sequence.svelte.js';
   import { NAMES, SCALES, GRIDS } from './seqExport.js';
   const BARS = [1, 2, 4, 8, 16], OCTAVES = [1, 2, 3, 4, 5];
+  // the clip's length in the toolbar: bars, and the present one when it is not whole bars
+  const lengths = $derived([...(BARS.some((b) => b * 4 === q.length) ? [] : [{ value: q.length, label: `${q.length} beats` }]),
+                            ...BARS.map((b) => ({ value: b * 4, label: `${b} bar${b > 1 ? 's' : ''}` }))]);
   const summary = $derived(`${q.length} beats, ${NAMES[q.root]} ${q.scale}, octave ${q.octave}`);
 </script>
 
@@ -18,6 +21,8 @@
   <Switch label="Loop" on={q.loop} onchange={(v) => (q.loop = v)} title={q.loop ? `the clip repeats every ${q.length} beats` : 'the clip plays once'} />
   <span class="pos mono" title="bar . beat . sixteenth">{q.position}</span>
   <label>Grid <Select bind:value={q.grid} label="Grid" options={GRIDS.map(([l, v]) => ({ value: v, label: l }))} /></label>
+  <label title="The clip's length, which is also its loop; shorter, the notes past its end are kept (shaded), only not played">Length
+    <Select value={q.length} onchange={(v) => (q.length = v)} label="Length" options={lengths} /></label>
   <span class="spacer"></span>
   <button class="tool" onclick={q.clear} title="Clear the clip"><Icon name="init" size={13} /> Init</button>
   <button class="tool" onclick={q.random} title="New random notes in the clip, in its scale"><Icon name="dice" size={13} /> Randomize</button>
@@ -30,9 +35,6 @@
   <div class="scrim" role="presentation" onclick={(e) => e.target === e.currentTarget && (s.clipSettingsOpen = false)}>
     <div class="dialog" role="dialog" aria-modal="true" aria-label="Clip settings">
       <div class="dhead"><h2>Clip settings</h2><button class="btn ghost" onclick={() => (s.clipSettingsOpen = false)}>Close</button></div>
-      <label>Length <Select value={q.length} onchange={(v) => (q.length = v)} label="Length"
-        options={[...(BARS.some((b) => b * 4 === q.length) ? [] : [{ value: q.length, label: `${q.length} beats` }]),
-                  ...BARS.map((b) => ({ value: b * 4, label: `${b} bar${b > 1 ? 's' : ''}` }))]} /></label>
       <label>Key <span class="pair"><Select bind:value={q.root} label="Key" options={NAMES.map((n, i) => ({ value: i, label: n }))} />
         <Select bind:value={q.scale} label="Scale" options={Object.keys(SCALES).map((sc) => ({ value: sc, label: sc }))} /></span>
         <small>The notes outside the scale are shaded in the piano roll; Randomize stays in it.</small></label>

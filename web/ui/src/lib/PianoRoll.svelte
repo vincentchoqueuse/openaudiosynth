@@ -1,6 +1,7 @@
 <!-- PianoRoll.svelte — the clip's notes on a piano roll: pitches high on top (the key's notes lighter, C named),
      every MIDI pitch in a box that scrolls (it goes to the clip's notes when a clip arrives, to the octave chosen
-     in the toolbar when that changes), time over the clip's length, which is also the loop (the brace on the ruler; drag its end), and a velocity lane
+     in the toolbar when that changes), time over the clip's length, which is also the loop (the brace on the ruler; drag its end; a shorter
+     clip keeps its notes: those past its end are shaded, in a shaded part, and not played), and a velocity lane
      below (drag on a note's bar). Two tools: Draw, where a click on an empty place draws a note and dragging
      stretches it, and Select, where dragging on an empty place selects with a rectangle (Cmd-drag in Draw) and a
      click sets the insertion point. In both, a click selects a note (Shift adds or removes), dragging moves the
@@ -13,7 +14,9 @@
      (quantize), Esc; with a selection, the arrows move it (a grid step; up / down a semitone, Shift an octave),
      Shift + left / right shortens / lengthens it by a grid step, Alt + left / right nudges it finer than the grid
      (without a selection the arrows stay the computer keyboard's octave). Everything snaps to the grid (Shift
-     while dragging: finer). A drawn or moved note sounds. -->
+     while dragging: finer). A drawn or moved note sounds. Zoom as in a DAW: Cmd + wheel (or a trackpad's pinch) zooms
+     time about the pointer, Alt + wheel the rows' height; a sideways scroll (or Shift + wheel) moves in time; the
+     toolbar's Time and Notes − / +, and Fit (or a double-click on the ruler) for the whole clip. -->
 <script>
   import { untrack } from 'svelte';
   import Seg from './Seg.svelte';
@@ -25,17 +28,60 @@
   import * as op from './noteOps.js';
   import Menu from './Menu.svelte';
 
-  const ROW = 15, EDGE = 7, VEL_H = 56; // row height, grab width of a note's right edge, velocity lane (px)
+  const EDGE = 7, VEL_H = 56; // grab width of a note's right edge, velocity lane (px)
+  // zoom, as in a DAW: the rows' height (pitch), and the beats in view (time; null: the whole clip) from x0
+  let ROW = $state(15);
+  let span = $state(null), x0 = $state(0);
+  const ROW_MIN = 7, ROW_MAX = 36;
   let width = $state(600); // of the time area
   let scroller, gutter = $state(0); // width of the scroll area's scrollbar: the ruler leaves it out too
   $effect(() => { width; gutter = scroller ? scroller.offsetWidth - scroller.clientWidth : 0; });
-  const ppb = $derived(width / q.length); // pixels per beat
+  // the roll reaches the clip's end, or its last note past it (a shorter clip keeps its notes: shaded, not played)
+  const extent = $derived(Math.max(q.length, ...q.notes.map((n) => n.start + n.length)));
+  const viewBeats = $derived(span === null ? extent : Math.min(span, extent)); // beats in view
+  const ppb = $derived(width / viewBeats); // pixels per beat
+  const vx0 = $derived(Math.max(0, Math.min(x0, extent - viewBeats))); // the first beat in view
+  const X = (b) => (b - vx0) * ppb; // a beat to a pixel of the view
+  const B = (x) => x / ppb + vx0; // and back
+  // time zoom by a factor about a pixel of the view (the beat under it stays); at the whole clip, back to "fit"
+  function zoomX(f, at = width / 2) {
+    const b = B(at), nb = Math.min(extent, Math.max(0.5, viewBeats * f));
+    if (nb >= extent - 1e-6) { span = null; x0 = 0; return; }
+    span = nb;
+    x0 = Math.max(0, Math.min(extent - nb, b - at / (width / nb)));
+  }
+  function panX(dBeats) { if (span !== null) x0 = Math.max(0, Math.min(extent - viewBeats, vx0 + dBeats)); }
+  // pitch zoom: taller or lower rows, the pitch under the pointer (or the middle) stays where it is
+  function zoomY(f, at = null) {
+    if (!scroller) return;
+    const y = at ?? scroller.clientHeight / 2, p = (scroller.scrollTop + y) / ROW;
+    const r = Math.round(Math.min(ROW_MAX, Math.max(ROW_MIN, ROW * f)));
+    if (r === ROW) return;
+    ROW = r;
+    queueMicrotask(() => { scroller.scrollTop = p * r - y; });
+  }
+  function fitAll() { span = null; x0 = 0; }
+  // the wheel: Cmd / Ctrl (a trackpad's pinch) zooms time, Alt zooms pitch, a sideways scroll (or Shift) moves in time
+  function wheel(e) {
+    const r = area?.getBoundingClientRect();
+    if (e.metaKey || e.ctrlKey) { e.preventDefault(); zoomX(Math.exp(e.deltaY * 0.01), r ? e.clientX - r.left : undefined); return; }
+    if (e.altKey) { e.preventDefault(); zoomY(Math.exp(-e.deltaY * 0.01), r ? e.clientY - scroller.getBoundingClientRect().top : null); return; }
+    const dx = e.shiftKey ? e.deltaY : e.deltaX;
+    if (span !== null && Math.abs(dx) > Math.abs(e.shiftKey ? 0 : e.deltaY)) { e.preventDefault(); panX(dx / ppb); }
+  }
+  $effect(() => {
+    const el = scroller?.parentElement; // the whole roll (ruler, notes, velocities)
+    if (!el) return;
+    el.addEventListener('wheel', wheel, { passive: false });
+    return () => el.removeEventListener('wheel', wheel);
+  });
   // the vertical lines, one per grid step at a whole pixel, strongest kind wins: bar, beat, then step
   const vlines = $derived.by(() => {
-    const out = [], steps = Math.round(q.length / q.grid);
-    for (let i = 1; i < steps; i++) {
+    const out = [], steps = Math.round(extent / q.grid);
+    for (let i = Math.max(1, Math.floor(vx0 / q.grid)); i < steps; i++) {
       const b = i * q.grid, kind = Math.abs(b / 4 - Math.round(b / 4)) < 1e-6 ? 'bar' : Math.abs(b - Math.round(b)) < 1e-6 ? 'beat' : 'step';
-      out.push({ x: Math.round(b * ppb), kind });
+      if (b > vx0 + viewBeats) break;
+      out.push({ x: Math.round(X(b)), kind });
     }
     return out;
   });
@@ -93,7 +139,7 @@
     const y = (top - fresh[fresh.length - 1]) * ROW, h = scroller.clientHeight;
     if (y < scroller.scrollTop || y + ROW > scroller.scrollTop + h) scroller.scrollTo({ top: Math.max(0, y - h / 2), behavior: 'smooth' });
   });
-  const bars = $derived(Array.from({ length: Math.ceil(q.length / 4) }, (_, i) => i));
+  const bars = $derived(Array.from({ length: Math.ceil(extent / 4) }, (_, i) => i));
 
   let tool = $state('draw'); // 'draw' | 'select'
   let sel = $state(new Set()); // ids of the selected notes
@@ -111,7 +157,7 @@
   const snapTo = (b, fine) => { const g = fine ? q.grid / 4 : q.grid; return Math.round(b / g) * g; };
   function at(e) {
     const r = area.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top, beat: Math.max(0, (e.clientX - r.left) / ppb), pitch: top - Math.floor((e.clientY - r.top) / ROW) };
+    return { x: e.clientX - r.left, y: e.clientY - r.top, beat: Math.max(0, B(e.clientX - r.left)), pitch: top - Math.floor((e.clientY - r.top) / ROW) };
   }
   function sound(p, v = 100) {
     session.synth.noteOn(p, v);
@@ -168,7 +214,7 @@
     if (drag.mode === 'box') {
       const x = Math.min(drag.x0, pos.x), y = Math.min(drag.ys, pos.y);
       box = { x, y, w: Math.abs(pos.x - drag.x0), h: Math.abs(pos.y - drag.ys) };
-      const b0 = x / ppb, b1 = (x + box.w) / ppb, p0 = top - Math.floor((y + box.h) / ROW), p1 = top - Math.floor(y / ROW);
+      const b0 = B(x), b1 = B(x + box.w), p0 = top - Math.floor((y + box.h) / ROW), p1 = top - Math.floor(y / ROW);
       const inBox = q.notes.filter((n) => n.start < b1 && n.start + n.length > b0 && n.pitch >= p0 && n.pitch <= p1).map((n) => n.id);
       sel = new Set(e.shiftKey ? [...sel, ...inBox] : inBox);
       return;
@@ -208,7 +254,7 @@
   let velDrag = null;
   function velAt(e, lane) {
     const r = lane.getBoundingClientRect();
-    return { beat: (e.clientX - r.left) / ppb, v: Math.round(Math.min(127, Math.max(1, 127 * (1 - (e.clientY - r.top) / VEL_H)))) };
+    return { beat: B(e.clientX - r.left), v: Math.round(Math.min(127, Math.max(1, 127 * (1 - (e.clientY - r.top) / VEL_H)))) };
   }
   function velDown(e) {
     if (e.button !== 0) return;
@@ -351,7 +397,7 @@
   function rulerDown(e) { // a click on the ruler (not on the loop's handle): the insertion point
     if (e.button !== 0 || e.target.closest('.handle')) return;
     const r = e.currentTarget.getBoundingClientRect();
-    q.cursor = Math.min(q.length, Math.max(0, snapTo((e.clientX - r.left) / ppb, e.shiftKey)));
+    q.cursor = Math.min(q.length, Math.max(0, snapTo(B(e.clientX - r.left), e.shiftKey)));
   }
   function loopDown(e) {
     e.stopPropagation();
@@ -383,18 +429,26 @@
   <button class="ghost" onclick={() => run('paste')} disabled={!q.clipboard?.notes.length}
           title="Paste at the insertion point (click the ruler to set it), else after the selection (Cmd+V)">Paste</button>
   <button class="ghost" onclick={() => run('duplicate')} disabled={!sel.size} title="Duplicate after the selection (Cmd+D)">Duplicate</button>
+  <span class="vsep" aria-hidden="true"></span>
+  <span class="zoom" role="group" aria-label="Zoom">
+    <button class="ghost" onclick={() => zoomX(1.5)} disabled={span === null} title="Zoom out in time (Cmd + wheel, pinch)">−</button><span class="zl">Time</span>
+    <button class="ghost" onclick={() => zoomX(1 / 1.5)} disabled={viewBeats <= 0.5} title="Zoom in in time (Cmd + wheel, pinch)">+</button>
+    <button class="ghost" onclick={() => zoomY(1 / 1.3)} disabled={ROW <= ROW_MIN} title="Lower rows (Alt + wheel)">−</button><span class="zl">Notes</span>
+    <button class="ghost" onclick={() => zoomY(1.3)} disabled={ROW >= ROW_MAX} title="Taller rows (Alt + wheel)">+</button>
+    <button class="ghost" onclick={() => { fitAll(); zoomY(15 / ROW); }} disabled={span === null && ROW === 15} title="Back to the whole clip and the usual rows (or double-click the ruler)">Fit</button>
+  </span>
   <span class="spacer"></span>
   <span class="muted">{sel.size ? `${sel.size} selected` : ''}{sel.size && q.cursor >= 0 ? ' · ' : ''}{q.cursor >= 0 ? `insert at ${Math.floor(q.cursor / 4) + 1}.${Math.floor(q.cursor % 4) + 1}` : ''}</span>
 </div>
 
 <div class="roll" style="--row:{ROW}px; --gutter:{gutter}px">
   <div class="corner"></div>
-  <div class="ruler" class:off={!q.loop} onpointerdown={rulerDown} role="presentation" title="Click: the insertion point (where Paste lands)">
+  <div class="ruler" class:off={!q.loop} onpointerdown={rulerDown} ondblclick={fitAll} role="presentation" title="Click: the insertion point (where Paste lands); double-click: the whole clip in view">
     {#each bars as b}
-      <span class="bar" style="left:{b * 4 * ppb}px">{b + 1}</span>
+      <span class="bar" style="left:{X(b * 4)}px">{b + 1}</span>
     {/each}
-    {#if q.cursor >= 0}<span class="mark" style="left:{q.cursor * ppb}px"></span>{/if}
-    <div class="brace" style="width:{q.length * ppb}px" title={q.loop ? `Loop: ${q.length} beats` : `Plays once: ${q.length} beats`}>
+    {#if q.cursor >= 0}<span class="mark" style="left:{X(q.cursor)}px"></span>{/if}
+    <div class="brace" style="left:{X(0)}px; width:{q.length * ppb}px" title={q.loop ? `Loop: ${q.length} beats` : `Plays once: ${q.length} beats`}>
       <span class="handle" role="slider" tabindex="0" aria-label="Clip length (beats)" aria-valuenow={q.length}
             aria-valuemin="1" aria-valuemax="64" onpointerdown={loopDown} onpointermove={loopMove} onpointerup={loopUp}
             onkeydown={(e) => { if (e.key === 'ArrowRight') q.length = Math.min(64, q.length + 1); if (e.key === 'ArrowLeft') q.length = Math.max(1, q.length - 1); }}></span>
@@ -416,22 +470,23 @@
       <div class="lines">{#each vlines as l}<span class="vl {l.kind}" style="left:{l.x}px"></span>{/each}</div>
       {#each q.notes as n (n.id)}
         {#if n.pitch <= top && n.pitch >= pitches[pitches.length - 1]}
-          <div class="note" class:sel={sel.has(n.id)} data-id={n.id} title="{noteName(n.pitch)} · {n.length} beat(s) · velocity {n.velocity}"
-               style="left:{n.start * ppb}px; top:{(top - n.pitch) * ROW}px; width:{Math.max(3, Math.min(n.length, q.length - n.start) * ppb - 1)}px; --v:{0.35 + 0.65 * n.velocity / 127}">
+          <div class="note" class:sel={sel.has(n.id)} class:past={n.start >= q.length} data-id={n.id} title="{noteName(n.pitch)} · {n.length} beat(s) · velocity {n.velocity}"
+               style="left:{X(n.start)}px; top:{(top - n.pitch) * ROW}px; width:{Math.max(3, n.length * ppb - 1)}px; --v:{0.35 + 0.65 * n.velocity / 127}">
             <span class="edge"></span>
           </div>
         {/if}
       {/each}
+      {#if extent > q.length}<div class="beyond" style="left:{X(q.length)}px" title="Past the clip's end: kept, not played"></div>{/if}
       {#if box}<div class="box" style="left:{box.x}px; top:{box.y}px; width:{box.w}px; height:{box.h}px"></div>{/if}
-      {#if q.cursor >= 0}<div class="cursor" style="left:{q.cursor * ppb}px"></div>{/if}
-      {#if q.beat >= 0}<div class="playhead" style="left:{(q.beat % q.length) * ppb}px"></div>{/if}
+      {#if q.cursor >= 0}<div class="cursor" style="left:{X(q.cursor)}px"></div>{/if}
+      {#if q.beat >= 0}<div class="playhead" style="left:{X(q.beat % q.length)}px"></div>{/if}
     </div>
   </div>
   <div class="vlabel">vel</div>
   <div class="vlane" style="height:{VEL_H}px; margin-right:{gutter}px" onpointerdown={velDown} onpointermove={velMove} onpointerup={velUp}
        onpointercancel={velUp} role="application" aria-label="Velocity lane">
     {#each q.notes as n (n.id)}
-      <div class="vbar" class:sel={sel.has(n.id)} style="left:{n.start * ppb}px; height:{(n.velocity / 127) * 100}%" title="velocity {n.velocity}"></div>
+      <div class="vbar" class:sel={sel.has(n.id)} style="left:{X(n.start)}px; height:{(n.velocity / 127) * 100}%" title="velocity {n.velocity}"></div>
     {/each}
   </div>
 </div>
@@ -443,7 +498,7 @@
   .ruler .bar { position: absolute; top: 3px; font: 10.5px var(--mono); color: var(--muted); padding-left: 4px; border-left: 1px solid var(--line); height: 18px; }
   .brace { position: absolute; left: 0; bottom: 0; height: 6px; background: var(--accent); border-radius: 0 3px 3px 0; }
   .ruler.off .brace { background: var(--muted); opacity: .5; }
-  .handle { position: absolute; right: -5px; bottom: -3px; width: 10px; height: 14px; border-radius: 3px; background: var(--text); cursor: ew-resize; touch-action: none; }
+  .handle { position: absolute; right: 0; bottom: -3px; width: 10px; height: 14px; border-radius: 3px; background: var(--text); cursor: ew-resize; touch-action: none; }
   .scroll { grid-column: 1 / 3; display: grid; grid-template-columns: 44px 1fr; overflow-y: auto; scrollbar-gutter: stable; overscroll-behavior: contain; }
   .pkeys { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
   .key { flex: none; box-sizing: border-box; height: var(--row); min-height: 0; line-height: var(--row); font: 9.5px/var(--row) var(--mono); color: var(--muted);
@@ -465,6 +520,8 @@
   .note { position: absolute; height: calc(var(--row) - 2px); margin-top: 1px; border-radius: 3px; cursor: grab;
     background: color-mix(in srgb, var(--accent) calc(var(--v) * 100%), var(--surface)); box-shadow: inset 0 0 0 1px var(--accent); }
   .note.sel { box-shadow: inset 0 0 0 1.5px var(--text); }
+  .note.past { opacity: .4; }
+  .beyond { position: absolute; top: 0; bottom: 0; right: 0; background: color-mix(in srgb, var(--faint) 70%, transparent); pointer-events: none; }
   .note .edge { position: absolute; right: 0; top: 0; bottom: 0; width: 7px; cursor: ew-resize; }
   .note:hover { filter: brightness(1.15); }
   .box { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); pointer-events: none; }
@@ -474,7 +531,11 @@
   .vsep { width: 1px; align-self: stretch; margin: 4px 2px; background: var(--line); }
   .playhead { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--text); pointer-events: none; }
   .vlabel { border-top: 1px solid var(--line); border-right: 1px solid var(--line); font: 9.5px var(--mono); color: var(--muted); text-align: right; padding: 4px 5px; }
-  .vlane { position: relative; border-top: 1px solid var(--line); cursor: ns-resize; touch-action: none; }
+  .vlane { position: relative; border-top: 1px solid var(--line); cursor: ns-resize; touch-action: none; overflow: hidden; }
+  .ruler { overflow: hidden; }
+  .zoom { display: inline-flex; align-items: center; gap: 2px; }
+  .zoom button { min-width: 22px; padding-left: 6px; padding-right: 6px; }
+  .zl { font-size: 11px; color: var(--muted); padding: 0 2px; }
   .vbar { position: absolute; bottom: 0; width: 4px; margin-left: -1px; border-radius: 2px 2px 0 0; background: var(--accent); opacity: .7; }
   .vbar.sel { opacity: 1; background: var(--text); }
 </style>

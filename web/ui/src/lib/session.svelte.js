@@ -336,9 +336,11 @@ class Session {
     for (const [name, v] of Object.entries(BARE[this.engine?.name] ?? {})) if (this.byName[name]) this.setP(name, v);
   };
 
-  // a sound of the library; returns true when it is the current one. The sequencer keeps its clip (a playing clip
-  // goes on with the new sound); a phone, which does not edit clips, takes the sound's demo
+  // a sound of the library; returns true when it is the current one. Its demo clip (clips/<name>.json, a file of
+  // its own) comes into the sequencer, and goes on playing if a clip was playing
   loadPatch = async (p) => {
+    const wasPlaying = !!this.clipHook?.playing();
+    this.clipHook?.stop();
     const seq = ++this.#loadSeq;
     let text;
     try {
@@ -358,7 +360,8 @@ class Session {
     this.baseline = { ...this.values };
     this.picks++;
     remember('synth.sound', p.name);
-    if (this.phone) await this.loadDemo(true);
+    await this.loadDemo(true);
+    if (wasPlaying && seq === this.#loadSeq) this.clipHook?.play();
     return true;
   };
 

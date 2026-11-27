@@ -28,6 +28,10 @@
     {"pitch": 57, "start": 24, "length": 7.5, "velocity": 76},
     {"pitch": 78, "start": 3, "length": 3.5, "velocity": 62},
     {"pitch": 76, "start": 6.5, "length": 1.2, "velocity": 56},
-    {"pitch": 74, "start": 19, "length": 4, "velocity": 60}
+    {"pitch": 74, "start": 19, "length": 4, "velocity": 60},
+    {"pitch": 71, "start": 35, "length": 3, "velocity": 60},
+    {"pitch": 72, "start": 38, "length": 2, "velocity": 54},
+    {"pitch": 69, "start": 51, "length": 4.5, "velocity": 58},
+    {"pitch": 66, "start": 58, "length": 3, "velocity": 54}
   ]
 }

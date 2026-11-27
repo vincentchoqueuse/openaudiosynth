@@ -134,9 +134,9 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .dt-bar span { display: block; height: 100%; background: var(--accent); }
 
 /* ---- the side panel (SidePanel.svelte): fixed on the right, between the top bar and the keyboard ---- */
-.sidepanel { position: fixed; right: 0; z-index: 4; width: min(460px, 100vw); display: flex; flex-direction: column;
+.sidepanel { position: fixed; right: 0; z-index: 4; width: min(560px, 100vw); display: flex; flex-direction: column;
   background: var(--surface); border-left: 1px solid var(--line); box-shadow: -12px 0 32px rgba(0, 0, 0, .18); animation: slidein .16s ease-out; }
-.sidepanel.wide { width: min(640px, 100vw); }
+.sidepanel.wide { width: min(560px, 100vw); } /* every panel the same width (a macro, an LFO, a module) */
 @keyframes slidein { from { transform: translateX(24px); opacity: 0; } }
 .sp-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px 12px; border-bottom: 1px solid var(--line); }
 .sp-title { flex: 1; min-width: 0; }

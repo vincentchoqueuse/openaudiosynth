@@ -1,7 +1,7 @@
 // rack.svelte.js — the effects of the rack as records of the Synth table: an effect is in the table when it is on,
 // when a macro moves it, or since it was added (so a mix dragged to 0 does not take it out); Remove switches it off
 // and takes it out. The effects play in the order they were added (fx_slot1..6, session.setRack): one added goes
-// after those in use. What was added or removed lasts while the sound is the same.
+// after those in use; replace puts another effect in one's place (its slot's menu). What was added or removed lasts while the sound is the same.
 import { session as s } from './session.svelte.js';
 import { fxStages, stageOn, toggleStage } from './stages.js';
 
@@ -28,6 +28,18 @@ class Rack {
     delete this.emptied[id];
     const st = fxStages(s).find((r) => r.key === id)?.st;
     if (st && !stageOn(s, st)) toggleStage(s, st);
+  }
+  // another effect in an effect's place: the same slot of the chain, the old one off, the new one on
+  replace(id, other) {
+    if (!other || other === id || !this.has(id)) return;
+    const order = this.used().map((x) => (x === id ? other : x));
+    s.setRack([...order, ...s.rack.filter((x) => !order.includes(x))]);
+    this.remove(id);
+    this.loaded[other] = true;
+    delete this.emptied[other];
+    const st = fxStages(s).find((r) => r.key === other)?.st;
+    if (st && !stageOn(s, st)) toggleStage(s, st);
+    s.openPanel('stage', other);
   }
   remove(id) {
     const st = fxStages(s).find((r) => r.key === id)?.st;

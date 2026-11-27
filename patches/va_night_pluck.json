@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "engine": "va",
+  "name": "va_night_pluck",
+  "description": "Late-90s trance pluck: a hollow pulse over a saw, snapped shut by a fast filter envelope, with a short tail that rings into a dotted-eighth delay and a big dark hall. Bright on hard notes.",
+  "osc1": {"waveform": "pulse", "pulse_width": 0.32},
+  "osc2": {"waveform": "saw", "detune": 6, "level": 0.55},
+  "filter": {"cutoff": 700, "resonance": 1.6, "envelope_amount": 2.8, "keytrack": 0.6},
+  "amp": {"attack": 0.002, "decay": 0.42, "sustain": 0.0, "release": 0.3},
+  "filter_env": {"attack": 0.001, "decay": 0.16, "sustain": 0.0},
+  "output": {"volume": 5.5},
+  "voice": {"drift": 2, "pan_spread": 0.3},
+  "fx": {"delay": {"mix": 0.24, "feedback": 0.38, "tone": 3000, "sync": "1/8d"}, "reverb": {"mix": 0.32, "decay": 0.85}}
+}

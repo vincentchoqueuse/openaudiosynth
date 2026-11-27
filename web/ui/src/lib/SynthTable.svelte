@@ -31,7 +31,8 @@
   const inRack = (id) => s.rack.includes(id);
   $effect(() => rack.sync());
   const addOptions = $derived([{ value: '', label: '+ Add effect' }, ...rack.free().map((id) => ({ value: id, label: fx.find((r) => r.key === id)?.title ?? id }))]);
-  function addEffect(id) { if (!id) return; rack.add(id); s.openPanel('stage', id); }
+  let addPick = $state(''); // the menu shows "+ Add effect" again once one is added
+  function addEffect(id) { addPick = ''; if (!id) return; rack.add(id); s.openPanel('stage', id); }
   // Init: a new sound on the same instrument; Randomize: every setting of the instrument somewhere else
   function init() {
     if (s.changedCount && !confirm('Start a new sound on this instrument? The edits of this one are not kept.')) return;
@@ -104,7 +105,7 @@
   <span class="tools">
     <button class="tool" onclick={init} title="A new sound on this instrument: every setting at its default"><Icon name="init" size={13} /> Init</button>
     <button class="tool" onclick={s.randomize} title="Throw every setting of the instrument somewhere else (Undo brings the sound back)"><Icon name="dice" size={13} /> Randomize</button>
-    <Select class="tool primary" value="" options={addOptions} disabled={addOptions.length < 2} label="Add an effect" onchange={addEffect} />
+    <Select class="tool primary" bind:value={addPick} options={addOptions} disabled={addOptions.length < 2} label="Add an effect" onchange={addEffect} />
   </span>
 </div>
 <DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}

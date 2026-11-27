@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "engine": "va",
+  "name": "va_pumped_bass",
+  "description": "Pumped bass: one saw an octave down, mono with a long glide between notes, thinned by a high-pass at 180 Hz; its demo is a two-bar riff at 130 bpm.",
+  "osc1": {"octave": -1},
+  "osc2": {"level": 0},
+  "filter": {"type": "hp", "cutoff": 182.4, "envelope_amount": 0},
+  "lfo": {"wheel_vibrato": 0},
+  "voice": {"drift": 0, "pan_spread": 0, "mode": "mono", "glide": 0.478, "tolerance": 0, "jitter": 0},
+  "motion": {"spread": 0},
+  "tempo": {"bpm": 130},
+  "output": {"filter": {"mode": "lp"}}
+}

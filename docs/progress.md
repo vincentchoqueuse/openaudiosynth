@@ -250,3 +250,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: no Edit cog on the Live player's macros (it broke the flow of playing); Edit stays in the modules' panels.
 - Web, piano roll: zoom as in a DAW (Cmd + wheel or a pinch: time about the pointer; Alt + wheel: the rows' height; a sideways scroll moves in time; Time and Notes − / + and Fit in its toolbar, a double-click on the ruler for the whole clip). The clip's length is in the Sequence toolbar beside Grid; a shorter clip keeps its notes, those past its end shaded and not played.
 - Web: a Copy button on the Code tabs (the sound and the clip), with a fallback when the browser refuses the clipboard.
+- va_pumped_bass: the user's sound (a saw an octave down, mono with a long glide, high-passed at 180 Hz) and their two-bar riff at 130 bpm.

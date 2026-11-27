@@ -447,13 +447,14 @@ stereo phaser: a chain of first-order all-pass filters (TPT, Zavalishin) whose b
 - `void phaser_process(phaser_t *p, float *L, float *R, int n)` — in place allowed; passes the signal through untouched while the mix is and was 0
 
 ## `dsp/fx/rack.h`
-the synth's effect rack: six effects on the bus (phaser, flanger, chorus, tape delay, plate reverb with its shimmer, tape machine) run in the order of its six places, with their parameter descriptors. The delay and the reverb add their wet to the signal; the reverb takes what reaches it, the echoes too when it follows the delay. Delay, reverb, shimmer and tape memory comes from a caller-provided arena; if it is too small the reverb size and the maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
+the synth's effect rack: seven effects on the bus (phaser, flanger, chorus, tape delay, plate reverb with its shimmer, tape machine, gain) run in the order of its seven places, with their parameter descriptors. The delay and the reverb add their wet to the signal; the reverb takes what reaches it, the echoes too when it follows the delay. Delay, reverb, shimmer and tape memory comes from a caller-provided arena; if it is too small the reverb size and the maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being computed after its tail (CPU).
 - types: `rack_t`
 - data: `const param_desc_t rack_params[RACK_P_COUNT]`
+- `int rack_slot_param(int k)` — the parameter of place k (0..RACK_UNITS-1)
 - `void rack_init(rack_t *f, float sample_rate, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — mem/mem_floats: arena for the tape's and the shimmer's lines, the reverb and the delay (may be NULL/0: then only the phaser, the flanger and the chorus are available).
 - `void rack_recover(rack_t *f, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)` — Something went non-finite: every line and filter emptied, the settings kept.
 - `void rack_set_param(rack_t *f, int id, float norm)` — Parameter index (RACK_P_...), normalized value.
-- `void rack_process(rack_t *f, float *L, float *R, int n)` — Processes one block in place (n <= SYNTH_BLOCK): the six effects in the order of the places.
+- `void rack_process(rack_t *f, float *L, float *R, int n)` — Processes one block in place (n <= SYNTH_BLOCK): the seven effects in the order of the places.
 
 ## `dsp/fx/reverb.h`
 plate reverb after J. Dattorro, "Effect Design Part 1: Reverberator and Other Filters" (JAES 45(9), 1997): predelay, input bandwidth filter, 4 input diffusers, figure-of-eight tank with two modulated allpasses and damping. Mono in, stereo out (wet only). Delays scaled from the paper's 29761 Hz to the actual rate. Memory is provided by the caller (no allocation).

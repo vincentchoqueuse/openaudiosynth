@@ -1,4 +1,4 @@
-/* test_fx.c — Dattorro plate reverb: bounded and finite, tail decays and gets longer with decay,
+/* test_fx.c — (and the rack's gain: its level, untouched at 0 dB) Dattorro plate reverb: bounded and finite, tail decays and gets longer with decay,
  * decorrelated stereo, deterministic, works at 44.1/48/96 kHz. Delay, chorus, freeze; the voice distortion:
  * bounded, deterministic, level held across drives, no comb filtering at a partial mix, aliasing below a threshold.
  * Phaser and flanger: untouched at mix 0, notches where the theory puts them (a static sweep), feedback moves the
@@ -347,7 +347,7 @@ static void rack_render(const int *slots, float *L, float *R, int n)
     synth_set_param(s, SYNTH_PARAM_TAPE, 1.0f);
     if (slots)
         for (int k = 0; k < 6; k++)
-            synth_set_param(s, SYNTH_PARAM_FX_SLOT_1 + k, (float)slots[k] / 5.0f);
+            synth_set_param(s, SYNTH_PARAM_FX_SLOT_1 + k, (float)slots[k] / 6.0f);
     const uint8_t on[3] = {0x90, 57, 100}, off[3] = {0x80, 57, 0};
     synth_midi(s, on, 3, 0);
     for (int i = 0; i < n; i += 64) {
@@ -554,9 +554,43 @@ static void test_shimmer(void)
     free(L), free(R);
 }
 
+/* The rack's gain: +6 dB doubles the level, -12 dB quarters it; at 0 dB the output is the same to the bit. */
+static float gain_rms(float db, float *L, float *R, int n)
+{
+    synth_t *s = synth_default();
+    synth_init(s, 48000.0f);
+    synth_set_engine(s, SYNTH_ENGINE_VA);
+    synth_set_param(s, SYNTH_PARAM_GAIN_DB, (db + 24.0f) / 48.0f);
+    const uint8_t on[3] = {0x90, 57, 100};
+    synth_midi(s, on, 3, 0);
+    for (int i = 0; i < n; i += 64)
+        synth_render(s, L + i, R + i, n - i < 64 ? n - i : 64);
+    return rms(L + n / 2, n / 2);
+}
+
+static void test_gain(void)
+{
+    const int n = 24000;
+    static float L[24000], R[24000], L0[24000], R0[24000];
+    const float r0 = gain_rms(0.0f, L0, R0, n);
+    synth_t *s = synth_default();
+    synth_init(s, 48000.0f);
+    synth_set_engine(s, SYNTH_ENGINE_VA);
+    const uint8_t on[3] = {0x90, 57, 100};
+    synth_midi(s, on, 3, 0);
+    for (int i = 0; i < n; i += 64)
+        synth_render(s, L + i, R + i, n - i < 64 ? n - i : 64);
+    CHECK(!memcmp(L, L0, sizeof L), "gain at 0 dB changes the sound");
+    const float up = gain_rms(6.0f, L, R, n) / r0, down = gain_rms(-12.0f, L, R, n) / r0;
+    CHECK(fabsf(up - 1.995f) < 0.05f, "gain +6 dB: x%.3f (x1.995 expected)", (double)up);
+    CHECK(fabsf(down - 0.251f) < 0.01f, "gain -12 dB: x%.3f (x0.251 expected)", (double)down);
+    CHECK(all_finite_bounded(L, n, 1.0f), "gain: NaN or > 0 dBFS");
+}
+
 void suite_fx(void)
 {
     test_rack();
+    test_gain();
     test_tape();
     test_shimmer();
     test_modfx();

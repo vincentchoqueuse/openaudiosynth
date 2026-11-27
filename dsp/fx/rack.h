@@ -1,5 +1,5 @@
-/* rack.h — the synth's effect rack: six effects on the bus (phaser, flanger, chorus, tape delay, plate reverb with
- * its shimmer, tape machine) run in the order of its six places, with their parameter descriptors. The delay and
+/* rack.h — the synth's effect rack: seven effects on the bus (phaser, flanger, chorus, tape delay, plate reverb with
+ * its shimmer, tape machine, gain) run in the order of its seven places, with their parameter descriptors. The delay and
  * the reverb add their wet to the signal; the reverb takes what reaches it, the echoes too when it follows the
  * delay. Delay, reverb, shimmer and tape memory comes from a caller-provided arena; if it is too small the reverb
  * size and the maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being
@@ -30,11 +30,15 @@ enum {
     RACK_P_SLOT_1, RACK_P_SLOT_6 = RACK_P_SLOT_1 + 5,
     RACK_P_TAPE, RACK_P_TAPE_WOW, RACK_P_TAPE_FLUTTER, RACK_P_TAPE_DRIVE, RACK_P_TAPE_HISS, RACK_P_TAPE_TONE,
     RACK_P_REVERB_SHIMMER, RACK_P_REVERB_SHIMMER_PITCH,
+    RACK_P_SLOT_7, /* the seventh place, for the gain (added after the others: their ids stay) */
+    RACK_P_GAIN,
     RACK_P_COUNT
 };
 extern const param_desc_t rack_params[RACK_P_COUNT];
 /* the effects, by the value of a place (RACK_P_SLOT_n) */
-enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_TAPE, RACK_UNITS };
+enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_TAPE, RACK_GAIN, RACK_UNITS };
+/* the parameter of place k (0..RACK_UNITS-1) */
+static inline int rack_slot_param(int k) { return k < 6 ? RACK_P_SLOT_1 + k : RACK_P_SLOT_7; }
 
 #define RACK_SHIMMER_LEN 4096 /* a power of two: the transposer's window, in samples */
 
@@ -51,8 +55,8 @@ typedef struct {
     reverb_t reverb;
     int has_delay, has_reverb;
     float delay_max_s;
-    smooth_t sm_dmix, sm_rmix;
-    float dmix_prev, rmix_prev;
+    smooth_t sm_dmix, sm_rmix, sm_gain;
+    float dmix_prev, rmix_prev, gain_prev; /* gain: linear */
     float delay_idle_s, reverb_idle_s; /* time spent with mix 0 */
     int dirty;
     float pl[SYNTH_BLOCK], pr[SYNTH_BLOCK]; /* echoes of this block not added to the signal yet */
@@ -70,7 +74,7 @@ void rack_init(rack_t *f, float sample_rate, float *mem, size_t mem_floats, floa
 void rack_recover(rack_t *f, float *mem, size_t mem_floats, float max_delay_s, float reverb_size);
 /* Parameter index (RACK_P_...), normalized value. */
 void rack_set_param(rack_t *f, int id, float norm);
-/* Processes one block in place (n <= SYNTH_BLOCK): the six effects in the order of the places. */
+/* Processes one block in place (n <= SYNTH_BLOCK): the seven effects in the order of the places. */
 void rack_process(rack_t *f, float *L, float *R, int n);
 
 #endif /* RACK_H */

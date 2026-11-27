@@ -1,4 +1,4 @@
-/* rack.c — the effect rack (see rack.h): descriptors, the order of the places, and the six effects as stages run
+/* rack.c — the effect rack (see rack.h): descriptors, the order of the places, and the seven effects as stages run
  * in that order. The delay leaves its echoes pending: the reverb right after it takes them into its send (the
  * echoes are reverberated too), anything else has them added first (flush). Mix levels are smoothed at control
  * rate and ramped per sample. */
@@ -12,10 +12,10 @@ static const char *const chorus_labels[] = {"off", "I", "II", "I+II", "ensemble"
 
 static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
 /* the effects of the rack, by the id of their stage (synth_fx_stages) */
-static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", "tape", NULL};
+static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", "tape", "gain", NULL};
 static const char *const shimmer_labels[] = {"octave_up", "fifth_up", "twelfth_up", "octave_down", NULL};
 static const float shimmer_semitones[4] = {12.0f, 7.0f, 19.0f, -12.0f};
-#define SLOT(K, N) PARAM(RACK_P_SLOT_1 + K, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_UNITS - 1), (float)K, PARAM_INT, "", 0, \
+#define SLOT(K, N) PARAM((K) < 6 ? RACK_P_SLOT_1 + (K) : RACK_P_SLOT_7, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_UNITS - 1), (float)K, PARAM_INT, "", 0, \
                            rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, one not named goes just before the effect that usually follows it")
 
 const param_desc_t rack_params[RACK_P_COUNT] = {
@@ -88,6 +88,9 @@ const param_desc_t rack_params[RACK_P_COUNT] = {
           "shimmer: the tail comes back into the reverb transposed, so it climbs and glows (0.3 a halo, 0.6 an organ of light, 1 = it keeps rising); needs a long decay"),
     PARAM(RACK_P_REVERB_SHIMMER_PITCH, "reverb_shimmer_pitch", "fx.reverb.shimmer_pitch", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, shimmer_labels,
           "interval of the shimmer: an octave up (the classic), a fifth up (stacks into chords), a twelfth up, or an octave down (the tail sinks)"),
+    SLOT(6, 7),
+    PARAM(RACK_P_GAIN, "gain_level", "fx.gain.level", -24.0f, 24.0f, 0.0f, PARAM_LIN, "dB", 1, NULL,
+          "a plain gain at its place of the rack: louder or softer into what follows (a reverb, the tape's saturation), or after it"),
 };
 
 static void apply_extra(rack_t *f, int id);
@@ -138,7 +141,9 @@ void rack_init(rack_t *f, float sr, float *mem, size_t mem_floats, float max_del
     const float ctrl = sr / (float)SYNTH_BLOCK;
     smooth_init(&f->sm_dmix, 0.01f, ctrl, 0.0f);
     smooth_init(&f->sm_rmix, 0.01f, ctrl, 0.0f);
+    smooth_init(&f->sm_gain, 0.005f, ctrl, 1.0f);
     f->dmix_prev = f->rmix_prev = 0.0f;
+    f->gain_prev = 1.0f;
     f->delay_idle_s = f->reverb_idle_s = IDLE_AFTER_S; /* idle until used */
     f->dirty = 1;
     f->pending = 0;
@@ -169,7 +174,7 @@ static void rack_resolve(rack_t *f)
     uint8_t used[RACK_UNITS] = {0};
     int n = 0;
     for (int k = 0; k < RACK_UNITS; k++) {
-        const int e = (int)f->p[RACK_P_SLOT_1 + k];
+        const int e = (int)f->p[rack_slot_param(k)];
         if (e >= 0 && e < RACK_UNITS && !used[e])
             used[e] = 1, f->order[n++] = (uint8_t)e;
     }
@@ -197,8 +202,10 @@ static void apply_extra(rack_t *f, int id)
     else if (id <= RACK_P_FLANGER_FEEDBACK)
         flanger_set(&f->flanger, p[RACK_P_FLANGER_MIX], p[RACK_P_FLANGER_RATE], p[RACK_P_FLANGER_DELAY],
                     p[RACK_P_FLANGER_DEPTH], p[RACK_P_FLANGER_FEEDBACK]);
-    else if (id <= RACK_P_SLOT_6)
+    else if (id <= RACK_P_SLOT_6 || id == RACK_P_SLOT_7)
         rack_resolve(f);
+    else if (id == RACK_P_GAIN)
+        return; /* read each block, smoothed */
     else if (id <= RACK_P_TAPE_TONE) {
         if (f->has_tape)
             tape_set(&f->tape, (int)p[RACK_P_TAPE], p[RACK_P_TAPE_WOW], p[RACK_P_TAPE_FLUTTER], p[RACK_P_TAPE_DRIVE],
@@ -371,6 +378,16 @@ DSP_FAST_CODE void rack_process(rack_t *f, float *L, float *R, int n)
             if (f->has_tape)
                 tape_process(&f->tape, L, R, n);
             break;
+        case RACK_GAIN: {
+            flush(f, L, R, n);
+            const float g0 = f->gain_prev, g1 = smooth_next(&f->sm_gain, fm_db2lin(f->p[RACK_P_GAIN]));
+            f->gain_prev = g1;
+            if (g0 != 1.0f || g1 != 1.0f) { /* at 0 dB: untouched */
+                dsp_ramp_mul(L, g0, g1, n);
+                dsp_ramp_mul(R, g0, g1, n);
+            }
+            break;
+        }
         default: stage_reverb(f, L, R, n); break;
         }
     flush(f, L, R, n);

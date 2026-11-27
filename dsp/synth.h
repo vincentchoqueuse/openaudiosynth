@@ -84,7 +84,7 @@ enum {
     SYNTH_PARAM_FLANGER_DEPTH,   /* 0 .. 1 */
     SYNTH_PARAM_FLANGER_FEEDBACK, /* -0.9 .. 0.9 */
     /* the effect rack: which effect sits at each place of the bus, in the order the signal goes through */
-    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb, tape (default: in that order) */
+    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb, tape, gain (default: in that order; the 7th place: SYNTH_PARAM_FX_SLOT_7) */
     SYNTH_PARAM_FX_SLOT_6 = SYNTH_PARAM_FX_SLOT_1 + 5,
     /* tape: wow, flutter, saturation, loss of highs and hiss on the whole signal (a place of the rack) */
     SYNTH_PARAM_TAPE,            /* off, on */
@@ -96,6 +96,9 @@ enum {
     /* shimmer: the reverb's tail comes back into it transposed */
     SYNTH_PARAM_REVERB_SHIMMER,  /* 0 .. 1 */
     SYNTH_PARAM_REVERB_SHIMMER_PITCH, /* octave up, fifth up, twelfth up, octave down */
+    /* gain: a plain level at its place of the rack (its seventh effect, at the end by default) */
+    SYNTH_PARAM_FX_SLOT_7,       /* the seventh place of the rack (default: gain) */
+    SYNTH_PARAM_GAIN_DB,         /* -24 .. +24 dB, default 0 (untouched) */
     SYNTH_PARAM_GLOBAL_END
 };
 

@@ -92,7 +92,8 @@
 {:else}<SynthTable />{/if}
 
 {#if P}
-  <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)} bind:tab={s.panelTab}>
+  <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)}
+             onback={s.panelBack.length ? s.panelReturn : null} backTo={s.panelBack.at(-1)?.title ?? ''} bind:tab={s.panelTab}>
     {#key s.panel.kind + s.panel.id}
       {#if s.panelTab === 'general'}<ModuleGeneral kind={s.panel.kind} row={P.row} params={P.params} fields={P.fields} />
       {:else if s.panel.kind === 'stage'}<StagePanel row={P.row} engine={P.engine} />

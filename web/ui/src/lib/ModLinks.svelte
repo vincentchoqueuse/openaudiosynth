@@ -1,7 +1,7 @@
 <!-- ModLinks.svelte — the Modulation section of a stage's panel: everything that moves one of its settings, as a table.
      A route of the whole sound (lib/routes.js): its source, the setting, its amount (a bipolar, quadratic slider read in
-     the setting's units; double-click: 0), × to remove it; all set here. A macro: its name (a click opens it, where its
-     range is set), the setting, its travel. `add()` (for the panel's footer) makes a route to the stage's first
+     the setting's units; double-click: 0), × to remove it; all set here. Edit (the cog) opens the route's source or
+     the macro in the panel, and Back returns here. A macro: its name (a click also opens it, where its range is set), the setting, its travel. `add()` (for the panel's footer) makes a route to the stage's first
      setting a route can move, from the first global LFO, at a tenth of its travel. -->
 <script>
   import Select from './Select.svelte';
@@ -9,6 +9,7 @@
   import { session as s } from './session.svelte.js';
   import { fromNorm, format } from './synth.js';
   import * as R from './routes.js';
+  import { modRows } from './mods.js';
   let { params } = $props(); // the stage's settings: [{d, label}]
 
   const movable = $derived(params.filter(({ d }) => d.realtime && (s.macroTargets.engine.some((x) => x.id === d.id) || s.macroTargets.fx.some((x) => x.id === d.id))));
@@ -21,6 +22,13 @@
   const toPos = (a) => Math.sign(a) * Math.sqrt(Math.abs(a));
   const toAmount = (p) => Math.round(p * Math.abs(p) * 1000) / 1000;
   const P = (x, n) => `${x.pre}${x.r}_${n}`;
+  // a route's source, to edit it: a macro's panel, or the modulator's (envelope, LFO, Wander, controller)
+  function editSource(x) {
+    const label = R.srcLabels(s, 'part')[x.src] ?? '', mac = /^macro(\d)$/.exec(label);
+    if (mac) return () => s.editPanel('macro', 'm' + (+mac[1] - 1));
+    const row = modRows().find((r) => r.src === label);
+    return row ? () => s.editPanel('mod', row.key) : null;
+  }
   export const canAdd = () => !!R.free(s, 'part') && movable.length > 0;
   export function add() {
     const k = R.free(s, 'part');
@@ -34,10 +42,11 @@
 
 {#if routes.length || maps.length}
   <table class="dt routes">
-    <colgroup><col style="width:31%" /><col style="width:25%" /><col /><col style="width:6.8em" /><col style="width:30px" /></colgroup>
-    <thead><tr><th>Source</th><th>Setting</th><th>Amount</th><th></th><th></th></tr></thead>
+    <colgroup><col style="width:31%" /><col style="width:25%" /><col /><col style="width:6.8em" /><col style="width:30px" /><col style="width:30px" /></colgroup>
+    <thead><tr><th>Source</th><th>Setting</th><th>Amount</th><th></th><th></th><th></th></tr></thead>
     <tbody>
       {#each routes as x (x.key)}
+        {@const edit = editSource(x)}
         <tr>
           <td><Select value={x.src} options={srcOptions} label="Source" onchange={(v) => s.setP(P(x, 'source'), v)} /></td>
           <td><Select value={x.dst} options={dstOptions} label="Setting moved" onchange={(v) => s.setP(P(x, 'destination'), v)} /></td>
@@ -46,14 +55,17 @@
                      oninput={(e) => s.setP(P(x, 'amount'), toAmount(+e.target.value))} ondblclick={() => s.setP(P(x, 'amount'), 0)}
                      aria-label="Amount" title="double-click: 0" /></td>
           <td class="mono muted num">{R.inUnits(s, x)}</td>
+          <td><button class="iconbtn" onclick={edit} disabled={!edit} aria-label="Edit {R.srcName(R.srcLabels(s, 'part')[x.src])}" title="Edit the source (Back returns here)"><Icon name="settings" size={13} /></button></td>
           <td><button class="iconbtn" onclick={() => R.clear(s, x.key)} aria-label="Remove this modulation" title="Remove"><Icon name="close" size={12} /></button></td>
         </tr>
       {/each}
       {#each maps as m (m.slot)}
-        <tr class="openable" onclick={() => s.openPanel('macro', 'm' + m.macro)} title="Open the macro">
+        <tr class="openable" onclick={() => s.editPanel('macro', 'm' + m.macro)} title="Edit the macro (Back returns here)">
           <td><span class="strong">{s.macroName(m.macro)}</span> <span class="muted">macro {m.macro + 1}</span></td>
           <td>{nameOf(m.dst.id)}</td>
-          <td class="mono muted" colspan="3">{format(m.dst, fromNorm(m.dst, m.from))} → {format(m.dst, fromNorm(m.dst, m.to))}</td>
+          <td class="mono muted" colspan="2">{format(m.dst, fromNorm(m.dst, m.from))} → {format(m.dst, fromNorm(m.dst, m.to))}</td>
+          <td><button class="iconbtn" aria-label="Edit {s.macroName(m.macro)}" title="Edit the macro (Back returns here)"><Icon name="settings" size={13} /></button></td>
+          <td></td>
         </tr>
       {/each}
     </tbody>

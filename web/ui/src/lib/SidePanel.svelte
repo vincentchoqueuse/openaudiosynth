@@ -1,5 +1,5 @@
 <!-- SidePanel.svelte — the panel that opens on the right of the Synth view when a row's Configure is pressed: a head
-     (the item's name, what it is; the previous and next rows of the table, and close, as icon buttons), the two tabs
+     (Back when it was opened from another panel's Edit; the item's name, what it is; the previous and next rows of the table, and close, as icon buttons), the two tabs
      of every record of the page (General: what the module is and does, as fields; Settings: everything to set), then the tab's content,
      scrolling on its own; a body may end with a footer of actions (`.sp-foot`), which stays in view. It lies over the
      page, which stays playable beside it, between the top bar and the keyboard (measured from them). Escape closes it. -->
@@ -7,7 +7,7 @@
   import { onMount } from 'svelte';
   import Icon from './Icon.svelte';
   import Tabs from './Tabs.svelte';
-  let { title, sub = '', onclose, onprev = null, onnext = null, wide = false, tab = $bindable('settings'), children } = $props();
+  let { title, sub = '', onclose, onprev = null, onnext = null, onback = null, backTo = '', wide = false, tab = $bindable('settings'), children } = $props();
   let top = $state(60), bottom = $state(0);
   function measure() {
     const bar = document.querySelector('header.topbar'), foot = document.querySelector('.app > footer');
@@ -31,6 +31,7 @@
 
 <aside class="sidepanel" class:wide style="top:{top}px; bottom:{bottom}px" aria-label={title}>
   <div class="sp-head">
+    {#if onback}<button class="iconbtn sp-back" onclick={onback} aria-label="Back to {backTo}" title="Back to {backTo}"><Icon name="back" size={14} /></button>{/if}
     <div class="sp-title"><h2>{title}</h2>{#if sub}<span class="sp-sub">{sub}</span>{/if}</div>
     <span class="sp-nav">
       <button class="iconbtn" onclick={onprev} disabled={!onprev} aria-label="Previous" title="Previous row"><Icon name="up" size={14} /></button>

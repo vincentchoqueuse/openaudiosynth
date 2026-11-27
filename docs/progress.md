@@ -243,3 +243,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - va_night_pluck renamed va_insomnie; its clip is the riff the user gave (E minor, 126.9 bpm, 32 beats, two-note stabs over a B pedal).
 - Web: the notes played (on-screen or computer keyboard, MIDI input) light their key and lane on the piano roll, which scrolls to show a new one out of view.
 - va_insomnie takes the user's own sound (saw and a saw an octave down, noise, resonant ladder opened by a 2 s filter envelope, short room).
+- Web: Edit (a cog) on a module's modulations and macros opens the source or the macro in the side panel, with Back to the module; a cog on each macro of the Live player opens it in the Synth view. A sound that has a macros section keeps its macros as written (no default macros over them).

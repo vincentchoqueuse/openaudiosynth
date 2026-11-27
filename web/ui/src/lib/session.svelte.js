@@ -49,8 +49,24 @@ class Session {
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
   panelTab = $state('settings'); // the side panel's tab: general or settings
   synthTab = $state(urlParams.code ? 'code' : 'settings'); // the Synth view's tab: settings (its modules), graph (its signal path), code (its patch file) or general (the sound as fields)
-  openPanel = (kind, id) => { this.panel = { kind, id }; this.panelTab = 'settings'; }; // an item opens on its settings
-  closePanel = () => { this.panel = null; };
+  openPanel = (kind, id) => { this.panel = { kind, id }; this.panelTab = 'settings'; this.panelBack = []; }; // an item opens on its settings
+  closePanel = () => { this.panel = null; this.panelBack = []; };
+  // Edit from inside a panel (a modulation's source, a macro): the panel shows that item, and Back returns to the
+  // one it came from (panelBack: the way back, {kind, id, title, tab})
+  panelBack = $state([]);
+  editPanel = (kind, id) => {
+    if (this.panel && (this.panel.kind !== kind || this.panel.id !== id))
+      this.panelBack = [...this.panelBack, { ...this.panel, title: this.panelTitle, tab: this.panelTab }];
+    this.panel = { kind, id };
+    this.panelTab = 'settings';
+  };
+  panelReturn = () => {
+    const b = this.panelBack.at(-1);
+    if (!b) return;
+    this.panelBack = this.panelBack.slice(0, -1);
+    this.panel = { kind: b.kind, id: b.id };
+    this.panelTab = b.tab ?? 'settings';
+  };
   shortcutsOpen = $state(false); // the shortcuts sheet
   cpu = $state(0); // share of the audio time spent rendering, 0..1 (the worklet measures it)
   msegPos = $state([-1, -1, -1]); // where the part's envelopes and the newest note's are, 0..1 (-1: idle)
@@ -397,7 +413,7 @@ class Session {
     try {
       const o = JSON.parse(text);
       this.description = typeof o.description === 'string' ? o.description : '';
-      if (!(o.macros ?? []).some((m) => m?.targets?.length)) this.defaultMacros();
+      if (!Array.isArray(o.macros)) this.defaultMacros(); // a sound that sets its macros (names, values, routes from them) keeps them as they are
     } catch { /* the C reader has accepted it: it is JSON */ }
     if (r.kit && r.kit !== this.kitName) await this.loadNamedKit(r.kit); // the synth keeps the last kit across patches
     return r;

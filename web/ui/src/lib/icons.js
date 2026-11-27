@@ -7,6 +7,7 @@ export const ICONS = {
   init: { d: 'M2.5 8a5.5 5.5 0 1 0 1.7-4M2.5 2.5V5.5h3' },
   up: { d: 'M4 10l4-4 4 4' },
   down: { d: 'M4 6l4 4 4-4' },
+  back: { d: 'M10 4L6 8l4 4' },
   close: { d: 'M4 4l8 8M12 4l-8 8' },
   plus: { d: 'M8 3v10M3 8h10' },
   search: { d: `${circle(4.2).replace('M8', 'M7').replace(/a4.2 4.2 0 1 0 0 8.4/, 'a4.2 4.2 0 1 0 0 8.4')}M10.2 10.2 14 14` },

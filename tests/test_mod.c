@@ -204,9 +204,32 @@ static void wander_walks(void)
     CHECK(det, "wander is not the same at every start");
 }
 
+/* the duck shape of a part LFO: -1 at each cycle's start, then 1 - 2 exp(-t / duck_time) (a side-chain pump) */
+static void lfo_duck(void)
+{
+    static partmod_t m;
+    static tempo_t tp;
+    tempo_init(&tp, SR, 120.0f);
+    partmod_init(&m, SR, 1);
+    partmod_set(&m, PM_LFO(0, PM_LFO_WAVE), param_to_norm(&partmod_params[PM_LFO(0, PM_LFO_WAVE)], (float)PM_WAVE_DUCK));
+    partmod_set(&m, PM_LFO(0, PM_LFO_RATE), param_to_norm(&partmod_params[PM_LFO(0, PM_LFO_RATE)], 1.0f));
+    partmod_set(&m, PM_DUCK_TIME(0), param_to_norm(&partmod_params[PM_DUCK_TIME(0)], 0.1f));
+    float lo = 1.0f, hi = -1.0f, worst = 0.0f;
+    for (int b = 0; b < (int)(2.0f * SR / 32.0f); b++) {
+        partmod_block(&m, &tp, 32, 0, 0);
+        const float v = m.src[PM_SRC_LFO1], since = m.lfo_phase[0] * 1.0f; /* 1 Hz: the phase is the time */
+        lo = fminf(lo, v), hi = fmaxf(hi, v);
+        worst = fmaxf(worst, fabsf(v - (1.0f - 2.0f * expf(-since / 0.1f))));
+        CHECK(v >= -1.0f && v <= 1.0f, "duck out of -1..1: %g", (double)v);
+    }
+    CHECK(lo < -0.98f && hi > 0.99f, "duck: %.3f .. %.3f (-1 .. 1 expected)", (double)lo, (double)hi);
+    CHECK(worst < 0.01f, "duck: %.4f away from 1 - 2 exp(-t / 0.1 s)", (double)worst);
+}
+
 void suite_mod(void)
 {
     wander_walks();
+    lfo_duck();
     routes_engine_switch();
     macro_targets();
     macro_global_and_cc();

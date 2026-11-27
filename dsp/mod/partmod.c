@@ -6,6 +6,7 @@ static const char *const src_labels[] = {"none", "macro1", "macro2", "macro3", "
                                          "macro8", "mlfo1", "mlfo2", "mseg1", "mseg2", "mod_wheel", "aftertouch",
                                          "pitch_bend", "velocity", "note", "random", "wander", NULL};
 static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", NULL};
+static const char *const mlfo_wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", "duck", NULL};
 static const char *const mode_labels[] = {"oneshot", "loop_held", "loop_free", NULL};
 static const char *const time_labels[] = {"seconds", "beats", NULL};
 static const char *const vsrc_labels[] = {"none", "vmseg", "vlfo", "velocity", "note", "random", "pressure",
@@ -21,8 +22,8 @@ static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6",
           NULL, "part LFO " #K " rate when not synced"),                                                           \
     PARAM(PM_LFO(K - 1, PM_LFO_SYNC), "mlfo" #K "_sync", "mlfo" #K ".sync", 0.0f, (float)(TEMPO_DIV_COUNT - 1),     \
           0.0f, PARAM_INT, "", 0, tempo_div_labels, "off = free rate; a division = one cycle per division, locked to the beat"), \
-    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0,  \
-          wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk)"), \
+    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 7.0f, 0.0f, PARAM_INT, "", 0,  \
+          mlfo_wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; duck = a side-chain pump: down at each cycle's start, back up with duck_time)"), \
     PARAM(PM_LFO(K - 1, PM_LFO_RETRIG), "mlfo" #K "_retrig", "mlfo" #K ".retrigger", 0.0f, 1.0f, 0.0f, PARAM_INT,  \
           "", 0, param_onoff_labels, "free LFO restarts when a note starts on a silent part")
 
@@ -151,6 +152,10 @@ const param_desc_t partmod_params[PM_COUNT] = {
           "slow random drift of the eight macros, each on its own walk: the sound moves by itself through what its macros reach and never comes back the same way (0.2 alive, 0.5 always changing, 1 = up to a third of each macro's travel)"),
     PARAM(PM_WANDER_RATE, "wander_rate", "wander.rate", 0.01f, 2.0f, 0.08f, PARAM_EXP, "Hz", 1, NULL,
           "how often the walks change direction: 0.02 Hz glacial, 0.08 Hz a slow breath, 0.5 Hz and more restless"),
+    PARAM(PM_DUCK_TIME(0), "mlfo1_duck_time", "mlfo1.duck_time", 0.005f, 2.0f, 0.1f, PARAM_EXP, "s", 1, NULL,
+          "duck shape: how fast it comes back up after each drop (a time constant: 63 % of the way back after this time); short = a tight pump, long = a slow swell"),
+    PARAM(PM_DUCK_TIME(1), "mlfo2_duck_time", "mlfo2.duck_time", 0.005f, 2.0f, 0.1f, PARAM_EXP, "s", 1, NULL,
+          "duck shape: how fast it comes back up after each drop (a time constant: 63 % of the way back after this time); short = a tight pump, long = a slow swell"),
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
 
@@ -393,8 +398,14 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
             m->lfo_phase[k] = fm_frac(m->lfo_phase[k] + m->p[PM_LFO(k, PM_LFO_RATE)] * dt_s);
         if (m->lfo_phase[k] < prev) /* new cycle */
             m->lfo_sh[k] = dsp_rand_bipolar(&m->rng);
-        m->src[PM_SRC_LFO1 + k] = voicemod_lfo_shape((int)m->p[PM_LFO(k, PM_LFO_WAVE)], m->lfo_phase[k], m->lfo_sh[k],
-                                            &m->p[PM_FOURIER(k, 0, 0)], m->wiener[k]);
+        const int wave = (int)m->p[PM_LFO(k, PM_LFO_WAVE)];
+        if (wave == PM_WAVE_DUCK) { /* -1 at the cycle's start, then exponentially back towards +1 */
+            const float period = div > 0 ? tempo_div_beats[div] * 60.0f / t->bpm : 1.0f / m->p[PM_LFO(k, PM_LFO_RATE)];
+            const float since = m->lfo_phase[k] * period; /* seconds into the cycle */
+            m->src[PM_SRC_LFO1 + k] = 1.0f - 2.0f * fm_exp2(-FM_LOG2E * since / m->p[PM_DUCK_TIME(k)]);
+        } else
+            m->src[PM_SRC_LFO1 + k] = voicemod_lfo_shape(wave, m->lfo_phase[k], m->lfo_sh[k], &m->p[PM_FOURIER(k, 0, 0)],
+                                                         m->wiener[k]);
     }
     const float dt_beats = t->bpm * (1.0f / 60.0f) * dt_s;
     for (int k = 0; k < PM_MSEGS; k++)

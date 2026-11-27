@@ -226,6 +226,7 @@
     "micro.ratchet_hz": "repeat rate when not on the tempo",
     "micro.sub_octave": "sub one or two octaves down",
     "mixer.feedback": "output fed back into the mixer",
+    "mlfo<n>.duck_time": "part LFO n duck shape: time constant of its rise after each drop (s)",
     "mlfo<n>.harmonic<n>.a": "part LFO n Fourier shape: cosine coefficient of a harmonic",
     "mlfo<n>.harmonic<n>.b": "part LFO n Fourier shape: sine coefficient of a harmonic",
     "mlfo<n>.rate": "part LFO n free rate",

@@ -253,3 +253,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - va_pumped_bass: the user's sound (a saw an octave down, mono with a long glide, high-passed at 180 Hz) and their two-bar riff at 130 bpm.
 - Web: the Add effect menu shows "+ Add effect" again once an effect is added (it kept the chosen one, no longer in its list: an empty button).
 - Rack: a seventh effect, Gain (fx.gain.level, -24..+24 dB, at the end by default, untouched at 0 dB), placeable like the others; SYNTH_PARAM_FX_SLOT_7 and SYNTH_PARAM_GAIN_DB appended to synth.h (asked). Test: +6 dB doubles, -12 dB quarters, 0 dB bit-identical; every fingerprint unchanged.
+- Part LFOs: a duck shape for a side-chain pump (-1 at each cycle's start, then 1 - 2 exp(-t / duck_time)), duck_time 5 ms .. 2 s appended to the part's parameters; drawn in the LFO view with its time. Test: the curve within 0.01 of the formula. Fingerprints unchanged.

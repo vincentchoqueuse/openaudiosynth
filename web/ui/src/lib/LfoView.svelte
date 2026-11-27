@@ -33,6 +33,7 @@
   }
   const cycle = $derived(sync ? divBeats(divs[sync]) : 1 / Math.max(0.01, rate)); // beats or seconds
   const unit = $derived(sync ? 'b' : 's');
+  const cycleS = $derived(sync ? (cycle * 60) / Math.max(1, get('tempo')) : cycle); // a cycle in seconds (duck)
 
   // the shape over a cycle, phase 0..1 -> -1..1 (sh: steps from a fixed draw, so the picture holds still)
   const steps = [0.6, -0.3, 0.9, -0.8, 0.2, -0.5, 0.7, -0.1];
@@ -66,6 +67,7 @@
       case 'sh': return steps[k % steps.length];
       case 'fourier': return fourier(p);
       case 'wiener': return wiener(p);
+      case 'duck': return 1 - 2 * Math.exp(-(p * cycleS) / Math.max(0.005, get(prefix + 'duck_time'))); // as PM_WAVE_DUCK
       default: return Math.sin(2 * Math.PI * p);
     }
   }
@@ -148,6 +150,9 @@
       </label>
     {:else if d('rate')}
       <div class="rate"><Param d={d('rate')} label="Rate" /></div>
+    {/if}
+    {#if waves[wave] === 'duck' && d('duck_time')}
+      <div class="rate"><Param d={d('duck_time')} label="Duck time" /></div>
     {/if}
     {#if d('retrig')}
       <Switch label="Restart on note" on={get(prefix + 'retrig') > 0.5} onchange={(v) => set(prefix + 'retrig', v ? 1 : 0)} title="restarts when a note starts on a silent part" />

@@ -64,10 +64,13 @@ enum { PM_M_MACRO = 0, PM_M_DST, PM_M_FROM, PM_M_TO, PM_M_COUNT };
 /* wander (appended): how far the walks move the macros, and how fast they go */
 #define PM_WANDER PM_FOURIER(PM_LFOS + 1, 0, 0)
 #define PM_WANDER_RATE (PM_WANDER + 1)
-#define PM_COUNT (PM_WANDER + 2)
+/* the duck shape's time constant of each part LFO (appended) */
+#define PM_DUCK_TIME(k) (PM_WANDER + 2 + (k))
+#define PM_COUNT (PM_WANDER + 2 + PM_LFOS)
 #define PM_WANDER_REACH 0.35f /* of a macro's travel, either way, at wander = 1 */
 #define PM_WAVE_FOURIER 5
 #define PM_WAVE_WIENER 6
+#define PM_WAVE_DUCK 7 /* part LFOs only: a side-chain pump, down at each cycle's start, back up with a time constant */
 
 /* sources (index 0 = none) */
 enum { PM_SRC_NONE = 0, PM_SRC_MACRO1, PM_SRC_LFO1 = PM_SRC_MACRO1 + PM_MACROS, PM_SRC_MSEG1 = PM_SRC_LFO1 + PM_LFOS,

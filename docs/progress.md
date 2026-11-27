@@ -247,3 +247,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: Edit (a cog) on a module's modulations and macros opens the source or the macro in the side panel, with Back to the module; a cog on each macro of the Live player opens it in the Synth view. A sound that has a macros section keeps its macros as written (no default macros over them).
 - va: a sub oscillator (sub.level, sub.octave -1 or -2 under osc 1, sub.waveform), after the other parameters so every identifier stays; off by default, every fingerprint unchanged; test: its pitch an octave and two down, and carried by osc 1's octave.
 - Web: an effect of the rack opens on a menu that puts another effect in its slot (same place in the chain); every side panel has the same width (560 px).
+- Web: no Edit cog on the Live player's macros (it broke the flow of playing); Edit stays in the modules' panels.

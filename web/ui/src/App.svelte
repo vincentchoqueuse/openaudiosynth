@@ -107,7 +107,7 @@
         {/if}
       </div>
       <div hidden={!live}>
-        <Card plain class="macrocard"><MacroStrip onedit={s.phone ? null : (k) => { main = 'synth'; s.synthTab = 'settings'; s.openPanel('macro', 'm' + k); }} /></Card>
+        <Card plain class="macrocard"><MacroStrip /></Card>
       </div>
       <div class="scopestrip" hidden={!(live && scope)}>
         <Scope analyser={s.synth.analyser} view={scopeView} shown={live && scope} />

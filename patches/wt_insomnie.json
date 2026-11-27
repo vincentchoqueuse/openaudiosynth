@@ -1,0 +1,48 @@
+{
+  "version": 2,
+  "engine": "wt",
+  "name": "wt_insomnie",
+  "description": "Late-90s trance pluck, made from the glassy pluck: a harmonics table an octave down in two detuned voices over a PWM table and a direct sub, its position and the filter snapped shut by a short envelope (velocity adds brightness), driven, through a fast ping-pong delay and a bright room.",
+  "osc1": {
+    "wavetable": "harmonics",
+    "position": 0.762,
+    "level": 0.9,
+    "octave": -1,
+    "unison_voices": 2,
+    "unison_detune": 6
+  },
+  "osc2": {"wavetable": "pwm", "position": 0.472, "level": 0.657},
+  "sub": {"level": 0.553, "route": "direct"},
+  "filter": {"cutoff": 1800, "resonance": 0.2, "keytrack": 0.6},
+  "amp": {"attack": 0.001, "decay": 0.6, "sustain": 0, "release": 0.4},
+  "env2": {"attack": 0.001, "decay": 0.25, "release": 0.2},
+  "mod": {
+    "slot1": {"source": "env2", "destination": "a_position", "amount": 0.7},
+    "slot2": {"source": "env2", "destination": "cutoff", "amount": 0.4, "via": "velocity"}
+  },
+  "output": {"volume": 14.6},
+  "voice": {"pan_spread": 0.5},
+  "fx": {
+    "distortion": {"drive": 8.1},
+    "delay": {
+      "mix": 0.645,
+      "time": 0.087706,
+      "stereo_ratio": 1.0533,
+      "feedback": 0.49784,
+      "drive": 0.256,
+      "pingpong": "on"
+    },
+    "reverb": {"mix": 0.521, "decay": 0.62172, "damping": 2353.8}
+  },
+  "tempo": {"bpm": 126.9},
+  "macros": [
+    {"name": "A position", "value": 0.932, "targets": [{"param": "osc1.position", "from": 0.762, "to": 0.762}]},
+    {"name": "B position", "value": 0.471, "targets": [{"param": "osc2.position", "from": 0.472, "to": 0.822}]},
+    {"name": "A warp", "targets": [{"param": "osc1.warp", "from": 0, "to": 0.35}]},
+    {"name": "Cutoff", "value": 0.268, "targets": [{"param": "filter.cutoff", "from": 113.57, "to": 14298}]},
+    {"name": "Resonance", "value": 0.3636, "targets": [{"param": "filter.resonance", "from": 0, "to": 0.55}]},
+    {"name": "Amp release", "value": 0.5, "targets": [{"param": "amp.release", "from": 0.019042, "to": 8.4026}]},
+    {"name": "Delay mix", "targets": [{"param": "fx.delay.mix", "from": 0.371, "to": 0.88896}]},
+    {"name": "Reverb mix", "value": 0.191, "targets": [{"param": "fx.reverb.mix", "from": 0.13318, "to": 0.969}]}
+  ]
+}

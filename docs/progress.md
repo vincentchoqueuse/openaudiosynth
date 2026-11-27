@@ -257,3 +257,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Duck shape in three phases, as a side-chain compressor's gain: duck_attack (0.5-50 ms), duck_hold (0-500 ms), duck_release (time constant); the attack starts where the last cycle ended (no jump). Picking duck in the web sets the LFO to beats, 1/4. Test: held at -1, release within 0.01 of the formula, no step over 0.4 a block.
 - va_pumped_bass pumps on every beat: Global LFO 1 duck (1/4, attack 5 ms, hold 70 ms, release 120 ms) on the volume, about 12 dB down (measured folded over a beat), the engine 6.7 dB lower so the top stays where it was.
 - Web: the four types of module as icons (a wave, a filter's response, a wave with an arrow, a knob), on their colour in the first column of the Synth table and in its type filter (the name in the tooltip).
+- wt_insomnie: the user's take on the glassy pluck for the riff (wt_pluck left as it was), with va_insomnie's clip.

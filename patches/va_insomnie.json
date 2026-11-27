@@ -2,7 +2,7 @@
   "version": 2,
   "engine": "va",
   "name": "va_insomnie",
-  "description": "Late-90s trance pluck: a saw over a second saw an octave down, a touch of noise, through a resonant ladder shut at rest and thrown open by a slow 2 s filter envelope, in a short bright room. Macro 1 opens the filter, macro 2 brings in the room.",
+  "description": "Late-90s trance pluck: a saw over a second saw an octave down, a sine sub two octaves under and a touch of noise, through a resonant ladder shut at rest and thrown open by a slow 2 s filter envelope, in a short bright room. Macro 1 opens the filter, macro 2 brings in the room.",
   "osc2": {"octave": -1, "detune": 12, "level": 0.451},
   "noise": {"level": 0.209},
   "filter": {"type": "ladder", "cutoff": 20, "resonance": 0.781, "envelope_amount": 8},
@@ -10,9 +10,11 @@
   "lfo": {"wheel_vibrato": 0},
   "voice": {"drift": 0, "pan_spread": 0, "tolerance": 0, "jitter": 0},
   "motion": {"spread": 0},
+  "sub": {"level": 0.269, "octave": -2, "waveform": "sine"},
+  "master": {"level": 6},
   "fx": {"reverb": {"mix": 0.427, "decay": 0.34848, "damping": 1783.9, "predelay": 0.024}},
   "tempo": {"bpm": 126.9},
   "route1": {"source": "macro1", "destination": "filter.cutoff", "amount": 1},
   "route2": {"source": "macro2", "destination": "fx.reverb.mix", "amount": 1},
-  "macros": [{"name": "Cutoff", "value": 0.079}, {"value": 0.029}]
+  "macros": [{"name": "Cutoff", "value": 0.086}, {"value": 0.029}]
 }

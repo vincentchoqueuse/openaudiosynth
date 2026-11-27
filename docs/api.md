@@ -529,7 +529,7 @@ a drum sampler: plays the samples of a kit (core/kit.h, given by synth_part_kit)
 - data: `const param_desc_t sampler_params[SAMPLER_P_COUNT]`, `const engine_ops_t sampler_engine`
 
 ## `dsp/engines/va.h`
-"va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators, each a unison of 1 to 16 detuned and spread copies (dsp/osc/unison.h), + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
+"va" subtractive engine (M1, inspired by a 2-oscillator virtual analog). Per voice: 2 polyBLEP oscillators, each a unison of 1 to 16 detuned and spread copies (dsp/osc/unison.h), a sub oscillator one or two octaves under osc 1, + noise, two filter slots in series or parallel (state-variable, formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator. Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide.
 - types: `va_voice_t`, `va_t`
 - constants: `VA_VOICES` = 8, `VA_STEREO` = 1
 - data: `const param_desc_t va_params[VA_P_COUNT]`, `const engine_ops_t va_engine`

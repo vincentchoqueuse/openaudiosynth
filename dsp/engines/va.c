@@ -117,6 +117,12 @@ const param_desc_t va_params[VA_P_COUNT] = {
           "itself on its resonances like a struck body (negative: the other phase, other resonances)"),
     PARAM(VA_P_F1_FOLLOW, "filter_follow", "filter.follow", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
           "filter_mode morph and growl: how far the sound's own level pushes filter_morph up (harder = further)"),
+    PARAM(VA_P_SUB_LEVEL, "sub_level", "sub.level", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "sub oscillator level: osc 1's note one or two octaves down, weight under a bass or a lead"),
+    PARAM(VA_P_SUB_OCT, "sub_oct", "sub.octave", -2.0f, -1.0f, -1.0f, PARAM_INT, "oct", 0, NULL,
+          "sub oscillator: one octave (-1) or two (-2) under osc 1"),
+    PARAM(VA_P_SUB_WAVE, "sub_wave", "sub.waveform", 0.0f, 3.0f, 2.0f, PARAM_INT, "", 0, osc_wave_labels,
+          "sub oscillator waveform: pulse (a square) the classic hollow sub, sine the roundest, tri between, saw the brightest"),
 };
 
 static const vpoly_ops_t va_poly_ops;
@@ -133,10 +139,11 @@ static void va_init(void *st, float sample_rate)
     smooth_init(&e->sm_lvl[0], VA_SMOOTH_S, ctrl_rate, e->p[VA_P_OSC1_LEVEL]);
     smooth_init(&e->sm_lvl[1], VA_SMOOTH_S, ctrl_rate, e->p[VA_P_OSC2_LEVEL]);
     smooth_init(&e->sm_lvl[2], VA_SMOOTH_S, ctrl_rate, e->p[VA_P_NOISE_LEVEL]);
+    smooth_init(&e->sm_lvl[3], VA_SMOOTH_S, ctrl_rate, e->p[VA_P_SUB_LEVEL]);
     smooth_init(&e->sm_pw[0], VA_SMOOTH_S, ctrl_rate, e->p[VA_P_OSC1_PW]);
     smooth_init(&e->sm_pw[1], VA_SMOOTH_S, ctrl_rate, e->p[VA_P_OSC2_PW]);
     smooth_init(&e->sm_vol, VA_SMOOTH_S, ctrl_rate, fm_db2lin(e->p[VA_P_VOLUME]));
-    for (int k = 0; k < 3; k++)
+    for (int k = 0; k < 4; k++)
         e->lvl_prev[k] = e->sm_lvl[k].y;
     e->vol_prev = e->sm_vol.y;
     e->bend = 0.0f;
@@ -155,6 +162,7 @@ static void va_init(void *st, float sample_rate)
         v->pitch = 60.0f;
         osc_init(&v->osc[0], sample_rate);
         osc_init(&v->osc[1], sample_rate);
+        osc_init(&v->sub, sample_rate);
         unison_init(&v->uni[0], sample_rate, 0x4000u + 2u * (uint32_t)i);
         unison_init(&v->uni[1], sample_rate, 0x4001u + 2u * (uint32_t)i);
         v->stereo = 0;
@@ -191,6 +199,7 @@ static void voice_start(void *eng, int vi, int note, float vel, int hard)
         /* random free-running phases: each note sounds slightly different, as on an analog synth */
         osc_reset(&v->osc[0], dsp_rand_unipolar(&e->rng));
         osc_reset(&v->osc[1], dsp_rand_unipolar(&e->rng));
+        osc_reset(&v->sub, 0.0f); /* the sub starts on its cycle: the same weight on every note (and no draw from rng) */
         unison_reset(&v->uni[0], 1);
         unison_reset(&v->uni[1], 1);
         vfilter_reset(&v->f1);
@@ -273,10 +282,11 @@ static void va_set_param(void *st, int id, float norm)
         smooth_snap(&e->sm_lvl[0], e->p[VA_P_OSC1_LEVEL]);
         smooth_snap(&e->sm_lvl[1], e->p[VA_P_OSC2_LEVEL]);
         smooth_snap(&e->sm_lvl[2], e->p[VA_P_NOISE_LEVEL]);
+        smooth_snap(&e->sm_lvl[3], e->p[VA_P_SUB_LEVEL]);
         smooth_snap(&e->sm_pw[0], e->p[VA_P_OSC1_PW]);
         smooth_snap(&e->sm_pw[1], e->p[VA_P_OSC2_PW]);
         smooth_snap(&e->sm_vol, fm_db2lin(e->p[VA_P_VOLUME]));
-        for (int k = 0; k < 3; k++)
+        for (int k = 0; k < 4; k++)
             e->lvl_prev[k] = e->sm_lvl[k].y;
         e->vol_prev = e->sm_vol.y;
     }
@@ -318,7 +328,7 @@ static void va_mod_wheel(void *st, float v) { ((va_t *)st)->modwheel = dsp_clamp
 typedef struct {
     float cut_oct, res, pitch, lfo_cut, vol;
     float lfo1;                       /* LFO 1 value, modulates LFO 2 */
-    float lvl0[3], lvl1[3];
+    float lvl0[4], lvl1[4]; /* osc 1, osc 2, noise, sub */
     float pw[2];
     analog_cfg_t analog;
 } va_block_t;
@@ -466,6 +476,15 @@ static DSP_FAST_CODE void voice_render(va_t *e, int vi, const va_block_t *b, flo
         if (stereo)
             dsp_ramp_mac(xr, spread ? tr : t, b->lvl0[k], b->lvl1[k], n);
     }
+    if (b->lvl0[3] > 0.0f || b->lvl1[3] > 0.0f) { /* the sub: osc 1's pitch (without its poly-mod), an octave or two down */
+        osc_set_wave(&v->sub, (osc_wave_t)(int)p[VA_P_SUB_WAVE]);
+        osc_set(&v->sub, fm_mtof(base + 12.0f * (p[VA_P_OSC1_OCT] + p[VA_P_SUB_OCT]) + p[VA_P_OSC1_SEMI] +
+                                 0.01f * (p[VA_P_OSC1_DETUNE] + det[1] + an[0])), 0.5f);
+        osc_process(&v->sub, t, n);
+        dsp_ramp_mac(x, t, b->lvl0[3], b->lvl1[3], n);
+        if (stereo)
+            dsp_ramp_mac(xr, t, b->lvl0[3], b->lvl1[3], n);
+    }
     if (b->lvl0[2] > 0.0f || b->lvl1[2] > 0.0f) {
         noise_process(&v->noise, t, n);
         dsp_ramp_mac(x, t, b->lvl0[2], b->lvl1[2], n);
@@ -516,7 +535,8 @@ static DSP_FAST_CODE void va_render(void *st, float *L, float *R)
     b.lvl1[0] = smooth_next(&e->sm_lvl[0], p[VA_P_OSC1_LEVEL]);
     b.lvl1[1] = smooth_next(&e->sm_lvl[1], p[VA_P_OSC2_LEVEL]);
     b.lvl1[2] = smooth_next(&e->sm_lvl[2], p[VA_P_NOISE_LEVEL]);
-    for (int k = 0; k < 3; k++)
+    b.lvl1[3] = smooth_next(&e->sm_lvl[3], p[VA_P_SUB_LEVEL]);
+    for (int k = 0; k < 4; k++)
         b.lvl0[k] = e->lvl_prev[k];
     b.vol = smooth_next(&e->sm_vol, fm_db2lin(p[VA_P_VOLUME]));
 
@@ -532,7 +552,7 @@ static DSP_FAST_CODE void va_render(void *st, float *L, float *R)
         if (vpoly_active(&e->poly, vi))
             voice_render(e, vi, &b, L, R);
 
-    for (int k = 0; k < 3; k++)
+    for (int k = 0; k < 4; k++)
         e->lvl_prev[k] = b.lvl1[k];
     e->vol_prev = b.vol;
 }
@@ -541,13 +561,14 @@ static DSP_FAST_CODE void va_render(void *st, float *L, float *R)
 static const engine_stage_t va_stages[] = {
     {"osc1", "Osc 1", "source", "osc1_ unison_ polymod_", "", NULL, "osc1_level", 0.0f, 1.0f},
     {"osc2", "Osc 2", "source", "osc2_", "", NULL, "osc2_level", 0.0f, 0.6f},
+    {"sub", "Sub", "source", "sub_", "", NULL, "sub_level", 0.0f, 0.5f},
     {"noise", "Noise", "source", "noise_level", "", NULL, "noise_level", 0.0f, 0.2f},
-    {"filter1", "Filter", "filter", "filter_mode cutoff resonance keytrack vel_cutoff filter_character filter_morph filter_feedback filter_follow oversample", "osc1 osc2 noise",
+    {"filter1", "Filter", "filter", "filter_mode cutoff resonance keytrack vel_cutoff filter_character filter_morph filter_feedback filter_follow oversample", "osc1 osc2 sub noise",
      NULL, NULL, 0.0f, 0.0f},
     {"filter2", "Filter 2", "filter", "filter2_ filter_routing", "filter1", NULL, "filter2_mode", 0.0f, 1.0f},
     {"amp", "Amp", "amp", "amp_ volume pan_spread", "filter2", NULL, NULL, 0.0f, 0.0f},
     {"fenv", "Filter env", "mod", "fenv_", "", "filter1 filter2", NULL, 0.0f, 0.0f},
-    {"pitchenv", "Pitch env", "mod", "pitch_env pitch_env_decay", "", "osc1 osc2", "pitch_env", 0.0f, 12.0f},
+    {"pitchenv", "Pitch env", "mod", "pitch_env pitch_env_decay", "", "osc1 osc2 sub", "pitch_env", 0.0f, 12.0f},
     {"lfo", "LFO", "mod", "lfo_rate lfo_wave lfo_pitch lfo_cutoff lfo_pwm wheel_vibrato", "", "osc1 osc2 filter1", NULL,
      0.0f, 0.0f},
     {"motion", "Motion", "mod", "lfo2_ lfo3_ lfo4_ drift drift_time tolerance jitter", "", "osc1 osc2", NULL, 0.0f, 0.0f},
@@ -556,7 +577,7 @@ static const engine_stage_t va_stages[] = {
 
 const engine_ops_t va_engine = {
     .name = "va",
-    .description = "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + noise -> two filter slots in series or parallel "
+    .description = "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + a sub oscillator + noise -> two filter slots in series or parallel "
                        "(state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
     .params = va_params,
     .param_count = VA_P_COUNT,

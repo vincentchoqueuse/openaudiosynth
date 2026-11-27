@@ -512,7 +512,7 @@
   },
   "engines": {
     "va": {
-      "description": "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
+      "description": "subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + a sub oscillator + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)",
       "voices": 8,
       "params": {
         "osc1_wave": {"type": "enum", "choices": ["sine", "saw", "pulse", "tri"], "default": "saw", "realtime": false, "role": "osc1.waveform", "help": "osc 1 waveform: saw = bright/brassy, pulse = hollow (square at pw 0.5), tri = soft flute, sine = pure; osc1_unison stacks detuned copies of it"},
@@ -593,7 +593,10 @@
         "polymod_target": {"type": "enum", "choices": ["pitch", "pw", "both"], "default": "pitch", "realtime": false, "role": "polymod.target", "help": "what poly-mod moves on osc 1: its pitch, its pulse width, or both"},
         "filter_morph": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "filter.morph", "help": "filter_mode morph and growl: the position in the table of filters (morph: 0 low-pass, 0.33 band-pass, 0.67 high-pass; growl: 0 oo, 0.33 oh, 0.67 ah, 1 ee)"},
         "filter_feedback": {"type": "float", "range": [-1, 1], "default": 0, "realtime": true, "role": "filter.feedback", "help": "filter_mode morph and growl: the output, saturated, fed back into the input; high, the filter rings by itself on its resonances like a struck body (negative: the other phase, other resonances)"},
-        "filter_follow": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "filter.follow", "help": "filter_mode morph and growl: how far the sound's own level pushes filter_morph up (harder = further)"}
+        "filter_follow": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "filter.follow", "help": "filter_mode morph and growl: how far the sound's own level pushes filter_morph up (harder = further)"},
+        "sub_level": {"type": "float", "range": [0, 1], "default": 0, "realtime": true, "role": "sub.level", "help": "sub oscillator level: osc 1's note one or two octaves down, weight under a bass or a lead"},
+        "sub_oct": {"type": "int", "range": [-2, -1], "default": -1, "unit": "oct", "realtime": false, "role": "sub.octave", "help": "sub oscillator: one octave (-1) or two (-2) under osc 1"},
+        "sub_wave": {"type": "enum", "choices": ["sine", "saw", "pulse", "tri"], "default": "pulse", "realtime": false, "role": "sub.waveform", "help": "sub oscillator waveform: pulse (a square) the classic hollow sub, sine the roundest, tri between, saw the brightest"}
       }
     },
     "modal": {

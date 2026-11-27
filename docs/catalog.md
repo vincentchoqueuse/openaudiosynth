@@ -435,7 +435,7 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 
 ## Engine `va` (8 voices)
 
-subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)
+subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of up to 16 detuned voices spread in stereo) + a sub oscillator + noise -> two filter slots in series or parallel (state-variable, formant, screaming 2-pole) -> amp; amp and filter ADSR, global LFO, 3 desynchronized per-voice detune LFOs, analog drift (8 voices)
 
 | name | range / choices | default | live | role | what it does |
 |---|---|---|---|---|---|
@@ -518,6 +518,9 @@ subtractive virtual analog: 2 oscillators (sine/saw/pulse/tri, each a unison of 
 | `filter_morph` | 0 .. 1 | 0 | yes | `filter.morph` | filter_mode morph and growl: the position in the table of filters (morph: 0 low-pass, 0.33 band-pass, 0.67 high-pass; growl: 0 oo, 0.33 oh, 0.67 ah, 1 ee) |
 | `filter_feedback` | -1 .. 1 | 0 | yes | `filter.feedback` | filter_mode morph and growl: the output, saturated, fed back into the input; high, the filter rings by itself on its resonances like a struck body (negative: the other phase, other resonances) |
 | `filter_follow` | 0 .. 1 | 0 | yes | `filter.follow` | filter_mode morph and growl: how far the sound's own level pushes filter_morph up (harder = further) |
+| `sub_level` | 0 .. 1 | 0 | yes | `sub.level` | sub oscillator level: osc 1's note one or two octaves down, weight under a bass or a lead |
+| `sub_oct` | -2 .. -1 oct | -1 |  | `sub.octave` | sub oscillator: one octave (-1) or two (-2) under osc 1 |
+| `sub_wave` | sine, saw, pulse, tri | pulse |  | `sub.waveform` | sub oscillator waveform: pulse (a square) the classic hollow sub, sine the roundest, tri between, saw the brightest |
 
 ## Engine `modal` (12 voices)
 

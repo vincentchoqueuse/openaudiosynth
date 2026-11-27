@@ -1,4 +1,4 @@
-/* test_classic.c — mono and va (with what poly had: sync, unison) engines through the public API: pitch, mono glide (always, or tied notes only), hard
+/* test_classic.c — mono and va (with what poly had: sync, unison; and its sub oscillator) engines through the public API: pitch, mono glide (always, or tied notes only), hard
  * sync (pitch locks to osc B), unison, the mono's panel (emphasis thinning the bass, note priority, output fed
  * back, pink noise, LFO through the wheel, lo range), and bounded/deterministic output under random parameters. */
 #include <math.h>
@@ -293,6 +293,36 @@ void suite_classic(void)
         CHECK(e220 - e330 > 30.0f, "va sync: 330 Hz only %.1f dB below the 220 Hz fundamental", (double)(e220 - e330));
         CHECK(all_finite_bounded(L, n, 1.0f), "va sync: NaN or > 0 dBFS");
         free(db);
+    }
+
+    /* va's sub oscillator: alone (osc 1 and osc 2 at 0), A3 sounds an octave down, then two; osc 1 transposed carries it */
+    synth_init(synth_default(), SR);
+    synth_set_engine(synth_default(), SYNTH_ENGINE_VA);
+    setp(va_params, VA_P_OSC1_LEVEL, 0.0f);
+    setp(va_params, VA_P_OSC2_LEVEL, 0.0f);
+    setp(va_params, VA_P_SUB_LEVEL, 0.8f);
+    setp(va_params, VA_P_DRIFT, 0.0f);
+    setp(va_params, VA_P_TOLERANCE, 0.0f);
+    setp(va_params, VA_P_JITTER, 0.0f);
+    setp(va_params, VA_P_CUTOFF, 18000.0f);
+    setp(va_params, VA_P_FENV_AMT, 0.0f);
+    setp(va_params, VA_P_AMP_S, 1.0f);
+    {
+        static const struct { float oct, osc1_oct, wave, hz; } cases[] = {
+            {-1.0f, 0.0f, 2.0f, 110.0f}, {-2.0f, 0.0f, 0.0f, 55.0f}, {-1.0f, 1.0f, 3.0f, 220.0f}};
+        for (int c = 0; c < 3; c++) {
+            setp(va_params, VA_P_SUB_OCT, cases[c].oct);
+            setp(va_params, VA_P_OSC1_OCT, cases[c].osc1_oct);
+            setp(va_params, VA_P_SUB_WAVE, cases[c].wave);
+            midi3(0x90, 57, 100);
+            render(L, R, n);
+            const float fs = estimate_freq(L + 9600, n - 9600, SR);
+            CHECK(fabsf(fs - cases[c].hz) < 0.01f * cases[c].hz, "va sub %d: %.2f Hz (%.0f expected)", c, (double)fs,
+                  (double)cases[c].hz);
+            CHECK(rms(L + 9600, n - 9600) > 0.01f && all_finite_bounded(L, n, 1.0f), "va sub %d: silent, NaN or > 0 dBFS", c);
+            midi3(0x80, 57, 0);
+            render(L, R, n);
+        }
     }
 
     /* va's unison with a width (what poly's unison gave): one note, wider than a single voice */

@@ -1,5 +1,6 @@
 /* va.h — "va" subtractive engine (M1, inspired by a 2-oscillator virtual analog).
- * Per voice: 2 polyBLEP oscillators, each a unison of 1 to 16 detuned and spread copies (dsp/osc/unison.h), + noise, two filter slots in series or parallel (state-variable,
+ * Per voice: 2 polyBLEP oscillators, each a unison of 1 to 16 detuned and spread copies (dsp/osc/unison.h), a sub oscillator
+ * one or two octaves under osc 1, + noise, two filter slots in series or parallel (state-variable,
  * formant, screaming 2-pole), amp and filter ADSR, pitch envelope, three desynchronized detune LFOs, analog imperfections (tolerance, drift, jitter) per oscillator.
  * Global: 1 LFO (pitch, cutoff, PWM), mod wheel -> vibrato, pitch bend; poly, mono or legato with glide. */
 #ifndef ENGINE_VA_H
@@ -57,6 +58,8 @@ enum {
     VA_P_OSC1_SYNC, VA_P_PM_OSC2, VA_P_PM_ENV, VA_P_PM_TARGET,
     /* filter 1 as a morphing table (filter_mode morph, growl): its position, the loop around it, the level's push */
     VA_P_F1_MORPH, VA_P_F1_FEEDBACK, VA_P_F1_FOLLOW,
+    /* sub oscillator: osc 1's pitch, one or two octaves down (last, so the identifiers above stay) */
+    VA_P_SUB_LEVEL, VA_P_SUB_OCT, VA_P_SUB_WAVE,
     VA_P_COUNT
 };
 extern const param_desc_t va_params[VA_P_COUNT];
@@ -69,6 +72,7 @@ typedef struct {
     float pitch;     /* current pitch in semitones (glides toward the note) */
     float pan_l, pan_r;
     osc_t osc[2];     /* an oscillator alone (unison 1) */
+    osc_t sub;        /* the sub oscillator */
     unison_t uni[2];  /* the same oscillator as a unison of 2 to 16 voices */
     noise_t noise;
     vfilter_t f1, f2;   /* filter 1 (main) and filter 2; the left channel when the voice is stereo */
@@ -86,8 +90,8 @@ typedef struct {
     float sr;
     float p[VA_P_COUNT]; /* target physical values */
     /* control-rate smoothing; *_prev = previous block value (ramp start) */
-    smooth_t sm_cut, sm_res, sm_lvl[3], sm_pw[2], sm_vol;
-    float lvl_prev[3], vol_prev;
+    smooth_t sm_cut, sm_res, sm_lvl[4], sm_pw[2], sm_vol; /* levels: osc 1, osc 2, noise, sub */
+    float lvl_prev[4], vol_prev;
     float bend, modwheel;
     float last_note; /* last note played, where the next glide starts from */
     int has_last;

@@ -3,7 +3,7 @@
      output filter and the crush, the effects added to the rack, the master, the saturation, the limiter), the sources
      of modulation (envelopes, LFOs, Wander, the controllers) and the eight macros. A toolbar: a search (names,
      settings, what a module moves), the four types (source, transform, modulation, macro), On / Off, then the actions: Add effect (one not yet in the
-     rack: rack.svelte.js), Init and Randomize. Columns are fields: Name, Type (source, transform, modulation or macro, a chip of its colour), On (a switch: onoff.js; a lock
+     rack: rack.svelte.js), Init and Randomize. Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; the type filters too), Name, On (a switch: onoff.js; a lock
      when the module is always on), Summary (its main settings) and Moves (what a source or a macro moves); a click on
      a head sorts. A row's cog, or a click on it, opens the record in the side panel. Under the table, the count. -->
 <script>
@@ -25,6 +25,7 @@
    * moves several at once from one control */
   const TAGS = [{ id: 'all', label: 'All' }, { id: 'source', label: 'Source' }, { id: 'transform', label: 'Transform' },
                 { id: 'modulation', label: 'Modulation' }, { id: 'macro', label: 'Macro' }];
+  const TYPE_ICON = { source: 'source', transform: 'transform', modulation: 'modsrc', macro: 'macro' }; // icons.js
   const CLASS = { source: 'source', voice: 'source', filter: 'transform', amp: 'transform', mod: 'modulation' };
 
   const fx = $derived(fxStages(s));
@@ -89,7 +90,7 @@
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
   const count = (id) => rows.filter((r) => id === 'all' || r.tag === id).length;
   const foot = $derived(`${shown.length === rows.length ? rows.length : `${shown.length} of ${rows.length}`} modules · ${rows.filter((r) => isOn(s, r)).length} on`);
-  const columns = [{ id: 'name', label: 'Name', w: '19%', sort: true }, { id: 'type', label: 'Type', w: '132px', sort: true },
+  const columns = [{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
                    { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' }, { id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }];
 </script>
 
@@ -99,7 +100,7 @@
     <input type="search" placeholder="Search" bind:value={s.synthQuery} aria-label="Search modules and settings" spellcheck="false" />
     {#if s.synthQuery}<button class="iconbtn" onclick={() => (s.synthQuery = '')} aria-label="Clear the search" title="Clear"><Icon name="close" size={11} /></button>{/if}
   </label>
-  <Seg items={TAGS.map((t) => ({ ...t, label: `${t.label} ${count(t.id)}` }))} value={s.synthTag} onpick={(id) => (s.synthTag = id)} label="Tags" />
+  <Seg items={TAGS.map((t) => ({ ...t, icon: TYPE_ICON[t.id], label: t.id === 'all' ? `All ${count(t.id)}` : String(count(t.id)), title: `${t.label}: ${count(t.id)}` }))} value={s.synthTag} onpick={(id) => (s.synthTag = id)} label="Tags" />
   <Seg items={[{ id: 'all', label: 'All' }, { id: 'on', label: 'On', title: 'only what is on' }, { id: 'off', label: 'Off', title: 'only what is off' }]}
        value={s.synthState} onpick={(id) => (s.synthState = id)} label="On or off" />
   <span class="tools">
@@ -112,7 +113,7 @@
            empty="Nothing matches." bind:sort {foot}>
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
-    {:else if c.id === 'type'}<span class="tag cls-{r.tag}" title={r.type}>{r.tag}</span>
+    {:else if c.id === 'type'}<span class="ticon cls-{r.tag}" title="{r.tag} · {r.type}" aria-label={r.tag}><Icon name={TYPE_ICON[r.tag]} size={14} /></span>
     {:else if c.id === 'on'}
       {#if locked(s, r) && isOn(s, r)}<span class="lock" title="always on"><Icon name="lock" size={13} /></span>
       {:else}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"

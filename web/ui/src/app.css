@@ -198,8 +198,9 @@ section.card.plain { border: 0; background: none; box-shadow: none; padding: 0; 
 .finder .search input::-webkit-search-cancel-button { display: none; }
 .finder .search .iconbtn { width: 22px; height: 22px; }
 .finder .seg { box-sizing: border-box; height: 30px; align-items: stretch; } /* one height with the search */
-.finder .seg button { display: inline-flex; align-items: center; padding: 0 10px; }
+.finder .seg button { display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; }
 .dt .tag { display: inline-block; padding: 1px 7px; border-radius: 5px; font-size: 10.5px; letter-spacing: .03em; background: var(--faint); color: var(--text); }
+.dt .ticon { display: inline-grid; place-items: center; width: 24px; height: 22px; border-radius: 6px; color: var(--text); }
 .dt .cls-source { background: color-mix(in srgb, var(--ok) 22%, transparent); }
 .dt .cls-transform { background: color-mix(in srgb, #3e8ed0 24%, transparent); }
 .dt .cls-modulation { background: color-mix(in srgb, #9b6bd6 24%, transparent); }

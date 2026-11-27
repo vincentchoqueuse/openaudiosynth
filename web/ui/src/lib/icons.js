@@ -24,6 +24,12 @@ export const ICONS = {
   summary: { d: 'M1.5 5.5h4v5h-4zM10.5 5.5h4v5h-4zM5.5 8h5' },
   effects: { d: 'M3 12a6.5 6.5 0 0 1 0-8M5.8 10.4a3.6 3.6 0 0 1 0-4.8M10.2 10.4a3.6 3.6 0 0 0 0-4.8M13 12a6.5 6.5 0 0 0 0-8' },
   modulation: { d: 'M1.5 11.5 5 4.5l3 7 3-7 3.5 7' },
+  // the four types of module: a source (a wave), a transform (a low-pass response), a modulation (an LFO moving a
+  // level: the wave and its arrow), a macro (a knob)
+  source: { d: 'M1.5 8c1.6-6.5 4.9-6.5 6.5 0s4.9 6.5 6.5 0' },
+  transform: { d: 'M1.5 5.5h6.5c2.5 0 3 1.5 4 4.5l.8 3.5M1.5 13.5h13' },
+  modsrc: { d: 'M1.5 6c1.2-4 3.8-4 5 0s3.8 4 5 0M11.5 9.5v5M9.5 12.5l2 2 2-2' },
+  macro: { d: `${circle(5.5)}M8 8 11.2 4.8` },
   // the sidebar
   settings: { d: 'M13.3 6.9l1.9.2v1.7l-1.9.2-.8 1.9 1.2 1.5-1.2 1.2-1.5-1.2-1.9.8-.2 1.9H7.1l-.2-1.9-1.9-.8-1.5 1.2-1.2-1.2 1.2-1.5-.8-1.9-1.9-.2V7.1l1.9-.2.8-1.9-1.2-1.5 1.2-1.2 1.5 1.2 1.9-.8.2-1.9h1.7l.2 1.9 1.9.8 1.5-1.2 1.2 1.2-1.2 1.5z' + circle(2.2) },
   light: { d: `${circle(3.2)}M8 1v2M8 13v2M1 8h2M13 8h2M3 3l1.4 1.4M11.6 11.6 13 13M3 13l1.4-1.4M11.6 4.4 13 3` },

@@ -17,7 +17,7 @@
 <table class="dt" aria-label={label}>
   <colgroup>{#each columns as c (c.id)}<col style={c.w ? `width:${c.w}` : ''} />{/each}<col style="width:44px" /></colgroup>
   <thead><tr>{#each columns as c (c.id)}<th class={c.cls ?? ''} aria-sort={sort?.id === c.id ? (sort.dir === 1 ? 'ascending' : 'descending') : null}>
-    {#if c.sort}<button class="th-sort" class:on={sort?.id === c.id} onclick={() => bySort(c)} title="Sort by {c.label.toLowerCase()}">{c.label}<span class="arrow">{sort?.id === c.id ? (sort.dir === 1 ? '↑' : '↓') : ''}</span></button>{:else}{c.label}{/if}</th>{/each}<th></th></tr></thead>
+    {#if c.sort}<button class="th-sort" class:on={sort?.id === c.id} onclick={() => bySort(c)} title="Sort by {(c.title ?? c.label).toLowerCase()}">{c.label}<span class="arrow">{sort?.id === c.id ? (sort.dir === 1 ? '↑' : '↓') : ''}</span></button>{:else}{c.label}{/if}</th>{/each}<th></th></tr></thead>
   <tbody>
     {#each rows as r, i (r.key)}
       {#if r.group && r.group !== rows[i - 1]?.group}

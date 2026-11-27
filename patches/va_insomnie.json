@@ -1,8 +1,8 @@
 {
   "version": 2,
   "engine": "va",
-  "name": "va_night_pluck",
-  "description": "Late-90s trance pluck: a hollow pulse over a saw, snapped shut by a fast filter envelope, with a short tail that rings into a dotted-eighth delay and a big dark hall. Bright on hard notes.",
+  "name": "va_insomnie",
+  "description": "Late-90s trance pluck, the riff of its demo in two-note stabs over a B pedal: a hollow pulse over a saw, snapped shut by a fast filter envelope, with a short tail that rings into a dotted-eighth delay and a big dark hall. Bright on hard notes.",
   "osc1": {"waveform": "pulse", "pulse_width": 0.32},
   "osc2": {"waveform": "saw", "detune": 6, "level": 0.55},
   "filter": {"cutoff": 700, "resonance": 1.6, "envelope_amount": 2.8, "keytrack": 0.6},

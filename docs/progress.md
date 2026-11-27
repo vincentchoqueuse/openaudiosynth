@@ -242,3 +242,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - va_night_pluck: a late-90s trance pluck (hollow pulse over a saw, fast filter envelope, dotted-eighth delay, dark hall) with an original 127 bpm F minor 16th-note figure as its clip.
 - va_night_pluck renamed va_insomnie; its clip is the riff the user gave (E minor, 126.9 bpm, 32 beats, two-note stabs over a B pedal).
 - Web: the notes played (on-screen or computer keyboard, MIDI input) light their key and lane on the piano roll, which scrolls to show a new one out of view.
+- va_insomnie takes the user's own sound (saw and a saw an octave down, noise, resonant ladder opened by a 2 s filter envelope, short room).

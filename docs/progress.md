@@ -259,3 +259,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the four types of module as icons (a wave, a filter's response, a wave with an arrow, a knob), on their colour in the first column of the Synth table and in its type filter (the name in the tooltip).
 - wt_insomnie: the user's take on the glassy pluck for the riff (wt_pluck left as it was), with va_insomnie's clip.
 - va_insomnie removed: wt_insomnie carries the riff.
+- Web: the effects as one line in signal order (EffectChain): bypass, drag to reorder, × to take out, + Effect at the end of the rack; Add effect left the table's toolbar.

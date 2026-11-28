@@ -2,14 +2,12 @@
      collection: the instrument's stages in the order its signal flows (the sampler: its kit), the effect chain (the
      output filter and the crush, the effects added to the rack, the master, the saturation, the limiter), the sources
      of modulation (envelopes, LFOs, Wander, the controllers) and the eight macros. A toolbar: a search (names,
-     settings, what a module moves), the four types (source, transform, modulation, macro), On / Off, then the actions: Add effect (one not yet in the
-     rack: rack.svelte.js), Init and Randomize. Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; the type filters too), Name, On (a switch: onoff.js; a lock
+     settings, what a module moves), the four types (source, transform, modulation, macro), On / Off, then the actions: Init and Randomize (effects are added in the chain above: EffectChain). Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; the type filters too), Name, On (a switch: onoff.js; a lock
      when the module is always on), Summary (its main settings) and Moves (what a source or a macro moves); a click on
      a head sorts. A row's cog, or a click on it, opens the record in the side panel. Under the table, the count. -->
 <script>
   import DataTable from './DataTable.svelte';
   import Switch from './Switch.svelte';
-  import Select from './Select.svelte';
   import Icon from './Icon.svelte';
   import { session as s } from './session.svelte.js';
   import { engineStages, fxStages, summary, stageOn, ROLE } from './stages.js';
@@ -31,9 +29,6 @@
   const fx = $derived(fxStages(s));
   const inRack = (id) => s.rack.includes(id);
   $effect(() => rack.sync());
-  const addOptions = $derived([{ value: '', label: '+ Add effect' }, ...rack.free().map((id) => ({ value: id, label: fx.find((r) => r.key === id)?.title ?? id }))]);
-  let addPick = $state(''); // the menu shows "+ Add effect" again once one is added
-  function addEffect(id) { addPick = ''; if (!id) return; rack.add(id); s.openPanel('stage', id); }
   // Init: a new sound on the same instrument; Randomize: every setting of the instrument somewhere else
   function init() {
     if (s.changedCount && !confirm('Start a new sound on this instrument? The edits of this one are not kept.')) return;
@@ -106,7 +101,6 @@
   <span class="tools">
     <button class="tool" onclick={init} title="A new sound on this instrument: every setting at its default"><Icon name="init" size={13} /> Init</button>
     <button class="tool" onclick={s.randomize} title="Throw every setting of the instrument somewhere else (Undo brings the sound back)"><Icon name="dice" size={13} /> Randomize</button>
-    <Select class="tool primary" bind:value={addPick} options={addOptions} disabled={addOptions.length < 2} label="Add an effect" onchange={addEffect} />
   </span>
 </div>
 <DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}

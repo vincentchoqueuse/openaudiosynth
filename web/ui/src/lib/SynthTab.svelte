@@ -13,6 +13,7 @@
   import Tabs from './Tabs.svelte';
   import SidePanel from './SidePanel.svelte';
   import SynthTable from './SynthTable.svelte';
+  import EffectChain from './EffectChain.svelte';
   import StagePanel from './StagePanel.svelte';
   import ModulatorPanel from './ModulatorPanel.svelte';
   import MacroPanel from './MacroPanel.svelte';
@@ -89,7 +90,7 @@
 {#if s.synthTab === 'general'}<SoundGeneral />
 {:else if s.synthTab === 'graph'}<div class="graph"><ChainView onpick={pick} /></div>
 {:else if s.synthTab === 'code'}<CodeView doc="sound" />
-{:else}<SynthTable />{/if}
+{:else}<EffectChain /><SynthTable />{/if}
 
 {#if P}
   <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)}

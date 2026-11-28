@@ -133,11 +133,11 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `macro8` | 0 .. 1 | 0 | yes | `macro8.value` | macro knob 8: moves its targets (map*) and drives the routes whose source is macro8 |
 | `mlfo1_rate` | 0.01 .. 50 Hz | 0.5 | yes | `mlfo1.rate` | part LFO 1 rate when not synced |
 | `mlfo1_sync` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | off |  | `mlfo1.sync` | off = free rate; a division = one cycle per division, locked to the beat |
-| `mlfo1_wave` | sine, tri, saw, square, sh, fourier, wiener, duck | sine |  | `mlfo1.waveform` | part LFO 1 shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; duck = a side-chain pump: down at each cycle's start (duck_attack), held (duck_hold), back up (duck_release)) |
+| `mlfo1_wave` | sine, tri, saw, square, sh, fourier, wiener | sine |  | `mlfo1.waveform` | part LFO 1 shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; a side-chain pump: a part MSEG's Duck shape, locked to the grid) |
 | `mlfo1_retrig` | off, on | off |  | `mlfo1.retrigger` | free LFO restarts when a note starts on a silent part |
 | `mlfo2_rate` | 0.01 .. 50 Hz | 0.1 | yes | `mlfo2.rate` | part LFO 2 rate when not synced |
 | `mlfo2_sync` | off, 1/32, 1/16t, 1/16, 1/16d, 1/8t, 1/8, 1/8d, 1/4t, 1/4, 1/4d, 1/2, 1/2d, 1, 2, 4, 8 | off |  | `mlfo2.sync` | off = free rate; a division = one cycle per division, locked to the beat |
-| `mlfo2_wave` | sine, tri, saw, square, sh, fourier, wiener, duck | sine |  | `mlfo2.waveform` | part LFO 2 shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; duck = a side-chain pump: down at each cycle's start (duck_attack), held (duck_hold), back up (duck_release)) |
+| `mlfo2_wave` | sine, tri, saw, square, sh, fourier, wiener | sine |  | `mlfo2.waveform` | part LFO 2 shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; a side-chain pump: a part MSEG's Duck shape, locked to the grid) |
 | `mlfo2_retrig` | off, on | off |  | `mlfo2.retrigger` | free LFO restarts when a note starts on a silent part |
 | `mseg1_mode` | oneshot, loop_held, loop_free | oneshot |  | `mseg1.mode` | oneshot; loop_held = repeat loop_start..loop_end while a note is held; loop_free = always |
 | `mseg1_sync` | seconds, beats | seconds |  | `mseg1.sync` | point times in seconds or in beats (follows the tempo) |
@@ -444,14 +444,6 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `vlfo_b8` | -1 .. 1 | 0 | yes | `vlfo.harmonic8.b` | Fourier shape: sine coefficient of harmonic 8 |
 | `wander` | 0 .. 1 | 0 | yes | `wander.amount` | slow random drift of the eight macros, each on its own walk: the sound moves by itself through what its macros reach and never comes back the same way (0.2 alive, 0.5 always changing, 1 = up to a third of each macro's travel) |
 | `wander_rate` | 0.01 .. 2 Hz | 0.08 | yes | `wander.rate` | how often the walks change direction: 0.02 Hz glacial, 0.08 Hz a slow breath, 0.5 Hz and more restless |
-| `mlfo1_duck_attack` | 0.0005 .. 0.05 s | 0.005 | yes | `mlfo1.duck_attack` | duck shape: how fast it goes down at each cycle's start (a compressor's attack: 1-10 ms, longer lets the hit through) |
-| `mlfo1_duck_hold` | 0 .. 0.5 s | 0.06 | yes | `mlfo1.duck_hold` | duck shape: how long it stays down, as while the kick sounds (30-100 ms) |
-| `mlfo1_duck_release` | 0.005 .. 2 s | 0.25 | yes | `mlfo1.duck_release` | duck shape: how long it takes to come all the way back up (its slope: Curve); short = a tight pump, long = a slow suck |
-| `mlfo2_duck_attack` | 0.0005 .. 0.05 s | 0.005 | yes | `mlfo2.duck_attack` | duck shape: how fast it goes down at each cycle's start (a compressor's attack: 1-10 ms, longer lets the hit through) |
-| `mlfo2_duck_hold` | 0 .. 0.5 s | 0.06 | yes | `mlfo2.duck_hold` | duck shape: how long it stays down, as while the kick sounds (30-100 ms) |
-| `mlfo2_duck_release` | 0.005 .. 2 s | 0.25 | yes | `mlfo2.duck_release` | duck shape: how long it takes to come all the way back up (its slope: Curve); short = a tight pump, long = a slow suck |
-| `mlfo1_duck_curve` | -1 .. 1 | 0.6 | yes | `mlfo1.duck_curve` | duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump) |
-| `mlfo2_duck_curve` | -1 .. 1 | 0.6 | yes | `mlfo2.duck_curve` | duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump) |
 | `mseg1_lock` | off, on | off |  | `mseg1.lock` | locked to the tempo grid: the whole shape repeats over its length (in beats when synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat |
 | `mseg2_lock` | off, on | off |  | `mseg2.lock` | locked to the tempo grid: the whole shape repeats over its length (in beats when synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat |
 

@@ -64,18 +64,12 @@ enum { PM_M_MACRO = 0, PM_M_DST, PM_M_FROM, PM_M_TO, PM_M_COUNT };
 /* wander (appended): how far the walks move the macros, and how fast they go */
 #define PM_WANDER PM_FOURIER(PM_LFOS + 1, 0, 0)
 #define PM_WANDER_RATE (PM_WANDER + 1)
-/* the duck shape of each part LFO (appended): attack, hold, release (a side-chain compressor's gain) */
-enum { PM_DUCK_ATTACK = 0, PM_DUCK_HOLD, PM_DUCK_RELEASE, PM_DUCK_COUNT };
-#define PM_DUCK(k, f) (PM_WANDER + 2 + (k) * PM_DUCK_COUNT + (f))
-/* the curve of each part LFO's duck release (appended after the others: their ids stay) */
-#define PM_DUCK_CURVE(k) (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + (k))
 /* each part MSEG locked to the tempo grid (appended): one cycle of the whole shape per its length, wherever the notes start */
-#define PM_MSEG_LOCK(k) (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + PM_LFOS + (k))
-#define PM_COUNT (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + PM_LFOS + PM_MSEGS)
+#define PM_MSEG_LOCK(k) (PM_WANDER + 2 + (k))
+#define PM_COUNT (PM_WANDER + 2 + PM_MSEGS)
 #define PM_WANDER_REACH 0.35f /* of a macro's travel, either way, at wander = 1 */
 #define PM_WAVE_FOURIER 5
 #define PM_WAVE_WIENER 6
-#define PM_WAVE_DUCK 7 /* part LFOs only: a side-chain pump: down at each cycle's start (attack), held, back up (release) */
 
 /* sources (index 0 = none) */
 enum { PM_SRC_NONE = 0, PM_SRC_MACRO1, PM_SRC_LFO1 = PM_SRC_MACRO1 + PM_MACROS, PM_SRC_MSEG1 = PM_SRC_LFO1 + PM_LFOS,

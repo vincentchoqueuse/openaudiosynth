@@ -12,7 +12,6 @@
   import Switch from './Switch.svelte';
   import Select from './Select.svelte';
   import Param from './Param.svelte';
-  import { shape as mshape } from './mseg.js';
   import { session } from './session.svelte.js';
   let { prefix } = $props(); // "mlfo1_", "mlfo2_" or "vlfo_"
   const get = session.getP, set = session.setP;
@@ -34,7 +33,6 @@
   }
   const cycle = $derived(sync ? divBeats(divs[sync]) : 1 / Math.max(0.01, rate)); // beats or seconds
   const unit = $derived(sync ? 'b' : 's');
-  const cycleS = $derived(sync ? (cycle * 60) / Math.max(1, get('tempo')) : cycle); // a cycle in seconds (duck)
 
   // the shape over a cycle, phase 0..1 -> -1..1 (sh: steps from a fixed draw, so the picture holds still)
   const steps = [0.6, -0.3, 0.9, -0.8, 0.2, -0.5, 0.7, -0.1];
@@ -59,20 +57,7 @@
     return w.map((v) => (v - mean) / peak);
   })();
   const wiener = (p) => { const x = p * 32, i = Math.floor(x) % 32; return walk[i] + (walk[(i + 1) % 32] - walk[i]) * (x - Math.floor(x)); };
-  // duck: a side-chain compressor's gain over a cycle, as PM_WAVE_DUCK: down in the attack from where the last cycle
-  // ended, held at -1, then back up in the release along its curve (an MSEG segment's: mseg.js)
-  function duck(t) {
-    const att = get(prefix + 'duck_attack'), hold = get(prefix + 'duck_hold'), rel = Math.max(0.005, get(prefix + 'duck_release'));
-    const c = d('duck_curve') ? get(prefix + 'duck_curve') : 0.6, up = (x) => 2 * mshape(Math.min(1, x / rel), c) - 1;
-    if (t < att) { const top = up(Math.max(0, cycleS - att - hold)); return top + (-1 - top) * (t / att); }
-    if (t < att + hold) return -1;
-    return up(t - att - hold);
-  }
-  // picking duck: in beats, a quarter (each drop on a beat), as a side-chain keyed by a four-on-the-floor kick
-  function pickWave(i) {
-    set(prefix + 'wave', i);
-    if (waves[i] === 'duck' && !sync && d('sync')) set(prefix + 'sync', Math.max(1, divs.indexOf('1/4')));
-  }
+  function pickWave(i) { set(prefix + 'wave', i); }
   function shape(ph, k) { // as lfo_shape in dsp/mod/partmod.c
     const p = ph - Math.floor(ph);
     switch (waves[wave]) {
@@ -82,7 +67,6 @@
       case 'sh': return steps[k % steps.length];
       case 'fourier': return fourier(p);
       case 'wiener': return wiener(p);
-      case 'duck': return duck(p * cycleS);
       default: return Math.sin(2 * Math.PI * p);
     }
   }
@@ -166,11 +150,6 @@
     {:else if d('rate')}
       <div class="rate"><Param d={d('rate')} label="Rate" /></div>
     {/if}
-    {#if waves[wave] === 'duck' && d('duck_attack')}
-      <div class="ducks">
-        <Param d={d('duck_attack')} label="Attack" /><Param d={d('duck_hold')} label="Hold" /><Param d={d('duck_release')} label="Release" />{#if d('duck_curve')}<Param d={d('duck_curve')} label="Curve" />{/if}
-      </div>
-    {/if}
     {#if d('retrig')}
       <Switch label="Restart on note" on={get(prefix + 'retrig') > 0.5} onchange={(v) => set(prefix + 'retrig', v ? 1 : 0)} title="restarts when a note starts on a silent part" />
     {:else}
@@ -193,6 +172,5 @@
   .legend { align-self: center; margin-left: 8px; font-size: 11px; display: inline-flex; align-items: center; gap: 6px; }
   .sw { display: inline-block; width: 9px; height: 9px; border-radius: 2px; }
   .rate { flex: 1; min-width: 260px; max-width: 520px; }
-  .ducks { flex-basis: 100%; display: grid; gap: 2px; max-width: 520px; }
   .div { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
 </style>

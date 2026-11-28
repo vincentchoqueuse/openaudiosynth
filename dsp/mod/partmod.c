@@ -6,7 +6,7 @@ static const char *const src_labels[] = {"none", "macro1", "macro2", "macro3", "
                                          "macro8", "mlfo1", "mlfo2", "mseg1", "mseg2", "mod_wheel", "aftertouch",
                                          "pitch_bend", "velocity", "note", "random", "wander", NULL};
 static const char *const wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", NULL};
-static const char *const mlfo_wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", "duck", NULL};
+static const char *const mlfo_wave_labels[] = {"sine", "tri", "saw", "square", "sh", "fourier", "wiener", NULL};
 static const char *const mode_labels[] = {"oneshot", "loop_held", "loop_free", NULL};
 static const char *const time_labels[] = {"seconds", "beats", NULL};
 static const char *const vsrc_labels[] = {"none", "vmseg", "vlfo", "velocity", "note", "random", "pressure",
@@ -15,34 +15,21 @@ static const char *const vdst_labels[] = {"pitch", "level", "pan", "brightness",
 static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6", "7", "8",
                                            "9", "10", "11", "12", "13", "14", "15", "16", NULL};
 
-/* the curve of part LFO K's duck release, as an MSEG segment's */
+
+#define MACRO(K) PARAM(PM_MACRO(K - 1), "macro" #K, "macro" #K ".value", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, \
+                       "macro knob " #K ": moves its targets (map*) and drives the routes whose source is macro" #K)
 /* part MSEG K locked to the grid */
 #define MSEG_LOCK(K)                                                                                                  \
     PARAM(PM_MSEG_LOCK(K - 1), "mseg" #K "_lock", "mseg" #K ".lock", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0,             \
           param_onoff_labels, "locked to the tempo grid: the whole shape repeats over its length (in beats when "      \
           "synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat")
-#define DUCK_CURVE(K)                                                                                                 \
-    PARAM(PM_DUCK_CURVE(K - 1), "mlfo" #K "_duck_curve", "mlfo" #K ".duck_curve", -1.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, \
-          NULL, "duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then " \
-          "slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump)")
-/* the duck shape of part LFO K: a side-chain compressor's gain over each cycle */
-#define DUCK(K)                                                                                                       \
-    PARAM(PM_DUCK(K - 1, PM_DUCK_ATTACK), "mlfo" #K "_duck_attack", "mlfo" #K ".duck_attack", 0.0005f, 0.05f, 0.005f, \
-          PARAM_EXP, "s", 1, NULL, "duck shape: how fast it goes down at each cycle's start (a compressor's attack: 1-10 ms, longer lets the hit through)"), \
-    PARAM(PM_DUCK(K - 1, PM_DUCK_HOLD), "mlfo" #K "_duck_hold", "mlfo" #K ".duck_hold", 0.0f, 0.5f, 0.06f, PARAM_LIN,  \
-          "s", 1, NULL, "duck shape: how long it stays down, as while the kick sounds (30-100 ms)"),                  \
-    PARAM(PM_DUCK(K - 1, PM_DUCK_RELEASE), "mlfo" #K "_duck_release", "mlfo" #K ".duck_release", 0.005f, 2.0f, 0.25f,  \
-          PARAM_EXP, "s", 1, NULL, "duck shape: how long it takes to come all the way back up (its slope: Curve); short = a tight pump, long = a slow suck")
-
-#define MACRO(K) PARAM(PM_MACRO(K - 1), "macro" #K, "macro" #K ".value", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, \
-                       "macro knob " #K ": moves its targets (map*) and drives the routes whose source is macro" #K)
 #define LFO(K, rate)                                                                                                \
     PARAM(PM_LFO(K - 1, PM_LFO_RATE), "mlfo" #K "_rate", "mlfo" #K ".rate", 0.01f, 50.0f, rate, PARAM_EXP, "Hz", 1,  \
           NULL, "part LFO " #K " rate when not synced"),                                                           \
     PARAM(PM_LFO(K - 1, PM_LFO_SYNC), "mlfo" #K "_sync", "mlfo" #K ".sync", 0.0f, (float)(TEMPO_DIV_COUNT - 1),     \
           0.0f, PARAM_INT, "", 0, tempo_div_labels, "off = free rate; a division = one cycle per division, locked to the beat"), \
-    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 7.0f, 0.0f, PARAM_INT, "", 0,  \
-          mlfo_wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; duck = a side-chain pump: down at each cycle's start (duck_attack), held (duck_hold), back up (duck_release))"), \
+    PARAM(PM_LFO(K - 1, PM_LFO_WAVE), "mlfo" #K "_wave", "mlfo" #K ".waveform", 0.0f, 6.0f, 0.0f, PARAM_INT, "", 0,  \
+          mlfo_wave_labels, "part LFO " #K " shape (bipolar; sh = random steps; fourier = its harmonics; wiener = a periodic random walk; a side-chain pump: a part MSEG's Duck shape, locked to the grid)"), \
     PARAM(PM_LFO(K - 1, PM_LFO_RETRIG), "mlfo" #K "_retrig", "mlfo" #K ".retrigger", 0.0f, 1.0f, 0.0f, PARAM_INT,  \
           "", 0, param_onoff_labels, "free LFO restarts when a note starts on a silent part")
 
@@ -171,8 +158,6 @@ const param_desc_t partmod_params[PM_COUNT] = {
           "slow random drift of the eight macros, each on its own walk: the sound moves by itself through what its macros reach and never comes back the same way (0.2 alive, 0.5 always changing, 1 = up to a third of each macro's travel)"),
     PARAM(PM_WANDER_RATE, "wander_rate", "wander.rate", 0.01f, 2.0f, 0.08f, PARAM_EXP, "Hz", 1, NULL,
           "how often the walks change direction: 0.02 Hz glacial, 0.08 Hz a slow breath, 0.5 Hz and more restless"),
-    DUCK(1), DUCK(2),
-    DUCK_CURVE(1), DUCK_CURVE(2),
     MSEG_LOCK(1), MSEG_LOCK(2),
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
@@ -417,26 +402,8 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
         if (m->lfo_phase[k] < prev) /* new cycle */
             m->lfo_sh[k] = dsp_rand_bipolar(&m->rng);
         const int wave = (int)m->p[PM_LFO(k, PM_LFO_WAVE)];
-        if (wave == PM_WAVE_DUCK) {
-            /* a side-chain compressor's gain over a cycle: from where the last cycle ended down to -1 in the attack,
-             * held there, then back to +1 in the release along its curve (an MSEG segment's) */
-            const float period = div > 0 ? tempo_div_beats[div] * 60.0f / t->bpm : 1.0f / m->p[PM_LFO(k, PM_LFO_RATE)];
-            const float since = m->lfo_phase[k] * period; /* seconds into the cycle */
-            const float att = m->p[PM_DUCK(k, PM_DUCK_ATTACK)], hold = m->p[PM_DUCK(k, PM_DUCK_HOLD)];
-            const float inv_rel = 1.0f / m->p[PM_DUCK(k, PM_DUCK_RELEASE)], curve = m->p[PM_DUCK_CURVE(k)];
-            float v;
-            if (since < att) {
-                const float x = dsp_minf(1.0f, dsp_maxf(0.0f, period - att - hold) * inv_rel);
-                const float top = 2.0f * mseg_curve(x, curve) - 1.0f; /* the last cycle's end */
-                v = top + (-1.0f - top) * since / att;
-            } else if (since < att + hold)
-                v = -1.0f;
-            else
-                v = 2.0f * mseg_curve(dsp_minf(1.0f, (since - att - hold) * inv_rel), curve) - 1.0f;
-            m->src[PM_SRC_LFO1 + k] = v;
-        } else
-            m->src[PM_SRC_LFO1 + k] = voicemod_lfo_shape(wave, m->lfo_phase[k], m->lfo_sh[k], &m->p[PM_FOURIER(k, 0, 0)],
-                                                         m->wiener[k]);
+        m->src[PM_SRC_LFO1 + k] = voicemod_lfo_shape(wave, m->lfo_phase[k], m->lfo_sh[k], &m->p[PM_FOURIER(k, 0, 0)],
+                                                     m->wiener[k]);
     }
     const float dt_beats = t->bpm * (1.0f / 60.0f) * dt_s;
     for (int k = 0; k < PM_MSEGS; k++) {

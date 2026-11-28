@@ -272,3 +272,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the Synth view splits into Audio (the effect chain, the stages and effects) and Modulation (modulators, macros); a row unfolds in place to be edited (a chevron instead of the cog; several open at once); on a narrow top bar the listening volume yields to A/B and Ref.
 - Web: rows open in the side panel on the right again (the user prefers it to unfolding in place); Audio and Modulation stay apart.
 - Rack: a Distortion (soft, tube, hard, fold; drive, tone, dry / wet; 2x oversampled, dsp/fx/dist) at an eighth place; untouched at its default dry / wet 0. Appended to synth.h (SYNTH_PARAM_FX_SLOT_8 .. SYNTH_PARAM_DRIVE_MIX), agreed.
+- Part LFOs: the duck shape is gone (the MSEG's Duck, locked to the grid, does it with any curve); its parameters left partmod, the MSEG lock follows Wander.

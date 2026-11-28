@@ -99,6 +99,12 @@ enum {
     /* gain: a plain level at its place of the rack (its seventh effect, at the end by default) */
     SYNTH_PARAM_FX_SLOT_7,       /* the seventh place of the rack (default: gain) */
     SYNTH_PARAM_GAIN_DB,         /* -24 .. +24 dB, default 0 (untouched) */
+    /* the reverb's kind and space */
+    SYNTH_PARAM_REVERB_TYPE,     /* plate, room, hall, spring (default plate) */
+    SYNTH_PARAM_REVERB_SIZE,     /* 0 .. 1: half to twice its type's size (0.5) */
+    SYNTH_PARAM_REVERB_LOWCUT,   /* 20 (off) .. 1000 Hz */
+    SYNTH_PARAM_REVERB_WIDTH,    /* 0 (mono) .. 1 (its own stereo) */
+    SYNTH_PARAM_TAPE_MIX,        /* dry / wet of the tape: 0 .. 1 (default 1, all through it) */
     SYNTH_PARAM_GLOBAL_END
 };
 

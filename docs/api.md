@@ -261,6 +261,7 @@ ADSR envelope with analog-style exponential segments (RC charge/discharge). Each
 multi-segment envelope (loopable, any number of breakpoints): up to MSEG_POINTS points, each reached from the previous one in `time` (seconds, or beats when the caller advances it in beats) along a curve (-1..1: 0 = linear, > 0 = fast start then slow, < 0 = slow start then fast). A sustain point holds while the gate is on; loop points repeat a section either while the gate is on or forever. Retrigger and release start from the current value (no jump). Evaluated at control rate.
 - types: `mseg_mode_t`, `mseg_shape_t`, `mseg_t`
 - constants: `MSEG_POINTS` = 16
+- `float mseg_curve(float x, float curve)` — the shape of a segment, 0..1 -> 0..1: y = (2^(a x) - 1) / (2^a - 1), a = -8 curve (0 = a line, > 0 = fast start then slow, an exponential; < 0 = slow start then fast, a logarithmic)
 - `void mseg_reset(mseg_t *m, const mseg_shape_t *s)`
 - `void mseg_gate(mseg_t *m, const mseg_shape_t *s, int on)` — idle at the first point's level
 - `float mseg_advance(mseg_t *m, const mseg_shape_t *s, float dt)` — Advances by dt (seconds or beats) and returns the value. Bounded work whatever the times.
@@ -457,14 +458,17 @@ the synth's effect rack: seven effects on the bus (phaser, flanger, chorus, tape
 - `void rack_process(rack_t *f, float *L, float *R, int n)` — Processes one block in place (n <= SYNTH_BLOCK): the seven effects in the order of the places.
 
 ## `dsp/fx/reverb.h`
-plate reverb after J. Dattorro, "Effect Design Part 1: Reverberator and Other Filters" (JAES 45(9), 1997): predelay, input bandwidth filter, 4 input diffusers, figure-of-eight tank with two modulated allpasses and damping. Mono in, stereo out (wet only). Delays scaled from the paper's 29761 Hz to the actual rate. Memory is provided by the caller (no allocation).
-- types: `reverb_line_t`, `reverb_t`
+reverb of four types. Plate, room and hall: J. Dattorro's figure-of-eight tank ("Effect Design Part 1: Reverberator and Other Filters", JAES 45(9), 1997: predelay, input bandwidth filter, 4 input diffusers, two modulated allpasses and damping), its size, diffusion and early reflections set by the type. Spring: two feedback loops through a cascade of first-order allpasses, whose dispersion makes each pass chirp (after Parker and Valimaki's spectral-delay-filter models of spring reverb). Mono in, stereo out (wet only); low cut on the input, width on the output. Delays scaled from the paper's 29761 Hz to the actual rate. Memory is provided by the caller (no allocation); the size moves inside the memory given at init, gliding.
+- types: `reverb_type_t`, `reverb_line_t`, `reverb_t`
 - constants: `REVERB_MAX_PREDELAY_S` = 0.25f
 - `size_t reverb_mem_floats(float sample_rate, float max_size)` — Floats of memory needed for a sample rate and maximum size.
-- `void reverb_init(reverb_t *r, float sample_rate, float size, float *mem)` — mem must hold reverb_mem_floats(sample_rate, size) floats. size in 0.5..REVERB_MAX_SIZE.
+- `void reverb_init(reverb_t *r, float sample_rate, float size, float *mem)` — mem must hold reverb_mem_floats(sample_rate, size) floats. size in 0.5..REVERB_MAX_SIZE: the plate's, and the largest any type reaches.
+- `void reverb_init_max(reverb_t *r, float sample_rate, float size, float max_size, float *mem)` — The same with more memory than the plate needs: mem holds reverb_mem_floats(sample_rate, max_size) floats, the plate is `size` (at most max_size) and a hall can grow up to max_size.
 - `void reverb_reset(reverb_t *r)`
 - `void reverb_set(reverb_t *r, float decay, float damping_hz, float predelay_s)` — decay 0..0.99 (tail length), damping_hz: high-frequency loss in the tank (darker when lower), predelay_s: 0..0.25 s.
 - `void reverb_set_freeze(reverb_t *r, int on)` — Freeze: the tank becomes (almost) lossless and the input is closed, so the current tail holds indefinitely; turning it off lets the tail decay normally. Transitions are smoothed (~50 ms).
+- `void reverb_set_type(reverb_t *r, int type, float size)` — type (REVERB_PLATE..), size 0..1 (0.5 = the type's own; x0.5 .. x2 around it, within the memory given)
+- `void reverb_set_tone(reverb_t *r, float lowcut_hz, float width)` — lowcut_hz: 20 (off) .. 1000 Hz, on the input; width 0 (mono) .. 1 (the reverb's own stereo)
 - `void reverb_process(reverb_t *r, const float *in, float *outL, float *outR, int n)` — Mono input, wet stereo output (outL/outR are overwritten).
 
 ## `dsp/fx/tape.h`

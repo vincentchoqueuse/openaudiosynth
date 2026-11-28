@@ -587,8 +587,144 @@ static void test_gain(void)
     CHECK(all_finite_bounded(L, n, 1.0f), "gain: NaN or > 0 dBFS");
 }
 
+
+/* The reverb's types: each bounded and deterministic; the same decay rings shorter in a room than on the plate, and
+ * longer in a hall; the spring echoes on its loop and chirps (its highs arrive before its lows: dispersion); the low
+ * cut keeps a 50 Hz tone out; width 0 makes the tail mono; a larger size rings longer. */
+static float type_t60(int type, float size, float decay, float *L, float *R, int n, float lowcut, float width)
+{
+    const float sr = 48000.0f;
+    static reverb_t r;
+    float *mem = malloc(sizeof(float) * reverb_mem_floats(sr, 2.0f));
+    reverb_init_max(&r, sr, 1.5f, 2.0f, mem);
+    reverb_set(&r, decay, 8000.0f, 0.0f);
+    reverb_set_type(&r, type, size);
+    reverb_set_tone(&r, lowcut, width);
+    float *in = calloc((size_t)n, sizeof(float));
+    in[0] = 1.0f;
+    for (int i = 0; i < n; i += 32)
+        reverb_process(&r, in + i, L + i, R + i, 32);
+    free(in);
+    free(mem);
+    const int w = (int)(0.01f * sr);
+    float emax = 0.0f, t60 = -1.0f;
+    for (int i = 0; i + w <= n; i += w)
+        emax = fmaxf(emax, rms(L + i, w));
+    for (int i = 0; i + w <= n; i += w)
+        if (rms(L + i, w) > emax * 0.001f)
+            t60 = (float)(i + w) / sr;
+    return t60;
+}
+
+static void test_reverb_types(void)
+{
+    const float sr = 48000.0f;
+    const int n = 48000 * 10;
+    float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n), *L2 = malloc(sizeof(float) * (size_t)n);
+    float t[REVERB_TYPES];
+    static const char *names[] = {"plate", "room", "hall", "spring"};
+    for (int k = 0; k < REVERB_TYPES; k++) {
+        t[k] = type_t60(k, 0.5f, 0.7f, L, R, n, 20.0f, 1.0f);
+        CHECK(all_finite_bounded(L, n, 2.0f) && all_finite_bounded(R, n, 2.0f), "reverb %s: NaN or |y| > 2", names[k]);
+        type_t60(k, 0.5f, 0.7f, L2, R, n, 20.0f, 1.0f);
+        CHECK(memcmp(L, L2, sizeof(float) * (size_t)n) == 0, "reverb %s not deterministic", names[k]);
+        CHECK(t[k] > 0.1f && t[k] < 9.0f, "reverb %s: T60 %.2f s", names[k], (double)t[k]);
+    }
+    printf("  reverb T60 at decay 0.7: plate %.2f s, room %.2f s, hall %.2f s, spring %.2f s\n", (double)t[0],
+           (double)t[1], (double)t[2], (double)t[3]);
+    CHECK(t[REVERB_ROOM] < 0.7f * t[REVERB_PLATE] && t[REVERB_HALL] > 1.15f * t[REVERB_PLATE],
+          "room < plate < hall expected");
+    /* size: twice as big rings longer */
+    const float big = type_t60(REVERB_PLATE, 1.0f, 0.7f, L, R, n, 20.0f, 1.0f);
+    CHECK(big > 1.2f * t[REVERB_PLATE], "plate size 1: T60 %.2f s (plate %.2f s)", (double)big, (double)t[REVERB_PLATE]);
+    /* width 0: mono */
+    type_t60(REVERB_HALL, 0.5f, 0.7f, L, R, n, 20.0f, 0.0f);
+    int mono = 1;
+    for (int i = 0; i < n; i++)
+        mono &= L[i] == R[i]; /* == rather than memcmp: +0 and -0 are the same */
+    CHECK(mono, "width 0: the tail is not mono");
+
+    /* the spring's first echo (after its 37 ms loop): highs first, then lows */
+    type_t60(REVERB_SPRING, 0.5f, 0.3f, L, R, n, 20.0f, 1.0f);
+    {
+        const int a = (int)(0.030f * sr), b = (int)(0.080f * sr);
+        float lp = 0.0f, hp_c = 0.0f, hp_e = 0.0f, lp_c = 0.0f, lp_e = 0.0f, prev = 0.0f;
+        for (int i = 0; i < b; i++) {
+            lp += (L[i] - lp) * 0.02f; /* ~150 Hz */
+            const float hp = L[i] - prev; /* a first difference: the highs */
+            prev = L[i];
+            if (i < a)
+                continue;
+            hp_c += hp * hp * (float)i, hp_e += hp * hp;
+            lp_c += lp * lp * (float)i, lp_e += lp * lp;
+        }
+        const float th = hp_c / (hp_e + 1e-30f) / sr * 1000.0f, tl = lp_c / (lp_e + 1e-30f) / sr * 1000.0f;
+        printf("  spring: first echo, highs at %.1f ms, lows at %.1f ms\n", (double)th, (double)tl);
+        CHECK(th > 37.0f && tl > th + 1.0f, "spring: no dispersion (highs %.1f ms, lows %.1f ms)", (double)th, (double)tl);
+    }
+    /* low cut: a 50 Hz tone into the reverb, with the cut at 20 Hz (off) and 600 Hz */
+    float lvl[2];
+    for (int c = 0; c < 2; c++) {
+        static reverb_t r;
+        float *mem = malloc(sizeof(float) * reverb_mem_floats(sr, 2.0f));
+        reverb_init_max(&r, sr, 1.5f, 2.0f, mem);
+        reverb_set(&r, 0.6f, 8000.0f, 0.0f);
+        reverb_set_tone(&r, c ? 600.0f : 20.0f, 1.0f);
+        for (int i = 0; i < 48000 * 2; i += 32) {
+            float in[32];
+            for (int j = 0; j < 32; j++)
+                in[j] = 0.5f * sinf(6.2831853f * 50.0f * (float)(i + j) / sr);
+            reverb_process(&r, in, L + i, R + i, 32);
+        }
+        lvl[c] = rms(L + 48000, 48000);
+        free(mem);
+    }
+    printf("  reverb low cut 600 Hz on 50 Hz: %.1f dB\n", (double)(20.0f * log10f(lvl[1] / lvl[0])));
+    CHECK(lvl[1] < 0.2f * lvl[0], "low cut lets 50 Hz through");
+    free(L);
+    free(R);
+    free(L2);
+}
+
+/* the tape's dry / wet: at 0 the sound is the dry one (once the first block's ramp has left the master's DC blocker),
+ * halfway it is between */
+static void tape_mix_render(float tape_on, float mix, float *L, float *R, int n)
+{
+    synth_t *s = synth_default();
+    synth_init(s, 48000.0f);
+    synth_set_engine(s, SYNTH_ENGINE_VA);
+    synth_set_param(s, SYNTH_PARAM_TAPE, tape_on);
+    synth_set_param(s, SYNTH_PARAM_TAPE_DRIVE, 1.0f);
+    synth_set_param(s, SYNTH_PARAM_TAPE_MIX, mix);
+    const uint8_t on[3] = {0x90, 57, 100};
+    synth_midi(s, on, 3, 0);
+    for (int i = 0; i < n; i += 64)
+        synth_render(s, L + i, R + i, n - i < 64 ? n - i : 64);
+}
+
+static void test_tape_mix(void)
+{
+    const int n = 24000;
+    static float dry[24000], wet[24000], half[24000], zero[24000], R[24000];
+    tape_mix_render(0.0f, 1.0f, dry, R, n);
+    tape_mix_render(1.0f, 1.0f, wet, R, n);
+    tape_mix_render(1.0f, 0.5f, half, R, n);
+    tape_mix_render(1.0f, 0.0f, zero, R, n);
+    float e0 = 0.0f, e_wet = 0.0f, e_half = 0.0f;
+    for (int i = 4800; i < n; i++) {
+        e0 = fmaxf(e0, fabsf(zero[i] - dry[i]));
+        e_wet += (wet[i] - dry[i]) * (wet[i] - dry[i]);
+        e_half += (half[i] - dry[i]) * (half[i] - dry[i]);
+    }
+    CHECK(e0 < 1e-5f, "tape mix 0: %.2g away from the dry sound", (double)e0);
+    CHECK(e_wet > 0.0f && fabsf(e_half / e_wet - 0.25f) < 0.02f, "tape mix 0.5: %.3f of the wet difference's energy (0.25 expected)",
+          (double)(e_half / e_wet));
+}
+
 void suite_fx(void)
 {
+    test_reverb_types();
+    test_tape_mix();
     test_rack();
     test_gain();
     test_tape();

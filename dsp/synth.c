@@ -39,7 +39,7 @@ _Static_assert((SYNTH_EVQ_SIZE & (SYNTH_EVQ_SIZE - 1)) == 0 && SYNTH_EVQ_SIZE >=
 #define SYNTH_FX_MAX_DELAY_S 2.0f
 #endif
 #ifndef SYNTH_FX_REVERB_SIZE
-#define SYNTH_FX_REVERB_SIZE 1.5f
+#define SYNTH_FX_REVERB_SIZE 2.0f /* the hall's; the plate uses 1.5 of it */
 #endif
 #ifndef SYNTH_FX_MEM_FLOATS
 #define SYNTH_FX_MEM_FLOATS 320000 /* ~1.3 MB: 2 s stereo delay + size-1.5 plate at 48 kHz, the shimmer and tape lines */

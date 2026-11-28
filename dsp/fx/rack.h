@@ -32,6 +32,8 @@ enum {
     RACK_P_REVERB_SHIMMER, RACK_P_REVERB_SHIMMER_PITCH,
     RACK_P_SLOT_7, /* the seventh place, for the gain (added after the others: their ids stay) */
     RACK_P_GAIN,
+    RACK_P_REVERB_TYPE, RACK_P_REVERB_SIZE, RACK_P_REVERB_LOWCUT, RACK_P_REVERB_WIDTH, /* appended: the ids stay */
+    RACK_P_TAPE_MIX,
     RACK_P_COUNT
 };
 extern const param_desc_t rack_params[RACK_P_COUNT];
@@ -56,7 +58,7 @@ typedef struct {
     int has_delay, has_reverb;
     float delay_max_s;
     smooth_t sm_dmix, sm_rmix, sm_gain;
-    float dmix_prev, rmix_prev, gain_prev; /* gain: linear */
+    float dmix_prev, rmix_prev, gain_prev, tmix_prev; /* gain: linear */
     float delay_idle_s, reverb_idle_s; /* time spent with mix 0 */
     int dirty;
     float pl[SYNTH_BLOCK], pr[SYNTH_BLOCK]; /* echoes of this block not added to the signal yet */

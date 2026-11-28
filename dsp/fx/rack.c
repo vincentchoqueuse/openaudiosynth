@@ -18,6 +18,7 @@ static const float shimmer_semitones[4] = {12.0f, 7.0f, 19.0f, -12.0f};
 #define SLOT(K, N) PARAM((K) < 6 ? RACK_P_SLOT_1 + (K) : RACK_P_SLOT_7, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_UNITS - 1), (float)K, PARAM_INT, "", 0, \
                            rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, one not named goes just before the effect that usually follows it")
 
+static const char *const reverb_type_labels[] = {"plate", "room", "hall", "spring", NULL};
 const param_desc_t rack_params[RACK_P_COUNT] = {
     PARAM(RACK_P_CHORUS_MODE, "chorus_mode", "fx.chorus.mode", 0.0f, 4.0f, 0.0f, PARAM_INT, "", 0, chorus_labels,
           "chorus: I = slow and deep, II = faster, I+II = both, ensemble = 3-phase string-machine shimmer"),
@@ -91,9 +92,23 @@ const param_desc_t rack_params[RACK_P_COUNT] = {
     SLOT(6, 7),
     PARAM(RACK_P_GAIN, "gain_level", "fx.gain.level", -24.0f, 24.0f, 0.0f, PARAM_LIN, "dB", 1, NULL,
           "a plain gain at its place of the rack: louder or softer into what follows (a reverb, the tape's saturation), or after it"),
+    PARAM(RACK_P_REVERB_TYPE, "reverb_type", "fx.reverb.type", 0.0f, (float)(REVERB_TYPES - 1), 0.0f, PARAM_INT, "", 0,
+          reverb_type_labels,
+          "the kind of space: plate (dense and bright, the studio classic), room (small, early reflections, close), "
+          "hall (large, slow to build, wide), spring (the guitar amp's tank: metallic, it drips)"),
+    PARAM(RACK_P_REVERB_SIZE, "reverb_size", "fx.reverb.size", 0.0f, 1.0f, 0.5f, PARAM_LIN, "", 0, NULL,
+          "size of the space around its type's own (0.5): half as big at 0, twice at 1; moving it slides the echoes"),
+    PARAM(RACK_P_REVERB_LOWCUT, "reverb_lowcut", "fx.reverb.lowcut", 20.0f, 1000.0f, 20.0f, PARAM_EXP, "Hz", 1, NULL,
+          "low cut before the reverb: 20 Hz = off; 150-300 Hz keeps a bass or a kick out of the tail (less mud)"),
+    PARAM(RACK_P_REVERB_WIDTH, "reverb_width", "fx.reverb.width", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
+          "stereo width of the tail: 1 its own, 0 mono (centred, behind the sound)"),
+    PARAM(RACK_P_TAPE_MIX, "tape_mix", "fx.tape.mix", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
+          "dry / wet of the tape: 1 all through the machine, lower blends the clean signal back in"),
 };
 
 static void apply_extra(rack_t *f, int id);
+
+#define RACK_PLATE_SIZE 1.5f /* the plate of the rack (its size when the arena was sized for 1.5) */
 
 void rack_init(rack_t *f, float sr, float *mem, size_t mem_floats, float max_delay_s, float reverb_size)
 {
@@ -123,7 +138,7 @@ void rack_init(rack_t *f, float sr, float *mem, size_t mem_floats, float max_del
     while (size >= 0.5f && mem && reverb_mem_floats(sr, size) > mem_floats)
         size -= 0.1f;
     if (mem && size >= 0.5f) {
-        reverb_init(&f->reverb, sr, size, mem);
+        reverb_init_max(&f->reverb, sr, RACK_PLATE_SIZE, size, mem); /* the plate as always, room for a hall */
         f->has_reverb = 1;
         const size_t used = reverb_mem_floats(sr, size);
         mem += used;
@@ -144,6 +159,7 @@ void rack_init(rack_t *f, float sr, float *mem, size_t mem_floats, float max_del
     smooth_init(&f->sm_gain, 0.005f, ctrl, 1.0f);
     f->dmix_prev = f->rmix_prev = 0.0f;
     f->gain_prev = 1.0f;
+    f->tmix_prev = 1.0f;
     f->delay_idle_s = f->reverb_idle_s = IDLE_AFTER_S; /* idle until used */
     f->dirty = 1;
     f->pending = 0;
@@ -206,6 +222,16 @@ static void apply_extra(rack_t *f, int id)
         rack_resolve(f);
     else if (id == RACK_P_GAIN)
         return; /* read each block, smoothed */
+    else if (id == RACK_P_TAPE_MIX)
+        return; /* read each block, ramped */
+    else if (id >= RACK_P_REVERB_TYPE) {
+        if (!f->has_reverb)
+            return;
+        if (id <= RACK_P_REVERB_SIZE)
+            reverb_set_type(&f->reverb, (int)p[RACK_P_REVERB_TYPE], p[RACK_P_REVERB_SIZE]);
+        else
+            reverb_set_tone(&f->reverb, p[RACK_P_REVERB_LOWCUT], p[RACK_P_REVERB_WIDTH]);
+    }
     else if (id <= RACK_P_TAPE_TONE) {
         if (f->has_tape)
             tape_set(&f->tape, (int)p[RACK_P_TAPE], p[RACK_P_TAPE_WOW], p[RACK_P_TAPE_FLUTTER], p[RACK_P_TAPE_DRIVE],
@@ -375,8 +401,24 @@ DSP_FAST_CODE void rack_process(rack_t *f, float *L, float *R, int n)
         case RACK_DELAY: stage_delay(f, L, R, n); break;
         case RACK_TAPE:
             flush(f, L, R, n);
-            if (f->has_tape)
+            if (f->has_tape) {
+                const float m0 = f->tmix_prev, m1 = f->p[RACK_P_TAPE_MIX];
+                f->tmix_prev = m1;
+                if (m0 >= 1.0f && m1 >= 1.0f) { /* all wet: as it always was */
+                    tape_process(&f->tape, L, R, n);
+                    break;
+                }
+                float dl[SYNTH_BLOCK], dr[SYNTH_BLOCK];
+                for (int i = 0; i < n; i++)
+                    dl[i] = L[i], dr[i] = R[i];
                 tape_process(&f->tape, L, R, n);
+                const float step = (m1 - m0) / (float)n;
+                for (int i = 0; i < n; i++) { /* the blend ramps over the block */
+                    const float m = m0 + step * (float)(i + 1);
+                    L[i] = dl[i] + m * (L[i] - dl[i]);
+                    R[i] = dr[i] + m * (R[i] - dr[i]);
+                }
+            }
             break;
         case RACK_GAIN: {
             flush(f, L, R, n);

@@ -83,6 +83,15 @@ export class Synth {
       this.synthGain = ctx.createGain();
       this.refGain = ctx.createGain();
       this.refGain.gain.value = 0;
+      // the Analyse view's two taps, heard or not: the synth as it comes out, the reference at its level
+      // (refLevel), so both can be drawn over each other
+      const tap = () => { const a = ctx.createAnalyser(); a.fftSize = 8192; a.smoothingTimeConstant = 0.5; return a; };
+      this.synthTap = tap();
+      this.refTap = tap();
+      this.refLevel = ctx.createGain();
+      this.refLevel.connect(this.refGain);
+      this.refLevel.connect(this.refTap);
+      node.connect(this.synthTap);
       node.connect(this.synthGain);
       this.synthGain.connect(this.analyser);
       this.refGain.connect(this.analyser);
@@ -134,7 +143,7 @@ export class Synth {
     const src = this.ctx.createBufferSource();
     src.buffer = this.refBuf;
     src.loop = true;
-    src.connect(this.refGain);
+    src.connect(this.refLevel);
     src.start(0, offset % this.refBuf.duration);
     this.refSrc = src;
   }
@@ -144,9 +153,11 @@ export class Synth {
   setListen(ref, gainDb) {
     if (!this.synthGain) return;
     const t = this.ctx.currentTime;
+    this.refLevel.gain.setTargetAtTime(10 ** (gainDb / 20), t, 0.005);
     this.synthGain.gain.setTargetAtTime(ref ? 0 : 1, t, 0.005);
-    this.refGain.gain.setTargetAtTime(ref ? 10 ** (gainDb / 20) : 0, t, 0.005);
+    this.refGain.gain.setTargetAtTime(ref ? 1 : 0, t, 0.005);
   }
+  get refPlaying() { return !!this.refSrc; }
   // the RMS (dBFS) of what is heard now, over `ms`: to bring the reference to the synth's level
   async measureDb(ms = 1500) {
     const a = this.analyser, x = new Float32Array(a.fftSize);

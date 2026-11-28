@@ -153,7 +153,7 @@ node web/test_wasm.mjs                      # smoke test: every patch loads and 
 | `ui/public/synth-worklet.js` | AudioWorkletProcessor: instantiates the module, handles port messages, renders each quantum |
 | `ui/src/lib/synth.js` | AudioContext, loading, normalized/physical conversions, Web MIDI |
 | `ui/vite.config.js` | serves `synth.wasm` from `build-wasm` and the sounds from `patches/` (index generated), no copies; `POST /api/patches` saves a sound (dev only) |
-| `ui/src/App.svelte` | the page: `Sidebar` + `Library`, `TopBar`, the views `ClipTab` (Scope, SequenceTab + PianoRoll), `SynthTab` (InfoPanel, ChainView; SynthTable on `DataTable`; the `SidePanel` and its bodies StagePanel, ModulatorPanel (MsegEditor, LfoView, RouteList), MacroPanel, KitPanel, AboutPanel; `lib/stages.js`, `lib/routes.js`, `lib/about.js`), `CodeView`; `MacroStrip` and `Keyboard` at the bottom; the dialogs |
+| `ui/src/App.svelte` | the page: `Sidebar` + `Library`, `TopBar`, the views `ClipTab` (SequenceTab + PianoRoll), `SynthTab` (InfoPanel, ChainView; SynthTable on `DataTable`; the `SidePanel` and its bodies StagePanel, ModulatorPanel (MsegEditor, LfoView, RouteList), MacroPanel, KitPanel, AboutPanel; `lib/stages.js`, `lib/routes.js`, `lib/about.js`), `CodeView`, `Analyse` (spectrum against a reference, waveform, levels, bands; `lib/meter.js` for the top bar's meter); `MacroStrip` and `Keyboard` at the bottom; the dialogs |
 | `ui/src/lib/*.svelte.js`, `*.js` | state (`session`, `sequence`, `history`, `theme`), data (`engines`, `icons`, `waves`, `mseg`, `kit`, `naming`, `seqExport`), browser storage (`prefs`) |
 
 - The main thread compiles the module and hands it to the worklet. Every API call goes through the worklet's

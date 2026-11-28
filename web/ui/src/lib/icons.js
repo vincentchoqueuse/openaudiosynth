@@ -7,6 +7,7 @@ export const ICONS = {
   init: { d: 'M2.5 8a5.5 5.5 0 1 0 1.7-4M2.5 2.5V5.5h3' },
   up: { d: 'M4 10l4-4 4 4' },
   down: { d: 'M4 6l4 4 4-4' },
+  analyse: { d: 'M2 13.5h12M2.5 11l2.2-5 2.3 3.5 2.2-6.5 2.3 8 2-3.5' },
   back: { d: 'M10 4L6 8l4 4' },
   next: { d: 'M6 4l4 4-4 4' },
   close: { d: 'M4 4l8 8M12 4l-8 8' },

@@ -7,8 +7,19 @@
 #define MSEG_H
 
 #include "../core/dsp.h"
+#include "../core/fastmath.h"
 
 #define MSEG_POINTS 16
+
+/* the shape of a segment, 0..1 -> 0..1: y = (2^(a x) - 1) / (2^a - 1), a = -8 curve (0 = a line, > 0 = fast start
+ * then slow, an exponential; < 0 = slow start then fast, a logarithmic) */
+static inline float mseg_curve(float x, float curve)
+{
+    const float a = -8.0f * dsp_clampf(curve, -1.0f, 1.0f);
+    if (dsp_absf(a) < 1e-3f)
+        return x;
+    return (fm_exp2(a * x) - 1.0f) / (fm_exp2(a) - 1.0f);
+}
 
 typedef enum { MSEG_ONESHOT = 0, MSEG_LOOP_HELD, MSEG_LOOP_FREE, MSEG_MODE_COUNT } mseg_mode_t;
 

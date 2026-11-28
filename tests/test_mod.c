@@ -205,39 +205,60 @@ static void wander_walks(void)
 }
 
 /* the duck shape of a part LFO, a side-chain compressor's gain over each cycle: down to -1 within the attack, held,
- * then 1 - 2 exp(-t / release); no jump where a cycle begins */
-static void lfo_duck(void)
+ * then back to +1 in the release along its curve (a line at 0, exponential above, logarithmic below: an MSEG
+ * segment's 2^(a x) form); no jump where a cycle begins */
+static float duck_run(float curve, float *worst, float *mid, int *held, float *jump)
 {
     static partmod_t m;
     static tempo_t tp;
     tempo_init(&tp, SR, 120.0f);
     partmod_init(&m, SR, 1);
-    const float att = 0.005f, hold = 0.06f, rel = 0.1f;
+    const float att = 0.005f, hold = 0.06f, rel = 0.3f;
     partmod_set(&m, PM_LFO(0, PM_LFO_WAVE), param_to_norm(&partmod_params[PM_LFO(0, PM_LFO_WAVE)], (float)PM_WAVE_DUCK));
     partmod_set(&m, PM_LFO(0, PM_LFO_RATE), param_to_norm(&partmod_params[PM_LFO(0, PM_LFO_RATE)], 1.0f));
     partmod_set(&m, PM_DUCK(0, PM_DUCK_ATTACK), param_to_norm(&partmod_params[PM_DUCK(0, PM_DUCK_ATTACK)], att));
     partmod_set(&m, PM_DUCK(0, PM_DUCK_HOLD), param_to_norm(&partmod_params[PM_DUCK(0, PM_DUCK_HOLD)], hold));
     partmod_set(&m, PM_DUCK(0, PM_DUCK_RELEASE), param_to_norm(&partmod_params[PM_DUCK(0, PM_DUCK_RELEASE)], rel));
-    float lo = 1.0f, hi = -1.0f, worst = 0.0f, jump = 0.0f, prev = 1.0f;
-    int held = 0;
+    partmod_set(&m, PM_DUCK_CURVE(0), param_to_norm(&partmod_params[PM_DUCK_CURVE(0)], curve));
+    const float a = -8.0f * curve;
+    float lo = 1.0f, hi = -1.0f, prev = 1.0f, best_mid = 1.0f;
+    *worst = *jump = 0.0f, *held = 0, *mid = 0.0f;
     for (int b = 0; b < (int)(2.0f * SR / 32.0f); b++) {
         partmod_block(&m, &tp, 32, 0, 0);
         const float v = m.src[PM_SRC_LFO1], since = m.lfo_phase[0]; /* 1 Hz: the phase is the time */
         lo = fminf(lo, v), hi = fmaxf(hi, v);
         if (since > att && since < att + hold)
-            held += v == -1.0f;
-        if (since > att + hold)
-            worst = fmaxf(worst, fabsf(v - (1.0f - 2.0f * expf(-(since - att - hold) / rel))));
+            *held += v == -1.0f;
+        if (since > att + hold) {
+            const float x = fminf(1.0f, (since - att - hold) / rel);
+            const float y = fabsf(a) < 1e-3f ? x : (exp2f(a * x) - 1.0f) / (exp2f(a) - 1.0f);
+            *worst = fmaxf(*worst, fabsf(v - (2.0f * y - 1.0f)));
+            if (fabsf(x - 0.5f) < best_mid) best_mid = fabsf(x - 0.5f), *mid = v;
+        }
         if (b > 0)
-            jump = fmaxf(jump, fabsf(v - prev));
+            *jump = fmaxf(*jump, fabsf(v - prev));
         prev = v;
         CHECK(v >= -1.0f && v <= 1.0f, "duck out of -1..1: %g", (double)v);
     }
-    CHECK(lo == -1.0f && hi > 0.99f, "duck: %.3f .. %.3f (-1 .. 1 expected)", (double)lo, (double)hi);
-    CHECK(held > 100, "duck: not held at -1 (%d blocks)", held);
-    CHECK(worst < 0.01f, "duck release: %.4f away from 1 - 2 exp(-t / 0.1 s)", (double)worst);
-    /* the attack spans about 7 blocks: no step bigger than a share of the full travel */
-    CHECK(jump < 0.4f, "duck: a step of %.3f in a block (the attack should ramp)", (double)jump);
+    CHECK(lo == -1.0f && hi > 0.999f, "duck (curve %g): %.3f .. %.3f (-1 .. 1 expected)", (double)curve, (double)lo, (double)hi);
+    return hi;
+}
+
+static void lfo_duck(void)
+{
+    float worst, mid[3], jump;
+    int held;
+    const float curves[3] = {-0.6f, 0.0f, 0.6f};
+    for (int i = 0; i < 3; i++) {
+        duck_run(curves[i], &worst, &mid[i], &held, &jump);
+        CHECK(held > 100, "duck: not held at -1 (%d blocks)", held);
+        CHECK(worst < 0.01f, "duck release (curve %g): %.4f away from its curve", (double)curves[i], (double)worst);
+        /* the attack spans about 7 blocks: no step bigger than a share of the full travel */
+        CHECK(jump < 0.4f, "duck: a step of %.3f in a block (the attack should ramp)", (double)jump);
+    }
+    /* halfway through the release: logarithmic still low, a line at 0, exponential already high */
+    CHECK(mid[0] < -0.3f && fabsf(mid[1]) < 0.05f && mid[2] > 0.3f, "duck halfway: %.2f %.2f %.2f (log < lin < exp)",
+          (double)mid[0], (double)mid[1], (double)mid[2]);
 }
 
 void suite_mod(void)

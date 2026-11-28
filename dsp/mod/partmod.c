@@ -15,14 +15,19 @@ static const char *const vdst_labels[] = {"pitch", "level", "pan", "brightness",
 static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6", "7", "8",
                                            "9", "10", "11", "12", "13", "14", "15", "16", NULL};
 
+/* the curve of part LFO K's duck release, as an MSEG segment's */
+#define DUCK_CURVE(K)                                                                                                 \
+    PARAM(PM_DUCK_CURVE(K - 1), "mlfo" #K "_duck_curve", "mlfo" #K ".duck_curve", -1.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, \
+          NULL, "duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then " \
+          "slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump)")
 /* the duck shape of part LFO K: a side-chain compressor's gain over each cycle */
 #define DUCK(K)                                                                                                       \
     PARAM(PM_DUCK(K - 1, PM_DUCK_ATTACK), "mlfo" #K "_duck_attack", "mlfo" #K ".duck_attack", 0.0005f, 0.05f, 0.005f, \
           PARAM_EXP, "s", 1, NULL, "duck shape: how fast it goes down at each cycle's start (a compressor's attack: 1-10 ms, longer lets the hit through)"), \
     PARAM(PM_DUCK(K - 1, PM_DUCK_HOLD), "mlfo" #K "_duck_hold", "mlfo" #K ".duck_hold", 0.0f, 0.5f, 0.06f, PARAM_LIN,  \
           "s", 1, NULL, "duck shape: how long it stays down, as while the kick sounds (30-100 ms)"),                  \
-    PARAM(PM_DUCK(K - 1, PM_DUCK_RELEASE), "mlfo" #K "_duck_release", "mlfo" #K ".duck_release", 0.005f, 2.0f, 0.1f,   \
-          PARAM_EXP, "s", 1, NULL, "duck shape: how fast it comes back up (a time constant: 63 % of the way after this time); short = a tight pump, long = a slow suck")
+    PARAM(PM_DUCK(K - 1, PM_DUCK_RELEASE), "mlfo" #K "_duck_release", "mlfo" #K ".duck_release", 0.005f, 2.0f, 0.25f,  \
+          PARAM_EXP, "s", 1, NULL, "duck shape: how long it takes to come all the way back up (its slope: Curve); short = a tight pump, long = a slow suck")
 
 #define MACRO(K) PARAM(PM_MACRO(K - 1), "macro" #K, "macro" #K ".value", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL, \
                        "macro knob " #K ": moves its targets (map*) and drives the routes whose source is macro" #K)
@@ -162,6 +167,7 @@ const param_desc_t partmod_params[PM_COUNT] = {
     PARAM(PM_WANDER_RATE, "wander_rate", "wander.rate", 0.01f, 2.0f, 0.08f, PARAM_EXP, "Hz", 1, NULL,
           "how often the walks change direction: 0.02 Hz glacial, 0.08 Hz a slow breath, 0.5 Hz and more restless"),
     DUCK(1), DUCK(2),
+    DUCK_CURVE(1), DUCK_CURVE(2),
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
 
@@ -407,19 +413,20 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
         const int wave = (int)m->p[PM_LFO(k, PM_LFO_WAVE)];
         if (wave == PM_WAVE_DUCK) {
             /* a side-chain compressor's gain over a cycle: from where the last cycle ended down to -1 in the attack,
-             * held there, then back towards +1 as 1 - 2 exp(-t / release) */
+             * held there, then back to +1 in the release along its curve (an MSEG segment's) */
             const float period = div > 0 ? tempo_div_beats[div] * 60.0f / t->bpm : 1.0f / m->p[PM_LFO(k, PM_LFO_RATE)];
             const float since = m->lfo_phase[k] * period; /* seconds into the cycle */
             const float att = m->p[PM_DUCK(k, PM_DUCK_ATTACK)], hold = m->p[PM_DUCK(k, PM_DUCK_HOLD)];
-            const float k_rel = -FM_LOG2E / m->p[PM_DUCK(k, PM_DUCK_RELEASE)];
+            const float inv_rel = 1.0f / m->p[PM_DUCK(k, PM_DUCK_RELEASE)], curve = m->p[PM_DUCK_CURVE(k)];
             float v;
             if (since < att) {
-                const float top = 1.0f - 2.0f * fm_exp2(k_rel * dsp_maxf(0.0f, period - att - hold)); /* the last cycle's end */
+                const float x = dsp_minf(1.0f, dsp_maxf(0.0f, period - att - hold) * inv_rel);
+                const float top = 2.0f * mseg_curve(x, curve) - 1.0f; /* the last cycle's end */
                 v = top + (-1.0f - top) * since / att;
             } else if (since < att + hold)
                 v = -1.0f;
             else
-                v = 1.0f - 2.0f * fm_exp2(k_rel * (since - att - hold));
+                v = 2.0f * mseg_curve(dsp_minf(1.0f, (since - att - hold) * inv_rel), curve) - 1.0f;
             m->src[PM_SRC_LFO1 + k] = v;
         } else
             m->src[PM_SRC_LFO1 + k] = voicemod_lfo_shape(wave, m->lfo_phase[k], m->lfo_sh[k], &m->p[PM_FOURIER(k, 0, 0)],

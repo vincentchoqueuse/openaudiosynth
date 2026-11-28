@@ -67,7 +67,9 @@ enum { PM_M_MACRO = 0, PM_M_DST, PM_M_FROM, PM_M_TO, PM_M_COUNT };
 /* the duck shape of each part LFO (appended): attack, hold, release (a side-chain compressor's gain) */
 enum { PM_DUCK_ATTACK = 0, PM_DUCK_HOLD, PM_DUCK_RELEASE, PM_DUCK_COUNT };
 #define PM_DUCK(k, f) (PM_WANDER + 2 + (k) * PM_DUCK_COUNT + (f))
-#define PM_COUNT (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT)
+/* the curve of each part LFO's duck release (appended after the others: their ids stay) */
+#define PM_DUCK_CURVE(k) (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + (k))
+#define PM_COUNT (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + PM_LFOS)
 #define PM_WANDER_REACH 0.35f /* of a macro's travel, either way, at wander = 1 */
 #define PM_WAVE_FOURIER 5
 #define PM_WAVE_WIENER 6

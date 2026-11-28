@@ -12,6 +12,7 @@
   import Switch from './Switch.svelte';
   import Select from './Select.svelte';
   import Param from './Param.svelte';
+  import { shape as mshape } from './mseg.js';
   import { session } from './session.svelte.js';
   let { prefix } = $props(); // "mlfo1_", "mlfo2_" or "vlfo_"
   const get = session.getP, set = session.setP;
@@ -59,12 +60,13 @@
   })();
   const wiener = (p) => { const x = p * 32, i = Math.floor(x) % 32; return walk[i] + (walk[(i + 1) % 32] - walk[i]) * (x - Math.floor(x)); };
   // duck: a side-chain compressor's gain over a cycle, as PM_WAVE_DUCK: down in the attack from where the last cycle
-  // ended, held at -1, then 1 - 2 exp(-t / release)
+  // ended, held at -1, then back up in the release along its curve (an MSEG segment's: mseg.js)
   function duck(t) {
     const att = get(prefix + 'duck_attack'), hold = get(prefix + 'duck_hold'), rel = Math.max(0.005, get(prefix + 'duck_release'));
-    if (t < att) { const top = 1 - 2 * Math.exp(-Math.max(0, cycleS - att - hold) / rel); return top + (-1 - top) * (t / att); }
+    const c = d('duck_curve') ? get(prefix + 'duck_curve') : 0.6, up = (x) => 2 * mshape(Math.min(1, x / rel), c) - 1;
+    if (t < att) { const top = up(Math.max(0, cycleS - att - hold)); return top + (-1 - top) * (t / att); }
     if (t < att + hold) return -1;
-    return 1 - 2 * Math.exp(-(t - att - hold) / rel);
+    return up(t - att - hold);
   }
   // picking duck: in beats, a quarter (each drop on a beat), as a side-chain keyed by a four-on-the-floor kick
   function pickWave(i) {
@@ -166,7 +168,7 @@
     {/if}
     {#if waves[wave] === 'duck' && d('duck_attack')}
       <div class="ducks">
-        <Param d={d('duck_attack')} label="Attack" /><Param d={d('duck_hold')} label="Hold" /><Param d={d('duck_release')} label="Release" />
+        <Param d={d('duck_attack')} label="Attack" /><Param d={d('duck_hold')} label="Hold" /><Param d={d('duck_release')} label="Release" />{#if d('duck_curve')}<Param d={d('duck_curve')} label="Curve" />{/if}
       </div>
     {/if}
     {#if d('retrig')}

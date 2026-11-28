@@ -260,3 +260,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - wt_insomnie: the user's take on the glassy pluck for the riff (wt_pluck left as it was), with va_insomnie's clip.
 - va_insomnie removed: wt_insomnie carries the riff.
 - Web: the effects as one line in signal order (EffectChain): bypass, drag to reorder, × to take out, + Effect at the end of the rack; Add effect left the table's toolbar.
+- Duck LFO: the release is a duration with a curve (mlfo<n>_duck_curve, -1 logarithmic, 0 a line, 1 exponential: an MSEG segment's), drawn in the LFO view; va_pumped_bass on it.

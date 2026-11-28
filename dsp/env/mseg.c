@@ -4,13 +4,7 @@
 
 #define MSEG_MIN_TIME 0.001f /* a segment lasts at least this: loops cannot spin forever */
 
-static float shape(float x, float curve)
-{
-    const float a = -8.0f * dsp_clampf(curve, -1.0f, 1.0f);
-    if (dsp_absf(a) < 1e-3f)
-        return x;
-    return (fm_exp2(a * x) - 1.0f) / (fm_exp2(a) - 1.0f);
-}
+static float shape(float x, float curve) { return mseg_curve(x, curve); }
 
 static int count_of(const mseg_shape_t *s) { return dsp_clampi(s->count, 2, MSEG_POINTS); }
 

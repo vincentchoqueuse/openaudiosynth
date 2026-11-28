@@ -5,12 +5,14 @@
   import FieldTable from './FieldTable.svelte';
   import { session as s } from './session.svelte.js';
   import { modRows } from './mods.js';
+  import * as M from './matrix.js';
   import { fxStages, stageOn } from './stages.js';
   import { isOn } from './onoff.js';
 
   const fields = $derived.by(() => {
     const fx = fxStages(s).filter((r) => r.st?.enable && stageOn(s, r.st)).map((r) => r.title);
-    const mods = modRows().filter((m) => isOn(s, { ...m, kind: 'mod' })).map((m) => m.label);
+    const own = [...new Set(M.slots(s).filter((x) => x.amount && x.dst !== 'none').map((x) => M.srcName(x.src)))]; // the instrument's matrix
+    const mods = [...own, ...modRows().filter((m) => isOn(s, { ...m, kind: 'mod' })).map((m) => m.label).filter((l) => !own.includes(l))];
     const macros = s.macroNames.map((n, k) => (n || s.macroMaps.some((m) => m.macro === k && m.dst) ? s.macroName(k) : '')).filter(Boolean);
     return [
       ['Name', s.label],

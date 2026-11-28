@@ -1,7 +1,7 @@
 <!-- MacroPanel.svelte — the side panel's body for one macro: its name, its value, the MIDI CC that turns it, then the
      settings it moves (any that moves live: the instrument's, the master or an effect), each with its value with the
-     macro at 0 and at 1, sliders over the setting's travel read in its units; Add setting takes one of the 32 slots
-     the macros share (session.macroMaps), in the footer. Routes that read the macro as a source are shown too. -->
+     macro at 0 and at 1, sliders over the setting's travel read in its units; "+ Add" under them takes one of the 32
+     slots the macros share (session.macroMaps). Routes that read the macro as a source are shown too. -->
 <script>
   import Section from './Section.svelte';
   import { fromNorm, toNorm, format } from './synth.js';
@@ -11,6 +11,7 @@
   import Param from './Param.svelte';
   import { precise } from './slider.js';
   import Icon from './Icon.svelte';
+  import AddButton from './AddButton.svelte';
   import RouteList from './RouteList.svelte';
   import * as R from './routes.js';
   let { k } = $props(); // 0..7
@@ -48,7 +49,7 @@
 </div>
 </Section>
 
-<Section icon="link" title="What it moves" note="{rows.length}">
+<Section icon="link" title="Moves" note="{s.macroMaps.filter((r) => r.macro >= 0 && r.dst).length} of {s.macroMaps.length} slots in use">
 {#if rows.length}
   <table class="dt routes">
     <colgroup><col style="width:36%" /><col /><col style="width:5.5em" /><col /><col style="width:5.5em" /><col style="width:30px" /></colgroup>
@@ -63,15 +64,12 @@
           <td><input type="range" min="0" max="1" step="0.001" value={r.to} style="--p:{r.to * 100}%"
                      use:precise={{ value: () => r.to, set: (v) => s.setP(`map${r.slot}_to`, v) }} aria-label="Value at 1" /></td>
           <td class="mono muted num">{shown(r.dst, r.to)}</td>
-          <td><button class="iconbtn" onclick={() => remove(r)} aria-label="Remove this setting" title="Remove"><Icon name="close" size={12} /></button></td>
+          <td><button class="iconbtn" onclick={() => remove(r)} aria-label="Remove this link" title="Remove"><Icon name="close" size={12} /></button></td>
         </tr>
       {/each}
     </tbody>
   </table>
-{:else}<p class="hint">It moves nothing yet: drag its handle in the Live player onto a setting, or Add a setting.</p>{/if}
+{:else}<p class="hint">It moves nothing yet: drag its handle in the Live player onto a setting, or Add.</p>{/if}
+<AddButton items={[{ label: 'A setting of the instrument', run: add, disabled: !free }]} />
 </Section>
-{#if hasRoutes}<Section icon="modsrc" title="Its routes"><RouteList src="macro{k + 1}" kinds={['part']} /></Section>{/if}
-<div class="sp-foot">
-  <button class="btn ghost" disabled={!free} onclick={add}><Icon name="plus" size={12} /> Add a setting</button>
-  <span class="muted">{s.macroMaps.filter((r) => r.macro >= 0 && r.dst).length} of {s.macroMaps.length} in use</span>
-</div>
+{#if hasRoutes}<Section icon="modsrc" title="Moves, as a source of routes"><RouteList src="macro{k + 1}" kinds={['part']} /></Section>{/if}

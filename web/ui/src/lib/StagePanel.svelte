@@ -1,14 +1,17 @@
 <!-- StagePanel.svelte — the Settings tab of the side panel for a stage of the instrument or of the effect chain: its
      drawing (StageViz: a wave, a filter's response, an envelope, an LFO; a wavetable oscillator its table: WavetableView), every one of its settings as a table
      (setting, control, value; the engine's main ones first, those its present choices do not use hidden: engineui.js),
-     then Modulation: what moves its settings (ModLinks). An effect of the rack opens on a menu that puts another effect in its slot. The footer, as in every panel: what can be added on the left
-     (a modulation), Reset to defaults, and Remove on the right for an effect of the rack. -->
+     then, for one of the instrument's modulators, Moves: what it moves (its slots of the instrument's matrix:
+     RouteList, or the stages it acts on), and Moved by: what moves its settings (ModLinks), each section with its
+     own "+ Add". An effect of the rack opens on a menu that puts another effect in its slot. The footer: Reset to
+     defaults, and Remove for an effect of the rack. -->
 <script>
   import Param from './Param.svelte';
   import StageViz from './StageViz.svelte';
   import ModLinks from './ModLinks.svelte';
+  import RouteList from './RouteList.svelte';
+  import * as M from './matrix.js';
   import WavetableView from './WavetableView.svelte';
-  import Icon from './Icon.svelte';
   import Section from './Section.svelte';
   import { session as s } from './session.svelte.js';
   import { placeOf, labelOf, fxStages } from './stages.js';
@@ -29,7 +32,10 @@
   const shown = $derived(mixFirst(named([...row.ps.filter(({ d }) => place(d) === 'main'), ...row.ps.filter(({ d }) => place(d) === 'more')])));
   const moved = $derived(row.ps.some(({ d }) => Math.abs((s.values[d.id] ?? d.def) - d.def) > 1e-9));
   const reset = () => { for (const { d } of row.ps) if (Math.abs((s.values[d.id] ?? d.def) - d.def) > 1e-9) s.setValue(d, d.def); };
-  let links = $state();
+  // what an instrument's modulator moves: its slots of the matrix, or the stages it is wired to
+  const msrc = $derived(engine && row.st ? M.srcOfStage(s, row.st.id) : null);
+  const acts = $derived(engine && row.st?.kind === 'mod' && !msrc
+    ? (row.st.targets ?? '').split(' ').filter(Boolean).map((id) => s.engine?.stages?.find((x) => x.id === id)).filter(Boolean) : []);
   // an effect of the rack: the others not in the rack can take its place (same slot of the chain)
   const slotOptions = $derived([row.key, ...rack.free()].map((id) => ({ value: id, label: fxStages(s).find((r) => r.key === id)?.title ?? id })));
 </script>
@@ -46,13 +52,19 @@
 <Section icon="sliders" title="Settings" note="{shown.length}">
   <div class="ptable">{#each shown as { d, label } (d.id)}<Param {d} {label} />{/each}</div>
 </Section>
-<Section icon="modsrc" title="Modulation"><ModLinks bind:this={links} params={shown} /></Section>
+{#if msrc}<Section icon="link" title="Moves"><RouteList {msrc} /></Section>
+{:else if acts.length}<Section icon="link" title="Moves">
+  <p class="acts">{#each acts as a, i}{#if i}<span class="muted"> · </span>{/if}<button class="linkish" onclick={() => s.editPanel('stage', a.id)}>{a.label}</button>{/each}
+    <span class="muted"> (its amounts are in its settings)</span></p></Section>{/if}
+<Section icon="modsrc" title="Moved by"><ModLinks params={shown} stage={row.key} /></Section>
 <div class="sp-foot">
-  <button class="btn ghost" onclick={() => links.add()} disabled={!links?.canAdd()}><Icon name="plus" size={12} /> Add modulation</button>
   <button class="btn ghost" onclick={reset} disabled={!moved} title="Every setting of this module back to its default">Reset to defaults</button>
   {#if rack.has(row.key)}<button class="btn ghost danger" onclick={() => rack.remove(row.key)}>Remove</button>{/if}
 </div>
 
 <style>
+  .acts { margin: 0; font-size: 12px; }
+  .linkish { padding: 0; border: 0; background: none; color: var(--accent); font: inherit; cursor: pointer; }
+  .linkish:hover { text-decoration: underline; }
   .slotpick { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; }
 </style>

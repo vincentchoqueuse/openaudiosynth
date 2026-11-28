@@ -5,6 +5,7 @@
 // and the macros. Each pictogram knows what to open.
 import * as R from './routes.js';
 import { modRows } from './mods.js';
+import * as M from './matrix.js';
 
 export const PARTS = [
   { id: 'event', label: 'Event', icon: 'sequence', about: 'the notes and the voice that plays them' },
@@ -39,11 +40,20 @@ const kindOfSrc = (label) => (/^(mseg|vmseg)/.test(label) ? 'env' : /^(mlfo|vlfo
 export function modsByStage(s) {
   const out = {};
   const add = (id, m) => { if (!id) return; const l = (out[id] ??= []); if (!l.some((x) => x.label === m.label)) l.push(m); };
-  // the engine's own modulators, on the stages they name
+  // the engine's own modulators, on the stages they name; with a matrix (wt), on what its slots move
+  const matrix = M.hasMatrix(s);
   for (const st of s.engine?.stages ?? []) {
-    if (st.kind !== 'mod' || !isOn(s, st)) continue;
+    if (st.kind !== 'mod' || !isOn(s, st) || matrix) continue;
     const m = { kind: /env/i.test(st.label) ? 'env' : 'lfo', label: st.label, open: () => s.openPanel('stage', st.id) };
     for (const t of (st.targets ?? '').split(' ').filter(Boolean)) add(t, m);
+  }
+  const STAGE_OF = { env2: 'env2', lfo1: 'lfo1', lfo2: 'lfo2', amp_env: 'amp' };
+  for (const x of M.slots(s)) {
+    if (!x.amount || x.dst === 'none') continue;
+    const d = M.dstParam(s, x.dst), at = d ? stageOf(s, d.name) : M.dstStage(x.dst);
+    const kind = /env/.test(x.src) ? 'env' : /^lfo/.test(x.src) ? 'lfo' : 'ctl';
+    const row = modRows().find((r) => r.src === x.src);
+    add(at, { kind, label: M.srcName(x.src), open: () => (STAGE_OF[x.src] ? s.openPanel('stage', STAGE_OF[x.src]) : row && s.openPanel('mod', row.key)) });
   }
   // the routes of the whole sound
   const rows = modRows();

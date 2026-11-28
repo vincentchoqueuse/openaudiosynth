@@ -15,6 +15,7 @@
   import { modRows } from './mods.js';
   import { human } from './naming.js';
   import * as R from './routes.js';
+  import * as M from './matrix.js';
   import Seg from './Seg.svelte';
   import Param from './Param.svelte';
   // audio: what makes and shapes the sound (sources, transforms); mod: what moves it (modulators, macros)
@@ -56,14 +57,19 @@
                                                  sum: `${s.kit?.entries?.length ?? 0} samples${s.kitName ? ` · ${s.kitName}` : ''}`, moves: '' });
     // a stage: its class (tag), and what it is more precisely (type: filter, amp, effect...), for the search
     const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, fx: !engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
-    for (const r of engineStages(s)) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
-    for (const r of out) if (r.tag === 'modulation') r.cat = s.engine?.name ?? 'Instrument'; // its own envelopes, LFOs
+    // the instrument's matrix is no row: each of its slots is with its source and on what it moves (matrix.js)
+    for (const r of engineStages(s)) if (!(r.key === 'matrix' && M.hasMatrix(s))) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
+    const slotsOf = (src) => (src ? M.from(s, src).map((x) => M.dstName(x.dst)) : []);
+    for (const r of out) if (r.tag === 'modulation') { r.cat = s.engine?.name ?? 'Instrument'; 
+      const src = M.srcOfStage(s, r.key), label = (id) => s.engine.stages.find((x) => x.id === id)?.label ?? id;
+      r.moves = (src ? slotsOf(src) : (r.st?.targets ?? '').split(' ').filter(Boolean).map(label)).join(', '); } // its own envelopes, LFOs
     const first = fx.findIndex((r) => inRack(r.key));
     fx.forEach((r, i) => { if (i < first && !inRack(r.key)) stage(r, 'transform', 'effect', false); });
     for (const id of rack.used()) stage(fx.find((r) => r.key === id), 'transform', 'effect', false);
     fx.forEach((r, i) => { if (i > first && !inRack(r.key)) stage(r, 'transform', 'output', false); });
     for (const m of modRows()) {
-      const moves = m.key === 'wander' ? (s.getP('wander') > 0 ? 'the macros' : '') : movesOf(m).map((x) => R.dstName(s, x)).join(', ');
+      const moves = m.key === 'wander' ? (s.getP('wander') > 0 ? 'the macros' : '')
+        : [...movesOf(m).map((x) => R.dstName(s, x)), ...(m.ctl ? slotsOf(M.srcOfCtl(s, m.src)) : [])].join(', ');
       out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', type: m.type.toLowerCase(), sum: modLine(m), moves, dim: m.ctl && !moves,
                  cat: m.ctl ? 'Controller' : 'Sound' });
     }

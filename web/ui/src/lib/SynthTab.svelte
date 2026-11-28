@@ -1,6 +1,6 @@
 <!-- SynthTab.svelte — the Synth view, a record with its tabs: Audio (what makes the sound: the effect chain, then the
-     instrument's stages and the effects in one table with a search, tags and On / Off: SynthTable, each row unfolding
-     in place to be edited), Modulation (what moves it: the modulators and the macros, the same way), Graph (its signal path drawn from the same data: ChainView, only what is
+     instrument's stages and the effects in one table with a search, tags and On / Off: SynthTable, a row opening
+     in the side panel), Modulation (what moves it: the modulators and the macros, the same way), Graph (its signal path drawn from the same data: ChainView, only what is
      active), Code (the sound's patch file: CodeView) and General (the sound as fields: SoundGeneral). Configure on a row, or a click on a block of the signal path, opens the module in
      the side panel (SidePanel) with the same two tabs: General (what it is and does, where its signal goes, what it
      moves and what moves it, each setting's help: ModuleGeneral) and Settings (a stage's settings, a modulator's

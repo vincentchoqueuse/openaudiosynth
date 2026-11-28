@@ -17,10 +17,6 @@
   import * as R from './routes.js';
   import Seg from './Seg.svelte';
   import Param from './Param.svelte';
-  import StagePanel from './StagePanel.svelte';
-  import ModulatorPanel from './ModulatorPanel.svelte';
-  import MacroPanel from './MacroPanel.svelte';
-  import KitPanel from './KitPanel.svelte';
   // audio: what makes and shapes the sound (sources, transforms); mod: what moves it (modulators, macros)
   let { scope = 'audio' } = $props();
   const SCOPE = { audio: ['source', 'transform'], mod: ['modulation', 'macro'] };
@@ -113,8 +109,6 @@
   const columns = $derived([{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
                    { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' },
                    ...(scope === 'mod' ? [{ id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }] : [])]);
-  // a row unfolds in place to be edited (several can be open), remembered while the page lives
-  const unfold = (r) => { s.unfolded = s.unfolded.includes(r.key) ? s.unfolded.filter((k) => k !== r.key) : [...s.unfolded, r.key]; };
 </script>
 
 <div class="finder">
@@ -139,14 +133,8 @@
     {/each}
   </section>
 {/if}
-<DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={unfold} expanded={s.unfolded}
+<DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
            empty="Nothing matches." bind:sort {foot}>
-  {#snippet detail(r)}
-    {#if r.kind === 'stage'}<StagePanel row={r} engine={r.engine} />
-    {:else if r.kind === 'mod'}<ModulatorPanel m={modRows().find((x) => x.key === r.key)} /><!-- the row's type is lowercased for the search -->
-    {:else if r.kind === 'macro'}<MacroPanel k={r.k} />
-    {:else if r.kind === 'kit'}<KitPanel />{/if}
-  {/snippet}
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
     {:else if c.id === 'type'}<span class="ticon cls-{r.tag}" title="{r.tag} · {r.type}" aria-label={r.tag}><Icon name={TYPE_ICON[r.tag]} size={14} /></span>

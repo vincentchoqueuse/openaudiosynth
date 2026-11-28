@@ -263,3 +263,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Duck LFO: the release is a duration with a curve (mlfo<n>_duck_curve, -1 logarithmic, 0 a line, 1 exponential: an MSEG segment's), drawn in the LFO view; va_pumped_bass on it.
 - Web: a macro's name in the Live player drags onto any setting it can move (marked while dragging) to assign it, the setting left where it is (session.assignMacro).
 - Reverb types: plate (as before, bit for bit), room (small, early reflections), hall (large, up to the arena's size 2.0; 1.5 on the H745), spring (two loops through 48 first-order allpasses: its chirp); size, low cut and width; a dry / wet for the tape. Appended to synth.h (SYNTH_PARAM_REVERB_TYPE .. SYNTH_PARAM_TAPE_MIX).
+- Web: the effect chain as four fixed places (more only when a sound uses more), each a menu (None or an effect), its dry / wet (the gain: its level) and an Edit button; a place drags onto another.

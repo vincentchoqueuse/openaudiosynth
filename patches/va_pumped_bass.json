@@ -16,6 +16,7 @@
     "sync": "beats",
     "lock": "on",
     "points": 4,
+    "sustain": "none",
     "point1": {"time": 0, "level": 1.0, "curve": 0},
     "point2": {"time": 0.011, "level": 0.0, "curve": 0},
     "point3": {"time": 0.152, "level": 0.0, "curve": 0},

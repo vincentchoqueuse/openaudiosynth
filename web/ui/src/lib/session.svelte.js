@@ -36,6 +36,7 @@ class Session {
   refListen = $state(false);
   refGain = $state(0);
   #refWith = ''; // what the reference plays with now: '' (stopped), 'clip' (from the clip's start), 'alone'
+  graphPart = $state(''); // the part of the sound the Graph shows ('' all four: graphmods.js)
   seqPlaying = $state(false); // the sequence plays
   // the sequencer, set by sequence.svelte.js: take({name, clip}) puts a clip in it (a sound's demo), give() -> its clip
   // (or null when empty). A sound and the sequencer are apart: loading a sound leaves the clip as it is.

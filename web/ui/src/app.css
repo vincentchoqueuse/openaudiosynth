@@ -412,6 +412,12 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 3px 32px 1
 .chain .block.source rect { fill: var(--accent-soft); }
 .chain .block.fx rect { fill: var(--bg); }
 .chain .block text { fill: var(--text); font: 500 11.5px var(--sans); pointer-events: none; }
+.chain .badge { cursor: pointer; }
+.chain .badge rect { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
+.chain .badge path { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.chain .badge path.fill { fill: var(--accent); stroke: none; }
+.chain .badge.macro path { stroke: var(--warn); } .chain .badge.macro path.fill { fill: var(--warn); }
+.chain .badge:hover rect { stroke: var(--accent); }
 .chain .block.target rect { stroke: var(--accent); stroke-width: 2; }
 .chain .block.pick, .chain .chip.pick { cursor: pointer; outline: none; }
 .chain .block.pick:hover rect, .chain .block.pick:focus-visible rect { stroke: var(--accent); }

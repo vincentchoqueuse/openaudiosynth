@@ -9,13 +9,17 @@
   // for a part route); without it the diagram is display only
   import { session } from './session.svelte.js';
   import { srcName } from './routes.js';
-  let { onpick = null } = $props(); // a click on a block or a chip: onpick(stage, kind)
+  import { ICONS } from './icons.js';
+  import { MOD_ICON } from './graphmods.js';
+  // only: the stage ids drawn (a part of the sound: GraphView), the signal joining around the others; badges: stage
+  // id -> its modulators as pictograms (graphmods.js), drawn on the block instead of the chips under the line
+  let { onpick = null, only = null, badges = null } = $props(); // a click on a block or a chip: onpick(stage, kind)
   const engine = $derived(session.engine), fx = $derived(session.fxStages), byName = $derived(session.byName);
   const getP = session.getP;
 
   let W = $state(800);
   let hover = $state(-1); // modulator under the pointer: only its links are drawn
-  const BW = 112, BH = 36, ROWH = 54, TOP = 12, MINW = 92, GAP = 16; // blocks never narrower than MINW: the line scrolls
+  const BW = 112, BH = 36, ROWH = 58, TOP = 12, MINW = 92, GAP = 16; // blocks never narrower than MINW: the line scrolls
 
   // audio stages of the engine (or one block for engines without a description), then the effect bus
   const parts = $derived.by(() => {
@@ -32,11 +36,12 @@
   const audio = $derived.by(() => {
     const all = [...parts.eng, ...parts.bus], byId = Object.fromEntries(all.map((s) => [s.id, s]));
     const feeds = (id, seen = new Set()) => { // the active stages a stage's signal comes from
-      if (seen.has(id) || !byId[id]) return [];
+      if (seen.has(id) || !byId[id] || (only && !only.includes(id))) return [];
       seen.add(id);
       return isOn(byId[id]) ? [id] : byId[id].inputs.split(' ').filter(Boolean).flatMap((x) => feeds(x, seen));
     };
-    return all.filter(isOn).map((s) => ({ ...s, inputs: [...new Set(s.inputs.split(' ').filter(Boolean).flatMap((x) => feeds(x)))].join(' ') }));
+    const inPart = (st) => !only || only.includes(st.id);
+    return all.filter((st) => isOn(st) && inPart(st)).map((s) => ({ ...s, inputs: [...new Set(s.inputs.split(' ').filter(Boolean).flatMap((x) => feeds(x)))].join(' ') }));
   });
   const mods = $derived((engine?.stages ?? []).filter((s) => (s.kind === 'mod' || s.kind === 'voice') && isOn(s)));
 
@@ -86,7 +91,7 @@
     }
     return [...out].map(([name, set]) => ({ id: 'route:' + name, label: name, kind: 'route', targets: [...set].join(' ') }));
   });
-  const chips = $derived([...mods, ...routeChips]);
+  const chips = $derived(badges ? [] : [...mods, ...routeChips]);
   const chipY = $derived(layout.height + 34);
   const chipX = (i) => (chips.length > 1 ? (i * (layout.cw - 96)) / (chips.length - 1) : (layout.cw - 96) / 2);
   const H = $derived(chips.length ? chipY + 30 : layout.height + 6);
@@ -136,7 +141,15 @@
         <title>{s.label}{on ? '' : ' (off)'}</title>
         <rect width={p.w} height={BH} rx="7" />
         <text x="9" y={BH / 2 + 4}>{s.label}</text>
-        {#if s.enable}<circle class="led" class:on cx={p.w - 9} cy="9" r="3" />{/if}
+        {#each (badges?.[s.id] ?? []).slice(0, Math.floor(p.w / 17)) as b, j}
+          <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->
+          <g class="badge {b.kind}" transform="translate({j * 17},{BH + 2})" onclick={(e) => { e.stopPropagation(); b.open(); }}>
+            <title>{b.label}: open it</title>
+            <rect width="16" height="16" rx="4" />
+            <svg x="2" y="2" width="12" height="12" viewBox="0 0 16 16"><path d={ICONS[MOD_ICON[b.kind]].d} />{#if ICONS[MOD_ICON[b.kind]].fill}<path class="fill" d={ICONS[MOD_ICON[b.kind]].fill} />{/if}</svg>
+          </g>
+        {/each}
+        {#if s.enable && !badges}<circle class="led" class:on cx={p.w - 9} cy="9" r="3" />{/if}
       </g>
     {/each}
     {#each chips as c, i (c.id)}

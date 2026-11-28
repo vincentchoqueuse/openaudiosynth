@@ -268,3 +268,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the chain shows only each place's effect (menu, Edit); the dry / wet is the first setting of every effect's panel, the reverb's type and size next.
 - Web: a macro drags from its own link handle (left of its name), no longer from the name; nothing grows on hover, long names ellipsize.
 - Web: a reference recording (Ref… in the top bar): loops with the clip from its start, or alone while heard; Ref or ` switches between it and the synth at once; its menu matches its level to the synth's, ±3 dB, another file, remove.
+- Web: the Synth table's search lists the settings it finds (module, name, role) above the modules, each set right there.

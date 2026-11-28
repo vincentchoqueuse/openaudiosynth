@@ -2,7 +2,7 @@
      collection: the instrument's stages in the order its signal flows (the sampler: its kit), the effect chain (the
      output filter and the crush, the effects added to the rack, the master, the saturation, the limiter), the sources
      of modulation (envelopes, LFOs, Wander, the controllers) and the eight macros. A toolbar: a search (names,
-     settings, what a module moves), the four types (source, transform, modulation, macro), On / Off, then the actions: Init and Randomize (effects are added in the chain above: EffectChain). Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; the type filters too), Name, On (a switch: onoff.js; a lock
+     settings, what a module moves; the settings it finds are listed above the table, each set right there), the four types (source, transform, modulation, macro), On / Off, then the actions: Init and Randomize (effects are added in the chain above: EffectChain). Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; the type filters too), Name, On (a switch: onoff.js; a lock
      when the module is always on), Summary (its main settings) and Moves (what a source or a macro moves); a click on
      a head sorts. A row's cog, or a click on it, opens the record in the side panel. Under the table, the count. -->
 <script>
@@ -16,6 +16,7 @@
   import { human } from './naming.js';
   import * as R from './routes.js';
   import Seg from './Seg.svelte';
+  import Param from './Param.svelte';
   import { isOn, locked, toggle } from './onoff.js';
 
   /* every module is one of four: a source makes the sound (oscillators, noise, the kit, the voice that plays them), a
@@ -81,6 +82,21 @@
     const f = SORT[sort.id];
     return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => r);
   });
+  // the search finds settings too: each one whose module, name or role has every word, set right here (a dozen at most)
+  const HITS = 12;
+  const hits = $derived.by(() => {
+    const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!words.length) return [];
+    const out = [];
+    for (const r of rows) {
+      if (r.kind !== 'stage' || !r.ps) continue;
+      for (const { d, label } of r.ps) {
+        const t = `${r.title} ${label} ${human(d.name)} ${d.name} ${d.role ?? ''}`.toLowerCase();
+        if (words.every((w) => t.includes(w))) out.push({ r, d, label });
+      }
+    }
+    return out;
+  });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
   const count = (id) => rows.filter((r) => id === 'all' || r.tag === id).length;
@@ -103,6 +119,14 @@
     <button class="tool" onclick={s.randomize} title="Throw every setting of the instrument somewhere else (Undo brings the sound back)"><Icon name="dice" size={13} /> Randomize</button>
   </span>
 </div>
+{#if hits.length}
+  <section class="hits" aria-label="Settings found">
+    <h4>Settings <span class="muted">{hits.length > HITS ? `${HITS} of ${hits.length}` : hits.length}</span></h4>
+    {#each hits.slice(0, HITS) as h (h.d.id)}
+      <div class="hit"><button class="hmod" onclick={() => s.openPanel('stage', h.r.key)} title="Open {h.r.title}">{h.r.title}</button><Param d={h.d} label={h.label} /></div>
+    {/each}
+  </section>
+{/if}
 <DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
            empty="Nothing matches." bind:sort {foot}>
   {#snippet cell(r, c)}
@@ -116,3 +140,11 @@
     {:else}{r.moves}{/if}
   {/snippet}
 </DataTable>
+
+<style>
+  .hits { margin: 0 0 14px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
+  .hits h4 { margin: 0 0 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .hit { display: grid; grid-template-columns: 9em minmax(0, 1fr); align-items: center; gap: 10px; }
+  .hmod { text-align: left; color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hmod:hover { color: var(--accent); }
+</style>

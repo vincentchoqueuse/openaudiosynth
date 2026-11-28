@@ -10,6 +10,7 @@
   import KitPanel from './KitPanel.svelte';
   import SoundGeneral from './SoundGeneral.svelte';
   import GraphView from './GraphView.svelte';
+  import Section from './Section.svelte';
   import CodeView from './CodeView.svelte';
   import Tabs from './Tabs.svelte';
   import SidePanel from './SidePanel.svelte';
@@ -92,7 +93,8 @@
 {:else if s.synthTab === 'graph'}<div class="graph"><GraphView onpick={pick} /></div>
 {:else if s.synthTab === 'code'}<CodeView doc="sound" />
 {:else if s.synthTab === 'mod'}<SynthTable scope="mod" />
-{:else}<EffectChain /><SynthTable scope="audio" />{/if}
+{:else}<Section icon="engine" title="Instrument" note={s.engine?.name ?? ''}><SynthTable scope="audio" /></Section>
+  <Section icon="effects" title="Effects" note="in the order the sound goes through them"><EffectChain /></Section>{/if}
 
 {#if P}
   <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)}

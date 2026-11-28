@@ -55,19 +55,21 @@
     if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'source', type: 'samples', words: 'kit pads samples',
                                                  sum: `${s.kit?.entries?.length ?? 0} samples${s.kitName ? ` · ${s.kitName}` : ''}`, moves: '' });
     // a stage: its class (tag), and what it is more precisely (type: filter, amp, effect...), for the search
-    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
+    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, fx: !engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
     for (const r of engineStages(s)) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
+    for (const r of out) if (r.tag === 'modulation') r.group = `The ${s.engine?.name ?? 'instrument'}'s own`; // its envelopes, LFOs
     const first = fx.findIndex((r) => inRack(r.key));
     fx.forEach((r, i) => { if (i < first && !inRack(r.key)) stage(r, 'transform', 'effect', false); });
     for (const id of rack.used()) stage(fx.find((r) => r.key === id), 'transform', 'effect', false);
     fx.forEach((r, i) => { if (i > first && !inRack(r.key)) stage(r, 'transform', 'output', false); });
     for (const m of modRows()) {
       const moves = m.key === 'wander' ? (s.getP('wander') > 0 ? 'the macros' : '') : movesOf(m).map((x) => R.dstName(s, x)).join(', ');
-      out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', type: m.type.toLowerCase(), sum: modLine(m), moves, dim: m.ctl && !moves });
+      out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', type: m.type.toLowerCase(), sum: modLine(m), moves, dim: m.ctl && !moves,
+                 group: m.ctl ? 'Controllers' : 'Envelopes and LFOs of the sound' });
     }
     s.macroNames.forEach((name, k) => {
       const targets = s.macroMaps.filter((r) => r.macro === k && r.dst).map((r) => human(r.dst.name));
-      out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', type: 'control', sum: `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`,
+      out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', type: 'control', group: 'Macros', sum: `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`,
                  moves: targets.join(', '), dim: !name && !targets.length });
     });
     return out;
@@ -82,10 +84,10 @@
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     const state = (r) => s.synthState === 'all' || isOn(s, r) === (s.synthState === 'on');
-    const out = inScope.filter((r) => (tag === 'all' || r.tag === tag) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
-    if (!sort) return out;
+    const out = inScope.filter((r) => !r.fx && (tag === 'all' || r.tag === tag) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
+    if (!sort) return scope === 'mod' ? out : out.map((r) => ({ ...r, group: undefined })); // groups: the Modulation tab, unsorted
     const f = SORT[sort.id];
-    return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => r);
+    return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => ({ ...r, group: undefined }));
   });
   // the search finds settings too: each one whose module, name or role has every word, set right here (a dozen at most)
   const HITS = 12;
@@ -104,8 +106,9 @@
   });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
-  const count = (id) => inScope.filter((r) => id === 'all' || r.tag === id).length;
-  const foot = $derived(`${shown.length === inScope.length ? inScope.length : `${shown.length} of ${inScope.length}`} modules · ${inScope.filter((r) => isOn(s, r)).length} on`);
+  const listed = $derived(inScope.filter((r) => !r.fx)); // the effects are in the chain (EffectChain), not in the table
+  const count = (id) => listed.filter((r) => id === 'all' || r.tag === id).length;
+  const foot = $derived(`${shown.length === listed.length ? listed.length : `${shown.length} of ${listed.length}`} modules · ${listed.filter((r) => isOn(s, r)).length} on`);
   const columns = $derived([{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
                    { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' },
                    ...(scope === 'mod' ? [{ id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }] : [])]);

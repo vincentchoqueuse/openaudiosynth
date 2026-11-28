@@ -30,6 +30,12 @@ class Session {
   macroNames = $state(Array(8).fill('')); // the patch's "macros" names (their values live in parameters)
   kit = $state.raw(null); // the sample kit the synth plays (parsed, for display), null none
   kitName = $state(''); // its name when it comes from kits/ (a patch can name it), '' for dropped files
+  // a reference recording (the sound to match): {name, duration}, whether it is heard instead of the synth, and its
+  // level in dB relative to the file (set to the synth's at load, or by Match level)
+  ref = $state(null);
+  refListen = $state(false);
+  refGain = $state(0);
+  #refWith = ''; // what the reference plays with now: '' (stopped), 'clip' (from the clip's start), 'alone'
   seqPlaying = $state(false); // the sequence plays
   // the sequencer, set by sequence.svelte.js: take({name, clip}) puts a clip in it (a sound's demo), give() -> its clip
   // (or null when empty). A sound and the sequencer are apart: loading a sound leaves the clip as it is.
@@ -85,6 +91,39 @@ class Session {
   canSave = import.meta.env.DEV; // writing into patches/ goes through the dev server
   // the listening volume (dB, -60 = silent), kept in this browser; applied after the synth, whatever the sound
   volume = $state((() => { try { const v = +localStorage.getItem('synth.volume'); return Number.isFinite(v) && v <= 0 && v >= -60 && localStorage.getItem('synth.volume') !== null ? v : -6; } catch { return -6; } })());
+  // ---- the reference: loaded from a file, played with the clip (from its start, looped) or alone while heard ----
+  loadRef = async (file) => {
+    try {
+      const { duration, rmsDb } = await this.synth.loadRef(await file.arrayBuffer());
+      this.ref = { name: file.name, duration };
+      this.refGain = -18 - rmsDb; // at the level a voice aims for; Match level brings it to the synth's
+      this.#refWith = '';
+      this.refListen = true;
+      this.refSync();
+      this.notify(`Reference: ${file.name} (${duration.toFixed(1)} s). \` or the Ref button switches between it and the synth.`);
+    } catch (e) { this.notify(`Could not read ${file.name}: ${e.message}`); }
+  };
+  clearRef = () => { this.synth.refClear(); this.ref = null; this.refListen = false; this.#refWith = ''; };
+  toggleRef = () => { if (!this.ref) return; this.refListen = !this.refListen; this.refSync(); };
+  setRefGain = (db) => { this.refGain = Math.max(-40, Math.min(40, db)); this.refSync(); };
+  matchRef = async () => { // the synth's level now, measured while it is heard, becomes the reference's
+    if (!this.ref) return;
+    const was = this.refListen;
+    if (was) { this.refListen = false; this.refSync(); }
+    const db = await this.synth.measureDb(1500);
+    if (db < -80) { this.notify('Play the synth (the clip or the keys) to match the reference to its level.'); }
+    else { this.refGain = db - 20 * Math.log10(this.synth.refRms); this.notify(`Reference at the synth's level (${db.toFixed(1)} dB RMS).`); }
+    if (was) { this.refListen = true; this.refSync(); }
+  };
+  refSync = () => {
+    if (!this.ref) return;
+    const want = this.seqPlaying ? 'clip' : this.refListen ? 'alone' : '';
+    if (want !== this.#refWith) {
+      if (want) this.synth.refPlay(0); else this.synth.refStop();
+      this.#refWith = want;
+    }
+    this.synth.setListen(this.refListen, this.refGain);
+  };
   setVolume = (db) => {
     this.volume = Math.min(0, Math.max(-60, db));
     this.synth.setVolume(this.volume);

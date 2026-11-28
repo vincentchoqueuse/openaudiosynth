@@ -316,7 +316,9 @@ aside { grid-area: side; background: var(--side); display: flex; flex-direction:
 .topbar .name { padding: 0 6px; text-align: center; }
 .topbar .moved { flex: none; width: 8px; height: 8px; padding: 0; border-radius: 50%; background: var(--accent); cursor: pointer; }
 .topbar .moved:hover { box-shadow: 0 0 0 3px var(--accent-soft); } /* settings moved since the sound was loaded */
-.topbar .ab { margin-left: 8px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.topbar .refmenu { margin-left: 4px; }
+.topbar .refmenu .opener { box-sizing: border-box; height: 22px; width: 22px; padding: 0; border-radius: 6px; display: inline-grid; place-items: center; }
+.topbar .ab { box-sizing: border-box; height: 22px; display: inline-flex; align-items: center; margin-left: 8px; padding: 0 8px; border: 1px solid var(--line); border-radius: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
 .topbar .ab:hover:not(:disabled) { border-color: var(--accent); color: var(--text); }
 .topbar .ab.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 .topbar .ab:disabled { opacity: .4; }

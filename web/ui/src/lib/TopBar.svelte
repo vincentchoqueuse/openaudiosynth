@@ -2,7 +2,8 @@
      Synth, Code), pills of one width with their icon, (Init and Randomize live in each view's own toolbar; the
      clip's are in the Menu on a phone). Middle: what plays, the sound's name between Previous and Next
      (through the library), a dot when settings have moved since it was loaded (a click on it reverts), and A/B to
-     hear it as loaded, then the edit again. Right: playing, the CPU load and the output level (Meter, on a wide
+     hear it as loaded, then the edit again; Ref: a reference recording to match by ear (loops with the clip, ` or Ref switches
+     between it and the synth, its menu matches its level). Right: playing, the CPU load and the output level (Meter, on a wide
      screen), the listening volume, the tempo and play / stop (Space); last, the Menu (Save to the library in
      development, Export sound, Export song, Revert, Share, Undo / Redo, Shortcuts, Report a bug: a new GitHub issue
      from .github/ISSUE_TEMPLATE/web_bug.md, titled [web]). -->
@@ -16,6 +17,16 @@
   import Meter from './Meter.svelte';
   import Icon from './Icon.svelte';
   let { view = $bindable(), views } = $props();
+  let refInput;
+  const refItems = $derived(s.ref ? [
+    { heading: s.ref.name },
+    { label: 'Match level to the synth', run: s.matchRef },
+    { label: `Louder (+3 dB, now ${s.refGain.toFixed(1)})`, run: () => s.setRefGain(s.refGain + 3) },
+    { label: 'Softer (−3 dB)', run: () => s.setRefGain(s.refGain - 3) },
+    '-',
+    { label: 'Load another…', run: () => refInput.click() },
+    { label: 'Remove the reference', run: s.clearRef },
+  ] : []);
   // another sound, or a setting moved while the loaded sound is heard: the edit that waited is dropped
   $effect(() => { s.patchGen; s.edited = null; });
   $effect(() => { if (s.edited && s.changedCount) s.edited = null; });
@@ -46,6 +57,15 @@
     <button class="step" onclick={() => s.step(1)} disabled={!s.patches.length} aria-label="Next sound" title="Next sound of the library">›</button>
     <button class="ab" class:on={!!s.edited} disabled={!s.canCompare} onclick={s.compare} aria-pressed={!!s.edited}
             title={s.edited ? 'Hearing the sound as loaded: click for your edit' : 'Hear the sound as loaded, then your edit again'}>{s.edited ? 'B · loaded' : 'A/B'}</button>
+    <input bind:this={refInput} type="file" accept="audio/*,.wav,.aif,.aiff,.mp3,.flac,.ogg" hidden
+           onchange={(e) => { const f = e.target.files?.[0]; if (f) s.loadRef(f); e.target.value = ''; }} />
+    {#if !s.ref}
+      <button class="ab" onclick={() => refInput.click()} title="Load a reference recording (the sound to match): it loops with the clip, and Ref or the ` key switches between it and the synth">Ref…</button>
+    {:else}
+      <button class="ab" class:on={s.refListen} onclick={s.toggleRef} aria-pressed={s.refListen}
+              title="{s.refListen ? 'Hearing the reference' : 'Hearing the synth'}: {s.ref.name} ({s.ref.duration.toFixed(1)} s, {s.refGain >= 0 ? '+' : ''}{s.refGain.toFixed(1)} dB) · click or ` to switch">{s.refListen ? 'Ref · on' : 'Ref'}</button>
+      <span class="refmenu"><Menu label="Reference" icon="down" compact align="right" items={refItems} title="The reference: level, another file, remove" /></span>
+    {/if}
   </div>
   <div class="tb-right">
     <Meter label="CPU" value={s.cpu} text="{Math.round(s.cpu * 100)} %" hot={s.cpu > 0.7}

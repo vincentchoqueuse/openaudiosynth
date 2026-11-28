@@ -160,12 +160,13 @@ class Sequence {
   }
   play = () => {
     if (!this.notes.length) { session.notify('The clip is empty: draw notes, or pick a sound of the library.'); return; }
-    session.seqPlaying = true; this.beat = 0; this.send();
+    session.seqPlaying = true; this.beat = 0; this.send(); session.refSync();
   };
   stop = (toPlayer = true) => {
     clearTimeout(this.#pending);
     session.seqPlaying = false;
     this.beat = -1;
+    session.refSync();
     if (toPlayer) session.synth.stop();
   };
   toggle = () => (this.playing ? this.stop() : this.play());

@@ -3,7 +3,7 @@
 <script>
   import { session as s } from './session.svelte.js';
   const GROUPS = [
-    ['Anywhere', [['Space', 'play / stop the clip'], ['⌘Z / ⇧⌘Z', 'undo / redo'], ['?', 'this sheet'], ['Esc', 'close a sheet or a menu']]],
+    ['Anywhere', [['Space', 'play / stop the clip'], ['⌘Z / ⇧⌘Z', 'undo / redo'], ['`', 'the reference or the synth (once a reference is loaded: Ref)'], ['?', 'this sheet'], ['Esc', 'close a sheet or a menu']]],
     ['Computer keyboard', [['Z S X D C V…', 'notes, bottom row from C'], ['Q 2 W 3 E…', 'notes, an octave up'], ['← →', 'octave down / up']]],
     ['Piano roll (when the Sequence view is shown)', [['click, drag', 'draw a note, stretch it'], ['⌘-drag', 'select with a rectangle'],
       ['Shift-click', 'add to the selection'], ['drag a note / its edge', 'move / stretch the selection'], ['Alt-drag', 'move a copy'],

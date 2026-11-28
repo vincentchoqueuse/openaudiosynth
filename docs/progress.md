@@ -267,3 +267,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Part MSEGs lock to the tempo grid (mseg<n>_lock: the whole shape repeats over its length from the song's start, whatever the notes); a Duck starting shape and a Grid switch in the editor; va_pumped_bass pumps with MSEG 1 instead of the duck LFO (same levels).
 - Web: the chain shows only each place's effect (menu, Edit); the dry / wet is the first setting of every effect's panel, the reverb's type and size next.
 - Web: a macro drags from its own link handle (left of its name), no longer from the name; nothing grows on hover, long names ellipsize.
+- Web: a reference recording (Ref… in the top bar): loops with the clip from its start, or alone while heard; Ref or ` switches between it and the synth at once; its menu matches its level to the synth's, ±3 dB, another file, remove.

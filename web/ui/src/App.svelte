@@ -64,6 +64,8 @@
       if (e.code === 'KeyY' || e.shiftKey) history.redo(); else history.undo();
       return;
     }
+    // ` : the reference or the synth (A/B by ear)
+    if (s.started && s.ref && e.code === 'Backquote' && !mod && !keyIsForControl(e)) { e.preventDefault(); s.toggleRef(); return; }
     if (!s.started || s.saving || s.settingsOpen || s.clipSettingsOpen || s.shortcutsOpen || e.code !== 'Space') return;
     if (e.target?.closest?.('.library nav')) { // in the library too, Space plays the clip
       e.preventDefault();

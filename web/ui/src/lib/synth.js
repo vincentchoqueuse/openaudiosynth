@@ -76,7 +76,13 @@ export class Synth {
       // the listening volume, after the meter (which shows the synth's own level): outside the synth, so no
       // sound or patch changes it
       this.volume = ctx.createGain();
-      node.connect(this.analyser);
+      // the synth and a reference recording meet before the meter: A/B hears (and shows) one or the other
+      this.synthGain = ctx.createGain();
+      this.refGain = ctx.createGain();
+      this.refGain.gain.value = 0;
+      node.connect(this.synthGain);
+      this.synthGain.connect(this.analyser);
+      this.refGain.connect(this.analyser);
       this.analyser.connect(this.volume);
       this.volume.connect(ctx.destination);
       this.ctx = ctx;
@@ -107,6 +113,48 @@ export class Synth {
     if (!this.volume) return;
     const g = db <= -60 ? 0 : 10 ** (db / 20);
     this.volume.gain.setTargetAtTime(g, this.ctx.currentTime, 0.02);
+  }
+  // ---- a reference recording, to match a sound by ear: looped, heard instead of the synth (setListen) ----
+  async loadRef(arrayBuffer) {
+    const buf = await this.ctx.decodeAudioData(arrayBuffer);
+    let sum = 0, n = 0;
+    for (let c = 0; c < buf.numberOfChannels; c++) { const x = buf.getChannelData(c); for (let i = 0; i < x.length; i += 4) { sum += x[i] * x[i]; n++; } }
+    this.refStop();
+    this.refBuf = buf;
+    this.refRms = Math.sqrt(sum / Math.max(1, n)) || 1e-6;
+    return { duration: buf.duration, rmsDb: 20 * Math.log10(this.refRms) };
+  }
+  // plays the reference from `offset` seconds, looped over its length
+  refPlay(offset = 0) {
+    if (!this.refBuf) return;
+    this.refStop();
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.refBuf;
+    src.loop = true;
+    src.connect(this.refGain);
+    src.start(0, offset % this.refBuf.duration);
+    this.refSrc = src;
+  }
+  refStop() { try { this.refSrc?.stop(); } catch { /* already stopped */ } this.refSrc?.disconnect(); this.refSrc = null; }
+  refClear() { this.refStop(); this.refBuf = null; this.setListen(false, 0); }
+  // which one is heard: the reference at `gainDb` (its level relative to the file), or the synth; a 5 ms glide
+  setListen(ref, gainDb) {
+    if (!this.synthGain) return;
+    const t = this.ctx.currentTime;
+    this.synthGain.gain.setTargetAtTime(ref ? 0 : 1, t, 0.005);
+    this.refGain.gain.setTargetAtTime(ref ? 10 ** (gainDb / 20) : 0, t, 0.005);
+  }
+  // the RMS (dBFS) of what is heard now, over `ms`: to bring the reference to the synth's level
+  async measureDb(ms = 1500) {
+    const a = this.analyser, x = new Float32Array(a.fftSize);
+    let sum = 0, n = 0;
+    for (let t = 0; t < ms; t += 50) {
+      a.getFloatTimeDomainData(x);
+      for (let i = 0; i < x.length; i++) sum += x[i] * x[i];
+      n += x.length;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return 10 * Math.log10(sum / Math.max(1, n) + 1e-12);
   }
   partParam(part, id, norm) { this.send({ type: 'partParam', part, id, norm }); }
   stop() { this.send({ type: 'stop' }); }

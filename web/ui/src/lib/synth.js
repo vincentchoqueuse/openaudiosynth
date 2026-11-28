@@ -19,8 +19,11 @@ export function toNorm(d, v) {
   if (d.curve === 'exp') return Math.log(v / d.min) / Math.log(d.max / d.min);
   return (v - d.min) / (d.max - d.min);
 }
+// a setting without a unit between -1 and 1 (a mix, a resonance, a feedback, a level...): read as a percentage
+export const isPercent = (d) => !d.labels && !d.unit && d.curve !== 'int' && d.min >= -1 && d.max <= 1 && d.max > d.min;
 export function format(d, v) {
   if (d.labels) return d.labels[Math.round(v - d.min)] ?? String(v);
+  if (isPercent(d)) { const p = v * 100; return `${Math.abs(p) >= 10 || p === 0 ? p.toFixed(0) : p.toFixed(1)} %`; }
   const a = Math.abs(v);
   let s;
   if (d.curve === 'int') s = String(Math.round(v));

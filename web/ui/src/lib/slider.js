@@ -1,9 +1,12 @@
 // slider.js — what every value slider of the page shares: precise(), a Svelte action on an <input type=range>
 // that makes it exact to set (Shift while dragging moves ten times less; the arrows step 1 % of the travel, with
 // Shift 0.1 %, Page Up / Down 10 %; a parameter of whole numbers steps one at a time), and parseValue(), what a
-// typed value means for a parameter ("440", "1.2k", "1,2 kHz", "30 ms", "2 s" for one in seconds or hertz).
+// typed value means for a parameter ("440", "1.2k", "1,2 kHz", "30 ms", "2 s" for one in seconds or hertz; "27" or
+// "27 %" for one read as a percentage).
 // The action reads and writes the slider's position (its own min..max) through opt: { value(): the position now,
 // set(position), step: the arrows' step in position (default 1 % of the travel) }.
+import { isPercent } from './synth.js';
+
 export function precise(node, opt) {
   let o = opt, shift = false, last = null, anchor = null;
   const lo = () => +node.min, hi = () => +node.max;
@@ -52,6 +55,7 @@ export function parseValue(d, text) {
   let v = parseFloat(m[1].replace(',', '.').replace('−', '-'));
   const u = m[2].toLowerCase();
   if (!isFinite(v)) return null;
+  if (isPercent(d)) v /= 100; // read as a percentage (format)
   if (d.unit === 's' && u === 'ms') v /= 1000;
   if (d.unit === 'Hz' && (u === 'k' || u === 'khz')) v *= 1000;
   v = Math.min(d.max, Math.max(d.min, v));

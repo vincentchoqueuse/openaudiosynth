@@ -2,7 +2,7 @@
      collection: the instrument's stages in the order its signal flows (the sampler: its kit), the effect chain (the
      output filter and the crush, the effects added to the rack, the master, the saturation, the limiter), the sources
      of modulation (envelopes, LFOs, Wander, the controllers) and the eight macros. A toolbar: a search (names,
-     settings, what a module moves; the settings it finds are listed above the table, each set right there), the four types (source, transform, modulation, macro), On / Off, then the actions: Init and Randomize (effects are added in the chain above: EffectChain). Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; the type filters too), Name, On (a switch: onoff.js; a lock
+     settings, what a module moves; the settings it finds are listed above the table, each set right there), On / Off, in the Modulation tab a Controller menu (the controllers that move nothing are no rows; it opens one), then the actions: Init and Randomize (effects are added in the chain above: EffectChain). Columns are fields: Type first (source, transform, modulation or macro: an icon on its colour; a modulator's says its kind), Name, On (a switch: onoff.js; a lock
      when the module is always on), Summary (its main settings) and Moves (what a source or a macro moves); a click on
      a head sorts. A row's cog, or a click on it, opens the record in the side panel. Under the table, the count. -->
 <script>
@@ -16,7 +16,9 @@
   import { human } from './naming.js';
   import * as R from './routes.js';
   import * as M from './matrix.js';
+  import { MOD_ICON } from './graphmods.js';
   import Seg from './Seg.svelte';
+  import Menu from './Menu.svelte';
   import Param from './Param.svelte';
   // audio: what makes and shapes the sound (sources, transforms); mod: what moves it (modulators, macros)
   let { scope = 'audio' } = $props();
@@ -26,9 +28,15 @@
   /* every module is one of four: a source makes the sound (oscillators, noise, the kit, the voice that plays them), a
    * transform works on it (filters, amp, every effect up to the output), a modulation moves settings over time, a macro
    * moves several at once from one control */
-  const TAGS = [{ id: 'all', label: 'All' }, { id: 'source', label: 'Source' }, { id: 'transform', label: 'Transform' },
-                { id: 'modulation', label: 'Modulation' }, { id: 'macro', label: 'Macro' }];
   const TYPE_ICON = { source: 'source', transform: 'transform', modulation: 'modsrc', macro: 'macro' }; // icons.js
+  // a modulator's pictogram says its kind, as in the Graph (graphmods.js): envelope, LFO, controller, random walk
+  const iconOf = (r) => {
+    if (r.tag !== 'modulation') return TYPE_ICON[r.tag];
+    if (r.key === 'wander') return 'dice';
+    if (r.ctl) return MOD_ICON.ctl;
+    const env = r.type === 'envelope' || (r.kind === 'stage' && /env/i.test(r.title));
+    return MOD_ICON[env ? 'env' : 'lfo'];
+  };
   const CLASS = { source: 'source', voice: 'source', filter: 'transform', amp: 'transform', mod: 'modulation' };
 
   const fx = $derived(fxStages(s));
@@ -81,7 +89,8 @@
     return out;
   });
   const inScope = $derived(rows.filter((r) => SCOPE[scope].includes(r.tag)));
-  const tag = $derived(SCOPE[scope].includes(s.synthTag) ? s.synthTag : 'all'); // a type of the other scope: all of this one
+  // a controller that moves nothing is no row (the toolbar's Controller menu opens it), unless a search asks for it
+  const idle = $derived(inScope.filter((r) => r.ctl && !r.moves));
   // the search: every word of the query in the row's name, tag, type, its settings' names, its summary or what it moves
   const text = (r) => [r.title, r.tag, r.type, r.sum, r.moves, r.words ?? '', ...(r.ps ?? []).map(({ d, label }) => `${label} ${human(d.name)}`)].join(' ').toLowerCase();
   let sort = $state(null); // {id, dir}: a head clicked; null: the order of the signal
@@ -90,7 +99,7 @@
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     const state = (r) => s.synthState === 'all' || isOn(s, r) === (s.synthState === 'on');
-    const out = inScope.filter((r) => !r.fx && (tag === 'all' || r.tag === tag) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
+    const out = inScope.filter((r) => !r.fx && (words.length || !idle.includes(r)) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
     if (!sort) return out;
     const f = SORT[sort.id];
     return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => r);
@@ -112,8 +121,7 @@
   });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
-  const listed = $derived(inScope.filter((r) => !r.fx)); // the effects are in the chain (EffectChain), not in the table
-  const count = (id) => listed.filter((r) => id === 'all' || r.tag === id).length;
+  const listed = $derived(inScope.filter((r) => !r.fx && !idle.includes(r))); // the effects are in the chain (EffectChain), not in the table
   const foot = $derived(`${shown.length === listed.length ? listed.length : `${shown.length} of ${listed.length}`} modules · ${listed.filter((r) => isOn(s, r)).length} on`);
   const columns = $derived([{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
                    ...(scope === 'mod' ? [{ id: 'cat', label: 'From', w: '11%', sort: true, title: 'Where it comes from: the instrument, the whole sound, a controller or a macro' }] : []),
@@ -127,9 +135,9 @@
     <input type="search" placeholder="Search" bind:value={s.synthQuery} aria-label="Search modules and settings" spellcheck="false" />
     {#if s.synthQuery}<button class="iconbtn" onclick={() => (s.synthQuery = '')} aria-label="Clear the search" title="Clear"><Icon name="close" size={11} /></button>{/if}
   </label>
-  <Seg items={TAGS.filter((t) => t.id === 'all' || SCOPE[scope].includes(t.id)).map((t) => ({ ...t, icon: TYPE_ICON[t.id], label: t.id === 'all' ? `All ${count(t.id)}` : String(count(t.id)), title: `${t.label}: ${count(t.id)}` }))} value={tag} onpick={(id) => (s.synthTag = id)} label="Tags" />
   <Seg items={[{ id: 'all', label: 'All' }, { id: 'on', label: 'On', title: 'only what is on' }, { id: 'off', label: 'Off', title: 'only what is off' }]}
        value={s.synthState} onpick={(id) => (s.synthState = id)} label="On or off" />
+  {#if scope === 'mod' && idle.length}<Menu label="Controller" icon="plus" title="Give a controller something to move: it opens in the panel" items={idle.map((r) => ({ label: r.title, run: () => s.openPanel('mod', r.key) }))} />{/if}
   <span class="tools">
     <button class="tool" onclick={init} title="A new sound on this instrument: every setting at its default"><Icon name="init" size={13} /> Init</button>
     <button class="tool" onclick={s.randomize} title="Throw every setting of the instrument somewhere else (Undo brings the sound back)"><Icon name="dice" size={13} /> Randomize</button>
@@ -147,7 +155,7 @@
            empty="Nothing matches." bind:sort {foot}>
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
-    {:else if c.id === 'type'}<span class="ticon cls-{r.tag}" title="{r.tag} · {r.type}" aria-label={r.tag}><Icon name={TYPE_ICON[r.tag]} size={14} /></span>
+    {:else if c.id === 'type'}<span class="ticon cls-{r.tag}" title="{r.tag} · {r.type}" aria-label={r.tag}><Icon name={iconOf(r)} size={14} /></span>
     {:else if c.id === 'on'}
       {#if locked(s, r) && isOn(s, r)}<span class="lock" title="always on"><Icon name="lock" size={13} /></span>
       {:else}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"

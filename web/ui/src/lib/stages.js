@@ -32,9 +32,13 @@ export const labelOf = (s, d, label) => ENGINE_UI[s.engine?.name]?.label?.(d, s)
 // the first main settings of a stage, as one line ("Mix 0.25 · Cutoff 1.2 kHz · Resonance 40 %"); its switch is left
 // out when it is only on / off (a mix or a level that switches it says how much)
 export function summary(s, row, n = 3, engine = true) {
+  return summaryParams(s, row, n, engine).map(({ d, label }) => `${label} ${format(d, s.getP(d.name))}`).join(' · ');
+}
+// the same settings, as [{d, label}]: what a table's summary shows and lets be dragged (Scrub.svelte)
+export function summaryParams(s, row, n = 3, engine = true) {
   const onoff = (d) => d.name === row.st?.enable && (d.labels || d.curve === 'int');
-  const ps = row.ps.filter(({ d }) => !onoff(d) && (!engine || placeOf(s, d) === 'main'));
-  return ps.slice(0, n).map(({ d, label }) => `${engine ? labelOf(s, d, label) : label} ${format(d, s.getP(d.name))}`).join(' · ');
+  const ps = (row.ps ?? []).filter(({ d }) => !onoff(d) && (!engine || placeOf(s, d) === 'main'));
+  return ps.slice(0, n).map(({ d, label }) => ({ d, label: engine ? labelOf(s, d, label) : label }));
 }
 
 // a stage's switch: on when its enabling parameter is away from its off value; off remembers the value to come back to

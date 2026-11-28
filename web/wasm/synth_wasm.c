@@ -455,6 +455,8 @@ EMSCRIPTEN_KEEPALIVE float w_sequence(const char *rows, float bpm, float step, f
 /* Player position in frames since the start of the phrase, or -1 when stopped (for the sequencer playhead). */
 /* where an envelope is (synth_probe.h): which 0, 1 = the part's MSEGs, 2 = the newest note's; -1 = idle */
 EMSCRIPTEN_KEEPALIVE float w_mseg(int which) { return synth_probe_mseg(synth_default(), 0, which); }
+/* what a route source gives now (synth_probe.h): src as the route sources' labels list them */
+EMSCRIPTEN_KEEPALIVE float w_source(int src) { return synth_probe_source(synth_default(), 0, src); }
 /* a frame of the wavetable oscillator osc plays, n points of one cycle into out (see synth_probe_wavetable) */
 EMSCRIPTEN_KEEPALIVE int w_wavetable(int osc, int frame, float *out, int n) { return synth_probe_wavetable(synth_default(), 0, osc, frame, out, n); }
 EMSCRIPTEN_KEEPALIVE double w_player_pos(void) { return g_ev ? (double)g_pos : -1.0; }

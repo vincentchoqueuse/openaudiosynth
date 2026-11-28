@@ -10,7 +10,8 @@
   import Switch from './Switch.svelte';
   import Icon from './Icon.svelte';
   import { session as s } from './session.svelte.js';
-  import { engineStages, fxStages, summary, stageOn, ROLE } from './stages.js';
+  import { engineStages, fxStages, summary, summaryParams, stageOn, ROLE } from './stages.js';
+  import Scrub from './Scrub.svelte';
   import { rack } from './rack.svelte.js';
   import { modRows } from './mods.js';
   import { human } from './naming.js';
@@ -64,7 +65,8 @@
     if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'source', type: 'samples', words: 'kit pads samples',
                                                  sum: `${s.kit?.entries?.length ?? 0} samples${s.kitName ? ` · ${s.kitName}` : ''}`, moves: '' });
     // a stage: its class (tag), and what it is more precisely (type: filter, amp, effect...), for the search
-    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, fx: !engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
+    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, fx: !engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '',
+                                                       sumPs: summaryParams(s, r, 3, engine), moves: '' });
     // the instrument's matrix is no row: each of its slots is with its source and on what it moves (matrix.js)
     for (const r of engineStages(s)) if (!(r.key === 'matrix' && M.hasMatrix(s))) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
     const slotsOf = (src) => (src ? M.from(s, src).map((x) => M.dstName(x.dst)) : []);
@@ -84,6 +86,7 @@
     s.macroNames.forEach((name, k) => {
       const targets = s.macroMaps.filter((r) => r.macro === k && r.dst).map((r) => human(r.dst.name));
       out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', type: 'control', cat: 'Macro', sum: `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`,
+                 sumPs: s.byName[`macro${k + 1}`] ? [{ d: s.byName[`macro${k + 1}`], label: '' }] : null,
                  moves: targets.join(', '), dim: !name && !targets.length });
     });
     return out;
@@ -119,13 +122,23 @@
     }
     return out;
   });
+  // the live bars of the Modulation tab: a row's source by its index in the route sources (session.srcNow)
+  const srcLabels = $derived(s.byName.route1_source?.labels ?? []);
+  const srcIndex = (r) => srcLabels.indexOf(r.kind === 'macro' ? `macro${r.k + 1}` : r.src ?? '');
+  // what is off folds into one line under the table (unless a search or the On / Off filter asks for rows): a click
+  // turns a module on, or opens a modulator that has nothing to move yet
+  const folded = $derived(!s.synthQuery && s.synthState === 'all' ? shown.filter((r) => (r.kind === 'stage' || (r.kind === 'mod' && !r.ctl)) && !isOn(s, r)) : []);
+  const visible = $derived(shown.filter((r) => !folded.includes(r)));
+  const wake = (r) => (locked(s, r) ? s.openPanel(r.kind, r.key) : toggle(s, r));
   // the rows the panel's arrows step through: those of the table as it is shown
-  $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
+  $effect(() => { s.tableRows = visible.map((r) => ({ kind: r.kind, key: r.key })); });
   const listed = $derived(inScope.filter((r) => !r.fx && !idle.includes(r))); // the effects are in the chain (EffectChain), not in the table
   const foot = $derived(`${shown.length === listed.length ? listed.length : `${shown.length} of ${listed.length}`} modules · ${listed.filter((r) => isOn(s, r)).length} on`);
   const columns = $derived([{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
                    ...(scope === 'mod' ? [{ id: 'cat', label: 'From', w: '11%', sort: true, title: 'Where it comes from: the instrument, the whole sound, a controller or a macro' }] : []),
-                   { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' },
+                   { id: 'on', label: 'On', w: '58px', sort: true },
+                   ...(scope === 'mod' ? [{ id: 'now', label: 'Now', w: '72px', title: 'What it gives now, while the sound plays' }] : []),
+                   { id: 'sum', label: 'Summary', cls: 'sum' },
                    ...(scope === 'mod' ? [{ id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }] : [])]);
 </script>
 
@@ -151,7 +164,7 @@
     {/each}
   </section>
 {/if}
-<DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
+<DataTable label="Modules of the sound" {columns} rows={visible} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
            empty="Nothing matches." bind:sort {foot}>
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
@@ -161,12 +174,30 @@
       {:else}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"
                      title={locked(s, r) ? 'moves nothing yet: open it to give it something to move' : isOn(s, r) ? 'on' : 'off'} />{/if}
     {:else if c.id === 'cat'}<span class="muted">{r.cat}</span>
-    {:else if c.id === 'sum'}<span class:off={!isOn(s, r)}>{isOn(s, r) || r.kind !== 'stage' ? r.sum : 'off'}</span>
+    {:else if c.id === 'now'}
+      {@const i = srcIndex(r)}
+      {#if i > 0}{@const v = s.srcNow[i] ?? 0}{@const bi = /^mlfo/.test(srcLabels[i])}
+        <span class="now" class:bi title="now {bi ? v.toFixed(2) : Math.round(v * 100) + ' %'}" aria-hidden="true">
+          <span class="fill" style={bi ? `left:${50 + Math.min(0, v) * 50}%; width:${Math.abs(v) * 50}%` : `left:0; width:${Math.max(0, Math.min(1, v)) * 100}%`}></span></span>{/if}
+    {:else if c.id === 'sum'}
+      {#if r.sumPs?.length && (isOn(s, r) || r.kind === 'macro')}<span class="sums">{#each r.sumPs as p, i (p.d.id)}{#if i}<span class="dot" aria-hidden="true">·</span>{/if}<Scrub d={p.d} label={p.label} />{/each}</span>
+      {:else}<span class:off={!isOn(s, r)}>{isOn(s, r) || r.kind !== 'stage' ? r.sum : 'off'}</span>{/if}
     {:else}{r.moves}{/if}
   {/snippet}
 </DataTable>
+{#if folded.length}
+  <div class="offline"><span class="muted">Off</span>
+    {#each folded as r (r.key)}<button class="offchip" onclick={() => wake(r)} title={locked(s, r) ? `Open ${r.title}: it moves nothing yet` : `Turn ${r.title} on`}>{r.title}</button>{/each}</div>
+{/if}
 
 <style>
+  .now { position: relative; display: block; width: 56px; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+  .now .fill { position: absolute; top: 0; bottom: 0; background: var(--accent); border-radius: 3px; transition: width 40ms linear, left 40ms linear; }
+  .now.bi::after { content: ''; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--muted); }
+  .offline { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 2px 0 8px; font-size: 12px; }
+  .offline .muted { margin-right: 4px; }
+  .offchip { box-sizing: border-box; height: 26px; padding: 0 10px; border: 1px dashed var(--line); border-radius: 13px; background: none; color: var(--muted); font-size: 12px; }
+  .offchip:hover { border-color: var(--accent); border-style: solid; color: var(--accent); }
   .hits { margin: 0 0 14px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface); }
   .hits h4 { margin: 0 0 6px; font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
   .hit { display: grid; grid-template-columns: 9em minmax(0, 1fr); align-items: center; gap: 10px; }

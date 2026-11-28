@@ -277,4 +277,11 @@ void suite_voicemod(void)
     const float done = synth_probe_mseg(synth_default(), 0, 2);
     CHECK(idle < 0.0f && fabsf(half - 0.5f) < 0.02f && done < 0.0f, "mseg probe: idle %g, at 0.5 s %g, done %g",
           (double)idle, (double)half, (double)done);
+
+    /* the source probe: a macro reads back its value once it has glided there; nothing out of range */
+    setmod(PM_MACRO(0), 0.7f);
+    render(N);
+    const float mac = synth_probe_source(synth_default(), 0, PM_SRC_MACRO1);
+    CHECK(fabsf(mac - 0.7f) < 0.01f && synth_probe_source(synth_default(), 0, PM_SRC_COUNT) == 0.0f, "source probe: macro 1 %g", (double)mac);
+    setmod(PM_MACRO(0), 0.0f);
 }

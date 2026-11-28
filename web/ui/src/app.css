@@ -466,3 +466,6 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 3px 32px 1
   .pills.lg button { width: auto; padding: 5px 12px; }
   footer { padding: 3px 16px 10px; }
 }
+
+/* a table's summary of settings that are dragged in place (Scrub.svelte): a dot between them */
+.dt .sums .dot { margin: 0 7px; color: var(--muted); }

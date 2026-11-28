@@ -72,6 +72,7 @@ class Session {
   };
   shortcutsOpen = $state(false); // the shortcuts sheet
   cpu = $state(0); // share of the audio time spent rendering, 0..1 (the worklet measures it)
+  srcNow = $state.raw([]); // what each route source gives now, by its index in the route sources' labels (synth_probe_source)
   msegPos = $state([-1, -1, -1]); // where the part's envelopes and the newest note's are, 0..1 (-1: idle)
   // a phone: the page leaves out what is for a desk (the Code view, MIDI CC settings)
   phone = $state(typeof matchMedia === 'function' && matchMedia('(max-width: 760px)').matches);
@@ -285,6 +286,7 @@ class Session {
       this.defaultMacros();
       this.baseline = { ...this.values };
       this.synth.on('mseg', (d) => (this.msegPos = d.pos));
+      this.synth.on('src', (d) => (this.srcNow = d.values));
       this.synth.on('cpu', (d) => (this.cpu = d.load));
       this.synth.on('midiin', (d) => {
         const t = d[0] & 0xf0;

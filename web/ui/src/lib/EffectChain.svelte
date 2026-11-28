@@ -11,7 +11,8 @@
   import Select from './Select.svelte';
   import Switch from './Switch.svelte';
   import { session as s } from './session.svelte.js';
-  import { fxStages, summary } from './stages.js';
+  import { fxStages, summaryParams } from './stages.js';
+  import Scrub from './Scrub.svelte';
   import { isOn, locked, toggle } from './onoff.js';
   import { rack } from './rack.svelte.js';
 
@@ -26,7 +27,7 @@
   const places = $derived(Array.from({ length: Math.max(SLOTS, used.length) }, (_, k) => used[k] ?? ''));
   const title = (id) => all.find((r) => r.key === id)?.title ?? id;
   const optionsFor = (id) => [{ value: '', label: 'None' }, ...[...(id ? [id] : []), ...rack.free()].map((x) => ({ value: x, label: title(x) }))];
-  const stage = (r) => ({ ...r, kind: 'stage', sum: summary(s, r, 3, false) });
+  const stage = (r) => ({ ...r, kind: 'stage', sumPs: summaryParams(s, r, 3, false) });
   const rows = $derived([
     ...before.map(stage),
     ...places.map((id, k) => (id ? { ...stage(all.find((r) => r.key === id)), place: k, id }
@@ -67,7 +68,8 @@
       {/if}
     {:else if c.id === 'sum'}
       {#if !r.st}<span class="muted">empty: choose an effect</span>
-      {:else}<span class:off={!isOn(s, r)}>{isOn(s, r) ? r.sum : 'off'}</span>{/if}
+      {:else if isOn(s, r)}<span class="sums">{#each r.sumPs as p, i (p.d.id)}{#if i}<span class="dot" aria-hidden="true">·</span>{/if}<Scrub d={p.d} label={p.label} />{/each}</span>
+      {:else}<span class="off">off</span>{/if}
     {:else if c.id === 'order' && r.id}
       <span class="order">
         <button class="iconbtn" onclick={() => move(r.place, -1)} disabled={r.place === 0} aria-label="Earlier in the chain" title="Earlier in the chain"><Icon name="up" size={13} /></button>

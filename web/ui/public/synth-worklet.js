@@ -172,6 +172,13 @@ class SynthProcessor extends AudioWorkletProcessor {
         if (on || this.msegOn) this.port.postMessage({ type: 'mseg', pos: e });
         this.msegOn = on;
       }
+      if (this.w.w_source && this.tick % 16 === 0) { // what each route source gives now, for the Modulation table's bars
+        this.src ??= new Float32Array(24);
+        let on = false;
+        for (let i = 1; i < 24; i++) { this.src[i] = this.w.w_source(i); on ||= this.src[i] !== 0; }
+        if (on || this.srcOn) this.port.postMessage({ type: 'src', values: Array.from(this.src) });
+        this.srcOn = on;
+      }
     }
     // views on the render buffers: rebuilt only when the memory has grown (a patch load) or the quantum changes,
     // so nothing is allocated on the audio thread in steady state

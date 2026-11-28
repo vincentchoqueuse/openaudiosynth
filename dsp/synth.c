@@ -1012,6 +1012,13 @@ int synth_probe_wavetable(const synth_t *s, int part, int osc, int frame, float 
     return s->part[part].ops->probe_table(&s->part[part].eng, osc, frame, out, n);
 }
 
+float synth_probe_source(const synth_t *s, int part, int src)
+{
+    if (!s || part < 0 || part >= SYNTH_PARTS || src <= PM_SRC_NONE || src >= PM_SRC_COUNT)
+        return 0.0f;
+    return s->part[part].mod.src[src];
+}
+
 float synth_probe_mseg(const synth_t *s, int part, int which)
 {
     if (!s || part < 0 || part >= SYNTH_PARTS)

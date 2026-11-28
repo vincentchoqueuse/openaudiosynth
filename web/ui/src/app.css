@@ -412,6 +412,8 @@ footer { grid-area: foot; border-top: 1px solid var(--line); padding: 3px 32px 1
 .chain .block.source rect { fill: var(--accent-soft); }
 .chain .block.fx rect { fill: var(--bg); }
 .chain .block text { fill: var(--text); font: 500 11.5px var(--sans); pointer-events: none; }
+.chain .block.port rect { fill: var(--bg); stroke: var(--muted); stroke-dasharray: 3 3; }
+.chain .block.port text { fill: var(--muted); }
 .chain .badge { cursor: pointer; }
 .chain .badge rect { fill: var(--bg); stroke: var(--line); stroke-width: 1; }
 .chain .badge path { fill: none; stroke: var(--accent); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }

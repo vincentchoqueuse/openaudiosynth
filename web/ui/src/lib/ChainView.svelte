@@ -13,18 +13,20 @@
   import { MOD_ICON } from './graphmods.js';
   // only: the stage ids drawn (a part of the sound: GraphView), the signal joining around the others; badges: stage
   // id -> its modulators as pictograms (graphmods.js), drawn on the block instead of the chips under the line
-  let { onpick = null, only = null, badges = null } = $props(); // a click on a block or a chip: onpick(stage, kind)
+  // ports: an In block before the first stages and an Out block after the last (a part entered from the Graph), named
+  // by `portLabels` {in, out}
+  let { onpick = null, only = null, badges = null, ports = false, portLabels = { in: 'In', out: 'Out' } } = $props(); // a click on a block or a chip: onpick(stage, kind)
   const engine = $derived(session.engine), fx = $derived(session.fxStages), byName = $derived(session.byName);
   const getP = session.getP;
 
   let W = $state(800);
   let hover = $state(-1); // modulator under the pointer: only its links are drawn
-  const BW = 112, BH = 36, ROWH = 58, TOP = 12, MINW = 92, GAP = 16; // blocks never narrower than MINW: the line scrolls
+  const BW = 112, BH = 36, ROWH = 64, TOP = 12, MINW = 92, GAP = 16; // blocks never narrower than MINW: the line scrolls
 
   // audio stages of the engine (or one block for engines without a description), then the effect bus
   const parts = $derived.by(() => {
     const st = engine?.stages?.length ? engine.stages : [{ id: 'engine', label: engine?.name ?? 'engine', kind: 'source', params: '', inputs: '', targets: '', enable: null }];
-    const eng = st.filter((s) => s.kind !== 'mod' && s.kind !== 'voice');
+    const eng = st.filter((s) => s.kind !== 'mod' && (s.kind !== 'voice' || only?.includes(s.id))); // the voice only in its own part
     const fed = new Set(eng.flatMap((s) => s.inputs.split(' ').filter(Boolean)));
     const sinks = eng.filter((s) => !fed.has(s.id)).map((s) => s.id);
     const bus = fx.map((s) => ({ ...s, inputs: s.inputs === 'engine' ? sinks.join(' ') : s.inputs }));
@@ -33,7 +35,7 @@
   // only what is active is drawn: a stage switched off (an effect not in use, an oscillator off) leaves the
   // picture, and the signal goes straight from what feeds it to what it fed
   const isOn = (s) => !s.enable || Math.abs(getP(s.enable) - s.off) > 1e-6;
-  const audio = $derived.by(() => {
+  const inner = $derived.by(() => {
     const all = [...parts.eng, ...parts.bus], byId = Object.fromEntries(all.map((s) => [s.id, s]));
     const feeds = (id, seen = new Set()) => { // the active stages a stage's signal comes from
       if (seen.has(id) || !byId[id] || (only && !only.includes(id))) return [];
@@ -42,6 +44,15 @@
     };
     const inPart = (st) => !only || only.includes(st.id);
     return all.filter((st) => isOn(st) && inPart(st)).map((s) => ({ ...s, inputs: [...new Set(s.inputs.split(' ').filter(Boolean).flatMap((x) => feeds(x)))].join(' ') }));
+  });
+  // with ports: In feeds the stages nothing in the part feeds, Out takes what feeds nothing in it
+  const audio = $derived.by(() => {
+    if (!ports || !inner.length) return inner;
+    const used = new Set(inner.flatMap((s) => s.inputs.split(' ').filter(Boolean)));
+    const sinks = inner.filter((s) => !used.has(s.id)).map((s) => s.id);
+    return [{ id: 'in', label: portLabels.in, kind: 'port', inputs: '', enable: null },
+            ...inner.map((s) => (s.inputs ? s : { ...s, inputs: 'in' })),
+            { id: 'out', label: portLabels.out, kind: 'port', inputs: sinks.join(' '), enable: null }];
   });
   const mods = $derived((engine?.stages ?? []).filter((s) => (s.kind === 'mod' || s.kind === 'voice') && isOn(s)));
 
@@ -71,8 +82,11 @@
     const bw = Math.min(BW, Math.max(MINW, (W - (cl.ncol - 1) * GAP) / cl.ncol));
     const cw = Math.max(W, cl.ncol * bw + (cl.ncol - 1) * GAP);
     const g = cl.ncol > 1 ? (cw - cl.ncol * bw) / (cl.ncol - 1) : 0;
-    for (const [id, { c, r }] of Object.entries(cl.pos))
-      xy[id] = { x: c * (bw + g), y: TOP + ((cl.nrow - (cl.rows[c] + 1)) * ROWH) / 2 + r * ROWH, w: bw };
+    const PORT = 56; // In and Out: narrow, at the two ends
+    for (const [id, { c, r }] of Object.entries(cl.pos)) {
+      const port = id === 'in' || id === 'out';
+      xy[id] = { x: c * (bw + g) + (id === 'out' ? bw - PORT : 0), y: TOP + ((cl.nrow - (cl.rows[c] + 1)) * ROWH) / 2 + r * ROWH, w: port ? PORT : bw };
+    }
     return { xy, height: TOP + cl.nrow * ROWH, cw };
   });
 
@@ -135,11 +149,11 @@
       {@const on = isOn(s)}
       <!-- svelte-ignore a11y_no_noninteractive_tabindex (the role is a button whenever it is focusable) -->
       <g class="block {s.kind}" class:off={!on} class:target={hover >= 0 && chips[hover]?.targets.split(' ').includes(s.id)}
-         class:pick={!!onpick} transform="translate({p.x},{p.y})" role={onpick ? 'button' : 'img'} tabindex={onpick ? 0 : undefined}
-         aria-label="{s.label}{on ? '' : ' (off)'}" onclick={() => onpick?.(s, 'audio')}
+         class:pick={!!onpick && s.kind !== 'port'} transform="translate({p.x},{p.y})" role={onpick && s.kind !== 'port' ? 'button' : 'img'} tabindex={onpick && s.kind !== 'port' ? 0 : undefined}
+         aria-label="{s.label}{on ? '' : ' (off)'}" onclick={() => s.kind !== 'port' && onpick?.(s, 'audio')}
          onkeydown={(e) => { if (onpick && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onpick(s, 'audio'); } }}>
         <title>{s.label}{on ? '' : ' (off)'}</title>
-        <rect width={p.w} height={BH} rx="7" />
+        <rect width={p.w} height={BH} rx={s.kind === 'port' ? BH / 2 : 7} />
         <text x="9" y={BH / 2 + 4}>{s.label}</text>
         {#each (badges?.[s.id] ?? []).slice(0, Math.floor(p.w / 17)) as b, j}
           <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_static_element_interactions -->

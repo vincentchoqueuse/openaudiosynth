@@ -12,10 +12,11 @@ static const char *const chorus_labels[] = {"off", "I", "II", "I+II", "ensemble"
 
 static const char *const phaser_stage_labels[] = {"2", "4", "6", "8", "10", "12", NULL};
 /* the effects of the rack, by the id of their stage (synth_fx_stages) */
-static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", "tape", "gain", NULL};
+static const char *const rack_labels[] = {"phaser", "flanger", "chorus", "delay", "reverb", "tape", "gain", "drive", NULL};
+static const char *const drive_labels[] = {"soft", "tube", "hard", "fold", NULL};
 static const char *const shimmer_labels[] = {"octave_up", "fifth_up", "twelfth_up", "octave_down", NULL};
 static const float shimmer_semitones[4] = {12.0f, 7.0f, 19.0f, -12.0f};
-#define SLOT(K, N) PARAM((K) < 6 ? RACK_P_SLOT_1 + (K) : RACK_P_SLOT_7, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_UNITS - 1), (float)K, PARAM_INT, "", 0, \
+#define SLOT(K, N) PARAM((K) < 6 ? RACK_P_SLOT_1 + (K) : (K) == 6 ? RACK_P_SLOT_7 : RACK_P_SLOT_8, "fx_slot" #N, "fx.rack.slot" #N, 0.0f, (float)(RACK_UNITS - 1), (float)K, PARAM_INT, "", 0, \
                            rack_labels, "the effect at this place of the rack (the signal goes through the places in order); an effect named twice keeps its first place, one not named goes just before the effect that usually follows it")
 
 static const char *const reverb_type_labels[] = {"plate", "room", "hall", "spring", NULL};
@@ -104,6 +105,16 @@ const param_desc_t rack_params[RACK_P_COUNT] = {
           "stereo width of the tail: 1 its own, 0 mono (centred, behind the sound)"),
     PARAM(RACK_P_TAPE_MIX, "tape_mix", "fx.tape.mix", 0.0f, 1.0f, 1.0f, PARAM_LIN, "", 1, NULL,
           "dry / wet of the tape: 1 all through the machine, lower blends the clean signal back in"),
+    SLOT(7, 8),
+    PARAM(RACK_P_DRIVE_MODE, "drive_mode", "fx.drive.mode", 0.0f, 3.0f, 0.0f, PARAM_INT, "", 0, drive_labels,
+          "the distortion's shape: soft (tanh: warm, round), tube (asymmetric: even harmonics, a valve's), hard (clipped: "
+          "flat tops, brighter, buzzier), fold (wavefolder: folds back as it gets louder, metallic, growls when moved)"),
+    PARAM(RACK_P_DRIVE_AMOUNT, "drive_amount", "fx.drive.amount", 0.0f, 36.0f, 12.0f, PARAM_LIN, "dB", 1, NULL,
+          "gain into the shape, the level kept: 0-6 dB a touch of colour, 12-18 dB driven, 24 dB and more a fuzz"),
+    PARAM(RACK_P_DRIVE_TONE, "drive_tone", "fx.drive.tone", 500.0f, 20000.0f, 8000.0f, PARAM_EXP, "Hz", 1, NULL,
+          "low-pass after the shape: lower tames the fizz of the new harmonics (3-6 kHz an amp's speaker)"),
+    PARAM(RACK_P_DRIVE_MIX, "drive_mix", "fx.drive.mix", 0.0f, 1.0f, 0.0f, PARAM_LIN, "", 1, NULL,
+          "dry / wet of the distortion (0 = off): lower keeps the clean attack under the drive, a parallel distortion"),
 };
 
 static void apply_extra(rack_t *f, int id);
@@ -125,6 +136,10 @@ void rack_init(rack_t *f, float sr, float *mem, size_t mem_floats, float max_del
         f->has_tape = 1;
     }
     chorus_init(&f->chorus, sr);
+    for (int c = 0; c < 2; c++) {
+        dist_init(&f->drive[c], sr);
+        dist_set(&f->drive[c], DIST_SOFT, f->p[RACK_P_DRIVE_AMOUNT], f->p[RACK_P_DRIVE_TONE], 0.0f);
+    }
 
     /* the shimmer's line from the end of the arena */
     f->sh_buf = 0;
@@ -224,6 +239,13 @@ static void apply_extra(rack_t *f, int id)
         return; /* read each block, smoothed */
     else if (id == RACK_P_TAPE_MIX)
         return; /* read each block, ramped */
+    else if (id == RACK_P_SLOT_8)
+        rack_resolve(f);
+    else if (id >= RACK_P_DRIVE_MODE) {
+        for (int c = 0; c < 2; c++)
+            dist_set(&f->drive[c], (dist_mode_t)(DIST_SOFT + (int)p[RACK_P_DRIVE_MODE]), p[RACK_P_DRIVE_AMOUNT],
+                     p[RACK_P_DRIVE_TONE], p[RACK_P_DRIVE_MIX]);
+    }
     else if (id >= RACK_P_REVERB_TYPE) {
         if (!f->has_reverb)
             return;
@@ -418,6 +440,13 @@ DSP_FAST_CODE void rack_process(rack_t *f, float *L, float *R, int n)
                     L[i] = dl[i] + m * (L[i] - dl[i]);
                     R[i] = dr[i] + m * (R[i] - dr[i]);
                 }
+            }
+            break;
+        case RACK_DRIVE:
+            if (f->p[RACK_P_DRIVE_MIX] > 0.0f || f->drive[0].mix_prev > 0.0f) { /* at 0 (its default): untouched */
+                flush(f, L, R, n);
+                dist_process(&f->drive[0], L, L, n);
+                dist_process(&f->drive[1], R, R, n);
             }
             break;
         case RACK_GAIN: {

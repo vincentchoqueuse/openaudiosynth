@@ -84,7 +84,7 @@ enum {
     SYNTH_PARAM_FLANGER_DEPTH,   /* 0 .. 1 */
     SYNTH_PARAM_FLANGER_FEEDBACK, /* -0.9 .. 0.9 */
     /* the effect rack: which effect sits at each place of the bus, in the order the signal goes through */
-    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb, tape, gain (default: in that order; the 7th place: SYNTH_PARAM_FX_SLOT_7) */
+    SYNTH_PARAM_FX_SLOT_1,       /* phaser, flanger, chorus, delay, reverb, tape, gain, drive (default: in that order; the 7th and 8th places: SYNTH_PARAM_FX_SLOT_7, _8) */
     SYNTH_PARAM_FX_SLOT_6 = SYNTH_PARAM_FX_SLOT_1 + 5,
     /* tape: wow, flutter, saturation, loss of highs and hiss on the whole signal (a place of the rack) */
     SYNTH_PARAM_TAPE,            /* off, on */
@@ -105,6 +105,12 @@ enum {
     SYNTH_PARAM_REVERB_LOWCUT,   /* 20 (off) .. 1000 Hz */
     SYNTH_PARAM_REVERB_WIDTH,    /* 0 (mono) .. 1 (its own stereo) */
     SYNTH_PARAM_TAPE_MIX,        /* dry / wet of the tape: 0 .. 1 (default 1, all through it) */
+    /* distortion: a drive into a shape, oversampled, at its place of the rack (the eighth, at the end by default) */
+    SYNTH_PARAM_FX_SLOT_8,       /* the eighth place of the rack (default: drive) */
+    SYNTH_PARAM_DRIVE_MODE,      /* soft, tube, hard, fold */
+    SYNTH_PARAM_DRIVE_AMOUNT,    /* 0 .. 36 dB */
+    SYNTH_PARAM_DRIVE_TONE,      /* 500 .. 20000 Hz */
+    SYNTH_PARAM_DRIVE_MIX,       /* dry / wet: 0 (off, default) .. 1 */
     SYNTH_PARAM_GLOBAL_END
 };
 

@@ -18,7 +18,8 @@ const engine_stage_t synth_fx_stages[] = {
     {"reverb", "Reverb", "fx", "reverb_", "delay", NULL, "reverb_mix", 0.0f, 0.3f},
     {"tape", "Tape", "fx", "tape tape_", "reverb", NULL, "tape", 0.0f, 1.0f},
     {"gain", "Gain", "fx", "gain_", "tape", NULL, "gain_level", 0.0f, 6.0f},
-    {"master", "Master", "fx", "master", "gain", NULL, NULL, 0.0f, 0.0f},
+    {"drive", "Distortion", "fx", "drive_", "gain", NULL, "drive_mix", 0.0f, 1.0f},
+    {"master", "Master", "fx", "master", "drive", NULL, NULL, 0.0f, 0.0f},
     {"saturation", "Saturation", "fx", "saturation saturation_", "master", NULL, "saturation", 0.0f, 1.0f},
     {"limiter", "Limiter", "fx", "limiter limiter_", "saturation", NULL, "limiter", 0.0f, 1.0f},
 };

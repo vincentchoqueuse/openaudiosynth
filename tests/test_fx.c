@@ -721,9 +721,55 @@ static void test_tape_mix(void)
           (double)(e_half / e_wet));
 }
 
+/* the distortion of the rack: off at its default (dry / wet 0), on it adds harmonics to a sine (the 3rd), each shape
+ * its own, bounded */
+static float harm_db(const float *x, int n, float f, float sr)
+{
+    double re = 0, im = 0;
+    for (int i = 0; i < n; i++) {
+        const double w = 6.283185307 * (double)f * (double)i / (double)sr;
+        re += (double)x[i] * cos(w);
+        im += (double)x[i] * sin(w);
+    }
+    return (float)(10.0 * log10((re * re + im * im) / ((double)n * n) + 1e-30));
+}
+
+static void test_drive(void)
+{
+    const float sr = 48000.0f, f0 = 375.0f; /* 375 Hz: whole cycles in 128 samples */
+    const int n = 48000;
+    float *L = malloc(sizeof(float) * (size_t)n), *R = malloc(sizeof(float) * (size_t)n);
+    static rack_t f;
+    float h3[5];
+    for (int mode = -1; mode < 4; mode++) {
+        rack_init(&f, sr, NULL, 0, 0.0f, 0.0f);
+        if (mode >= 0) {
+            rack_set_param(&f, RACK_P_DRIVE_MODE, param_to_norm(&rack_params[RACK_P_DRIVE_MODE], (float)mode));
+            rack_set_param(&f, RACK_P_DRIVE_AMOUNT, param_to_norm(&rack_params[RACK_P_DRIVE_AMOUNT], 18.0f));
+            rack_set_param(&f, RACK_P_DRIVE_TONE, param_to_norm(&rack_params[RACK_P_DRIVE_TONE], 20000.0f));
+            rack_set_param(&f, RACK_P_DRIVE_MIX, 1.0f);
+        }
+        for (int i = 0; i < n; i++)
+            L[i] = R[i] = 0.5f * sinf(6.2831853f * f0 * (float)i / sr);
+        for (int i = 0; i < n; i += 32)
+            rack_process(&f, L + i, R + i, 32);
+        CHECK(all_finite_bounded(L, n, 2.0f), "drive mode %d: NaN or |y| > 2", mode);
+        const int a = 4800, m = 38400;
+        h3[mode + 1] = harm_db(L + a, m, 3.0f * f0, sr) - harm_db(L + a, m, f0, sr);
+    }
+    printf("  drive 3rd harmonic re the fundamental: off %.0f dB, soft %.0f, tube %.0f, hard %.0f, fold %.0f\n", (double)h3[0],
+           (double)h3[1], (double)h3[2], (double)h3[3], (double)h3[4]);
+    CHECK(h3[0] < -100.0f, "drive off: a 3rd harmonic at %.0f dB", (double)h3[0]);
+    for (int k = 1; k < 5; k++)
+        CHECK(h3[k] > -40.0f, "drive mode %d: 3rd harmonic only %.0f dB", k - 1, (double)h3[k]);
+    free(L);
+    free(R);
+}
+
 void suite_fx(void)
 {
     test_reverb_types();
+    test_drive();
     test_tape_mix();
     test_rack();
     test_gain();

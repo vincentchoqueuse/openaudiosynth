@@ -18,7 +18,7 @@
   const place = (d) => (engine ? placeOf(s, d) : 'main');
   const named = (ps) => ps.map(({ d, label }) => ({ d, label: engine ? labelOf(s, d, label) : label }));
   // an effect's dry / wet first, named so
-  const MIX = /^(phaser|flanger|chorus|delay|reverb|tape)_mix$/;
+  const MIX = /^(phaser|flanger|chorus|delay|reverb|tape|drive)_mix$/;
   // then, for the reverb, its kind and space before its tail; the rest in the table's order
   const ORDER = ['reverb_type', 'reverb_size', 'reverb_decay', 'reverb_predelay', 'reverb_damping', 'reverb_lowcut', 'reverb_width'];
   const LABEL = { reverb_lowcut: 'Low cut' };

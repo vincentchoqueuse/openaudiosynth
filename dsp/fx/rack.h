@@ -1,5 +1,5 @@
-/* rack.h — the synth's effect rack: seven effects on the bus (phaser, flanger, chorus, tape delay, plate reverb with
- * its shimmer, tape machine, gain) run in the order of its seven places, with their parameter descriptors. The delay and
+/* rack.h — the synth's effect rack: eight effects on the bus (phaser, flanger, chorus, tape delay, reverb of four
+ * types with its shimmer, tape machine, gain, distortion) run in the order of its seven places, with their parameter descriptors. The delay and
  * the reverb add their wet to the signal; the reverb takes what reaches it, the echoes too when it follows the
  * delay. Delay, reverb, shimmer and tape memory comes from a caller-provided arena; if it is too small the reverb
  * size and the maximum delay time shrink. An effect whose mix stays at 0 is fed silence, then stops being
@@ -11,6 +11,7 @@
 #include "../mod/params.h"
 #include "chorus.h"
 #include "delay.h"
+#include "dist.h"
 #include "flanger.h"
 #include "phaser.h"
 #include "reverb.h"
@@ -34,13 +35,15 @@ enum {
     RACK_P_GAIN,
     RACK_P_REVERB_TYPE, RACK_P_REVERB_SIZE, RACK_P_REVERB_LOWCUT, RACK_P_REVERB_WIDTH, /* appended: the ids stay */
     RACK_P_TAPE_MIX,
+    RACK_P_SLOT_8, /* the eighth place, for the distortion */
+    RACK_P_DRIVE_MODE, RACK_P_DRIVE_AMOUNT, RACK_P_DRIVE_TONE, RACK_P_DRIVE_MIX,
     RACK_P_COUNT
 };
 extern const param_desc_t rack_params[RACK_P_COUNT];
 /* the effects, by the value of a place (RACK_P_SLOT_n) */
-enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_TAPE, RACK_GAIN, RACK_UNITS };
+enum { RACK_PHASER = 0, RACK_FLANGER, RACK_CHORUS, RACK_DELAY, RACK_REVERB, RACK_TAPE, RACK_GAIN, RACK_DRIVE, RACK_UNITS };
 /* the parameter of place k (0..RACK_UNITS-1) */
-static inline int rack_slot_param(int k) { return k < 6 ? RACK_P_SLOT_1 + k : RACK_P_SLOT_7; }
+static inline int rack_slot_param(int k) { return k < 6 ? RACK_P_SLOT_1 + k : k == 6 ? RACK_P_SLOT_7 : RACK_P_SLOT_8; }
 
 #define RACK_SHIMMER_LEN 4096 /* a power of two: the transposer's window, in samples */
 
@@ -51,6 +54,7 @@ typedef struct {
     phaser_t phaser;
     flanger_t flanger;
     tape_t tape;
+    dist_t drive[2]; /* the distortion, one per side */
     int has_tape;
     chorus_t chorus;
     delay_t delay;
@@ -76,7 +80,7 @@ void rack_init(rack_t *f, float sample_rate, float *mem, size_t mem_floats, floa
 void rack_recover(rack_t *f, float *mem, size_t mem_floats, float max_delay_s, float reverb_size);
 /* Parameter index (RACK_P_...), normalized value. */
 void rack_set_param(rack_t *f, int id, float norm);
-/* Processes one block in place (n <= SYNTH_BLOCK): the seven effects in the order of the places. */
+/* Processes one block in place (n <= SYNTH_BLOCK): the eight effects in the order of the places. */
 void rack_process(rack_t *f, float *L, float *R, int n);
 
 #endif /* RACK_H */

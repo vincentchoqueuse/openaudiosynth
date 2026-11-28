@@ -2,7 +2,7 @@
   "version": 2,
   "engine": "va",
   "name": "va_pumped_bass",
-  "description": "Pumped bass: one saw an octave down, mono with a long glide between notes, thinned by a high-pass at 180 Hz, pumping on every beat like a side-chain keyed by a kick (Global LFO 1 duck on the volume: down about 12 dB, held 70 ms, back up over 350 ms on an exponential curve); its demo is a two-bar riff at 130 bpm.",
+  "description": "Pumped bass: one saw an octave down, mono with a long glide between notes, thinned by a high-pass at 180 Hz, pumping on every beat like a side-chain keyed by a kick (MSEG 1, Duck shape locked to the beat, on the volume: down about 13 dB in 5 ms, held 70 ms, back up over the rest of the beat on an exponential curve); its demo is a two-bar riff at 130 bpm.",
   "osc1": {"octave": -1},
   "osc2": {"level": 0},
   "filter": {"type": "hp", "cutoff": 182.4, "envelope_amount": 0},
@@ -10,7 +10,16 @@
   "voice": {"drift": 0, "pan_spread": 0, "mode": "mono", "glide": 0.478, "tolerance": 0, "jitter": 0},
   "motion": {"spread": 0},
   "tempo": {"bpm": 130},
-  "output": {"filter": {"mode": "lp"}, "volume": -6.7},
-  "mlfo1": {"waveform": "duck", "sync": "1/4", "duck_attack": 0.005, "duck_hold": 0.07, "duck_release": 0.35, "duck_curve": 0.6},
-  "route1": {"source": "mlfo1", "destination": "output.volume", "amount": 0.08}
+  "output": {"filter": {"mode": "lp"}, "volume": -13.4},
+  "mseg1": {
+    "mode": "loop_free",
+    "sync": "beats",
+    "lock": "on",
+    "points": 4,
+    "point1": {"time": 0, "level": 1.0, "curve": 0},
+    "point2": {"time": 0.011, "level": 0.0, "curve": 0},
+    "point3": {"time": 0.152, "level": 0.0, "curve": 0},
+    "point4": {"time": 0.837, "level": 1.0, "curve": 0.6}
+  },
+  "route1": {"source": "mseg1", "destination": "output.volume", "amount": 0.16}
 }

@@ -1,10 +1,11 @@
 <!-- MsegEditor.svelte — graphical editor of one multi-segment envelope (part MSEG 1/2 or the per-note MSEG):
      drag points (time and level), drag a segment's middle handle to bend its curve, double-click to add or
      remove a point, click a point then set it as sustain / loop start / loop end; loop mode, time unit,
-     starting shapes as small drawn buttons; a line shows where the envelope runs while it plays. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
+     starting shapes as small drawn buttons (Duck: a pump on the beat, locked to the grid), Grid (a part MSEG locked to the tempo); a line shows where the envelope runs while it plays. Writes the flat parameters (prefix + t<i>, l<i>, c<i>, points, sustain, loop_*). -->
 <script>
   import { shape, curveThroughMid, readShape, writeShape, times, insertPoint, deletePoint, clone, PRESETS,
-           fromPreset, PRESET_ICONS, MIN_TIME, MAX_TIME, MAX_POINTS } from './mseg.js';
+           fromPreset, presetLocks, PRESET_ICONS, MIN_TIME, MAX_TIME, MAX_POINTS } from './mseg.js';
+  import Switch from './Switch.svelte';
   import Seg from './Seg.svelte';
   import Pills from './Pills.svelte';
   import { session } from './session.svelte.js';
@@ -114,6 +115,9 @@
   const fmtT = (t) => (t < 1 && !s.sync ? `${(t * 1000).toFixed(0)} ms` : `${+t.toFixed(2)} ${unit}`);
   const MODES = ['one shot', 'loop held', 'loop free'].map((label, id) => ({ id, label }));
   const UNITS = [{ id: 0, label: 'seconds' }, { id: 1, label: 'beats' }];
+  // a part MSEG can lock to the grid (mseg<n>_lock): then it repeats on the tempo, the loop markers aside
+  const lockable = $derived(!!session.byName[prefix + 'lock']);
+  const locked = $derived(lockable && Math.round(get(prefix + 'lock')) === 1);
   const SHAPES = Object.keys(PRESETS).map((id) => ({ id, label: id, draw: PRESET_ICONS[id] }));
 </script>
 
@@ -121,9 +125,12 @@
   <div class="mseg-bar">
     <Seg items={MODES} value={s.mode} onpick={(mode) => commit({ ...clone(s), mode })} label="Mode" />
     <span class="vsep" aria-hidden="true"></span>
-    <Pills items={SHAPES} value={null} onpick={(p) => { commit(fromPreset(p, s)); sel = -1; }} size="icon" label="Start from a shape" />
+    <Pills items={SHAPES} value={null} onpick={(p) => { commit(fromPreset(p, s)); if (lockable) set(prefix + 'lock', presetLocks(p) ? 1 : 0); sel = -1; }} size="icon" label="Start from a shape" />
     <span class="vsep" aria-hidden="true"></span>
     <Seg items={UNITS} value={s.sync} onpick={(sync) => commit({ ...clone(s), sync })} label="Time unit" />
+    {#if lockable}<span class="vsep" aria-hidden="true"></span>
+      <Switch label="Grid" on={locked} onchange={(v) => set(prefix + 'lock', v ? 1 : 0)}
+              title="Locked to the tempo grid: the whole shape repeats over its length from the song's start, whatever the notes (a periodic envelope)" />{/if}
     <span class="muted info">{s.pts.length}/{MAX_POINTS} points · {fmtT(total)}</span>
   </div>
 

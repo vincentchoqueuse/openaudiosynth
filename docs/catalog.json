@@ -522,7 +522,9 @@
         "mlfo2_duck_hold": {"type": "float", "range": [0, 0.5], "default": 0.06, "unit": "s", "realtime": true, "role": "mlfo2.duck_hold", "help": "duck shape: how long it stays down, as while the kick sounds (30-100 ms)"},
         "mlfo2_duck_release": {"type": "float", "range": [0.005, 2], "default": 0.25, "unit": "s", "scale": "log", "realtime": true, "role": "mlfo2.duck_release", "help": "duck shape: how long it takes to come all the way back up (its slope: Curve); short = a tight pump, long = a slow suck"},
         "mlfo1_duck_curve": {"type": "float", "range": [-1, 1], "default": 0.6, "realtime": true, "role": "mlfo1.duck_curve", "help": "duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump)"},
-        "mlfo2_duck_curve": {"type": "float", "range": [-1, 1], "default": 0.6, "realtime": true, "role": "mlfo2.duck_curve", "help": "duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump)"}
+        "mlfo2_duck_curve": {"type": "float", "range": [-1, 1], "default": 0.6, "realtime": true, "role": "mlfo2.duck_curve", "help": "duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump)"},
+        "mseg1_lock": {"type": "enum", "choices": ["off", "on"], "default": "off", "realtime": false, "role": "mseg1.lock", "help": "locked to the tempo grid: the whole shape repeats over its length (in beats when synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat"},
+        "mseg2_lock": {"type": "enum", "choices": ["off", "on"], "default": "off", "realtime": false, "role": "mseg2.lock", "help": "locked to the tempo grid: the whole shape repeats over its length (in beats when synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat"}
     }
   },
   "engines": {

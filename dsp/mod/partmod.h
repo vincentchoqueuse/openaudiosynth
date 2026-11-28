@@ -69,7 +69,9 @@ enum { PM_DUCK_ATTACK = 0, PM_DUCK_HOLD, PM_DUCK_RELEASE, PM_DUCK_COUNT };
 #define PM_DUCK(k, f) (PM_WANDER + 2 + (k) * PM_DUCK_COUNT + (f))
 /* the curve of each part LFO's duck release (appended after the others: their ids stay) */
 #define PM_DUCK_CURVE(k) (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + (k))
-#define PM_COUNT (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + PM_LFOS)
+/* each part MSEG locked to the tempo grid (appended): one cycle of the whole shape per its length, wherever the notes start */
+#define PM_MSEG_LOCK(k) (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + PM_LFOS + (k))
+#define PM_COUNT (PM_WANDER + 2 + PM_LFOS * PM_DUCK_COUNT + PM_LFOS + PM_MSEGS)
 #define PM_WANDER_REACH 0.35f /* of a macro's travel, either way, at wander = 1 */
 #define PM_WAVE_FOURIER 5
 #define PM_WAVE_WIENER 6

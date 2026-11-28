@@ -447,6 +447,8 @@ Sources: macros, part LFOs (`mlfo`), MSEGs, mod wheel, aftertouch, pitch bend, v
 | `mlfo2_duck_release` | 0.005 .. 2 s | 0.25 | yes | `mlfo2.duck_release` | duck shape: how long it takes to come all the way back up (its slope: Curve); short = a tight pump, long = a slow suck |
 | `mlfo1_duck_curve` | -1 .. 1 | 0.6 | yes | `mlfo1.duck_curve` | duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump) |
 | `mlfo2_duck_curve` | -1 .. 1 | 0.6 | yes | `mlfo2.duck_curve` | duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then slowly: a compressor's), down to -1 logarithmic (held low, then up fast: a hard pump) |
+| `mseg1_lock` | off, on | off |  | `mseg1.lock` | locked to the tempo grid: the whole shape repeats over its length (in beats when synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat |
+| `mseg2_lock` | off, on | off |  | `mseg2.lock` | locked to the tempo grid: the whole shape repeats over its length (in beats when synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat |
 
 ## Engine `va` (8 voices)
 

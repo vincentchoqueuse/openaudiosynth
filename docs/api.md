@@ -265,6 +265,8 @@ multi-segment envelope (loopable, any number of breakpoints): up to MSEG_POINTS 
 - `void mseg_reset(mseg_t *m, const mseg_shape_t *s)`
 - `void mseg_gate(mseg_t *m, const mseg_shape_t *s, int on)` — idle at the first point's level
 - `float mseg_advance(mseg_t *m, const mseg_shape_t *s, float dt)` — Advances by dt (seconds or beats) and returns the value. Bounded work whatever the times.
+- `float mseg_length(const mseg_shape_t *s)` — The shape alone, without gate, sustain or loop: its length (the sum of its times) and its level at time t from point 0 (clamped to 0..length). Used to lock a shape to the tempo grid (one cycle = its length).
+- `float mseg_at(const mseg_shape_t *s, float t)`
 - `float mseg_progress(const mseg_t *m, const mseg_shape_t *s)` — Where it is along the shape's time axis, 0..1 of the whole shape (for a display), or -1 when idle or finished. Not for the audio path's decisions: a loop jumps back.
 
 ## `dsp/mod/lfo.h`

@@ -45,6 +45,10 @@ void mseg_reset(mseg_t *m, const mseg_shape_t *s);         /* idle at the first 
 void mseg_gate(mseg_t *m, const mseg_shape_t *s, int on);   /* note on: restart; note off: leave sustain/loop */
 /* Advances by dt (seconds or beats) and returns the value. Bounded work whatever the times. */
 float mseg_advance(mseg_t *m, const mseg_shape_t *s, float dt);
+/* The shape alone, without gate, sustain or loop: its length (the sum of its times) and its level at time t from
+ * point 0 (clamped to 0..length). Used to lock a shape to the tempo grid (one cycle = its length). */
+float mseg_length(const mseg_shape_t *s);
+float mseg_at(const mseg_shape_t *s, float t);
 
 /* Where it is along the shape's time axis, 0..1 of the whole shape (for a display), or -1 when idle or finished.
  * Not for the audio path's decisions: a loop jumps back. */

@@ -41,6 +41,26 @@ void mseg_gate(mseg_t *m, const mseg_shape_t *s, int on)
     }
 }
 
+float mseg_length(const mseg_shape_t *s)
+{
+    float len = 0.0f;
+    for (int k = 1; k < count_of(s); k++)
+        len += dsp_maxf(s->time[k], MSEG_MIN_TIME);
+    return len;
+}
+
+float mseg_at(const mseg_shape_t *s, float t)
+{
+    const int n = count_of(s);
+    for (int k = 1; k < n; k++) {
+        const float len = dsp_maxf(s->time[k], MSEG_MIN_TIME);
+        if (t < len)
+            return s->level[k - 1] + (s->level[k] - s->level[k - 1]) * shape(dsp_maxf(t, 0.0f) / len, s->curve[k]);
+        t -= len;
+    }
+    return s->level[n - 1];
+}
+
 float mseg_advance(mseg_t *m, const mseg_shape_t *s, float dt)
 {
     const int n = count_of(s);

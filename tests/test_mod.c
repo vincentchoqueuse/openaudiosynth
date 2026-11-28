@@ -261,10 +261,42 @@ static void lfo_duck(void)
           (double)mid[0], (double)mid[1], (double)mid[2]);
 }
 
+
+/* a part MSEG locked to the grid: a ramp 0 -> 1 over one beat follows the beat's fraction, a note in the middle of a
+ * beat does not restart it */
+static void mseg_lock(void)
+{
+    static partmod_t m;
+    static tempo_t tp;
+    tempo_init(&tp, SR, 120.0f);
+    partmod_init(&m, SR, 1);
+#define SETP(id, v) partmod_set(&m, (id), param_to_norm(&partmod_params[(id)], (v)))
+    SETP(PM_MSEG(0, PM_MSEG_POINTS), 2.0f);
+    SETP(PM_MSEG(0, PM_MSEG_SYNC), 1.0f);
+    SETP(PM_MSEG(0, PM_MSEG_MODE), (float)MSEG_LOOP_FREE);
+    SETP(PM_MSEG_PT(0, 0, PM_PT_LEVEL), 0.0f);
+    SETP(PM_MSEG_PT(0, 1, PM_PT_TIME), 1.0f);
+    SETP(PM_MSEG_PT(0, 1, PM_PT_LEVEL), 1.0f);
+    SETP(PM_MSEG_PT(0, 1, PM_PT_CURVE), 0.0f);
+    SETP(PM_MSEG_LOCK(0), 1.0f);
+#undef SETP
+    float worst = 0.0f;
+    for (int b = 0; b < (int)(4.0f * SR / 32.0f); b++) {
+        if (b == 1000)
+            partmod_note_on(&m, 60, 1.0f); /* off the beat */
+        const float beat = tp.beat;
+        partmod_block(&m, &tp, 32, 0, 0);
+        tempo_advance(&tp, 32);
+        worst = fmaxf(worst, fabsf(m.src[PM_SRC_MSEG1] - (beat - floorf(beat))));
+    }
+    CHECK(worst < 1e-3f, "mseg lock: %.4f away from the beat's fraction", (double)worst);
+}
+
 void suite_mod(void)
 {
     wander_walks();
     lfo_duck();
+    mseg_lock();
     routes_engine_switch();
     macro_targets();
     macro_global_and_cc();

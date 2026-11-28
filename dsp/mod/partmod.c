@@ -16,6 +16,11 @@ static const char *const point_labels[] = {"none", "1", "2", "3", "4", "5", "6",
                                            "9", "10", "11", "12", "13", "14", "15", "16", NULL};
 
 /* the curve of part LFO K's duck release, as an MSEG segment's */
+/* part MSEG K locked to the grid */
+#define MSEG_LOCK(K)                                                                                                  \
+    PARAM(PM_MSEG_LOCK(K - 1), "mseg" #K "_lock", "mseg" #K ".lock", 0.0f, 1.0f, 0.0f, PARAM_INT, "", 0,             \
+          param_onoff_labels, "locked to the tempo grid: the whole shape repeats over its length (in beats when "      \
+          "synced) from the song's start, whatever the notes: a periodic envelope, as a side-chain pump on every beat")
 #define DUCK_CURVE(K)                                                                                                 \
     PARAM(PM_DUCK_CURVE(K - 1), "mlfo" #K "_duck_curve", "mlfo" #K ".duck_curve", -1.0f, 1.0f, 0.6f, PARAM_LIN, "", 1, \
           NULL, "duck shape: the slope of the release: 0 a straight line, up to 1 exponential (back up fast, then " \
@@ -168,6 +173,7 @@ const param_desc_t partmod_params[PM_COUNT] = {
           "how often the walks change direction: 0.02 Hz glacial, 0.08 Hz a slow breath, 0.5 Hz and more restless"),
     DUCK(1), DUCK(2),
     DUCK_CURVE(1), DUCK_CURVE(2),
+    MSEG_LOCK(1), MSEG_LOCK(2),
 };
 _Static_assert(VM_ROUTES == 4, "partmod_params lists 4 per-voice routes");
 
@@ -433,9 +439,16 @@ void partmod_block(partmod_t *m, const tempo_t *t, int n, const engine_ops_t *op
                                                          m->wiener[k]);
     }
     const float dt_beats = t->bpm * (1.0f / 60.0f) * dt_s;
-    for (int k = 0; k < PM_MSEGS; k++)
-        m->src[PM_SRC_MSEG1 + k] =
-            mseg_advance(&m->mseg[k], &m->shape[k], (int)m->p[PM_MSEG(k, PM_MSEG_SYNC)] ? dt_beats : dt_s);
+    for (int k = 0; k < PM_MSEGS; k++) {
+        const int sync = (int)m->p[PM_MSEG(k, PM_MSEG_SYNC)];
+        if ((int)m->p[PM_MSEG_LOCK(k)]) { /* on the grid: the whole shape, one cycle per its length */
+            if (m->shape_dirty)
+                build_shapes(m);
+            const float len = mseg_length(&m->shape[k]), x = sync ? (float)t->beat : (float)t->beat * 60.0f / t->bpm;
+            m->src[PM_SRC_MSEG1 + k] = mseg_at(&m->shape[k], fm_frac(x / len) * len);
+        } else
+            m->src[PM_SRC_MSEG1 + k] = mseg_advance(&m->mseg[k], &m->shape[k], sync ? dt_beats : dt_s);
+    }
     if (!ops || (m->n_routes == 0 && m->n_live == 0 && m->n_maps == 0))
         return; /* nothing moving: the engine is untouched */
 

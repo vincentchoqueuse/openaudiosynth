@@ -57,7 +57,7 @@
     // a stage: its class (tag), and what it is more precisely (type: filter, amp, effect...), for the search
     const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, fx: !engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
     for (const r of engineStages(s)) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
-    for (const r of out) if (r.tag === 'modulation') r.group = `The ${s.engine?.name ?? 'instrument'}'s own`; // its envelopes, LFOs
+    for (const r of out) if (r.tag === 'modulation') r.cat = s.engine?.name ?? 'Instrument'; // its own envelopes, LFOs
     const first = fx.findIndex((r) => inRack(r.key));
     fx.forEach((r, i) => { if (i < first && !inRack(r.key)) stage(r, 'transform', 'effect', false); });
     for (const id of rack.used()) stage(fx.find((r) => r.key === id), 'transform', 'effect', false);
@@ -65,11 +65,11 @@
     for (const m of modRows()) {
       const moves = m.key === 'wander' ? (s.getP('wander') > 0 ? 'the macros' : '') : movesOf(m).map((x) => R.dstName(s, x)).join(', ');
       out.push({ ...m, title: m.label, kind: 'mod', tag: 'modulation', type: m.type.toLowerCase(), sum: modLine(m), moves, dim: m.ctl && !moves,
-                 group: m.ctl ? 'Controllers' : 'Envelopes and LFOs of the sound' });
+                 cat: m.ctl ? 'Controller' : 'Sound' });
     }
     s.macroNames.forEach((name, k) => {
       const targets = s.macroMaps.filter((r) => r.macro === k && r.dst).map((r) => human(r.dst.name));
-      out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', type: 'control', group: 'Macros', sum: `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`,
+      out.push({ key: 'm' + k, k, kind: 'macro', title: s.macroName(k), tag: 'macro', type: 'control', cat: 'Macro', sum: `${Math.round(s.getP(`macro${k + 1}`) * 100)} %`,
                  moves: targets.join(', '), dim: !name && !targets.length });
     });
     return out;
@@ -80,14 +80,14 @@
   const text = (r) => [r.title, r.tag, r.type, r.sum, r.moves, r.words ?? '', ...(r.ps ?? []).map(({ d, label }) => `${label} ${human(d.name)}`)].join(' ').toLowerCase();
   let sort = $state(null); // {id, dir}: a head clicked; null: the order of the signal
   const ORDER = { source: 0, transform: 1, modulation: 2, macro: 3 };
-  const SORT = { name: (r) => r.title.toLowerCase(), type: (r) => ORDER[r.tag], on: (r) => (isOn(s, r) ? 0 : 1) };
+  const SORT = { cat: (r) => r.cat ?? '', name: (r) => r.title.toLowerCase(), type: (r) => ORDER[r.tag], on: (r) => (isOn(s, r) ? 0 : 1) };
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     const state = (r) => s.synthState === 'all' || isOn(s, r) === (s.synthState === 'on');
     const out = inScope.filter((r) => !r.fx && (tag === 'all' || r.tag === tag) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
-    if (!sort) return scope === 'mod' ? out : out.map((r) => ({ ...r, group: undefined })); // groups: the Modulation tab, unsorted
+    if (!sort) return out;
     const f = SORT[sort.id];
-    return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => ({ ...r, group: undefined }));
+    return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => r);
   });
   // the search finds settings too: each one whose module, name or role has every word, set right here (a dozen at most)
   const HITS = 12;
@@ -110,6 +110,7 @@
   const count = (id) => listed.filter((r) => id === 'all' || r.tag === id).length;
   const foot = $derived(`${shown.length === listed.length ? listed.length : `${shown.length} of ${listed.length}`} modules · ${listed.filter((r) => isOn(s, r)).length} on`);
   const columns = $derived([{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
+                   ...(scope === 'mod' ? [{ id: 'cat', label: 'From', w: '11%', sort: true, title: 'Where it comes from: the instrument, the whole sound, a controller or a macro' }] : []),
                    { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' },
                    ...(scope === 'mod' ? [{ id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }] : [])]);
 </script>
@@ -145,6 +146,7 @@
       {#if locked(s, r) && isOn(s, r)}<span class="lock" title="always on"><Icon name="lock" size={13} /></span>
       {:else}<Switch on={isOn(s, r)} disabled={locked(s, r)} onchange={() => toggle(s, r)} name="{r.title} on/off"
                      title={locked(s, r) ? 'moves nothing yet: open it to give it something to move' : isOn(s, r) ? 'on' : 'off'} />{/if}
+    {:else if c.id === 'cat'}<span class="muted">{r.cat}</span>
     {:else if c.id === 'sum'}<span class:off={!isOn(s, r)}>{isOn(s, r) || r.kind !== 'stage' ? r.sum : 'off'}</span>
     {:else}{r.moves}{/if}
   {/snippet}

@@ -11,6 +11,7 @@
   import Sidebar from './lib/Sidebar.svelte';
   import TopBar from './lib/TopBar.svelte';
   import ViewTitle from './lib/ViewTitle.svelte';
+  import { PARTS } from './lib/graphmods.js';
   import { urlParams, showSound } from './lib/urlparams.js';
   import ClipTab from './lib/ClipTab.svelte';
   import SynthTab from './lib/SynthTab.svelte';
@@ -30,6 +31,11 @@
   // the three main views (kept in the browser)
   const ALL_VIEWS = [{ id: 'clip', label: 'Sequence', icon: 'sequence' }, { id: 'synth', label: 'Synth', icon: 'synth' }];
   // a phone plays: the clip, the macros and the keyboard only (no editing views)
+  // the Synth view's one path: instrument / sound / the part of the Graph entered / the item open in the panel; a
+  // step back up is a click on it
+  const graphLabel = $derived(s.synthTab === 'graph' ? PARTS.find((p) => p.id === s.graphPart)?.label : null);
+  const synthCrumbs = $derived([{ label: s.engine?.name ?? '' }, { label: s.label, onclick: () => { s.closePanel(); s.graphPart = ''; } },
+    ...(graphLabel ? [{ label: graphLabel, onclick: s.closePanel }] : []), ...(s.panelTitle ? [{ label: s.panelTitle }] : [])]);
   const VIEWS = $derived(s.phone ? ALL_VIEWS.slice(0, 1) : ALL_VIEWS);
   let main = $state(urlParams.view ?? remembered('synth.main', 'clip')); // ?view= in the address first
   $effect(() => { if (!VIEWS.some((v) => v.id === main)) main = 'clip'; });
@@ -89,8 +95,8 @@
 
     <main>
       <TopBar bind:view={main} views={VIEWS} />
-      <div hidden={main !== 'clip'}>{#if !s.phone}<ViewTitle {...ALL_VIEWS[0]} />{/if}<ClipTab /></div>
-      {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} crumbs={[{ label: s.engine?.name ?? '' }, { label: s.label, onclick: s.closePanel }, ...(s.panelTitle ? [{ label: s.panelTitle }] : [])]} /><SynthTab />{/if}
+      <div hidden={main !== 'clip'}>{#if !s.phone}<ViewTitle {...ALL_VIEWS[0]} crumbs={[{ label: 'clip' }, { label: s.label }]} />{/if}<ClipTab /></div>
+      {#if main === 'synth'}<ViewTitle {...ALL_VIEWS[1]} crumbs={synthCrumbs} /><SynthTab />{/if}
     </main>
 
     <footer class:closed={!live}>

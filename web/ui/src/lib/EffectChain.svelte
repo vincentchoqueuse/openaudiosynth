@@ -1,4 +1,4 @@
-<!-- EffectChain.svelte — the effects as one line, in the order the sound goes through them: the fixed stages before
+<!-- EffectChain.svelte — the effects as one line (it scrolls sideways when narrower), each name before its switch as in the table, in the order the sound goes through them: the fixed stages before
      the rack (output filter, crush), a fixed number of places (SLOTS, more only when a sound uses more), then the fixed
      stages after it (master, saturation, limiter). Each place: a menu (None, or an effect not in another place) and a
      button that opens it in the side panel (its dry / wet first: StagePanel). A place dragged onto another moves its
@@ -45,9 +45,9 @@
 
 {#snippet fixed(r)}
   <div class="fixed" class:off={!stageOn(s, r.st)} class:sel={s.panel?.id === r.key}>
+    <button class="name" onclick={() => s.openPanel('stage', r.key)} title="Open {r.title}">{r.title}</button>
     {#if r.st?.enable}<Switch on={stageOn(s, r.st)} onchange={() => toggleStage(s, r.st)} name="{r.title} on/off" />
     {:else}<span class="lock" title="always on"><Icon name="lock" size={11} /></span>{/if}
-    <button class="name" onclick={() => s.openPanel('stage', r.key)} title="Open {r.title}">{r.title}</button>
   </div>
 {/snippet}
 
@@ -62,7 +62,7 @@
         <div class="head">
           <span class="num mono" title={id ? 'Drag to move it' : ''}>{k + 1}</span>
           <Select value={id} options={optionsFor(id)} label="Effect in place {k + 1}" onchange={(v) => pick(k, v)} />
-          {#if id}<button class="iconbtn edit" onclick={() => s.openPanel('stage', id)} aria-label="Edit {title(id)}" title="Edit {title(id)}"><Icon name="settings" size={13} /></button>{/if}
+          {#if id}<button class="iconbtn edit" onclick={() => s.openPanel('stage', id)} aria-label="Edit {title(id)}" title="Edit {title(id)}"><Icon name="next" size={13} /></button>{/if}
         </div>
       </div>
       {#if k < places.length - 1}<span class="arrow">→</span>{/if}
@@ -72,19 +72,19 @@
 </section>
 
 <style>
-  .fxchain { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
-  .ends, .places { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+  .fxchain { display: flex; align-items: center; gap: 4px; margin: 0 0 14px; padding-bottom: 4px; overflow-x: auto; }
+  .ends, .places { display: flex; flex: none; align-items: center; gap: 4px; }
   .arrow { color: var(--muted); font-size: 11px; }
-  .fixed { box-sizing: border-box; display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 8px;
+  .fixed { box-sizing: border-box; flex: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 7px; height: 30px; padding: 0 8px;
     border: 1px solid var(--line); border-radius: 7px; background: var(--surface); font-size: 12px; }
   .fixed.off .name { color: var(--muted); }
   .fixed.sel, .place.sel { border-color: var(--accent); }
-  .lock { color: var(--muted); display: inline-grid; place-items: center; width: 30px; }
+  .lock { color: var(--muted); display: inline-grid; place-items: center; width: 14px; }
   .name { font-weight: 500; }
   .name:hover { color: var(--accent); }
-  .place { box-sizing: border-box; display: flex; align-items: center; width: 170px; height: 30px; padding: 0 6px 0 8px; border: 1px solid var(--line); border-radius: 7px;
+  .place { box-sizing: border-box; flex: none; display: flex; align-items: center; width: 140px; height: 30px; padding: 0 6px 0 8px; border: 1px solid var(--line); border-radius: 7px;
     background: var(--surface); font-size: 12px; }
-  .place.empty { border-style: dashed; background: none; }
+  .place.empty { width: 96px; border-style: dashed; background: none; }
   .place.over { box-shadow: -3px 0 0 var(--accent); }
   .place[draggable='true'] .num { cursor: grab; }
   .head { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }

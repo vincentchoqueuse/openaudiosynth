@@ -1,13 +1,12 @@
 <!-- SidePanel.svelte — the panel that opens on the right of the Synth view when a row's Configure is pressed: a head
-     (Back when it was opened from another panel's Edit; the item's name, what it is; the previous and next rows of the table, and close, as icon buttons), the two tabs
-     of every record of the page (General: what the module is and does, as fields; Settings: everything to set), then the tab's content,
+     (Back when it was opened from another panel's Edit; the item's name, what it is; the previous and next rows of the table, and close, as icon buttons),
+     then its content (everything to set, then About, folded),
      scrolling on its own; a body may end with a footer of actions (`.sp-foot`), which stays in view. It lies over the
      page, which stays playable beside it, between the top bar and the keyboard (measured from them). Escape closes it. -->
 <script>
   import { onMount } from 'svelte';
   import Icon from './Icon.svelte';
-  import Tabs from './Tabs.svelte';
-  let { title, sub = '', onclose, onprev = null, onnext = null, onback = null, backTo = '', wide = false, tab = $bindable('settings'), children } = $props();
+  let { title, sub = '', onclose, onprev = null, onnext = null, onback = null, backTo = '', wide = false, children } = $props();
   let top = $state(60), bottom = $state(0);
   function measure() {
     const bar = document.querySelector('header.topbar'), foot = document.querySelector('.app > footer');
@@ -39,6 +38,5 @@
       <button class="iconbtn" onclick={onclose} aria-label="Close" title="Close (Escape)"><Icon name="close" size={13} /></button>
     </span>
   </div>
-  <div class="sp-tabs"><Tabs items={[{ id: 'settings', label: 'Settings' }, { id: 'general', label: 'General' }]} value={tab} onpick={(id) => (tab = id)} label="Panel" /></div>
   <div class="sp-body">{@render children()}</div>
 </aside>

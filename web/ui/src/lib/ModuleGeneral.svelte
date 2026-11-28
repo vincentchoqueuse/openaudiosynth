@@ -1,4 +1,4 @@
-<!-- ModuleGeneral.svelte — the General tab of the side panel: a module as a record (FieldTable): what it is, what it
+<!-- ModuleGeneral.svelte — the About section at the end of every side panel, folded: a module as a record (FieldTable): what it is, what it
      does (about.js), where its signal comes from and goes, or what it moves and what moves it, whether it is on;
      then each of its settings with what it does (the descriptor's help text), in the same kind of table. -->
 <script>
@@ -10,5 +10,7 @@
   const help = $derived(params.map(({ d, label }) => [label, d.help || '—']));
 </script>
 
-<Section icon="summary" title="About"><FieldTable label="General" fields={all} /></Section>
-{#if help.length}<Section icon="sliders" title="Its settings" note="{help.length}"><FieldTable label="Its settings" head={['Setting', 'What it does']} fields={help} /></Section>{/if}
+<Section icon="summary" title="About" fold>
+  <FieldTable label="About" fields={all} />
+  {#if help.length}<FieldTable label="Its settings" head={['Setting', 'What it does']} fields={help} />{/if}
+</Section>

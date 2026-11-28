@@ -7,7 +7,7 @@
      defaults, and Remove for an effect of the rack. -->
 <script>
   import Param from './Param.svelte';
-  import StageViz from './StageViz.svelte';
+  import StageViz, { vizKind } from './StageViz.svelte';
   import ModLinks from './ModLinks.svelte';
   import RouteList from './RouteList.svelte';
   import * as M from './matrix.js';
@@ -17,7 +17,7 @@
   import { placeOf, labelOf, fxStages } from './stages.js';
   import Select from './Select.svelte';
   import { rack } from './rack.svelte.js';
-  let { row, engine = true } = $props(); // a row of stages.js; engine: the instrument's (its own presentation)
+  let { row, engine = true, about = null } = $props(); // a row of stages.js; engine: the instrument's (its own presentation)
 
   const place = (d) => (engine ? placeOf(s, d) : 'main');
   const named = (ps) => ps.map(({ d, label }) => ({ d, label: engine ? labelOf(s, d, label) : label }));
@@ -48,7 +48,7 @@
 {/if}
 {#if s.engine?.name === 'wt' && (row.key === 'osca' || row.key === 'oscb')}
   <Section icon="shape" title="Wavetable"><WavetableView osc={row.key === 'osca' ? 0 : 1} prefix={row.key === 'osca' ? 'a_' : 'b_'} /></Section>
-{:else if row.st}<Section icon="shape" title="Shape"><div class="sp-viz"><StageViz st={row.st} params={row.ps.map((p) => p.d)} get={s.getP} /></div></Section>{/if}
+{:else if row.st && vizKind(row.st, row.ps.map((p) => p.d), s.getP)}<Section icon="shape" title="Shape"><div class="sp-viz"><StageViz st={row.st} params={row.ps.map((p) => p.d)} get={s.getP} /></div></Section>{/if}
 <Section icon="sliders" title="Settings" note="{shown.length}">
   <div class="ptable">{#each shown as { d, label } (d.id)}<Param {d} {label} />{/each}</div>
 </Section>
@@ -57,6 +57,7 @@
   <p class="acts">{#each acts as a, i}{#if i}<span class="muted"> · </span>{/if}<button class="linkish" onclick={() => s.editPanel('stage', a.id)}>{a.label}</button>{/each}
     <span class="muted"> (its amounts are in its settings)</span></p></Section>{/if}
 <Section icon="modsrc" title="Moved by"><ModLinks params={shown} stage={row.key} /></Section>
+{@render about?.()}
 <div class="sp-foot">
   <button class="btn ghost" onclick={reset} disabled={!moved} title="Every setting of this module back to its default">Reset to defaults</button>
   {#if rack.has(row.key)}<button class="btn ghost danger" onclick={() => rack.remove(row.key)}>Remove</button>{/if}

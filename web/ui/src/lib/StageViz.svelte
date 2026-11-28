@@ -3,6 +3,19 @@
      high-pass or notch, 12 or 24 dB, frequency on a log axis 20 Hz .. 20 kHz), an envelope's shape (attack, decay,
      sustain, release, on a square-root time axis so short and long times both show) or an LFO's two cycles (a rate
      and a wave). Nothing when the stage is none of these. Drawn, not computed by the DSP: a picture of the settings. -->
+<script module>
+  // what a stage draws ('env', 'lfo', 'osc', 'filter'), or null: nothing (its panel then has no Shape section)
+  export function vizKind(st, params, get) {
+    const find = (re) => params.find((d) => re.test(d.name));
+    const wave = find(/(^|_)wave$/), rate = find(/(^|_)rate$/);
+    if (find(/(^|_)attack$/) && find(/(^|_)release$/)) return 'env';
+    if (wave && rate && st.kind === 'mod') return 'lfo';
+    if (wave && st.kind === 'source') return 'osc';
+    if ((st.kind === 'filter' || st.id === 'outfilter') && find(/(^|_)cutoff$/)) return 'filter';
+    return null;
+  }
+</script>
+
 <script>
   import { wave } from './waves.js';
   let { st, params, get } = $props(); // the stage, its parameter descriptors, value by name
@@ -11,14 +24,7 @@
   const find = (re) => params.find((d) => re.test(d.name));
   const label = (d) => (d?.labels ? d.labels[Math.round(get(d.name) - d.min)] : null);
 
-  const kind = $derived.by(() => {
-    const wave = find(/(^|_)wave$/), rate = find(/(^|_)rate$/);
-    if (find(/(^|_)attack$/) && find(/(^|_)release$/)) return 'env';
-    if (wave && rate && st.kind === 'mod') return 'lfo';
-    if (wave && st.kind === 'source') return 'osc';
-    if ((st.kind === 'filter' || st.id === 'outfilter') && find(/(^|_)cutoff$/)) return 'filter';
-    return null;
-  });
+  const kind = $derived(vizKind(st, params, get));
 
   const line = (pts) => pts.map(([x, y], i) => `${i ? 'L' : 'M'}${x.toFixed(1)},${y.toFixed(1)}`).join(' ');
   const Y = (v) => H / 2 - v * (H / 2 - P);

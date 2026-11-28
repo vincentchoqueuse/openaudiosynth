@@ -1,13 +1,12 @@
 <!-- GraphView.svelte — the Synth view's Graph, in two levels as a modular patch is read: first the sound as one line
      from left to right, In (the notes) → Event → Engine → Transform → Output → Out (the speakers), four blocks wired
      together, each naming what is on inside it and showing, as pictograms, the kinds of modulation acting there
-     (graphmods.js). A double-click (or Enter) on a block enters it: a panel of its own blocks, again read from left to
+     (graphmods.js). A double-click (or Enter) on a block enters it (the view's path, App.svelte, shows it): a panel of its own blocks, again read from left to
      right, from its input to its output (ChainView with ports), each block with the pictograms of what moves it. There,
-     a click on a block opens its settings in the side panel, a click on a pictogram that modulator; the path on top
-     (Sound / the part) goes back up. -->
+     a click on a block opens its settings in the side panel, a click on a pictogram that modulator; the sound's name in the
+     view's path goes back up. -->
 <script>
   import ChainView from './ChainView.svelte';
-  import Icon from './Icon.svelte';
   import { session as s } from './session.svelte.js';
   import { ICONS } from './icons.js';
   import { PARTS, partOf, modsByStage, MOD_ICON } from './graphmods.js';
@@ -39,11 +38,7 @@
   const KIND = { env: 'envelope', lfo: 'LFO', macro: 'macro', ctl: 'controller' };
 </script>
 
-<nav class="path" aria-label="Where you are in the graph">
-  <button class="crumb" class:on={!current} onclick={() => (s.graphPart = '')}>Sound</button>
-  {#if current}<span class="sep" aria-hidden="true">/</span><span class="here"><Icon name={current.icon} size={13} /> {current.label}</span>{/if}
-  <span class="tip muted">{current ? 'from its input to its output · a block opens its settings, a pictogram what moves it' : 'double-click a block to enter it'}</span>
-</nav>
+<p class="tip muted">{current ? `${current.label}, from its input to its output: a block opens its settings, a pictogram what moves it; the path above goes back up` : 'Double-click a block to enter it'}</p>
 
 {#if !current}
   <div class="chain patch" bind:clientWidth={W}>
@@ -78,13 +73,7 @@
 {:else}<p class="empty muted">Nothing is on in {current.label}.</p>{/if}
 
 <style>
-  .path { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 4px 0 10px; font-size: 12px; }
-  .crumb { box-sizing: border-box; height: 26px; padding: 0 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--text); }
-  .crumb:hover { border-color: var(--accent); }
-  .crumb.on { color: var(--muted); }
-  .sep { color: var(--muted); }
-  .here { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-  .tip { margin-left: auto; font-size: 11.5px; }
+  .tip { margin: 4px 0 10px; font-size: 11.5px; }
   .patch :global(.block.part rect) { fill: var(--surface); stroke: var(--track); stroke-width: 1.2; }
   .patch :global(.block.part.selected rect), .patch :global(.block.part:hover rect) { stroke: var(--accent); }
   .patch .ptitle { font: 600 12.5px var(--sans); fill: var(--text); }

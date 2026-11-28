@@ -17,7 +17,15 @@
 
   const place = (d) => (engine ? placeOf(s, d) : 'main');
   const named = (ps) => ps.map(({ d, label }) => ({ d, label: engine ? labelOf(s, d, label) : label }));
-  const shown = $derived(named([...row.ps.filter(({ d }) => place(d) === 'main'), ...row.ps.filter(({ d }) => place(d) === 'more')]));
+  // an effect's dry / wet first, named so
+  const MIX = /^(phaser|flanger|chorus|delay|reverb|tape)_mix$/;
+  // then, for the reverb, its kind and space before its tail; the rest in the table's order
+  const ORDER = ['reverb_type', 'reverb_size', 'reverb_decay', 'reverb_predelay', 'reverb_damping', 'reverb_lowcut', 'reverb_width'];
+  const LABEL = { reverb_lowcut: 'Low cut' };
+  const rank = (d) => (MIX.test(d.name) ? -1 : ORDER.includes(d.name) ? ORDER.indexOf(d.name) : ORDER.length);
+  const mixFirst = (ps) => ps.map((p, i) => [p, i]).sort(([a, i], [b, j]) => rank(a.d) - rank(b.d) || i - j)
+    .map(([p]) => ({ ...p, label: MIX.test(p.d.name) ? 'Dry / wet' : LABEL[p.d.name] ?? p.label }));
+  const shown = $derived(mixFirst(named([...row.ps.filter(({ d }) => place(d) === 'main'), ...row.ps.filter(({ d }) => place(d) === 'more')])));
   const moved = $derived(row.ps.some(({ d }) => Math.abs((s.values[d.id] ?? d.def) - d.def) > 1e-9));
   const reset = () => { for (const { d } of row.ps) if (Math.abs((s.values[d.id] ?? d.def) - d.def) > 1e-9) s.setValue(d, d.def); };
   let links = $state();

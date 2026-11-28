@@ -3,6 +3,7 @@
      macro at 0 and at 1, sliders over the setting's travel read in its units; Add setting takes one of the 32 slots
      the macros share (session.macroMaps), in the footer. Routes that read the macro as a source are shown too. -->
 <script>
+  import Section from './Section.svelte';
   import { fromNorm, toNorm, format } from './synth.js';
   import { human } from './naming.js';
   import { session as s } from './session.svelte.js';
@@ -36,8 +37,8 @@
   const hasRoutes = $derived(R.keys('part').some((key) => { const x = R.get(s, key); return x.src && x.srcLabel === `macro${k + 1}`; }));
 </script>
 
+<Section icon="macro" title="Macro">
 <div class="ptable">
-  <div class="ptable-head"><span>Setting</span><span>Value</span></div>
   <div class="param"><span class="label">Name</span><input class="sp-input cell" placeholder="Macro {k + 1}" value={s.macroNames[k]} oninput={(e) => (s.macroNames[k] = e.target.value)} aria-label="Name" /></div>
   {#if !s.phone}
     <div class="param"><span class="label">MIDI CC</span><input class="sp-input cell" type="number" min="0" max="119" value={Math.round(s.getP(`macro${k + 1}_cc`))} aria-label="MIDI CC (0 = none)"
@@ -45,8 +46,9 @@
   {/if}
   <Param d={s.byName[`macro${k + 1}`]} label="Value" />
 </div>
+</Section>
 
-<h3 class="sub">What it moves</h3>
+<Section icon="link" title="What it moves" note="{rows.length}">
 {#if rows.length}
   <table class="dt routes">
     <colgroup><col style="width:36%" /><col /><col style="width:5.5em" /><col /><col style="width:5.5em" /><col style="width:30px" /></colgroup>
@@ -66,8 +68,9 @@
       {/each}
     </tbody>
   </table>
-{:else}<p class="hint">It moves nothing yet.</p>{/if}
-{#if hasRoutes}<h3 class="sub">Its routes</h3><RouteList src="macro{k + 1}" kinds={['part']} />{/if}
+{:else}<p class="hint">It moves nothing yet: drag its handle in the Live player onto a setting, or Add a setting.</p>{/if}
+</Section>
+{#if hasRoutes}<Section icon="modsrc" title="Its routes"><RouteList src="macro{k + 1}" kinds={['part']} /></Section>{/if}
 <div class="sp-foot">
   <button class="btn ghost" disabled={!free} onclick={add}><Icon name="plus" size={12} /> Add a setting</button>
   <span class="muted">{s.macroMaps.filter((r) => r.macro >= 0 && r.dst).length} of {s.macroMaps.length} in use</span>

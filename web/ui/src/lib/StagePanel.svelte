@@ -9,6 +9,7 @@
   import ModLinks from './ModLinks.svelte';
   import WavetableView from './WavetableView.svelte';
   import Icon from './Icon.svelte';
+  import Section from './Section.svelte';
   import { session as s } from './session.svelte.js';
   import { placeOf, labelOf, fxStages } from './stages.js';
   import Select from './Select.svelte';
@@ -34,17 +35,18 @@
 </script>
 
 {#if rack.has(row.key)}
-  <div class="slotpick"><span class="muted">Effect in this slot</span>
-    <Select value={row.key} options={slotOptions} label="Effect in this slot" onchange={(v) => rack.replace(row.key, v)} /></div>
+  <Section icon="slot" title="Effect">
+    <div class="slotpick"><span class="muted">In this place of the chain</span>
+      <Select value={row.key} options={slotOptions} label="Effect in this place" onchange={(v) => rack.replace(row.key, v)} /></div>
+  </Section>
 {/if}
-{#if s.engine?.name === 'wt' && (row.key === 'osca' || row.key === 'oscb')}<WavetableView osc={row.key === 'osca' ? 0 : 1} prefix={row.key === 'osca' ? 'a_' : 'b_'} />
-{:else if row.st}<div class="sp-viz"><StageViz st={row.st} params={row.ps.map((p) => p.d)} get={s.getP} /></div>{/if}
-<div class="ptable">
-  <div class="ptable-head"><span>Setting</span><span>Value</span></div>
-  {#each shown as { d, label } (d.id)}<Param {d} {label} />{/each}
-</div>
-<h3 class="sub">Modulation</h3>
-<ModLinks bind:this={links} params={shown} />
+{#if s.engine?.name === 'wt' && (row.key === 'osca' || row.key === 'oscb')}
+  <Section icon="shape" title="Wavetable"><WavetableView osc={row.key === 'osca' ? 0 : 1} prefix={row.key === 'osca' ? 'a_' : 'b_'} /></Section>
+{:else if row.st}<Section icon="shape" title="Shape"><div class="sp-viz"><StageViz st={row.st} params={row.ps.map((p) => p.d)} get={s.getP} /></div></Section>{/if}
+<Section icon="sliders" title="Settings" note="{shown.length}">
+  <div class="ptable">{#each shown as { d, label } (d.id)}<Param {d} {label} />{/each}</div>
+</Section>
+<Section icon="modsrc" title="Modulation"><ModLinks bind:this={links} params={shown} /></Section>
 <div class="sp-foot">
   <button class="btn ghost" onclick={() => links.add()} disabled={!links?.canAdd()}><Icon name="plus" size={12} /> Add modulation</button>
   <button class="btn ghost" onclick={reset} disabled={!moved} title="Every setting of this module back to its default">Reset to defaults</button>
@@ -52,5 +54,5 @@
 </div>
 
 <style>
-  .slotpick { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 12px; font-size: 12px; }
+  .slotpick { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 12px; }
 </style>

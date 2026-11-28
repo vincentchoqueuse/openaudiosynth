@@ -273,3 +273,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: rows open in the side panel on the right again (the user prefers it to unfolding in place); Audio and Modulation stay apart.
 - Rack: a Distortion (soft, tube, hard, fold; drive, tone, dry / wet; 2x oversampled, dsp/fx/dist) at an eighth place; untouched at its default dry / wet 0. Appended to synth.h (SYNTH_PARAM_FX_SLOT_8 .. SYNTH_PARAM_DRIVE_MIX), agreed.
 - Part LFOs: the duck shape is gone (the MSEG's Duck, locked to the grid, does it with any curve); its parameters left partmod, the MSEG lock follows Wander.
+- Web: every side panel is made of the same sections, an icon and a title each (Effect, Shape, Settings, Modulation / What it moves, Macro, About); Section.svelte.

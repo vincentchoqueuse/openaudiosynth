@@ -7,6 +7,7 @@
   import Param from './Param.svelte';
   import RouteList from './RouteList.svelte';
   import Icon from './Icon.svelte';
+  import Section from './Section.svelte';
   import { session as s } from './session.svelte.js';
   import * as R from './routes.js';
   let { m } = $props(); // a row of mods.js modRows()
@@ -14,15 +15,12 @@
 </script>
 
 {#if m.key === 'wander'}
-  <div class="ptable">
-    <div class="ptable-head"><span>Setting</span><span>Value</span></div>
-    <Param d={s.byName.wander} label="Amount" />
-    <Param d={s.byName.wander_rate} label="Rate" />
-  </div>
+  <Section icon="sliders" title="Settings">
+    <div class="ptable"><Param d={s.byName.wander} label="Amount" /><Param d={s.byName.wander_rate} label="Rate" /></div>
+  </Section>
 {:else}
-  {#if !m.ctl}{#key m.key}{#if m.type === 'Envelope'}<MsegEditor prefix={m.prefix} />{:else}<LfoView prefix={m.prefix} />{/if}{/key}{/if}
-  <h3 class="sub">What it moves</h3>
-  <RouteList src={m.src} kinds={m.kinds} />
+  {#if !m.ctl}<Section icon="shape" title="Shape">{#key m.key}{#if m.type === 'Envelope'}<MsegEditor prefix={m.prefix} />{:else}<LfoView prefix={m.prefix} />{/if}{/key}</Section>{/if}
+  <Section icon="link" title="What it moves"><RouteList src={m.src} kinds={m.kinds} /></Section>
   <div class="sp-foot">
     {#each m.kinds as kind}
       <button class="btn ghost" onclick={() => add(kind)} disabled={!R.free(s, kind)}>

@@ -266,3 +266,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: the effect chain as four fixed places (more only when a sound uses more), each a menu (None or an effect), its dry / wet (the gain: its level) and an Edit button; a place drags onto another.
 - Part MSEGs lock to the tempo grid (mseg<n>_lock: the whole shape repeats over its length from the song's start, whatever the notes); a Duck starting shape and a Grid switch in the editor; va_pumped_bass pumps with MSEG 1 instead of the duck LFO (same levels).
 - Web: the chain shows only each place's effect (menu, Edit); the dry / wet is the first setting of every effect's panel, the reverb's type and size next.
+- Web: a macro drags from its own link handle (left of its name), no longer from the name; nothing grows on hover, long names ellipsize.

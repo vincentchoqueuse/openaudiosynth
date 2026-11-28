@@ -17,6 +17,13 @@
   import * as R from './routes.js';
   import Seg from './Seg.svelte';
   import Param from './Param.svelte';
+  import StagePanel from './StagePanel.svelte';
+  import ModulatorPanel from './ModulatorPanel.svelte';
+  import MacroPanel from './MacroPanel.svelte';
+  import KitPanel from './KitPanel.svelte';
+  // audio: what makes and shapes the sound (sources, transforms); mod: what moves it (modulators, macros)
+  let { scope = 'audio' } = $props();
+  const SCOPE = { audio: ['source', 'transform'], mod: ['modulation', 'macro'] };
   import { isOn, locked, toggle } from './onoff.js';
 
   /* every module is one of four: a source makes the sound (oscillators, noise, the kit, the voice that plays them), a
@@ -52,7 +59,7 @@
     if (s.engine?.name === 'sampler') out.push({ key: 'kit', kind: 'kit', title: 'Kit', tag: 'source', type: 'samples', words: 'kit pads samples',
                                                  sum: `${s.kit?.entries?.length ?? 0} samples${s.kitName ? ` · ${s.kitName}` : ''}`, moves: '' });
     // a stage: its class (tag), and what it is more precisely (type: filter, amp, effect...), for the search
-    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
+    const stage = (r, tag, type, engine) => out.push({ ...r, kind: 'stage', tag, type, engine, sum: stageOn(s, r.st) ? summary(s, r, 3, engine) : '', moves: '' });
     for (const r of engineStages(s)) stage(r, CLASS[r.st?.kind] ?? 'source', (ROLE[r.st?.kind] ?? 'stage').toLowerCase(), true);
     const first = fx.findIndex((r) => inRack(r.key));
     fx.forEach((r, i) => { if (i < first && !inRack(r.key)) stage(r, 'transform', 'effect', false); });
@@ -69,6 +76,8 @@
     });
     return out;
   });
+  const inScope = $derived(rows.filter((r) => SCOPE[scope].includes(r.tag)));
+  const tag = $derived(SCOPE[scope].includes(s.synthTag) ? s.synthTag : 'all'); // a type of the other scope: all of this one
   // the search: every word of the query in the row's name, tag, type, its settings' names, its summary or what it moves
   const text = (r) => [r.title, r.tag, r.type, r.sum, r.moves, r.words ?? '', ...(r.ps ?? []).map(({ d, label }) => `${label} ${human(d.name)}`)].join(' ').toLowerCase();
   let sort = $state(null); // {id, dir}: a head clicked; null: the order of the signal
@@ -77,7 +86,7 @@
   const shown = $derived.by(() => {
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     const state = (r) => s.synthState === 'all' || isOn(s, r) === (s.synthState === 'on');
-    const out = rows.filter((r) => (s.synthTag === 'all' || r.tag === s.synthTag) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
+    const out = inScope.filter((r) => (tag === 'all' || r.tag === tag) && state(r) && (!words.length || words.every((w) => text(r).includes(w))));
     if (!sort) return out;
     const f = SORT[sort.id];
     return out.map((r, i) => [r, i]).sort(([a, i], [b, j]) => (f(a) < f(b) ? -1 : f(a) > f(b) ? 1 : 0) * sort.dir || i - j).map(([r]) => r);
@@ -88,7 +97,7 @@
     const words = s.synthQuery.toLowerCase().split(/\s+/).filter(Boolean);
     if (!words.length) return [];
     const out = [];
-    for (const r of rows) {
+    for (const r of inScope) {
       if (r.kind !== 'stage' || !r.ps) continue;
       for (const { d, label } of r.ps) {
         const t = `${r.title} ${label} ${human(d.name)} ${d.name} ${d.role ?? ''}`.toLowerCase();
@@ -99,10 +108,13 @@
   });
   // the rows the panel's arrows step through: those of the table as it is shown
   $effect(() => { s.tableRows = shown.map((r) => ({ kind: r.kind, key: r.key })); });
-  const count = (id) => rows.filter((r) => id === 'all' || r.tag === id).length;
-  const foot = $derived(`${shown.length === rows.length ? rows.length : `${shown.length} of ${rows.length}`} modules · ${rows.filter((r) => isOn(s, r)).length} on`);
-  const columns = [{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
-                   { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' }, { id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }];
+  const count = (id) => inScope.filter((r) => id === 'all' || r.tag === id).length;
+  const foot = $derived(`${shown.length === inScope.length ? inScope.length : `${shown.length} of ${inScope.length}`} modules · ${inScope.filter((r) => isOn(s, r)).length} on`);
+  const columns = $derived([{ id: 'type', label: '', w: '44px', sort: true, title: 'Type' }, { id: 'name', label: 'Name', w: '19%', sort: true },
+                   { id: 'on', label: 'On', w: '58px', sort: true }, { id: 'sum', label: 'Summary', cls: 'sum' },
+                   ...(scope === 'mod' ? [{ id: 'moves', label: 'Moves', w: '22%', cls: 'sum' }] : [])]);
+  // a row unfolds in place to be edited (several can be open), remembered while the page lives
+  const unfold = (r) => { s.unfolded = s.unfolded.includes(r.key) ? s.unfolded.filter((k) => k !== r.key) : [...s.unfolded, r.key]; };
 </script>
 
 <div class="finder">
@@ -111,7 +123,7 @@
     <input type="search" placeholder="Search" bind:value={s.synthQuery} aria-label="Search modules and settings" spellcheck="false" />
     {#if s.synthQuery}<button class="iconbtn" onclick={() => (s.synthQuery = '')} aria-label="Clear the search" title="Clear"><Icon name="close" size={11} /></button>{/if}
   </label>
-  <Seg items={TAGS.map((t) => ({ ...t, icon: TYPE_ICON[t.id], label: t.id === 'all' ? `All ${count(t.id)}` : String(count(t.id)), title: `${t.label}: ${count(t.id)}` }))} value={s.synthTag} onpick={(id) => (s.synthTag = id)} label="Tags" />
+  <Seg items={TAGS.filter((t) => t.id === 'all' || SCOPE[scope].includes(t.id)).map((t) => ({ ...t, icon: TYPE_ICON[t.id], label: t.id === 'all' ? `All ${count(t.id)}` : String(count(t.id)), title: `${t.label}: ${count(t.id)}` }))} value={tag} onpick={(id) => (s.synthTag = id)} label="Tags" />
   <Seg items={[{ id: 'all', label: 'All' }, { id: 'on', label: 'On', title: 'only what is on' }, { id: 'off', label: 'Off', title: 'only what is off' }]}
        value={s.synthState} onpick={(id) => (s.synthState = id)} label="On or off" />
   <span class="tools">
@@ -127,8 +139,14 @@
     {/each}
   </section>
 {/if}
-<DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={(r) => s.openPanel(r.kind, r.key)}
+<DataTable label="Modules of the sound" {columns} rows={shown} selected={s.panel?.id ?? null} onopen={unfold} expanded={s.unfolded}
            empty="Nothing matches." bind:sort {foot}>
+  {#snippet detail(r)}
+    {#if r.kind === 'stage'}<StagePanel row={r} engine={r.engine} />
+    {:else if r.kind === 'mod'}<ModulatorPanel m={modRows().find((x) => x.key === r.key)} /><!-- the row's type is lowercased for the search -->
+    {:else if r.kind === 'macro'}<MacroPanel k={r.k} />
+    {:else if r.kind === 'kit'}<KitPanel />{/if}
+  {/snippet}
   {#snippet cell(r, c)}
     {#if c.id === 'name'}<span class="strong">{r.title}</span>
     {:else if c.id === 'type'}<span class="ticon cls-{r.tag}" title="{r.tag} · {r.type}" aria-label={r.tag}><Icon name={TYPE_ICON[r.tag]} size={14} /></span>

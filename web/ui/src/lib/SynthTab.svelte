@@ -1,5 +1,6 @@
-<!-- SynthTab.svelte — the Synth view, a record with its tabs: Settings (every module of the sound in one table with
-     a search, tags and On / Off: SynthTable), Graph (its signal path drawn from the same data: ChainView, only what is
+<!-- SynthTab.svelte — the Synth view, a record with its tabs: Audio (what makes the sound: the effect chain, then the
+     instrument's stages and the effects in one table with a search, tags and On / Off: SynthTable, each row unfolding
+     in place to be edited), Modulation (what moves it: the modulators and the macros, the same way), Graph (its signal path drawn from the same data: ChainView, only what is
      active), Code (the sound's patch file: CodeView) and General (the sound as fields: SoundGeneral). Configure on a row, or a click on a block of the signal path, opens the module in
      the side panel (SidePanel) with the same two tabs: General (what it is and does, where its signal goes, what it
      moves and what moves it, each setting's help: ModuleGeneral) and Settings (a stage's settings, a modulator's
@@ -83,14 +84,15 @@
     const i = s.tableRows.findIndex((r) => r.key === s.panel?.id), r = i >= 0 ? s.tableRows[i + d] : null;
     return r ? () => s.openPanel(r.kind, r.key) : null;
   };
-  const TABS = [{ id: 'settings', label: 'Settings' }, { id: 'graph', label: 'Graph' }, { id: 'code', label: 'Code' }, { id: 'general', label: 'General' }];
+  const TABS = [{ id: 'audio', label: 'Audio' }, { id: 'mod', label: 'Modulation' }, { id: 'graph', label: 'Graph' }, { id: 'code', label: 'Code' }, { id: 'general', label: 'General' }];
 </script>
 
 <Tabs items={TABS} value={s.synthTab} onpick={(id) => (s.synthTab = id)} label="Sound" />
 {#if s.synthTab === 'general'}<SoundGeneral />
 {:else if s.synthTab === 'graph'}<div class="graph"><ChainView onpick={pick} /></div>
 {:else if s.synthTab === 'code'}<CodeView doc="sound" />
-{:else}<EffectChain /><SynthTable />{/if}
+{:else if s.synthTab === 'mod'}<SynthTable scope="mod" />
+{:else}<EffectChain /><SynthTable scope="audio" />{/if}
 
 {#if P}
   <SidePanel title={P.title} sub={P.sub} wide={P.wide} onclose={s.closePanel} onprev={step(-1)} onnext={step(1)}

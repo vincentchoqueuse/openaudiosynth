@@ -269,3 +269,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - Web: a macro drags from its own link handle (left of its name), no longer from the name; nothing grows on hover, long names ellipsize.
 - Web: a reference recording (Ref… in the top bar): loops with the clip from its start, or alone while heard; Ref or ` switches between it and the synth at once; its menu matches its level to the synth's, ±3 dB, another file, remove.
 - Web: the Synth table's search lists the settings it finds (module, name, role) above the modules, each set right there.
+- Web: the Synth view splits into Audio (the effect chain, the stages and effects) and Modulation (modulators, macros); a row unfolds in place to be edited (a chevron instead of the cog; several open at once); on a narrow top bar the listening volume yields to A/B and Ref.

@@ -54,7 +54,8 @@ class Session {
   synthTag = $state('all'); // and its type filter (all, source, transform, modulation, macro)
   tableRows = $state.raw([]); // the Synth table's rows as shown ({kind, key}): the panel's arrows step through them
   panelTab = $state('settings'); // the side panel's tab: general or settings
-  synthTab = $state(urlParams.code ? 'code' : 'settings'); // the Synth view's tab: settings (its modules), graph (its signal path), code (its patch file) or general (the sound as fields)
+  synthTab = $state(urlParams.code ? 'code' : 'audio'); // the Synth view's tab: audio (what makes the sound: its stages and effects), mod (what moves it: modulators and macros), graph (its signal path), code (its patch file) or general (the sound as fields)
+  unfolded = $state([]); // the Synth table's rows unfolded in place (their keys)
   openPanel = (kind, id) => { this.panel = { kind, id }; this.panelTab = 'settings'; this.panelBack = []; }; // an item opens on its settings
   closePanel = () => { this.panel = null; this.panelBack = []; };
   // Edit from inside a panel (a modulation's source, a macro): the panel shows that item, and Back returns to the

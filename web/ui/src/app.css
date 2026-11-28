@@ -222,6 +222,8 @@ button.tool.select { padding: 0 10px; border-radius: 7px; gap: 6px; } /* a menu 
 .param { display: grid; grid-template-columns: 8.5em 1fr 5.2em; gap: 10px; align-items: center; min-height: 27px; }
 .param .label { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
 .param.changed .label::after { content: ' •'; color: var(--accent); } /* moved since the sound was loaded */
+.param.droppable { border-radius: 6px; box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); } /* a macro can drop here */
+.param.dropover { background: var(--accent-soft); box-shadow: 0 0 0 2px var(--accent); }
 .param .cell, .param .select { grid-column: 2 / 4; }
 .param .cell .pills.icon button { flex: 1; width: auto; }
 .param .val { font-size: 11.5px; text-align: right; color: var(--muted); white-space: nowrap; }

@@ -77,6 +77,7 @@ class Session {
   settingsOpen = $state(false); // the part's settings (MIDI channel, keys, MPE, tuning, tempo)
   midiNames = $state([]);
   held = $state(new Set()); // notes held on MIDI input (the keyboard lights them)
+  macroDrag = $state(-1); // a macro (0..7) being dragged onto a setting: the settings it can move are marked
   played = $state(new Set()); // notes held on the on-screen or computer keyboard (the piano roll lights them, with held)
   saving = $state(null); // the save dialog: {name, description, exists, error}
   toast = $state(null); // {text, kind}: a short notice at the bottom
@@ -193,6 +194,26 @@ class Session {
     fx: this.shared.filter((d) => this.#fxIds.has(d.id) && d.realtime),
   });
   macroName = (k) => this.macroNames[k] || `Macro ${k + 1}`;
+  // the ids a macro can move (a drop of a macro on a setting: assignMacro)
+  macroTargetIds = $derived(new Set([...this.macroTargets.engine, ...this.macroTargets.fx].map((d) => d.id)));
+  // macro k (0..7) dropped on a setting: a free slot moves it over a third of its travel, placed so that the macro
+  // where it is now leaves the setting where it is (the sound does not change); false when it cannot
+  assignMacro = (k, id) => {
+    const d = this.paramById(id);
+    if (!d || !this.macroTargetIds.has(id)) { this.say('A macro cannot move this setting.'); return false; }
+    if (this.macroMaps.some((r) => r.macro === k && r.dst?.id === id)) { this.say(`${this.macroName(k)} already moves ${human(d.name)}.`); return false; }
+    const r = this.macroMaps.find((x) => !x.dst) ?? this.macroMaps.find((x) => x.macro < 0);
+    if (!r) { this.say('Every macro slot is in use (32): remove one in a macro first.'); return false; }
+    const now = toNorm(d, this.values[id] ?? d.def), m = this.getP(`macro${k + 1}`), span = 1 / 3;
+    // the macro at m gives now; near an end the travel is shifted inside 0..1 (the setting moves a little)
+    const from = Math.max(0, Math.min(1 - span, now - m * span)), to = from + span;
+    this.setP(`map${r.slot}_destination`, id + 1);
+    this.setP(`map${r.slot}_from`, from);
+    this.setP(`map${r.slot}_to`, to);
+    this.setP(`map${r.slot}_macro`, k + 1);
+    this.say(`${this.macroName(k)} now moves ${human(d.name)}.`);
+    return true;
+  };
   // parameter id -> the macros (0..7) that move it, in order: the badge on a parameter's row
   macrosOf = $derived.by(() => {
     const out = {};

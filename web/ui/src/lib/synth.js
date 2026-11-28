@@ -1,6 +1,8 @@
 // synth.js — main-thread side of the web synth: AudioContext + AudioWorklet running synth.wasm,
 // parameter conversions (same curves as dsp/mod/params.c), Web MIDI input, patch loading.
 
+// the drag of a macro onto a setting (MacroStrip -> Param)
+export const MACRO_DRAG = 'application/x-oasynth-macro';
 export const MOD_PARAM = 1024; // SYNTH_MOD_PARAM (dsp/synth.h)
 export const PART_PARAM = 512; // SYNTH_PART_PARAM
 

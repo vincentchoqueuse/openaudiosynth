@@ -5,9 +5,9 @@
      moved since the sound was loaded; double-click on the
      label or the slider puts that value back. The descriptor's help text is the tooltip.
      A slider is exact to set (slider.js): Shift while dragging is ten times finer, the arrows step it, and a
-     double-click on the value types it (Enter sets it, Escape leaves it). -->
+     double-click on the value types it (Enter sets it, Escape leaves it). A macro dragged from the Live player drops on it to move it. -->
 <script>
-  import { fromNorm, toNorm, format } from './synth.js';
+  import { fromNorm, toNorm, format, MACRO_DRAG } from './synth.js';
   import { isWave, waveIcon } from './waves.js';
   import Seg from './Seg.svelte';
   import Pills from './Pills.svelte';
@@ -35,6 +35,7 @@
   // a mask kept as a number: its bits by name, each a toggle
   const mask = $derived(Object.entries(MASKS).find(([re]) => new RegExp(re).test(d.name))?.[1] ?? null);
   let typing = $state(false); // the value is being typed
+  let over = $state(false); // a macro dragged over it
   function typed(e) {
     if (e.key === 'Escape') { e.stopPropagation(); typing = false; return; }
     if (e.key !== 'Enter') return;
@@ -45,7 +46,11 @@
   const focus = (node) => { node.focus(); node.select(); };
 </script>
 
-<div class="param" class:changed title={d.help ?? ''}>
+<div class="param" class:changed class:droppable={session.macroDrag >= 0 && session.macroTargetIds.has(d.id)} class:dropover={over} title={d.help ?? ''}
+     role="group" aria-label={label}
+     ondragover={(e) => { if (e.dataTransfer.types.includes(MACRO_DRAG) && session.macroTargetIds.has(d.id)) { e.preventDefault(); e.dataTransfer.dropEffect = 'link'; over = true; } }}
+     ondragleave={() => (over = false)}
+     ondrop={(e) => { over = false; const k = +e.dataTransfer.getData(MACRO_DRAG); if (e.dataTransfer.types.includes(MACRO_DRAG)) { e.preventDefault(); session.assignMacro(k, d.id); session.macroDrag = -1; } }}>
   <span class="label" role="button" tabindex="-1" title={changed ? 'moved · double-click: back to the sound\'s value' : ''} ondblclick={() => onchange(base)}>{label}</span>
   {#if steps}
     <div class="cell steps" role="group" aria-label={label}>

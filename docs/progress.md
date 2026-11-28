@@ -261,3 +261,4 @@ Kept in French, as written with the owner. Newest work at the end of each list.
 - va_insomnie removed: wt_insomnie carries the riff.
 - Web: the effects as one line in signal order (EffectChain): bypass, drag to reorder, × to take out, + Effect at the end of the rack; Add effect left the table's toolbar.
 - Duck LFO: the release is a duration with a curve (mlfo<n>_duck_curve, -1 logarithmic, 0 a line, 1 exponential: an MSEG segment's), drawn in the LFO view; va_pumped_bass on it.
+- Web: a macro's name in the Live player drags onto any setting it can move (marked while dragging) to assign it, the setting left where it is (session.assignMacro).
